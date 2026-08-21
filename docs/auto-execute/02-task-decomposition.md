@@ -17,7 +17,7 @@
 | AV-013 | Visual evidence | Tester + Codex | Capture stable DevTools screens and compare all required UI references | `docs/auto-execute/screenshots/` | AV-011 | UI verifier | PENDING |
 | AV-014 | Final convergence | Reviewer + Codex | Run guards, contract, report integrity, comparison and final gate | full repo | AV-011..AV-013 | final gate | PENDING |
 | AV-015 | Points contract | Architect + Codex | Replace voice-scoped quota contract with one account points balance, configurable values and reserved invitation source | contracts/docs | AV-001 | contract review | PASS |
-| AV-016 | Points backend | Backend builder | Add account/ledger migration, registration grant, success debit and purchase fulfillment | API/PostgreSQL | AV-015 | transaction/idempotency/integration tests | IN_PROGRESS |
-| AV-017 | Points worker | Worker builder | Debit account points in the successful output transaction only | Worker | AV-015, AV-016 | worker integration tests | IN_PROGRESS |
-| AV-018 | Points frontend | Frontend builder | Replace per-voice quota UI with server-authoritative account points and 50-point purchase | mini-program | AV-015 | typecheck/unit/UI flow | IN_PROGRESS |
-| AV-019 | Points acceptance | Codex + verifier | Prove register 5 -> successful debit -> zero/failure -> purchase +50 -> repurchase/continue | full local stack | AV-016..AV-018 | DB/API/page evidence | PENDING |
+| AV-016 | Points backend | Backend builder | Add account/ledger migration, registration grant, success debit and purchase fulfillment | API/PostgreSQL | AV-015 | transaction/idempotency/integration tests | PASS |
+| AV-017 | Points worker | Worker builder | Debit account points in the successful output transaction only | Worker | AV-015, AV-016 | worker integration tests | PASS |
+| AV-018 | Points frontend | Frontend builder | Replace per-voice quota UI with server-authoritative account points and 50-point purchase | mini-program | AV-015 | typecheck/unit/UI flow | PASS |
+| AV-019 | Points acceptance | Codex + verifier | Prove register 5 -> successful debit -> zero/failure -> purchase +50 -> repurchase/continue | full local stack | AV-016..AV-018 | DB/API/page evidence | PASS |

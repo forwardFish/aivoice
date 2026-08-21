@@ -106,6 +106,7 @@ function errorMessage(code: string, fallback = ''): string {
     PREVIEW_NOT_PLAYED: '请先完整播放当前试听。',
     PREVIEW_RETRY_EXHAUSTED: '本次免费重试机会已使用。',
     GENERATION_IN_PROGRESS: '当前声音已有生成任务，请等待完成。',
+    POINTS_EXHAUSTED: '当前积分不足，请先购买积分。',
     QUOTA_EXHAUSTED: '当前积分不足，请先购买积分。',
     CONTENT_BLOCKED: '这段内容不符合使用规则，请修改后重试。',
     PROVIDER_FAILED: '声音服务暂时不可用，本次不会扣积分。',
@@ -410,7 +411,8 @@ export async function getVoiceQuota(voiceId: string): Promise<PointsBalanceRespo
 export async function getPoints(): Promise<PointsBalanceResponse> {
   try {
     return normalizeQuota(await requestRaw({ path: '/points' }))
-  } catch (_error) {
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.statusCode !== 404) throw error
     return normalizeQuota(await requestRaw({ path: '/me' }))
   }
 }
@@ -464,7 +466,8 @@ export async function createOrder(productCode: string, voiceId: string): Promise
 export async function listProducts(): Promise<ProductListResponse> {
   try {
     return normalizeProducts(await requestRaw({ path: '/products' }))
-  } catch (_first) {
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.statusCode !== 404) throw error
     return normalizeProducts(await requestRaw({ path: '/points/products' }))
   }
 }
@@ -499,8 +502,9 @@ export async function listQuotaLedgers(): Promise<PointsLedgersResponse> {
 
 export async function listPointLedgers(): Promise<PointsLedgersResponse> {
   try {
-    return normalizeQuotaLedgers(await requestRaw({ path: '/point-ledgers' }))
-  } catch (_error) {
+    return normalizeQuotaLedgers(await requestRaw({ path: '/points/ledgers' }))
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.statusCode !== 404) throw error
     return listQuotaLedgers()
   }
 }

@@ -6,14 +6,14 @@
 - [x] Dynamic consent is required and persisted before processing.
 - [x] Video/clip constraints and quality errors are visible.
 - [x] Aliyun voice registration and fixed preview work behind Provider Adapter.
-- [ ] First registration grants exactly 5 account points once; preview acceptance grants none.
+- [x] First registration grants exactly 5 account points once; preview acceptance grants none.
 - [x] Exact speech reads supplied text; chat uses only last 10 rounds.
 - [x] Same voice permits only one active generation.
-- [ ] Failure never consumes points; each successful generation consumes exactly 1 account point.
-- [ ] Last successful result is visible/playable when points become zero; no automatic purchase popup.
-- [ ] Next active generation displays backend-configured ¥9.9/50 points purchase option and retains the draft.
-- [ ] Pay notification and active refresh cannot double-grant points.
-- [ ] Repeated purchase adds 50 to the existing account balance.
+- [x] Failure never consumes points; each successful generation consumes exactly 1 account point.
+- [x] Last successful result is visible/playable when points become zero; no automatic purchase popup.
+- [x] Next active generation displays backend-configured ¥9.9/50 points purchase option and retains the draft.
+- [x] Pay notification and active refresh cannot double-grant points.
+- [x] Repeated purchase adds 50 to the existing account balance.
 - [ ] Deletion removes provider voice and private media with compensation status.
 - [x] Frontend contains no server/payment/provider secrets or provider voice ID.
 - [x] PostgreSQL-backed API and Worker full-flow evidence exists.

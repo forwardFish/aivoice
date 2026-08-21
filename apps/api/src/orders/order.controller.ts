@@ -10,12 +10,15 @@ import { loadPointsConfig } from '../quota/points.config.js';
 
 @Controller('products')
 export class ProductsController {
+  constructor(@Inject(OrderService) private readonly orderService: OrderService) {}
+
   @Get()
   list() {
     const product = loadPointsConfig().product;
     return {
       products: [{
         ...product,
+        amountFen: this.orderService.effectiveAmountFen(),
         quota: product.points,
         title: `${product.points}积分包`,
         description: `每次生成消耗${loadPointsConfig().generationCost}积分`,

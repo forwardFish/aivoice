@@ -228,7 +228,7 @@ Page({
       if (!accepted.messageId) throw new Error('服务端未返回生成任务 ID。')
       await this.pollMessage(accepted.messageId)
     } catch (error: any) {
-      if (error instanceof ApiError && error.code === 'QUOTA_EXHAUSTED') {
+      if (error instanceof ApiError && ['POINTS_EXHAUSTED', 'QUOTA_EXHAUSTED'].includes(error.code)) {
         if (!error.purchaseOption && !this.data.purchaseOption) {
           this.setData({ sending: false, pendingText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
           return

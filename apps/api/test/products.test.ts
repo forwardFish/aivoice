@@ -18,7 +18,7 @@ test('products endpoint shape is sourced from backend point configuration', () =
     GENERATION_POINT_COST: '2',
   });
   try {
-    const result = new ProductsController().list();
+    const result = new ProductsController({ effectiveAmountFen: () => 1090 } as any).list();
     assert.deepEqual(result.products, [{
       productCode: 'TEST_POINTS_60',
       amountFen: 1090,

@@ -4,7 +4,7 @@ Updated: 2026-08-21 18:45 +08:00
 
 ## Goal and current verdict
 
-Deliver PRD v0.4 as a native WeChat mini-program with server-authoritative voice authorization, cloning, preview, trial/paid quotas, chat/exact speech and WeChat Pay.
+Deliver PRD v0.4 as a native WeChat mini-program with server-authoritative voice authorization, cloning, preview, shared account points, chat/exact speech and WeChat Pay.
 
 Current verdict: `PASS_WITH_LIMITATION / NOT_RELEASE_READY`.
 
@@ -16,7 +16,7 @@ The integrated local MVP and its primary free-generation flow are real and verif
 - Remote: `https://github.com/forwardFish/aivoice`
 - Branch: `codex/aivoice-fullstack`
 - Remote main baseline: `4071b54 Initial commit`
-- No commit or push has been performed.
+- Current pushed feature baseline: `dbfb7b7 feat: migrate account points contract and add UI references`.
 - Unrelated files were not reset or removed.
 
 ## Frontend delivery and integration
@@ -33,10 +33,10 @@ The integrated local MVP and its primary free-generation flow are real and verif
 
 - NestJS API, Node Worker, PostgreSQL/Drizzle and shared contracts.
 - Hashed expiring sessions; real WeChat code2Session boundary; development mock is forbidden in production.
-- User/voice/media/consent/model/conversation/message/order/quota/job authority in PostgreSQL.
+- User/voice/media/consent/model/conversation/message/order/points/job authority in PostgreSQL.
 - Private signed playback, cross-user ownership checks and source-video deletion.
-- Trial and paid quota buckets, serializable transactions, ledgers and idempotency.
-- Fixed `VOICE_QUOTA_10`: 990 fen, 10 successful outputs, no auto-renew.
+- Shared account point balance, serializable transactions, ledgers and idempotency.
+- Fixed `POINTS_50`: 990 fen, 50 successful outputs, no auto-renew.
 - WeChat Pay v3 prepay, signing, notification verification, freshness, query and one-time quota grant.
 - PostgreSQL job lease, heartbeat, expired-lease recovery and terminal/nonterminal error separation.
 - Aliyun Voice Enrollment and CosyVoice v3.5 Flash, provider ID encryption, SSRF-restricted provider URLs and trusted Aliyun HTTP-to-HTTPS upgrade.
@@ -46,18 +46,18 @@ The integrated local MVP and its primary free-generation flow are real and verif
 
 ## Verification
 
-- Migrations: `0000` through `0005` generated and applied.
+- Migrations: `0000` through `0006` generated and applied.
 - `npm run typecheck`: PASS, including native mini-program.
 - `scripts/local/run-backend-gates.ps1`: PASS.
-- Mini-program contract/business tests: 5 PASS, including zero-quota purchase trigger and draft preservation.
-- API tests with real isolated PostgreSQL: 6 PASS, 0 skipped.
-- Worker tests: 9 PASS.
+- Mini-program contract/business tests: 10 PASS, including `POINTS_EXHAUSTED`, dedicated purchase page, pending-order recovery and draft preservation.
+- API tests with real isolated PostgreSQL: 8 PASS, 0 skipped.
+- Worker tests with real isolated PostgreSQL: 12 PASS, 0 skipped.
 - Python prototype tests: 9 PASS.
 - Production dependency audit: 0 vulnerabilities.
 - Code review: no unresolved finding after reference-file cleanup repair.
 - Architecture review: `CLEAR` for the implemented single-host MVP boundary.
 - Test DB isolation: gates use `aivoice_test`; a known `aivoice` development voice remained `READY` after the full gate.
-- Repeated paid purchases are additive: after one paid generation leaves 9, a second purchase produces 19 and a second purchase ledger rather than overwriting balance.
+- Repeated paid purchases are additive: the page-click flow produced 0 -> 50 -> 100 with separate paid orders and purchase ledgers.
 
 ## Continuous live main-flow acceptance
 
@@ -74,7 +74,7 @@ One continuous WeChat DevTools run passed 12 recorded stages:
 7. SELF profile and canonical consent submitted.
 8. Real Aliyun enrollment and 5.81-second preview produced.
 9. Preview played completely and server timing proof accepted.
-10. Preview accepted; account trial granted once.
+10. Preview accepted; this historical pre-points run granted the then-current trial quota. The current contract instead grants 5 points at registration.
 11. Workbench opened.
 12. Exact text `请照顾好自己，我们都很想你。` produced a playable 4.29-second audio; quota moved from 1 to 0 while the result remained visible.
 

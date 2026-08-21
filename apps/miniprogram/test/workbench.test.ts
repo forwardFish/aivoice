@@ -16,9 +16,9 @@ test('zero points shows the purchase option only after an active generation and 
         queueMicrotask(() => options.success({
           statusCode: 402,
           data: {
-            code: 'QUOTA_EXHAUSTED',
+            code: 'POINTS_EXHAUSTED',
             purchaseOption: {
-              productCode: 'VOICE_POINTS_50',
+              productCode: 'POINTS_50',
               amountFen: 990,
               points: 50,
               autoRenew: false
@@ -57,7 +57,7 @@ test('zero points shows the purchase option only after an active generation and 
 
   assert.equal(instance.data.purchaseVisible, true)
   assert.equal(instance.data.exactText, '下一次主动生成才显示购买框。')
-  assert.equal(instance.data.purchaseOption.productCode, 'VOICE_POINTS_50')
+  assert.equal(instance.data.purchaseOption.productCode, 'POINTS_50')
   assert.equal(instance.data.purchaseOption.amountFen, 990)
   assert.equal(instance.data.purchaseOption.points, 50)
   assert.equal(instance.data.purchaseOption.autoRenew, false)
@@ -91,7 +91,7 @@ test('purchase action opens the dedicated purchase page with preserved mode and 
       mode: 'exact',
       purchaseVisible: true,
       purchaseOption: {
-        productCode: 'VOICE_POINTS_50',
+        productCode: 'POINTS_50',
         amountFen: 990,
         points: 50,
         autoRenew: false
@@ -105,7 +105,7 @@ test('purchase action opens the dedicated purchase page with preserved mode and 
   instance.buyQuota()
 
   assert.equal(instance.data.purchaseVisible, false)
-  assert.equal(navigatedUrl, '/pages/purchase/index?voiceId=voice-open-purchase&mode=exact&productCode=VOICE_POINTS_50')
+  assert.equal(navigatedUrl, '/pages/purchase/index?voiceId=voice-open-purchase&mode=exact&productCode=POINTS_50')
 })
 
 test('workbench auto-opens purchase recovery when a pending order exists', async () => {
@@ -130,7 +130,7 @@ test('workbench auto-opens purchase recovery when a pending order exists', async
       if (url.includes('/products')) {
         queueMicrotask(() => options.success({
           statusCode: 200,
-          data: { products: [{ productCode: 'VOICE_POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
+          data: { products: [{ productCode: 'POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
         }))
         return {}
       }

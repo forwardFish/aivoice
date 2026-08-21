@@ -16,7 +16,7 @@ test('purchase page validates product mismatch before opening payment', async ()
       if (url.includes('/products')) {
         queueMicrotask(() => options.success({
           statusCode: 200,
-          data: { products: [{ productCode: 'VOICE_POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
+          data: { products: [{ productCode: 'POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
         }))
         return {}
       }
@@ -31,7 +31,7 @@ test('purchase page validates product mismatch before opening payment', async ()
             order: {
               id: 'order-1',
               voiceId: 'voice-1',
-              productCode: 'VOICE_POINTS_50',
+              productCode: 'POINTS_50',
               amountFen: 1990,
               points: 20,
               status: 'CREATED'
@@ -79,7 +79,7 @@ test('purchase page validates product mismatch before opening payment', async ()
       mode: 'exact',
       state: 'success',
       purchaseOption: {
-        productCode: 'VOICE_POINTS_50',
+        productCode: 'POINTS_50',
         amountFen: 990,
         points: 50,
         autoRenew: false
@@ -114,7 +114,7 @@ test('purchase page confirms local paid order and returns to the workbench', asy
       if (url.includes('/products')) {
         queueMicrotask(() => options.success({
           statusCode: 200,
-          data: { products: [{ productCode: 'VOICE_POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
+          data: { products: [{ productCode: 'POINTS_50', amountFen: 990, points: 50, autoRenew: false }] }
         }))
         return {}
       }
@@ -129,7 +129,7 @@ test('purchase page confirms local paid order and returns to the workbench', asy
             order: {
               id: 'order-1',
               voiceId: 'voice-1',
-              productCode: 'VOICE_POINTS_50',
+              productCode: 'POINTS_50',
               amountFen: 990,
               points: 50,
               status: 'CREATED'
@@ -152,7 +152,7 @@ test('purchase page confirms local paid order and returns to the workbench', asy
           data: {
             id: 'order-1',
             voiceId: 'voice-1',
-            productCode: 'VOICE_POINTS_50',
+            productCode: 'POINTS_50',
             amountFen: 990,
             points: 50,
             status: 'PAID',
@@ -168,7 +168,7 @@ test('purchase page confirms local paid order and returns to the workbench', asy
           data: {
             id: 'order-1',
             voiceId: 'voice-1',
-            productCode: 'VOICE_POINTS_50',
+            productCode: 'POINTS_50',
             amountFen: 990,
             points: 50,
             status: 'PAID',
@@ -211,7 +211,7 @@ test('purchase page confirms local paid order and returns to the workbench', asy
       mode: 'exact',
       state: 'success',
       purchaseOption: {
-        productCode: 'VOICE_POINTS_50',
+        productCode: 'POINTS_50',
         amountFen: 990,
         points: 50,
         autoRenew: false
