@@ -30,12 +30,12 @@
       </view>
 
       <view class="wave-shell">
-        <view class="wave-selection"></view>
+        <view class="wave-selection" style="left: {{startPercent}}%; width: {{selectionPercent}}%;"></view>
         <view class="wave-bars">
           <text style="height:18rpx"></text><text style="height:34rpx"></text><text style="height:48rpx"></text><text style="height:28rpx"></text><text style="height:58rpx"></text><text style="height:42rpx"></text><text style="height:66rpx"></text><text style="height:38rpx"></text><text style="height:54rpx"></text><text style="height:30rpx"></text><text style="height:64rpx"></text><text style="height:45rpx"></text><text style="height:57rpx"></text><text style="height:26rpx"></text><text style="height:49rpx"></text><text style="height:62rpx"></text><text style="height:35rpx"></text><text style="height:53rpx"></text><text style="height:24rpx"></text><text style="height:44rpx"></text><text style="height:60rpx"></text><text style="height:32rpx"></text><text style="height:51rpx"></text><text style="height:22rpx"></text>
         </view>
-        <view class="marker marker-start"><view class="marker-handle"></view></view>
-        <view class="marker marker-end"><view class="marker-handle"></view></view>
+        <view class="marker marker-start" style="left: {{startPercent}}%;"><view class="marker-handle"></view></view>
+        <view class="marker marker-end" style="left: {{endPercent}}%;"><view class="marker-handle"></view></view>
       </view>
       <view class="time-labels"><text>{{startText}}</text><text>{{endText}}</text></view>
 
@@ -47,11 +47,11 @@
       <view class="slider-section">
         <view class="slider-row">
           <view class="slider-copy"><text>开始</text><text>{{startText}}</text></view>
-          <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{startSec}}" activeColor="#6654F4" backgroundColor="#E5E3F3" block-color="#6654F4" block-size="22" bindchange="onStartSlider" />
+          <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{startSec}}" activeColor="#6654F4" backgroundColor="#E5E3F3" block-color="#6654F4" block-size="22" bindchanging="onStartSlider" bindchange="onStartSlider" />
         </view>
         <view class="slider-row">
           <view class="slider-copy"><text>结束</text><text>{{endText}}</text></view>
-          <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{endSec}}" activeColor="#9470F5" backgroundColor="#E5E3F3" block-color="#9470F5" block-size="22" bindchange="onEndSlider" />
+          <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{endSec}}" activeColor="#9470F5" backgroundColor="#E5E3F3" block-color="#9470F5" block-size="22" bindchanging="onEndSlider" bindchange="onEndSlider" />
         </view>
       </view>
 

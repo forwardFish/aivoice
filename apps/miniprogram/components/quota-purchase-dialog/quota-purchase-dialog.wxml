@@ -18,7 +18,7 @@
       </view>
       <view class="package-right"><text class="package-price">{{priceText}}</text><text class="package-renew">不自动续费</text></view>
     </view>
-    <view class="benefit-row"><view><text class="benefit-check">✓</text><text>支付后立即到账</text></view><view><text class="benefit-check">✓</text><text>所有声音共享</text></view></view>
+    <view class="benefit-row"><view><text class="benefit-check">✓</text><text>支付成功后自动确认入账</text></view><view><text class="benefit-check">✓</text><text>所有声音共享</text></view></view>
     <text wx:if="{{message}}" class="dialog-message">{{message}}</text>
     <button class="dialog-primary" disabled="{{paying || pending}}" bindtap="buy">{{paying ? '正在调起支付…' : pending ? '正在确认到账…' : '立即购买'}}</button>
     <button class="dialog-secondary" disabled="{{paying || pending}}" bindtap="cancel">稍后再说</button>

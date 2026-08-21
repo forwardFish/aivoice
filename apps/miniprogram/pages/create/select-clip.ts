@@ -6,6 +6,12 @@ import { getCreationSession, patchCreationSession } from '../../utils/storage'
 const MIN_CLIP_SECONDS = 10
 const MAX_CLIP_SECONDS = 30
 
+function toPercent(valueSec: number, durationSec: number): number {
+  if (!Number.isFinite(durationSec) || durationSec <= 0) return 0
+  const value = Math.max(0, Math.min(100, valueSec / durationSec * 100))
+  return Math.round(value * 10000) / 10000
+}
+
 Page({
   data: {
     state: 'loading',
@@ -19,6 +25,9 @@ Page({
     startText: '00:00',
     endText: '00:00',
     selectedText: '00:00',
+    startPercent: 0,
+    endPercent: 0,
+    selectionPercent: 0,
     valid: false,
     confirmed: false,
     saving: false,
@@ -49,7 +58,7 @@ Page({
       startSec,
       endSec
     })
-    this.updateRange(startSec, endSec)
+    this.updateRange(startSec, endSec, durationSec)
   },
   retryFromAlbum() {
     const query = this.data.voiceId ? `?voiceId=${encodeURIComponent(this.data.voiceId)}` : ''
@@ -82,10 +91,13 @@ Page({
     const minEnd = this.data.startSec + MIN_CLIP_SECONDS
     this.updateRange(this.data.startSec, Math.max(value, minEnd))
   },
-  updateRange(startSec: number, endSec: number) {
-    const normalizedStart = Math.max(0, Math.min(startSec, this.data.durationSec))
-    const normalizedEnd = Math.max(normalizedStart, Math.min(endSec, this.data.durationSec))
+  updateRange(startSec: number, endSec: number, durationSec = this.data.durationSec) {
+    const normalizedDuration = Math.max(0, Number(durationSec || 0))
+    const normalizedStart = Math.max(0, Math.min(startSec, normalizedDuration))
+    const normalizedEnd = Math.max(normalizedStart, Math.min(endSec, normalizedDuration))
     const selected = normalizedEnd - normalizedStart
+    const startPercent = toPercent(normalizedStart, normalizedDuration)
+    const endPercent = toPercent(normalizedEnd, normalizedDuration)
     const valid = selected >= MIN_CLIP_SECONDS && selected <= MAX_CLIP_SECONDS
     this.setData({
       startSec: normalizedStart,
@@ -93,6 +105,9 @@ Page({
       startText: formatDurationSeconds(normalizedStart),
       endText: formatDurationSeconds(normalizedEnd),
       selectedText: formatDurationSeconds(selected),
+      startPercent,
+      endPercent,
+      selectionPercent: Math.max(0, Math.round((endPercent - startPercent) * 10000) / 10000),
       valid,
       errorMessage: valid ? '' : selected < MIN_CLIP_SECONDS ? '片段至少需要 10 秒。' : '片段最长为 30 秒。'
     })
