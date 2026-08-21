@@ -17,7 +17,7 @@ test('normalizes the implemented backend voice lifecycle and permission values',
     permissionType: 'OTHER',
     acceptedAt: null,
     previewRetryCount: 0,
-    quota: { trialQuotaRemaining: 0, paidQuotaRemaining: 0, availableQuota: 0, trialEligibility: 'ELIGIBLE' }
+    points: { availablePoints: 0, trialEligibility: 'ELIGIBLE' }
   })
   assert.equal(previewReady.status, 'PREVIEW_READY')
   assert.equal(previewReady.permissionType, 'OTHER')

@@ -8,11 +8,12 @@ Home
  -> upload/process progress
  -> fixed preview (must finish playback)
  -> accept or retry
- -> one free custom generation if account eligible
+ -> account uses its registration-granted 5-point balance
  -> workbench chat / exact speech
- -> result plays normally; quota becomes 0 without popup
- -> next generate attempt returns QUOTA_EXHAUSTED
- -> ¥9.9 / 10 purchase modal
+ -> each successful result consumes 1 point; failures consume 0
+ -> result plays normally when points become 0 without popup
+ -> next generate attempt returns POINTS_EXHAUSTED
+ -> ¥9.9 / 50 points purchase modal
  -> wx.requestPayment
  -> server-confirmed order refresh
  -> draft remains and generation can continue

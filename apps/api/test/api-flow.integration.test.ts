@@ -10,7 +10,7 @@ import test from 'node:test';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { DatabaseService } from '../src/db/database.service.js';
-import { mediaAssets, voiceProfiles } from '../src/db/schema.js';
+import { mediaAssets, orders, pointAccounts, voiceProfiles } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import { QuotaService } from '../src/quota/quota.service.js';
 
@@ -42,7 +42,7 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
   const videoPath = path.join(tempDir, 'authorized.mp4');
   try {
     await database.pool.query(
-      'TRUNCATE quota_ledgers, jobs, media_assets, messages, conversations, orders, voice_models, consent_records, voice_profiles, sessions, users RESTART IDENTITY CASCADE',
+      'TRUNCATE point_ledgers, point_accounts, quota_ledgers, jobs, media_assets, messages, conversations, orders, voice_models, consent_records, voice_profiles, sessions, users RESTART IDENTITY CASCADE',
     );
     await createVideo(videoPath);
 
@@ -59,6 +59,36 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
     const updatedProfile = await request(app.getHttpServer())
       .patch('/v1/me/profile').set(auth).send({ nickname: '新昵称' }).expect(200);
     assert.equal(updatedProfile.body.user.nickname, '新昵称');
+
+    const permissionCases = [
+      { type: 'SELF', pattern: /我的声音样本/ },
+      { type: 'OTHER', pattern: /明确同意/ },
+      { type: 'MINOR', pattern: /监护人/ },
+    ] as const;
+    for (const permission of permissionCases) {
+      const draft = await request(app.getHttpServer())
+        .post('/v1/voices').set(auth).send({ name: '' }).expect(201);
+      const canonical = await request(app.getHttpServer())
+        .put(`/v1/voices/${draft.body.id}/profile`).set(auth)
+        .send({ name: `${permission.type} 授权`, permissionType: permission.type }).expect(200);
+      assert.match(canonical.body.consentText, permission.pattern);
+      await request(app.getHttpServer())
+        .post(`/v1/voices/${draft.body.id}/consents`).set(auth)
+        .send({
+          consentVersion: canonical.body.consentVersion,
+          consentText: `${canonical.body.consentText}篡改`,
+          confirmed: true,
+        })
+        .expect(409);
+      await request(app.getHttpServer())
+        .post(`/v1/voices/${draft.body.id}/consents`).set(auth)
+        .send({
+          consentVersion: canonical.body.consentVersion,
+          consentText: canonical.body.consentText,
+          confirmed: true,
+        })
+        .expect(201);
+    }
 
     const created = await request(app.getHttpServer())
       .post('/v1/voices').set(auth).send({ name: '' }).expect(201);
@@ -109,9 +139,9 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .post(`/v1/voices/${voiceId}/preview-played`).set(auth).send({}).expect(201);
     const accepted = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/accept-preview`).set(auth).send({}).expect(201);
-    assert.equal(accepted.body.trialQuotaRemaining, 1);
-    const ledgers = await request(app.getHttpServer()).get('/v1/quota-ledgers').set(auth).expect(200);
-    assert.equal(ledgers.body.ledgers[0].type, 'TRIAL_GRANT');
+    assert.equal(accepted.body.paidQuotaRemaining, 5);
+    const ledgers = await request(app.getHttpServer()).get('/v1/points/ledgers').set(auth).expect(200);
+    assert.equal(ledgers.body.ledgers[0].type, 'REGISTER_GRANT');
 
     await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/exact-speech`)
@@ -138,11 +168,47 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .get(`/v1/messages/${generated.body.messageId}`).set(auth).expect(200);
     assert.equal(ready.body.status, 'READY');
 
+    const [paidOrder] = await database.db.insert(orders).values({
+      orderNo: 'http-flow-paid-order',
+      userId: login.body.user.id,
+      voiceProfileId: voiceId,
+      productCode: 'POINTS_50',
+      amountFen: 990,
+      quota: 50,
+      points: 50,
+    }).returning();
+    const paidQuota = await quota.grantPaidQuota({
+      userId: login.body.user.id,
+      orderId: paidOrder.id,
+      transactionId: 'http-flow-paid-transaction',
+      paidAt: new Date(),
+    });
+    assert.equal(paidQuota.paidQuotaRemaining, 54);
+    const chat = await request(app.getHttpServer())
+      .post(`/v1/voices/${voiceId}/messages`)
+      .set(auth).set('Idempotency-Key', 'http-flow-chat-1')
+      .send({ text: '今天过得怎么样？' }).expect(201);
+    await quota.completeMessage({
+      userId: login.body.user.id,
+      voiceId,
+      messageId: chat.body.messageId,
+      outputText: '这是由 AI 生成的简短回复。',
+    });
+    const conversation = await request(app.getHttpServer())
+      .get(`/v1/voices/${voiceId}/conversation`).set(auth).expect(200);
+    assert.ok(conversation.body.messages.some((item: { role: string; text: string }) =>
+      item.role === 'USER' && item.text === '今天过得怎么样？'));
+    assert.ok(conversation.body.messages.some((item: { role: string; text: string }) =>
+      item.role === 'ASSISTANT' && item.text === '这是由 AI 生成的简短回复。'));
+
+    await database.db.update(pointAccounts).set({ balance: 0, updatedAt: new Date() })
+      .where(eq(pointAccounts.userId, login.body.user.id));
+
     const exhausted = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/exact-speech`)
       .set(auth).set('Idempotency-Key', 'http-flow-message-2')
       .send({ text: '下一次才出现购买框。' }).expect(402);
-    assert.equal(exhausted.body.code, 'QUOTA_EXHAUSTED');
+    assert.equal(exhausted.body.code, 'POINTS_EXHAUSTED');
     assert.equal(exhausted.body.purchaseOption.amountFen, 990);
 
     const otherLogin = await request(app.getHttpServer())
@@ -151,6 +217,24 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .get(`/v1/voices/${voiceId}`)
       .set('Authorization', `Bearer ${otherLogin.body.token}`)
       .expect(404);
+
+    const deleting = await request(app.getHttpServer())
+      .delete(`/v1/voices/${voiceId}`).set(auth).expect(200);
+    assert.equal(deleting.body.status, 'DELETING');
+    const deletingAgain = await request(app.getHttpServer())
+      .delete(`/v1/voices/${voiceId}`).set(auth).expect(200);
+    assert.equal(deletingAgain.body.status, 'DELETING');
+
+    const accountDeleting = await request(app.getHttpServer())
+      .delete('/v1/account').set(auth).expect(200);
+    assert.equal(accountDeleting.body.status, 'DELETING');
+    await request(app.getHttpServer()).get('/v1/me').set(auth).expect(401);
+    const deletionJobs = await database.pool.query<{ type: string }>(
+      `SELECT type FROM jobs WHERE user_id=$1 AND type IN ('DELETE_VOICE','DELETE_ACCOUNT')`,
+      [login.body.user.id],
+    );
+    assert.ok(deletionJobs.rows.some((job) => job.type === 'DELETE_VOICE'));
+    assert.ok(deletionJobs.rows.some((job) => job.type === 'DELETE_ACCOUNT'));
   } finally {
     await app.close();
     await fs.rm(tempDir, { recursive: true, force: true });

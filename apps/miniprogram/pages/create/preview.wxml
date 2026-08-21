@@ -37,12 +37,12 @@
     <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
 
     <button class="primary-button {{!playCompleted || accepting ? 'button-disabled' : ''}}" bindtap="acceptPreview" disabled="{{!playCompleted || accepting}}">
-      {{accepting ? '正在进入…' : trialEligible ? '使用这个声音，免费体验 1 次' : '使用这个声音'}}
+      {{accepting ? '正在进入…' : '使用这个声音'}}
     </button>
     <button class="secondary-button retry-button" bindtap="retryPreview" disabled="{{retrying}}">
       {{retrying ? '正在重新创建…' : '换一段重新创建'}}
     </button>
 
-    <text class="price-note">后续 ¥9.9 可购买 10 次生成；对话和“说一句”共用，不自动续费。</text>
+    <text class="price-note">新账号已赠送 5 积分；后续 ¥9.9 可购买 50 积分。对话和“说一句”共用账户积分，不自动续费。</text>
   </view>
 </view>

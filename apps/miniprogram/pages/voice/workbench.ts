@@ -1,44 +1,35 @@
 import {
   ApiError,
-  createOrder,
   getConversation,
+  getPoints,
   getMessage,
-  getOrder,
   getVoice,
-  getVoiceQuota,
-  refreshOrder,
-  requestPayment,
+  listProducts,
   sendChatMessage,
   sendExactSpeech
 } from '../../services/api'
 import {
   ConversationMessage,
+  PointsBalanceResponse,
   PurchaseOption,
-  QuotaResponse
 } from '../../models/api'
 import {
   MESSAGE_POLL_ATTEMPTS,
-  ORDER_POLL_ATTEMPTS,
   POLL_INTERVAL_MS
 } from '../../config'
 import { ensureAuthenticated } from '../../utils/navigation'
 import {
-  clearPendingOrderId,
   clearWorkbenchDraft,
   getPendingOrderId,
   getWorkbenchDraft,
-  markPendingOrderPaymentCompleted,
-  pendingOrderPaymentCompleted,
-  setPendingOrderId,
   setWorkbenchDraft
 } from '../../utils/storage'
 import { delay, confirm, toast } from '../../utils/ui'
 import { uuidV4 } from '../../utils/uuid'
 import { voiceInitial } from '../../utils/format'
 
-function quotaLabel(quota: QuotaResponse): string {
-  if (quota.trialQuotaRemaining === 1 && quota.paidQuotaRemaining === 0) return '免费体验 1 次'
-  return `剩余 ${quota.availableQuota} 次`
+function pointsLabel(points: PointsBalanceResponse): string {
+  return `剩余 ${points.availablePoints} 积分`
 }
 
 function messageView(message: ConversationMessage, initial: string): any {
@@ -59,12 +50,10 @@ Page({
     errorMessage: '',
     voiceName: '这个声音',
     voiceInitial: '声',
-    quota: {
-      trialQuotaRemaining: 0,
-      paidQuotaRemaining: 0,
-      availableQuota: 0
-    } as QuotaResponse,
-    quotaText: '剩余 0 次',
+    points: {
+      availablePoints: 0
+    } as PointsBalanceResponse,
+    pointsText: '剩余 0 积分',
     mode: 'chat' as 'chat' | 'exact',
     showModeChooser: false,
     messages: [] as any[],
@@ -135,9 +124,10 @@ Page({
             ? '该声音正在删除或已经删除。'
             : '该声音尚未准备好，请在“我的声音”中继续创建。')
       }
-      const [quota, conversation] = await Promise.all([
-        getVoiceQuota(this.data.voiceId),
-        getConversation(this.data.voiceId)
+      const [points, conversation, products] = await Promise.all([
+        getPoints(),
+        getConversation(this.data.voiceId),
+        listProducts().catch(() => ({ products: [] as PurchaseOption[] }))
       ])
       const initial = voiceInitial(voice.name)
       const messages = conversation.messages.map(item => messageView(item, initial))
@@ -149,8 +139,9 @@ Page({
         errorMessage: '',
         voiceName: voice.name,
         voiceInitial: initial,
-        quota,
-        quotaText: quotaLabel(quota),
+        points,
+        pointsText: pointsLabel(points),
+        purchaseOption: products.products[0] || this.data.purchaseOption,
         messages,
         chatMessages,
         exactResults,
@@ -158,7 +149,9 @@ Page({
       })
       const pendingOrderId = getPendingOrderId(this.data.voiceId)
       if (pendingOrderId && !this.data.paymentPending && !this.data.paying) {
-        this.resumePendingOrder(pendingOrderId)
+        wx.navigateTo({
+          url: `/pages/purchase/index?voiceId=${encodeURIComponent(this.data.voiceId)}&resume=1`
+        })
       }
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '工作台加载失败，请重试。' })
@@ -236,22 +229,8 @@ Page({
       await this.pollMessage(accepted.messageId)
     } catch (error: any) {
       if (error instanceof ApiError && error.code === 'QUOTA_EXHAUSTED') {
-        if (!error.purchaseOption) {
+        if (!error.purchaseOption && !this.data.purchaseOption) {
           this.setData({ sending: false, pendingText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
-          return
-        }
-        if (
-          error.purchaseOption.productCode !== 'VOICE_QUOTA_10' ||
-          error.purchaseOption.amountFen !== 990 ||
-          error.purchaseOption.quota !== 10 ||
-          error.purchaseOption.autoRenew !== false
-        ) {
-          this.setData({
-            sending: false,
-            pendingText: '',
-            pendingMode: '',
-            errorMessage: '服务端商品配置与冻结合同不一致，已停止发起支付。'
-          })
           return
         }
         this.setData({
@@ -259,7 +238,7 @@ Page({
           pendingText: '',
           pendingMode: '',
           purchaseVisible: true,
-          purchaseOption: error.purchaseOption,
+          purchaseOption: this.data.purchaseOption || error.purchaseOption || null,
           purchaseMessage: ''
         })
         return
@@ -268,7 +247,7 @@ Page({
         sending: false,
         pendingText: '',
         pendingMode: '',
-        errorMessage: error.message || '生成失败，本次不会扣次数。'
+        errorMessage: error.message || '生成失败，本次不会扣积分。'
       })
     }
   },
@@ -305,7 +284,7 @@ Page({
       if (result.status === 'FAILED' || result.status === 'BLOCKED') {
         throw new Error(result.status === 'BLOCKED'
           ? '这段内容不符合使用规则，请修改后重试。'
-          : '生成失败，本次不会扣次数。')
+          : '生成失败，本次不会扣积分。')
       }
       await delay(POLL_INTERVAL_MS)
     }
@@ -315,122 +294,15 @@ Page({
     if (this.data.paying || this.data.paymentPending) return
     this.setData({ purchaseVisible: false, purchaseMessage: '' })
   },
-  async buyQuota() {
+  buyQuota() {
     if (this.data.paying || this.data.paymentPending || !this.data.purchaseOption) return
-    const pendingOrderId = getPendingOrderId(this.data.voiceId)
-    if (pendingOrderId) {
-      this.resumePendingOrder(pendingOrderId)
-      return
-    }
-    this.setData({ paying: true, purchaseMessage: '' })
-    let paymentCompleted = false
-    try {
-      const result = await createOrder(this.data.purchaseOption.productCode, this.data.voiceId)
-      if (!result.order.id) throw new Error('服务端未返回订单 ID。')
-      if (
-        result.order.productCode !== this.data.purchaseOption.productCode ||
-        result.order.amountFen !== this.data.purchaseOption.amountFen ||
-        result.order.quota !== this.data.purchaseOption.quota
-      ) {
-        throw new Error('服务端订单商品与购买选项不一致，已停止支付。')
-      }
-      setPendingOrderId(this.data.voiceId, result.order.id)
-      const payment = result.payment
-      if (!payment.timeStamp || !payment.nonceStr || !payment.package || !payment.paySign) {
-        throw new Error('微信支付参数不完整。')
-      }
-      await requestPayment(payment)
-      paymentCompleted = true
-      markPendingOrderPaymentCompleted(this.data.voiceId, result.order.id)
-      this.setData({ paying: false, paymentPending: true, purchaseMessage: '支付已完成，正在确认次数入账…' })
-      await this.pollOrderUntilGranted(result.order.id)
-    } catch (error: any) {
-      this.setData({ paying: false })
-      if (error.isPaymentCancel || error.code === 'PAYMENT_CANCELLED') {
-        clearPendingOrderId(this.data.voiceId)
-        this.setData({ purchaseVisible: false, paymentPending: false, purchaseMessage: '' })
-        toast('已取消支付，输入内容已保留')
-        return
-      }
-      if (!paymentCompleted) clearPendingOrderId(this.data.voiceId)
-      this.setData({ paymentPending: false, purchaseMessage: error.message || '支付未完成，请重试。' })
-    }
-  },
-  async resumePendingOrder(orderId: string) {
-    if (!orderId || this.data.paymentPending) return
-    try {
-      let order
-      try {
-        order = await refreshOrder(orderId)
-      } catch (_error) {
-        order = await getOrder(orderId)
-      }
-      if (order.status === 'CLOSED' || order.status === 'REFUNDED') {
-        clearPendingOrderId(this.data.voiceId)
-        this.setData({ paymentPending: false, purchaseVisible: false, purchaseMessage: '' })
-        return
-      }
-      const clientPaymentCompleted = pendingOrderPaymentCompleted(this.data.voiceId, orderId)
-      if ((order.status === 'CREATED' || order.status === 'PENDING') && !order.quotaGranted && !order.quotaGrantedAt && !clientPaymentCompleted) {
-        clearPendingOrderId(this.data.voiceId)
-        this.setData({ paymentPending: false, purchaseVisible: false, purchaseMessage: '' })
-        return
-      }
-      const option: PurchaseOption | null = order.amountFen && order.quota && order.productCode
-        ? {
-            productCode: order.productCode,
-            amountFen: order.amountFen,
-            quota: order.quota,
-            autoRenew: false
-          }
-        : this.data.purchaseOption
-      this.setData({
-        purchaseVisible: true,
-        purchaseOption: option,
-        paymentPending: true,
-        purchaseMessage: '正在恢复支付结果确认…'
-      })
-      await this.pollOrderUntilGranted(orderId)
-    } catch (error: any) {
-      clearPendingOrderId(this.data.voiceId)
-      this.setData({ paymentPending: false, purchaseVisible: false, errorMessage: error.message || '无法恢复支付订单。' })
-    }
-  },
-  async pollOrderUntilGranted(orderId: string) {
-    for (let attempt = 0; attempt < ORDER_POLL_ATTEMPTS; attempt += 1) {
-      if (this.destroyed) return
-      let order
-      try {
-        order = await refreshOrder(orderId)
-      } catch (_error) {
-        order = await getOrder(orderId)
-      }
-      const quota = await getVoiceQuota(this.data.voiceId)
-      const serverConfirmedGrant = Boolean(order.quotaGranted || order.quotaGrantedAt)
-      if (quota.availableQuota > 0 && order.status === 'PAID' && serverConfirmedGrant) {
-        clearPendingOrderId(this.data.voiceId)
-        this.setData({
-          paymentPending: false,
-          purchaseVisible: false,
-          purchaseMessage: '',
-          quota,
-          quotaText: quotaLabel(quota)
-        })
-        toast('购买成功，10 次已到账', 'success')
-        await this.loadData(false)
-        return
-      }
-      if (order.status === 'CLOSED' || order.status === 'REFUNDED') {
-        clearPendingOrderId(this.data.voiceId)
-        throw new Error('订单已关闭或退款，未增加生成次数。')
-      }
-      await delay(POLL_INTERVAL_MS)
-    }
-    this.setData({
-      paymentPending: false,
-      purchaseVisible: false,
-      errorMessage: '支付结果仍在服务端确认。输入内容已保留，请稍后重新进入页面刷新。'
-    })
+    const query = [
+      `voiceId=${encodeURIComponent(this.data.voiceId)}`,
+      `mode=${encodeURIComponent(this.data.mode)}`,
+      `productCode=${encodeURIComponent(this.data.purchaseOption.productCode)}`
+    ].join('&')
+    this.setData({ purchaseVisible: false, purchaseMessage: '' })
+    wx.navigateTo({ url: `/pages/purchase/index?${query}` })
   },
   async clearConversationFromMenu() {
     const accepted = await confirm({

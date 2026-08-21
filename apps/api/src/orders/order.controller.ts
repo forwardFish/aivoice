@@ -6,6 +6,23 @@ import type { AuthenticatedUser } from '../auth/auth.types.js';
 import { WechatPayService } from '../payments/wechat-pay.service.js';
 import { CreateOrderDto } from './order.dto.js';
 import { OrderService } from './order.service.js';
+import { loadPointsConfig } from '../quota/points.config.js';
+
+@Controller('products')
+export class ProductsController {
+  @Get()
+  list() {
+    const product = loadPointsConfig().product;
+    return {
+      products: [{
+        ...product,
+        quota: product.points,
+        title: `${product.points}积分包`,
+        description: `每次生成消耗${loadPointsConfig().generationCost}积分`,
+      }],
+    };
+  }
+}
 
 @Controller('orders')
 @UseGuards(AuthGuard)
@@ -38,5 +55,11 @@ export class OrderController {
   @Post(':orderId/refresh')
   refresh(@CurrentUser() user: AuthenticatedUser, @Param('orderId') orderId: string) {
     return this.wechatPay.refreshOrder(user.id, orderId);
+  }
+
+  @Post(':orderId/mock-paid')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  confirmLocalTestPayment(@CurrentUser() user: AuthenticatedUser, @Param('orderId') orderId: string) {
+    return this.wechatPay.confirmLocalTestPayment(user.id, orderId);
   }
 }

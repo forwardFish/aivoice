@@ -39,12 +39,12 @@ export interface AuthWechatResponse {
   trialEligibility?: TrialEligibility
 }
 
-export interface QuotaResponse {
-  trialQuotaRemaining: number
-  paidQuotaRemaining: number
-  availableQuota: number
+export interface PointsBalanceResponse {
+  availablePoints: number
   trialEligibility?: TrialEligibility
 }
+
+export type QuotaResponse = PointsBalanceResponse
 
 export interface RecoverableVoiceError {
   code?: string
@@ -68,6 +68,7 @@ export interface VoiceSummary {
   previewText?: string
   previewAudioUrl?: string
   freeRetryRemaining?: number
+  points: PointsBalanceResponse
   quota: QuotaResponse
   error?: RecoverableVoiceError
 }
@@ -125,6 +126,7 @@ export interface PreviewResponse {
 
 export interface AcceptPreviewResponse {
   voice: VoiceDetail
+  points: PointsBalanceResponse
   quota: QuotaResponse
   trialGranted?: boolean
 }
@@ -144,6 +146,7 @@ export interface ConversationMessage {
 export interface ConversationResponse {
   conversationId?: string
   messages: ConversationMessage[]
+  points?: PointsBalanceResponse
   quota?: QuotaResponse
 }
 
@@ -160,14 +163,18 @@ export interface MessageStatusResponse {
   durationMs?: number
   failureCode?: string
   message?: ConversationMessage
+  points?: PointsBalanceResponse
   quota?: QuotaResponse
 }
 
 export interface PurchaseOption {
-  productCode: 'VOICE_QUOTA_10' | string
+  productCode: string
   amountFen: number
-  quota: number
+  points: number
+  quota?: number
   autoRenew: boolean
+  title?: string
+  description?: string
 }
 
 export interface WechatPaymentParams {
@@ -188,8 +195,11 @@ export interface OrderDetail {
   voiceId?: string
   productCode?: string
   amountFen?: number
+  points?: number
   quota?: number
   status: OrderStatus
+  pointsGranted?: boolean
+  pointsGrantedAt?: string
   quotaGranted?: boolean
   quotaGrantedAt?: string
   createdAt?: string
@@ -200,21 +210,26 @@ export interface OrdersResponse {
   orders: OrderDetail[]
 }
 
-export interface QuotaLedgerItem {
+export interface PointsLedgerItem {
   id: string
   voiceId?: string
   voiceName?: string
-  bucket?: 'TRIAL' | 'PAID'
   type?: string
   amount: number
-  trialBalanceAfter?: number
-  paidBalanceAfter?: number
   balanceAfter?: number
   createdAt?: string
 }
 
-export interface QuotaLedgersResponse {
-  ledgers: QuotaLedgerItem[]
+export type QuotaLedgerItem = PointsLedgerItem
+
+export interface PointsLedgersResponse {
+  ledgers: PointsLedgerItem[]
+}
+
+export type QuotaLedgersResponse = PointsLedgersResponse
+
+export interface ProductListResponse {
+  products: PurchaseOption[]
 }
 
 export interface MeResponse {

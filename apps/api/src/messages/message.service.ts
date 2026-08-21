@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { evaluateContentSafety, VOICE_QUOTA_PRODUCT } from '@aivoice/contracts';
+import { evaluateContentSafety } from '@aivoice/contracts';
 import { and, desc, eq, gt, inArray } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
 import { conversations, mediaAssets, messages } from '../db/schema.js';
 import { MediaService } from '../media/media.service.js';
+import { loadPointsConfig } from '../quota/points.config.js';
 
 @Injectable()
 export class MessageService {
@@ -45,23 +46,36 @@ export class MessageService {
         await client.query('COMMIT');
         return { messageId: existing.rows[0].id, status: existing.rows[0].status };
       }
+      const accountResult = await client.query<{ balance: number }>(
+        'SELECT balance FROM point_accounts WHERE user_id = $1 FOR UPDATE',
+        [input.userId],
+      );
+      const account = accountResult.rows[0];
+      if (!account) throw new NotFoundException('point account not found');
       const voiceResult = await client.query<{
         status: string;
         accepted_at: Date | null;
-        trial_quota_remaining: number;
-        paid_quota_remaining: number;
       }>(
-        `SELECT status, accepted_at, trial_quota_remaining, paid_quota_remaining
+        `SELECT status, accepted_at
          FROM voice_profiles WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL FOR UPDATE`,
         [input.voiceId, input.userId],
       );
       const voice = voiceResult.rows[0];
       if (!voice) throw new NotFoundException('voice not found');
       if (voice.status !== 'READY' || !voice.accepted_at) throw new ConflictException('VOICE_NOT_READY');
-      if (voice.trial_quota_remaining + voice.paid_quota_remaining <= 0) {
+      const activeResult = await client.query<{ active_count: number }>(
+        `SELECT COUNT(*)::integer AS active_count FROM messages
+         WHERE user_id = $1 AND status IN ('PENDING', 'PROCESSING')`,
+        [input.userId],
+      );
+      const config = loadPointsConfig();
+      const requiredPoints = config.generationCost * (Number(activeResult.rows[0]?.active_count || 0) + 1);
+      if (Number(account.balance) < requiredPoints) {
         throw new HttpException({
-          code: 'QUOTA_EXHAUSTED',
-          purchaseOption: VOICE_QUOTA_PRODUCT,
+          code: 'POINTS_EXHAUSTED',
+          availablePoints: Number(account.balance),
+          generationCost: config.generationCost,
+          purchaseOption: config.product,
         }, 402);
       }
       const active = await client.query(

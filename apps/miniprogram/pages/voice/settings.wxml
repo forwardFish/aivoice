@@ -2,7 +2,7 @@
   <app-nav title="声音设置" back="{{true}}"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="settings-state">
-    <page-state mode="loading" title="正在读取声音设置" description="正在同步服务端资料、状态和次数…"></page-state>
+    <page-state mode="loading" title="正在读取声音设置" description="正在同步服务端资料、状态和积分…"></page-state>
   </view>
 
   <view wx:elif="{{state === 'error'}}" class="settings-state soft-card">
@@ -18,7 +18,7 @@
       <view class="hero-wave"><text></text><text></text><text></text><text></text><text></text></view>
       <view class="hero-copy">
         <text class="hero-name">{{voiceName}}</text>
-        <text class="hero-meta">{{statusText}} · 剩余 {{availableQuota}} 次</text>
+        <text class="hero-meta">{{statusText}} · 剩余 {{availablePoints}} 积分</text>
       </view>
     </view>
 
@@ -48,20 +48,16 @@
     </view>
 
     <view class="section-heading">
-      <text class="section-title">生成次数</text>
-      <text class="section-caption">免费和付费次数共用于对话与“说一句”。</text>
+      <text class="section-title">账户积分</text>
+      <text class="section-caption">积分为账号级余额，对话和“说一句”共用。</text>
     </view>
     <view class="quota-card soft-card">
       <view class="quota-total">
-        <text class="quota-number">{{availableQuota}}</text>
-        <text>可用次数</text>
+        <text class="quota-number">{{availablePoints}}</text>
+        <text>可用积分</text>
       </view>
-      <view class="quota-detail">
-        <view><text>{{trialQuota}}</text><text>免费体验</text></view>
-        <view class="quota-divider"></view>
-        <view><text>{{paidQuota}}</text><text>付费次数</text></view>
-      </view>
-      <button class="orders-link" bindtap="openAccount">查看订单与次数流水</button>
+      <button wx:if="{{availablePoints === 0}}" class="orders-link buy-link" bindtap="openPurchase">购买积分</button>
+      <button class="orders-link" bindtap="openAccount">查看订单与积分流水</button>
     </view>
 
     <view class="section-heading {{focus === 'conversation' ? 'focused-heading' : ''}}">
@@ -78,8 +74,8 @@
       </view>
       <view class="action-row" bindtap="openAccount">
         <view>
-          <text class="action-title">订单与次数记录</text>
-          <text class="action-copy">查看服务端订单和额度流水</text>
+          <text class="action-title">订单与积分记录</text>
+          <text class="action-copy">查看服务端订单和积分流水</text>
         </view>
         <text class="action-state">›</text>
       </view>

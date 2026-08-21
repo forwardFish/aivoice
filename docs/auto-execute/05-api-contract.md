@@ -2,12 +2,14 @@
 
 Base path: `/v1`. JSON unless an upload endpoint explicitly uses multipart or returns a signed policy.
 
+Backend configuration defaults: `SIGNUP_BONUS_POINTS=5`, `GENERATION_POINT_COST=1`, `POINTS_PACKAGE_CODE=POINTS_50`, `POINTS_PACKAGE_PRICE_FEN=990`, `POINTS_PACKAGE_AMOUNT=50`, `POINTS_VALIDITY_DAYS=180`. Invalid/non-positive values fail closed to validated defaults; the client only renders values returned by the API.
+
 ## Auth
 
 | Method | Path | Request | Response |
 |---|---|---|---|
-| POST | `/auth/wechat` | `{ code, profile?: { nickname, avatarUrl } }` | `{ token, user, trialEligibility }` |
-| GET | `/me` | Bearer | `{ user, trialEligibility, voiceCount }` |
+| POST | `/auth/wechat` | `{ code, profile?: { nickname, avatarUrl } }` | `{ token, user, points }`; first registration atomically grants signup points |
+| GET | `/me` | Bearer | `{ user, voiceCount, points }` |
 | PATCH | `/me/profile` | `{ nickname?, avatarUrl? }` | `{ user }` |
 
 ## Voices and media
@@ -27,7 +29,7 @@ Base path: `/v1`. JSON unless an upload endpoint explicitly uses multipart or re
 | GET | `/voices/:id` | status, preview, quota, recoverable error |
 | GET | `/voices/:id/preview` | signed preview audio URL |
 | POST | `/voices/:id/preview-played` | record completion from the player `ended` event; rejected until server-observed preview stream time reaches its duration |
-| POST | `/voices/:id/accept-preview` | mark accepted and grant trial once |
+| POST | `/voices/:id/accept-preview` | mark accepted; does not grant points |
 | POST | `/voices/:id/retry-preview` | return to clip selection without charge |
 | DELETE | `/voices/:id` | schedule provider/storage deletion |
 
@@ -37,33 +39,33 @@ All generation POSTs require `Idempotency-Key: UUIDv4`.
 
 | Method | Path | Request | Response |
 |---|---|---|---|
-| GET | `/voices/:id/quota` | none | quota response |
+| GET | `/points` | none | authoritative account points and backend product config |
+| GET | `/voices/:id/quota` | none | temporary compatibility alias; returns the same account-level points |
 | GET | `/voices/:id/conversation` | none | last 10 rounds |
 | DELETE | `/voices/:id/conversation` | none | cleared |
 | POST | `/voices/:id/messages` | `{ text }` | `{ messageId, status: "PROCESSING" }` |
 | POST | `/voices/:id/exact-speech` | `{ text }` | `{ messageId, status: "PROCESSING" }` |
 | GET | `/messages/:id` | none | status/text/signed audio/quota |
 
-Quota response:
+Points response:
 
 ```json
 {
-  "trialQuotaRemaining": 0,
-  "paidQuotaRemaining": 6,
-  "availableQuota": 6,
-  "trialEligibility": "USED"
+  "balance": 53,
+  "availablePoints": 53,
+  "generationCost": 1
 }
 ```
 
-Zero quota response (HTTP 402):
+Zero-points response (HTTP 402):
 
 ```json
 {
-  "code": "QUOTA_EXHAUSTED",
+  "code": "POINTS_EXHAUSTED",
   "purchaseOption": {
-    "productCode": "VOICE_QUOTA_10",
+    "productCode": "POINTS_50",
     "amountFen": 990,
-    "quota": 10,
+    "points": 50,
     "autoRenew": false
   }
 }
@@ -73,14 +75,16 @@ Zero quota response (HTTP 402):
 
 | Method | Path | Request/response |
 |---|---|---|
-| POST | `/orders` | `{ productCode: "VOICE_QUOTA_10", voiceId }` -> order + JSAPI payment params |
-| GET | `/orders/:id` | user-owned order and quota grant status |
+| GET | `/products` | backend-configured points product; current defaults are 50 points / 990 fen |
+| POST | `/orders` | `{ productCode: "POINTS_50", voiceId? }` -> order + JSAPI payment params |
+| GET | `/orders/:id` | user-owned order and points-grant status |
 | POST | `/orders/:id/refresh` | active WeChat query and convergence |
 | POST | `/payments/wechat/notify` | raw-body verified WeChat notification |
 | GET | `/orders` | current user's orders |
-| GET | `/quota-ledgers` | current user's quota ledger |
+| GET | `/points/ledgers` | current user's points ledger |
+| GET | `/quota-ledgers` | temporary compatibility alias |
 | DELETE | `/account` | idempotent deletion workflow |
 
 ## Error codes
 
-`UNAUTHORIZED`, `INVALID_MEDIA`, `CLIP_TOO_SHORT`, `CONSENT_REQUIRED`, `VOICE_NOT_READY`, `PREVIEW_NOT_PLAYED`, `PREVIEW_RETRY_EXHAUSTED`, `GENERATION_IN_PROGRESS`, `QUOTA_EXHAUSTED`, `CONTENT_BLOCKED`, `PROVIDER_FAILED`, `ORDER_NOT_FOUND`, `PAYMENT_MISMATCH`, `INTERNAL_ERROR`.
+`UNAUTHORIZED`, `INVALID_MEDIA`, `CLIP_TOO_SHORT`, `CONSENT_REQUIRED`, `VOICE_NOT_READY`, `PREVIEW_NOT_PLAYED`, `PREVIEW_RETRY_EXHAUSTED`, `GENERATION_IN_PROGRESS`, `POINTS_EXHAUSTED`, `CONTENT_BLOCKED`, `PROVIDER_FAILED`, `ORDER_NOT_FOUND`, `PAYMENT_MISMATCH`, `INTERNAL_ERROR`. `QUOTA_EXHAUSTED` is accepted only as a temporary compatibility code during migration.

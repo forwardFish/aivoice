@@ -1,12 +1,12 @@
 import {
   deleteAccount,
   getMe,
+  getPoints,
   listOrders,
-  listQuotaLedgers,
-  listVoices,
+  listPointLedgers,
   updateMeProfile
 } from '../../services/api'
-import { OrderDetail, QuotaLedgerItem, UserProfile } from '../../models/api'
+import { OrderDetail, PointsLedgerItem, UserProfile } from '../../models/api'
 import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { clearLocalProjectData, setUser } from '../../utils/storage'
@@ -29,23 +29,26 @@ function orderView(order: OrderDetail): any {
   return {
     ...order,
     priceText: order.amountFen == null ? '金额待确认' : formatPrice(order.amountFen),
-    quotaText: order.quota == null ? '次数待确认' : `${order.quota} 次`,
+    pointsText: order.points == null ? '积分待确认' : `${order.points} 积分`,
     statusText: orderStatusLabel(order.status),
     timeText: formatDateTime(order.paidAt || order.createdAt)
   }
 }
 
-function ledgerView(item: QuotaLedgerItem): any {
+function ledgerView(item: PointsLedgerItem): any {
   const typeMap: Record<string, string> = {
-    TRIAL_GRANT: '免费体验赠送',
-    PURCHASE_GRANT: '购买次数到账',
-    GENERATION_CONSUME: '成功生成消耗',
+    REGISTER_GRANT: '注册赠送积分',
+    TRIAL_GRANT: '新用户赠送积分',
+    PURCHASE_GRANT: '购买积分到账',
+    GENERATION_CONSUME: '成功生成扣除积分',
     REFUND: '退款调整',
-    MANUAL_ADJUST: '人工调整'
+    MANUAL_ADJUST: '人工调整',
+    MANUAL_ADJUSTMENT: '人工调整',
+    INVITE_GRANT: '邀请奖励积分'
   }
   return {
     ...item,
-    title: typeMap[String(item.type || '')] || item.type || '次数变动',
+    title: typeMap[String(item.type || '')] || item.type || '积分变动',
     amountText: item.amount > 0 ? `+${item.amount}` : String(item.amount),
     positive: item.amount > 0,
     timeText: formatDateTime(item.createdAt)
@@ -59,7 +62,7 @@ Page({
     user: null as UserProfile | null,
     userInitial: '我',
     voiceCount: 0,
-    availableQuota: 0,
+    availablePoints: 0,
     orders: [] as any[],
     ledgers: [] as any[],
     orderExpanded: false,
@@ -77,14 +80,12 @@ Page({
   async loadAccount(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
     try {
-      const [me, voicesResult, ordersResult, ledgersResult] = await Promise.all([
+      const [me, points, ordersResult, ledgersResult] = await Promise.all([
         getMe(),
-        listVoices(),
+        getPoints(),
         listOrders(),
-        listQuotaLedgers()
+        listPointLedgers()
       ])
-      const usableVoices = voicesResult.voices.filter(voice => voice.status !== 'DELETED')
-      const availableQuota = usableVoices.reduce((sum, voice) => sum + Number(voice.quota.availableQuota || 0), 0)
       const orders = ordersResult.orders
         .slice()
         .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
@@ -97,8 +98,8 @@ Page({
         state: 'success',
         user: me.user,
         userInitial: voiceInitial(me.user.nickname || '我'),
-        voiceCount: me.voiceCount == null ? usableVoices.length : me.voiceCount,
-        availableQuota,
+        voiceCount: me.voiceCount == null ? 0 : me.voiceCount,
+        availablePoints: points.availablePoints,
         orders,
         ledgers
       })
@@ -161,7 +162,7 @@ Page({
       },
       service: {
         title: '退款与售后',
-        content: '支付、生成或删除异常时，请通过小程序客服提供订单时间和声音名称。支付结果与生成次数均以服务端记录为准。'
+        content: '支付、生成或删除异常时，请通过小程序客服提供订单时间和声音名称。支付结果与积分到账均以服务端记录为准。'
       },
       feedback: {
         title: '意见反馈',
@@ -181,7 +182,7 @@ Page({
       },
       terms: {
         title: '服务协议',
-        content: 'AI 生成回复和语音不代表声音本人真实表达；购买的是成功生成次数，不是声音模型所有权或自动续费会员。'
+        content: 'AI 生成回复和语音不代表声音本人真实表达；购买的是成功生成所需积分，不是声音模型所有权或自动续费会员。'
       }
     }
     const item = contentMap[type]

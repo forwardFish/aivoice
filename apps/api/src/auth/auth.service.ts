@@ -3,6 +3,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { and, count, eq, gt, isNull } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
 import { sessions, users, voiceProfiles } from '../db/schema.js';
+import { QuotaService } from '../quota/quota.service.js';
 import type { AuthenticatedUser } from './auth.types.js';
 import { WechatCodeExchanger } from './wechat-code-exchanger.js';
 
@@ -41,6 +42,7 @@ export class AuthService {
     token: string;
     user: AuthenticatedUser;
     trialEligibility: 'ELIGIBLE' | 'GRANTED' | 'USED';
+    points: Awaited<ReturnType<QuotaService['getPoints']>>;
   }> {
     const code = input.code.trim();
     if (!code) throw new UnauthorizedException('WeChat login code is required');
@@ -68,6 +70,7 @@ export class AuthService {
       })
       .returning();
 
+    const points = await new QuotaService(this.database).ensureSignupGrant(user.id);
     const token = randomBytes(32).toString('base64url');
     const ttlDays = Math.max(1, Number(process.env.SESSION_TTL_DAYS || 30));
     await this.database.db.insert(sessions).values({
@@ -80,6 +83,7 @@ export class AuthService {
       token,
       user: publicUser(user),
       trialEligibility: trialEligibility(user),
+      points,
     };
   }
 
@@ -96,6 +100,7 @@ export class AuthService {
       user: publicUser(user),
       trialEligibility: trialEligibility(user),
       voiceCount: Number(voiceCount?.value || 0),
+      points: await new QuotaService(this.database).getPoints(userId),
     };
   }
 

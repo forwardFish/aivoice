@@ -5,30 +5,30 @@
       <view class="bag-body"><text>♡</text></view>
     </view>
     <text class="dialog-title">继续使用“{{voiceName || '这个声音'}}”</text>
-    <text class="dialog-subtitle">当前生成次数已用完</text>
+    <text class="dialog-subtitle">当前积分不足</text>
 
     <view class="product-card">
       <view>
-        <text class="product-quota">{{quotaText}}次</text>
-        <text class="product-copy">AI语音生成</text>
+        <text class="product-quota">{{pointsText}}积分</text>
+        <text class="product-copy">成功生成可用</text>
       </view>
       <text class="product-price">{{priceText}}</text>
     </view>
 
     <view class="benefits">
       <text>· 对话和“说一句”共用</text>
-      <text>· 仅成功生成后扣次数</text>
-      <text>· 失败不扣次数</text>
+      <text>· 仅成功生成后扣积分</text>
+      <text>· 失败不扣积分</text>
       <text>· 不自动续费</text>
     </view>
 
     <view wx:if="{{pending}}" class="pending-box">
       <view class="mini-spinner"></view>
-      <text>{{message || '正在确认支付结果和次数入账…'}}</text>
+      <text>{{message || '正在确认支付结果和积分入账…'}}</text>
     </view>
 
     <button class="buy-button {{paying || pending ? 'is-disabled' : ''}}" bindtap="buy" disabled="{{paying || pending}}">
-      {{paying ? '正在打开微信支付…' : pending ? '正在确认入账…' : '购买' + quotaText + '次  ' + priceText}}
+      {{paying ? '正在打开微信支付…' : pending ? '正在确认入账…' : '去购买页支付'}}
     </button>
     <button class="cancel-button" bindtap="cancel" disabled="{{paying || pending}}">暂不购买</button>
   </view>

@@ -1,0 +1,69 @@
+<view class="purchase-screen">
+  <app-nav title="购买积分" back="{{true}}"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}" class="purchase-state">
+    <page-state mode="loading" title="正在打开购买页" description="正在同步声音、积分和待确认订单…"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="purchase-state soft-card">
+    <page-state mode="error" title="购买信息暂时不可用" description="{{errorMessage}}" actionText="返回工作台" bindaction="goBack"></page-state>
+  </view>
+
+  <view wx:else class="purchase-content fade-in">
+    <view class="hero-card glass-card">
+      <view class="hero-main">
+        <view class="hero-avatar">{{voiceInitial}}</view>
+        <view class="hero-copy">
+          <text class="hero-kicker">积分商品</text>
+          <text class="hero-title">继续使用“{{voiceName}}”</text>
+          <text class="hero-subtitle">购买后，对话和“说一句”会共享账户积分，只在真实成功生成后扣减。</text>
+        </view>
+      </view>
+      <view class="hero-quota">
+        <text class="quota-label">{{pointsText}}</text>
+      </view>
+    </view>
+
+    <view class="product-card soft-card">
+      <view class="product-main">
+        <text class="product-quota">{{purchaseOption.points}} 积分</text>
+        <text class="product-copy">{{purchaseOption.description || purchaseOption.productCode}}</text>
+      </view>
+      <view class="product-side">
+        <text class="product-price">{{priceText}}</text>
+        <text class="product-price-note">一次性购买</text>
+      </view>
+    </view>
+
+    <view class="benefit-card soft-card">
+      <view class="benefit-row"><text>对话与“说一句”共用账户积分</text></view>
+      <view class="benefit-row"><text>仅成功生成后扣积分，失败不扣</text></view>
+      <view class="benefit-row"><text>支付结果与到账状态以服务端订单校验为准</text></view>
+      <view class="benefit-row"><text>支付完成后，本页会自动继续确认积分入账</text></view>
+    </view>
+
+    <view class="legal-card soft-card">
+      <text class="legal-title">购买前请知悉</text>
+      <text class="legal-copy">AI 生成语音会明确标注为 AI 生成；本次购买的是成功生成所需积分，不是会员卡，也不会开启自动续费。</text>
+      <view class="legal-links">
+        <text class="legal-link" data-type="terms" bindtap="showAgreement">《服务协议》</text>
+        <text class="legal-separator">·</text>
+        <text class="legal-link" data-type="privacy" bindtap="showAgreement">《隐私政策》</text>
+      </view>
+    </view>
+
+    <view wx:if="{{pending}}" class="pending-box">
+      <view class="mini-spinner"></view>
+      <text>{{purchaseMessage || '正在确认支付结果和积分入账…'}}</text>
+    </view>
+
+    <text wx:if="{{errorMessage}}" class="error-message">{{errorMessage}}</text>
+
+    <view class="footer-actions safe-bottom">
+      <button class="primary-button {{paying || pending ? 'button-disabled' : ''}}" bindtap="submitPurchase" disabled="{{paying || pending}}">
+        {{paying ? '正在打开微信支付…' : pending ? '正在确认入账…' : purchaseOption ? '立即购买 ' + purchaseOption.points + ' 积分 ' + priceText : '正在读取商品…'}}
+      </button>
+      <button class="ghost-button footer-cancel" bindtap="goBack" disabled="{{paying || pending}}">先回工作台</button>
+    </view>
+  </view>
+</view>

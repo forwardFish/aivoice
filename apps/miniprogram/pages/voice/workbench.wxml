@@ -2,7 +2,7 @@
   <app-nav title="{{voiceName}}" back="{{true}}" rightText="设置" bindrighttap="openSettings"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="workbench-state">
-    <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端次数…"></page-state>
+    <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端积分…"></page-state>
   </view>
 
   <view wx:elif="{{state === 'error'}}" class="workbench-state soft-card">
@@ -30,12 +30,12 @@
         <view class="mic-visual"><view class="mic-core"></view></view>
       </view>
 
-      <text class="chooser-note">对话和“说一句”共用服务端生成次数。</text>
+      <text class="chooser-note">对话和“说一句”共用账户积分。</text>
     </view>
 
     <view wx:else>
       <view class="workbench-header">
-        <view class="quota-pill">{{quotaText}}</view>
+        <view class="quota-pill">{{pointsText}}</view>
         <button class="change-mode" bindtap="chooseAnotherMode">切换使用方式</button>
       </view>
 
@@ -63,7 +63,7 @@
             <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
               <text class="message-text">{{item.text}}</text>
               <audio-player wx:if="{{item.showAudio}}" class="message-audio" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI回复" compact="{{true}}"></audio-player>
-              <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣次数' : 'AI回复'}}</text>
+              <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
             </view>
           </view>
 
@@ -113,7 +113,7 @@
           <view wx:for="{{exactResults}}" wx:key="id" class="result-card soft-card">
             <text class="result-text">{{item.text}}</text>
             <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}"></audio-player>
-            <text wx:else class="message-tag">{{item.status === 'FAILED' ? '生成失败，未扣次数' : 'AI生成'}}</text>
+            <text wx:else class="message-tag">{{item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI生成'}}</text>
           </view>
         </view>
       </view>

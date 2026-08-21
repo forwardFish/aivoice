@@ -35,6 +35,9 @@ export const quotaBucket = pgEnum('quota_bucket', ['TRIAL', 'PAID']);
 export const quotaLedgerType = pgEnum('quota_ledger_type', [
   'TRIAL_GRANT', 'PURCHASE_GRANT', 'GENERATION_CONSUME', 'REFUND', 'MANUAL_ADJUSTMENT',
 ]);
+export const pointLedgerType = pgEnum('point_ledger_type', [
+  'REGISTER_GRANT', 'PURCHASE_GRANT', 'GENERATION_CONSUME', 'REFUND', 'MANUAL_ADJUSTMENT', 'INVITE_GRANT',
+]);
 export const jobType = pgEnum('job_type', [
   'PROCESS_VOICE', 'GENERATE_MESSAGE', 'DELETE_VOICE', 'DELETE_ACCOUNT',
 ]);
@@ -74,6 +77,13 @@ export const sessions = pgTable('sessions', {
   uniqueIndex('sessions_token_hash_unique').on(table.tokenHash),
   index('sessions_user_expiry_idx').on(table.userId, table.expiresAt),
 ]);
+
+export const pointAccounts = pgTable('point_accounts', {
+  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  balance: integer('balance').notNull().default(0),
+  signupGrantedAt: timestamp('signup_granted_at', { withTimezone: true }),
+  ...timestamps,
+}, (table) => [check('point_accounts_balance_non_negative', sql`${table.balance} >= 0`)]);
 
 export const voiceProfiles = pgTable('voice_profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -174,15 +184,17 @@ export const orders = pgTable('orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   orderNo: text('order_no').notNull(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  voiceProfileId: uuid('voice_profile_id').notNull().references(() => voiceProfiles.id, { onDelete: 'restrict' }),
+  voiceProfileId: uuid('voice_profile_id').references(() => voiceProfiles.id, { onDelete: 'set null' }),
   productCode: text('product_code').notNull(),
   amountFen: integer('amount_fen').notNull(),
   quota: integer('quota').notNull(),
+  points: integer('points').notNull(),
   status: orderStatus('status').notNull().default('PENDING'),
   prepayId: text('prepay_id').notNull().default(''),
   transactionId: text('transaction_id'),
   paidAt: timestamp('paid_at', { withTimezone: true }),
   quotaGrantedAt: timestamp('quota_granted_at', { withTimezone: true }),
+  pointsGrantedAt: timestamp('points_granted_at', { withTimezone: true }),
   notifyDigest: text('notify_digest').notNull().default(''),
   ...timestamps,
 }, (table) => [
@@ -191,6 +203,28 @@ export const orders = pgTable('orders', {
   index('orders_user_time_idx').on(table.userId, table.createdAt),
   check('orders_amount_positive', sql`${table.amountFen} > 0`),
   check('orders_quota_positive', sql`${table.quota} > 0`),
+  check('orders_points_positive', sql`${table.points} > 0`),
+]);
+
+export const pointLedgers = pgTable('point_ledgers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  voiceProfileId: uuid('voice_profile_id').references(() => voiceProfiles.id, { onDelete: 'set null' }),
+  orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
+  messageId: uuid('message_id').references(() => messages.id, { onDelete: 'set null' }),
+  type: pointLedgerType('type').notNull(),
+  amount: integer('amount').notNull(),
+  balanceAfter: integer('balance_after').notNull(),
+  requestKey: text('request_key'),
+  source: text('source').notNull().default(''),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('point_ledgers_type_order_unique').on(table.type, table.orderId),
+  uniqueIndex('point_ledgers_type_message_unique').on(table.type, table.messageId),
+  uniqueIndex('point_ledgers_type_request_unique').on(table.type, table.requestKey),
+  index('point_ledgers_user_time_idx').on(table.userId, table.createdAt),
+  check('point_ledgers_balance_non_negative', sql`${table.balanceAfter} >= 0`),
+  check('point_ledgers_amount_non_zero', sql`${table.amount} <> 0`),
 ]);
 
 export const quotaLedgers = pgTable('quota_ledgers', {

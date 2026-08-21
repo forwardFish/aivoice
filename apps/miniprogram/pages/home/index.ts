@@ -1,4 +1,4 @@
-import { getHome } from '../../services/api'
+import { getHome, getPoints } from '../../services/api'
 import { formatDateTime, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated, openWorkbench } from '../../utils/navigation'
 
@@ -18,14 +18,14 @@ Page({
   async loadHome(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
     try {
-      const response = await getHome()
+      const [response, points] = await Promise.all([getHome(), getPoints()])
       const voices = response.recentVoices
         .filter(voice => voice.status === 'READY')
         .slice(0, 3)
         .map(voice => ({
           ...voice,
           initial: voiceInitial(voice.name),
-          quotaText: voice.quota.availableQuota > 0 ? `剩余 ${voice.quota.availableQuota} 次` : '剩余 0 次',
+          pointsText: points.availablePoints > 0 ? `剩余 ${points.availablePoints} 积分` : '剩余 0 积分',
           lastUsedText: formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)
         }))
       this.setData({ state: voices.length ? 'success' : 'empty', voices })

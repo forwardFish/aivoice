@@ -25,3 +25,19 @@ export class QuotaLedgerController {
     return this.quotaService.listLedgers(user.id);
   }
 }
+
+@Controller('points')
+@UseGuards(AuthGuard)
+export class PointsController {
+  constructor(@Inject(QuotaService) private readonly quotaService: QuotaService) {}
+
+  @Get()
+  points(@CurrentUser() user: AuthenticatedUser) {
+    return this.quotaService.getPoints(user.id);
+  }
+
+  @Get('ledgers')
+  ledgers(@CurrentUser() user: AuthenticatedUser) {
+    return this.quotaService.listPointLedgers(user.id);
+  }
+}

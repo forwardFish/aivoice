@@ -1,8 +1,37 @@
 {
-  "mode": "serial-fallback",
+  "mode": "native-subagents",
   "runtime_surface": "codex-app",
   "orchestrator": "/root",
-  "agents": [],
+  "agents": [
+    {
+      "id": "/root/ui_reference_audit",
+      "role": "Designer",
+      "assigned_tasks": ["AV-011 UI reference audit"],
+      "allowed_paths": [],
+      "evidence": ["designer final report"]
+    },
+    {
+      "id": "/root/functional_gap_audit",
+      "role": "Analyst",
+      "assigned_tasks": ["AV-012 functional acceptance audit"],
+      "allowed_paths": [],
+      "evidence": ["analyst final report"]
+    },
+    {
+      "id": "/root/purchase_page",
+      "role": "Frontend Builder",
+      "assigned_tasks": ["AV-011 purchase page implementation"],
+      "allowed_paths": [
+        "apps/miniprogram/pages/purchase/",
+        "apps/miniprogram/app.json",
+        "apps/miniprogram/pages/voice/workbench.ts",
+        "apps/miniprogram/pages/voice/workbench.wxml",
+        "apps/miniprogram/components/quota-purchase-dialog/",
+        "apps/miniprogram/test/purchase-page.test.ts"
+      ],
+      "evidence": ["miniprogram typecheck/tests"]
+    }
+  ],
   "external_collaboration": {
     "worker": "ChatGPT Pro",
     "lane": "frontend",
@@ -15,5 +44,5 @@
   },
   "handoff_paths": ["docs/frontend-handoff/FRONTEND_IMPLEMENTATION_BRIEF.md", "docs/auto-execute/latest/HANDOFF.md"],
   "verification_paths": ["docs/auto-execute/verification-results.md"],
-  "fallback_reason": "External ChatGPT Pro frontend lane is required by the user; backend execution remains local and serial."
+  "fallback_reason": null
 }

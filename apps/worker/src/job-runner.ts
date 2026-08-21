@@ -23,6 +23,31 @@ interface JobRow {
   payload: Record<string, unknown>;
 }
 
+interface VoiceProviderPort {
+  readonly targetModel: string;
+  enroll(referencePath: string, prefix: string): Promise<string>;
+  synthesize(voiceId: string, text: string): Promise<Buffer>;
+  deleteVoice(voiceId: string): Promise<void>;
+}
+
+interface ChatProviderPort {
+  reply(history: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
+}
+
+interface JobRunnerDependencies {
+  voiceProvider?: VoiceProviderPort;
+  chatProvider?: ChatProviderPort;
+}
+
+function generationPointCost(): number {
+  const raw = process.env.GENERATION_POINT_COST || '1';
+  const cost = Number(raw);
+  if (!Number.isSafeInteger(cost) || cost <= 0) {
+    throw new Error('GENERATION_POINT_COST must be a positive integer');
+  }
+  return cost;
+}
+
 class ContentBlockedError extends Error {
   constructor(readonly reason: string) {
     super('CONTENT_BLOCKED');
@@ -37,11 +62,16 @@ async function sha256(filePath: string): Promise<string> {
 
 export class JobRunner {
   private readonly mediaRoot = path.resolve(process.env.MEDIA_LOCAL_ROOT || '../../.runtime/media');
-  private readonly voiceProvider = new AliyunCosyVoiceProvider();
-  private readonly chatProvider = new DashscopeChatProvider();
+  private readonly voiceProvider: VoiceProviderPort;
+  private readonly chatProvider: ChatProviderPort;
+  private readonly pointCost: number;
   private stopping = false;
 
-  constructor(private readonly database: WorkerDatabase) {}
+  constructor(private readonly database: WorkerDatabase, dependencies: JobRunnerDependencies = {}) {
+    this.voiceProvider = dependencies.voiceProvider || new AliyunCosyVoiceProvider();
+    this.chatProvider = dependencies.chatProvider || new DashscopeChatProvider();
+    this.pointCost = generationPointCost();
+  }
 
   stop(): void {
     this.stopping = true;
@@ -277,36 +307,34 @@ export class JobRunner {
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
       const locked = await client.query<{
-        trial_quota_remaining: number;
-        paid_quota_remaining: number;
+        balance: number;
         status: string;
       }>(
-        `SELECT v.trial_quota_remaining,v.paid_quota_remaining,m.status
-         FROM messages m JOIN voice_profiles v ON v.id=m.voice_profile_id
-         WHERE m.id=$1 AND m.user_id=$2 FOR UPDATE OF m,v`,
+        `SELECT pa.balance,m.status
+         FROM messages m JOIN point_accounts pa ON pa.user_id=m.user_id
+         WHERE m.id=$1 AND m.user_id=$2 FOR UPDATE OF m,pa`,
         [input.job.message_id, input.job.user_id],
       );
       const row = locked.rows[0];
-      if (!row) throw new Error('message or voice not found');
-      const prior = await client.query(`SELECT id FROM quota_ledgers WHERE type='GENERATION_CONSUME' AND message_id=$1`, [input.job.message_id]);
+      if (!row) throw new Error('message or point account not found');
+      const prior = await client.query(
+        `SELECT id FROM point_ledgers WHERE type='GENERATION_CONSUME' AND message_id=$1`,
+        [input.job.message_id],
+      );
       if (prior.rowCount) {
         await client.query('COMMIT');
         return;
       }
-      let bucket: 'TRIAL' | 'PAID';
-      let balanceAfter: number;
-      if (row.trial_quota_remaining > 0) {
-        bucket = 'TRIAL';
-        balanceAfter = row.trial_quota_remaining - 1;
-        await client.query(`UPDATE voice_profiles SET trial_quota_remaining=$1,last_used_at=NOW(),updated_at=NOW() WHERE id=$2`, [balanceAfter, input.job.voice_profile_id]);
-        await client.query(`UPDATE users SET trial_custom_generation_consumed_at=COALESCE(trial_custom_generation_consumed_at,NOW()),updated_at=NOW() WHERE id=$1`, [input.job.user_id]);
-      } else if (row.paid_quota_remaining > 0) {
-        bucket = 'PAID';
-        balanceAfter = row.paid_quota_remaining - 1;
-        await client.query(`UPDATE voice_profiles SET paid_quota_remaining=$1,last_used_at=NOW(),updated_at=NOW() WHERE id=$2`, [balanceAfter, input.job.voice_profile_id]);
-      } else {
-        throw new Error('QUOTA_EXHAUSTED');
-      }
+      if (row.balance < this.pointCost) throw new Error('POINTS_EXHAUSTED');
+      const balanceAfter = row.balance - this.pointCost;
+      await client.query(
+        `UPDATE point_accounts SET balance=$1,updated_at=NOW() WHERE user_id=$2`,
+        [balanceAfter, input.job.user_id],
+      );
+      await client.query(
+        `UPDATE voice_profiles SET last_used_at=NOW(),updated_at=NOW() WHERE id=$1`,
+        [input.job.voice_profile_id],
+      );
       await client.query(
         `INSERT INTO media_assets
          (id,user_id,voice_profile_id,message_id,kind,status,object_key,mime_type,bytes,duration_ms,sha256,created_at,updated_at)
@@ -315,10 +343,18 @@ export class JobRunner {
       );
       await client.query(`UPDATE messages SET status='READY',output_text=$1,ready_at=NOW(),updated_at=NOW() WHERE id=$2`, [input.outputText, input.job.message_id]);
       await client.query(
-        `INSERT INTO quota_ledgers
-         (id,user_id,voice_profile_id,message_id,type,bucket,amount,balance_after,created_at)
-         VALUES ($1,$2,$3,$4,'GENERATION_CONSUME',$5,-1,$6,NOW())`,
-        [randomUUID(), input.job.user_id, input.job.voice_profile_id, input.job.message_id, bucket, balanceAfter],
+        `INSERT INTO point_ledgers
+         (id,user_id,voice_profile_id,message_id,type,amount,balance_after,request_key,created_at)
+         VALUES ($1,$2,$3,$4,'GENERATION_CONSUME',$5,$6,$7,NOW())`,
+        [
+          randomUUID(),
+          input.job.user_id,
+          input.job.voice_profile_id,
+          input.job.message_id,
+          -this.pointCost,
+          balanceAfter,
+          `generation:${input.job.message_id}`,
+        ],
       );
       await client.query('COMMIT');
     } catch (error) {
@@ -443,28 +479,30 @@ export class JobRunner {
     throw new Error(`job type not implemented: ${job.type}`);
   }
 
+  async runOnce(): Promise<boolean> {
+    const job = await this.acquire();
+    if (!job) return false;
+    try {
+      const heartbeatMs = Math.max(5_000, Number(process.env.WORKER_HEARTBEAT_MS || 60_000));
+      const timer = setInterval(() => {
+        void this.heartbeat(job.id).catch((error) => console.error('worker heartbeat failed', error));
+      }, heartbeatMs);
+      try {
+        await this.execute(job);
+        await this.markSucceeded(job.id);
+      } finally {
+        clearInterval(timer);
+      }
+    } catch (error) {
+      if (error instanceof ContentBlockedError) await this.markBlocked(job, error.reason);
+      else await this.markFailed(job, error);
+    }
+    return true;
+  }
+
   async run(): Promise<void> {
     while (!this.stopping) {
-      const job = await this.acquire();
-      if (!job) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        continue;
-      }
-      try {
-        const heartbeatMs = Math.max(5_000, Number(process.env.WORKER_HEARTBEAT_MS || 60_000));
-        const timer = setInterval(() => {
-          void this.heartbeat(job.id).catch((error) => console.error('worker heartbeat failed', error));
-        }, heartbeatMs);
-        try {
-          await this.execute(job);
-          await this.markSucceeded(job.id);
-        } finally {
-          clearInterval(timer);
-        }
-      } catch (error) {
-        if (error instanceof ContentBlockedError) await this.markBlocked(job, error.reason);
-        else await this.markFailed(job, error);
-      }
+      if (!await this.runOnce()) await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 }

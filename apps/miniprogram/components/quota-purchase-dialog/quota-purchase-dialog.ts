@@ -8,10 +8,10 @@ Component({
       observer(value: any) {
         const option = value || {}
         const amountFen = Number(option.amountFen)
-        const quota = Number(option.quota)
+        const points = Number(option.points ?? option.quota)
         this.setData({
           priceText: Number.isFinite(amountFen) ? `¥${(amountFen / 100).toFixed(1)}` : '—',
-          quotaText: Number.isFinite(quota) ? quota : 0
+          pointsText: Number.isFinite(points) ? points : 0
         })
       }
     },
@@ -21,7 +21,7 @@ Component({
   },
   data: {
     priceText: '—',
-    quotaText: 0
+    pointsText: 0
   },
   methods: {
     noop() {},

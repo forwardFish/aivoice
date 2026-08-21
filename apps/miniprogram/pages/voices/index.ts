@@ -1,4 +1,4 @@
-import { listVoices } from '../../services/api'
+import { getPoints, listVoices } from '../../services/api'
 import { VoiceStatus, VoiceSummary } from '../../models/api'
 import { formatDateTime, voiceInitial } from '../../utils/format'
 import {
@@ -39,9 +39,8 @@ function statusMeta(voice: VoiceSummary): { label: string; tone: string; action:
   return map[voice.status]
 }
 
-function viewModel(voice: VoiceSummary): any {
+function viewModel(voice: VoiceSummary, availablePoints: number): any {
   const meta = statusMeta(voice)
-  const available = Number(voice.quota && voice.quota.availableQuota || 0)
   const progress = Math.max(0, Math.min(100, Number(voice.progress || 0)))
   return {
     ...voice,
@@ -54,7 +53,7 @@ function viewModel(voice: VoiceSummary): any {
     isDisabled: voice.status === 'DELETED',
     showProgress: ['UPLOADING', 'QUEUED', 'PROCESSING', 'DELETING'].indexOf(voice.status) >= 0,
     progress,
-    quotaText: `剩余 ${available} 次`,
+    pointsText: `剩余 ${availablePoints} 积分`,
     metaText: voice.status === 'READY'
       ? `${voice.conversationStyle ? styleLabel(voice.conversationStyle) + ' · ' : ''}${formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)}`
       : voice.error && voice.error.message
@@ -91,10 +90,10 @@ Page({
   async loadVoices(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
     try {
-      const response = await listVoices()
+      const [response, points] = await Promise.all([listVoices(), getPoints()])
       this.allVoiceItems = response.voices
         .filter(item => item.status !== 'DELETED')
-        .map(viewModel)
+        .map(item => viewModel(item, points.availablePoints))
       this.applyFilter()
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音列表加载失败，请重试。' })

@@ -68,7 +68,7 @@
         <view wx:else class="voice-avatar fallback">{{item.initial}}</view>
         <view class="voice-info">
           <text class="voice-name">{{item.name}}</text>
-          <text class="voice-meta">{{item.lastUsedText}} · {{item.quotaText}}</text>
+          <text class="voice-meta">{{item.lastUsedText}} · {{item.pointsText}}</text>
         </view>
         <button class="continue-button" data-id="{{item.id}}" catchtap="openVoice">继续对话</button>
       </view>

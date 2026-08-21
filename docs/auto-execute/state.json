@@ -1,8 +1,8 @@
 {
   "goal_id": "AIVOICE-MVP-001",
   "goal_status": "active",
-  "phase": "integrated-main-flow-accepted-with-release-limitations",
-  "orchestration_mode": "serial-fallback",
+  "phase": "account-points-contract-migration",
+  "orchestration_mode": "native-subagents",
   "external_frontend_worker": "chatgpt-pro",
   "final_verdict": null
 }

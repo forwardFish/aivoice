@@ -1,8 +1,15 @@
-export const VOICE_QUOTA_PRODUCT = Object.freeze({
-  productCode: 'VOICE_QUOTA_10',
+export const POINTS_PRODUCT_DEFAULTS = Object.freeze({
+  productCode: 'POINTS_50',
   amountFen: 990,
-  quota: 10,
+  points: 50,
+  validityDays: 180,
   autoRenew: false,
+});
+
+/** @deprecated Compatibility alias for older mini-program builds. */
+export const VOICE_QUOTA_PRODUCT = Object.freeze({
+  ...POINTS_PRODUCT_DEFAULTS,
+  quota: POINTS_PRODUCT_DEFAULTS.points,
 });
 
 export const ERROR_CODES = [
@@ -21,6 +28,7 @@ export const ERROR_CODES = [
   'PREVIEW_RETRY_EXHAUSTED',
   'GENERATION_IN_PROGRESS',
   'QUOTA_EXHAUSTED',
+  'POINTS_EXHAUSTED',
   'CONTENT_BLOCKED',
   'PROVIDER_FAILED',
   'ORDER_NOT_FOUND',
@@ -49,16 +57,42 @@ export interface QuotaView {
   trialEligibility: TrialEligibility;
 }
 
+export interface PointsProduct {
+  productCode: string;
+  amountFen: number;
+  points: number;
+  validityDays: number;
+  autoRenew: false;
+}
+
+export interface PointsView {
+  balance: number;
+  availablePoints: number;
+  generationCost: number;
+  signupBonusPoints: number;
+  purchaseOption: PointsProduct;
+}
+
 export interface PurchaseOption {
-  productCode: typeof VOICE_QUOTA_PRODUCT.productCode;
-  amountFen: typeof VOICE_QUOTA_PRODUCT.amountFen;
-  quota: typeof VOICE_QUOTA_PRODUCT.quota;
+  productCode: string;
+  amountFen: number;
+  points: number;
+  validityDays: number;
+  /** @deprecated Use points. */
+  quota?: number;
   autoRenew: false;
 }
 
 export interface QuotaExhaustedResponse {
   code: 'QUOTA_EXHAUSTED';
   purchaseOption: PurchaseOption;
+}
+
+export interface PointsExhaustedResponse {
+  code: 'POINTS_EXHAUSTED';
+  availablePoints: number;
+  generationCost: number;
+  purchaseOption: PointsProduct;
 }
 
 export interface WechatLoginRequest {

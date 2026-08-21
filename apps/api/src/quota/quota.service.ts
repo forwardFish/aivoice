@@ -1,55 +1,70 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import type { PointsView, QuotaView } from '@aivoice/contracts';
 import type { PoolClient } from 'pg';
-import type { QuotaView } from '@aivoice/contracts';
 import { DatabaseService } from '../db/database.service.js';
+import { loadPointsConfig } from './points.config.js';
 
-interface LockedVoiceRow {
-  voice_id: string;
+interface LockedPointAccount {
   user_id: string;
+  balance: number;
+  signup_granted_at: Date | null;
+}
+
+interface LockedVoice {
+  id: string;
   status: string;
   accepted_at: Date | null;
   preview_played_at: Date | null;
-  trial_quota_remaining: number;
-  paid_quota_remaining: number;
-  trial_custom_generation_granted_at: Date | null;
-  trial_custom_generation_consumed_at: Date | null;
 }
 
-function toQuota(row: LockedVoiceRow): QuotaView {
+function toPoints(balance: number): PointsView {
+  const config = loadPointsConfig();
   return {
-    trialQuotaRemaining: Number(row.trial_quota_remaining),
-    paidQuotaRemaining: Number(row.paid_quota_remaining),
-    availableQuota: Number(row.trial_quota_remaining) + Number(row.paid_quota_remaining),
-    trialEligibility: row.trial_custom_generation_consumed_at
-      ? 'USED'
-      : row.trial_custom_generation_granted_at
-        ? 'GRANTED'
-        : 'ELIGIBLE',
+    balance,
+    availablePoints: balance,
+    generationCost: config.generationCost,
+    signupBonusPoints: config.signupBonusPoints,
+    purchaseOption: config.product,
   };
 }
 
-async function lockVoice(client: PoolClient, userId: string, voiceId: string): Promise<LockedVoiceRow> {
-  const result = await client.query<LockedVoiceRow>(
-    `SELECT
-       v.id AS voice_id,
-       v.user_id,
-       v.status,
-       v.accepted_at,
-       v.preview_played_at,
-       v.trial_quota_remaining,
-       v.paid_quota_remaining,
-       u.trial_custom_generation_granted_at,
-       u.trial_custom_generation_consumed_at
-     FROM voice_profiles v
-     JOIN users u ON u.id = v.user_id
-     WHERE v.id = $1 AND v.user_id = $2 AND v.deleted_at IS NULL AND u.deleted_at IS NULL
-     FOR UPDATE OF v, u`,
+function toCompatibilityQuota(balance: number): QuotaView {
+  return {
+    trialQuotaRemaining: 0,
+    paidQuotaRemaining: balance,
+    availableQuota: balance,
+    trialEligibility: 'USED',
+  };
+}
+
+async function lockAccount(client: PoolClient, userId: string): Promise<LockedPointAccount> {
+  await client.query(
+    `INSERT INTO point_accounts (user_id, balance, created_at, updated_at)
+     VALUES ($1, 0, NOW(), NOW()) ON CONFLICT (user_id) DO NOTHING`,
+    [userId],
+  );
+  const result = await client.query<LockedPointAccount>(
+    `SELECT a.user_id, a.balance, a.signup_granted_at
+     FROM point_accounts a JOIN users u ON u.id = a.user_id
+     WHERE a.user_id = $1 AND u.deleted_at IS NULL FOR UPDATE OF a`,
+    [userId],
+  );
+  const account = result.rows[0];
+  if (!account) throw new NotFoundException('point account not found');
+  account.balance = Number(account.balance);
+  return account;
+}
+
+async function lockVoice(client: PoolClient, userId: string, voiceId: string): Promise<LockedVoice> {
+  const result = await client.query<LockedVoice>(
+    `SELECT id, status, accepted_at, preview_played_at FROM voice_profiles
+     WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL FOR UPDATE`,
     [voiceId, userId],
   );
-  const row = result.rows[0];
-  if (!row) throw new NotFoundException('voice not found');
-  return row;
+  const voice = result.rows[0];
+  if (!voice) throw new NotFoundException('voice not found');
+  return voice;
 }
 
 @Injectable()
@@ -63,13 +78,49 @@ export class QuotaService {
     return code === '40001' || code === '40P01' || code === '23505';
   }
 
-  async getQuota(userId: string, voiceId: string): Promise<QuotaView> {
+  async ensureSignupGrant(userId: string, attempt = 0): Promise<PointsView> {
+    const client = await this.database.pool.connect();
+    let released = false;
+    try {
+      await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
+      const account = await lockAccount(client, userId);
+      if (!account.signup_granted_at) {
+        const amount = loadPointsConfig().signupBonusPoints;
+        account.balance += amount;
+        await client.query(
+          `UPDATE point_accounts SET balance = $1, signup_granted_at = NOW(), updated_at = NOW()
+           WHERE user_id = $2`,
+          [account.balance, userId],
+        );
+        await client.query(
+          `INSERT INTO point_ledgers
+           (id, user_id, type, amount, balance_after, request_key, source, created_at)
+           VALUES ($1, $2, 'REGISTER_GRANT', $3, $4, $5, 'REGISTRATION', NOW())`,
+          [randomUUID(), userId, amount, account.balance, `registration:${userId}`],
+        );
+      }
+      await client.query('COMMIT');
+      return toPoints(account.balance);
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      if (attempt < 3 && this.retryable(error)) {
+        released = true;
+        client.release();
+        return this.ensureSignupGrant(userId, attempt + 1);
+      }
+      throw error;
+    } finally {
+      if (!released) client.release();
+    }
+  }
+
+  async getPoints(userId: string): Promise<PointsView> {
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');
-      const row = await lockVoice(client, userId, voiceId);
+      const account = await lockAccount(client, userId);
       await client.query('COMMIT');
-      return toQuota(row);
+      return toPoints(account.balance);
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);
       throw error;
@@ -78,20 +129,37 @@ export class QuotaService {
     }
   }
 
-  async listLedgers(userId: string) {
+  async getQuota(userId: string, voiceId: string): Promise<QuotaView> {
+    const client = await this.database.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await lockVoice(client, userId, voiceId);
+      const account = await lockAccount(client, userId);
+      await client.query('COMMIT');
+      return toCompatibilityQuota(account.balance);
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async listPointLedgers(userId: string) {
     const result = await this.database.pool.query<{
       id: string;
-      voice_profile_id: string;
+      voice_profile_id: string | null;
       order_id: string | null;
       message_id: string | null;
       type: string;
-      bucket: string;
       amount: number;
       balance_after: number;
+      request_key: string | null;
+      source: string;
       created_at: Date;
     }>(
-      `SELECT id, voice_profile_id, order_id, message_id, type, bucket, amount, balance_after, created_at
-       FROM quota_ledgers WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100`,
+      `SELECT id, voice_profile_id, order_id, message_id, type, amount, balance_after, request_key, source, created_at
+       FROM point_ledgers WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100`,
       [userId],
     );
     return {
@@ -101,68 +169,38 @@ export class QuotaService {
         orderId: row.order_id,
         messageId: row.message_id,
         type: row.type,
-        bucket: row.bucket,
         amount: Number(row.amount),
         balanceAfter: Number(row.balance_after),
+        requestKey: row.request_key,
+        source: row.source,
         createdAt: row.created_at,
       })),
     };
   }
 
-  async acceptPreview(userId: string, voiceId: string, attempt = 0): Promise<QuotaView> {
+  /** @deprecated Use listPointLedgers. */
+  listLedgers(userId: string) {
+    return this.listPointLedgers(userId);
+  }
+
+  async acceptPreview(userId: string, voiceId: string): Promise<QuotaView> {
     const client = await this.database.pool.connect();
-    let releaseHandled = false;
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
-      const row = await lockVoice(client, userId, voiceId);
-      if (row.status !== 'READY') throw new ConflictException('voice is not ready');
-      if (!row.preview_played_at) throw new ConflictException('PREVIEW_NOT_PLAYED');
-
-      if (!row.accepted_at) {
-        await client.query(
-          'UPDATE voice_profiles SET accepted_at = NOW(), updated_at = NOW() WHERE id = $1',
-          [voiceId],
-        );
+      const voice = await lockVoice(client, userId, voiceId);
+      if (voice.status !== 'READY') throw new ConflictException('voice is not ready');
+      if (!voice.preview_played_at) throw new ConflictException('PREVIEW_NOT_PLAYED');
+      if (!voice.accepted_at) {
+        await client.query('UPDATE voice_profiles SET accepted_at = NOW(), updated_at = NOW() WHERE id = $1', [voiceId]);
       }
-
-      if (!row.trial_custom_generation_granted_at) {
-        const nextBalance = row.trial_quota_remaining + 1;
-        await client.query(
-          `UPDATE users
-           SET trial_voice_profile_id = $1,
-               trial_custom_generation_granted_at = NOW(),
-               updated_at = NOW()
-           WHERE id = $2`,
-          [voiceId, userId],
-        );
-        await client.query(
-          `UPDATE voice_profiles
-           SET trial_quota_remaining = $1, updated_at = NOW()
-           WHERE id = $2`,
-          [nextBalance, voiceId],
-        );
-        await client.query(
-          `INSERT INTO quota_ledgers
-           (id, user_id, voice_profile_id, type, bucket, amount, balance_after, created_at)
-           VALUES ($1, $2, $3, 'TRIAL_GRANT', 'TRIAL', 1, $4, NOW())`,
-          [randomUUID(), userId, voiceId, nextBalance],
-        );
-        row.trial_quota_remaining = nextBalance;
-        row.trial_custom_generation_granted_at = new Date();
-      }
-
+      const account = await lockAccount(client, userId);
       await client.query('COMMIT');
-      return toQuota(row);
+      return toCompatibilityQuota(account.balance);
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);
-      if (attempt < 3 && this.retryable(error)) {
-        releaseHandled = true;
-        client.release();
-        return this.acceptPreview(userId, voiceId, attempt + 1);
-      }
       throw error;
     } finally {
-      if (!releaseHandled) client.release();
+      client.release();
     }
   }
 
@@ -173,94 +211,61 @@ export class QuotaService {
     outputText: string;
   }, attempt = 0): Promise<QuotaView> {
     const client = await this.database.pool.connect();
-    let releaseHandled = false;
+    let released = false;
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
-      const row = await lockVoice(client, input.userId, input.voiceId);
+      const account = await lockAccount(client, input.userId);
+      await lockVoice(client, input.userId, input.voiceId);
       const messageResult = await client.query<{ status: string }>(
-        `SELECT status FROM messages
-         WHERE id = $1 AND user_id = $2 AND voice_profile_id = $3
-         FOR UPDATE`,
+        `SELECT status FROM messages WHERE id = $1 AND user_id = $2 AND voice_profile_id = $3 FOR UPDATE`,
         [input.messageId, input.userId, input.voiceId],
       );
       const message = messageResult.rows[0];
       if (!message) throw new NotFoundException('message not found');
-
-      const existingLedger = await client.query(
-        `SELECT id FROM quota_ledgers
-         WHERE type = 'GENERATION_CONSUME' AND message_id = $1
-         LIMIT 1`,
+      const existing = await client.query(
+        `SELECT id FROM point_ledgers WHERE type = 'GENERATION_CONSUME' AND message_id = $1 LIMIT 1`,
         [input.messageId],
       );
-      if (existingLedger.rowCount) {
+      if (existing.rowCount) {
         await client.query('COMMIT');
-        return toQuota(row);
+        return toCompatibilityQuota(account.balance);
       }
       if (!['PENDING', 'PROCESSING'].includes(message.status)) {
         throw new ConflictException(`message cannot complete from ${message.status}`);
       }
-
-      let bucket: 'TRIAL' | 'PAID';
-      let balanceAfter: number;
-      if (row.trial_quota_remaining > 0) {
-        bucket = 'TRIAL';
-        row.trial_quota_remaining -= 1;
-        balanceAfter = row.trial_quota_remaining;
-        await client.query(
-          `UPDATE voice_profiles SET trial_quota_remaining = $1, last_used_at = NOW(), updated_at = NOW()
-           WHERE id = $2`,
-          [balanceAfter, input.voiceId],
-        );
-        await client.query(
-          `UPDATE users SET trial_custom_generation_consumed_at = COALESCE(trial_custom_generation_consumed_at, NOW()), updated_at = NOW()
-           WHERE id = $1`,
-          [input.userId],
-        );
-        row.trial_custom_generation_consumed_at ||= new Date();
-      } else if (row.paid_quota_remaining > 0) {
-        bucket = 'PAID';
-        row.paid_quota_remaining -= 1;
-        balanceAfter = row.paid_quota_remaining;
-        await client.query(
-          `UPDATE voice_profiles SET paid_quota_remaining = $1, last_used_at = NOW(), updated_at = NOW()
-           WHERE id = $2`,
-          [balanceAfter, input.voiceId],
-        );
-      } else {
-        throw new ConflictException('QUOTA_EXHAUSTED');
-      }
-
+      const cost = loadPointsConfig().generationCost;
+      if (account.balance < cost) throw new ConflictException('POINTS_EXHAUSTED');
+      account.balance -= cost;
+      await client.query('UPDATE point_accounts SET balance = $1, updated_at = NOW() WHERE user_id = $2', [account.balance, input.userId]);
+      await client.query('UPDATE voice_profiles SET last_used_at = NOW(), updated_at = NOW() WHERE id = $1', [input.voiceId]);
       await client.query(
-        `UPDATE messages
-         SET status = 'READY', output_text = $1, ready_at = NOW(), updated_at = NOW()
-         WHERE id = $2`,
+        `UPDATE messages SET status = 'READY', output_text = $1, ready_at = NOW(), updated_at = NOW() WHERE id = $2`,
         [input.outputText, input.messageId],
       );
       await client.query(
-        `INSERT INTO quota_ledgers
-         (id, user_id, voice_profile_id, message_id, type, bucket, amount, balance_after, created_at)
-         VALUES ($1, $2, $3, $4, 'GENERATION_CONSUME', $5, -1, $6, NOW())`,
-        [randomUUID(), input.userId, input.voiceId, input.messageId, bucket, balanceAfter],
+        `INSERT INTO point_ledgers
+         (id, user_id, voice_profile_id, message_id, type, amount, balance_after, request_key, source, created_at)
+         VALUES ($1, $2, $3, $4, 'GENERATION_CONSUME', $5, $6, $7, 'VOICE_GENERATION', NOW())`,
+        [randomUUID(), input.userId, input.voiceId, input.messageId, -cost, account.balance, `generation:${input.messageId}`],
       );
       await client.query('COMMIT');
-      return toQuota(row);
+      return toCompatibilityQuota(account.balance);
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);
       if (attempt < 3 && this.retryable(error)) {
-        releaseHandled = true;
+        released = true;
         client.release();
         return this.completeMessage(input, attempt + 1);
       }
       throw error;
     } finally {
-      if (!releaseHandled) client.release();
+      if (!released) client.release();
     }
   }
 
   async failMessage(input: { userId: string; messageId: string; code: string; message: string }): Promise<void> {
     await this.database.pool.query(
-      `UPDATE messages
-       SET status = 'FAILED', error_code = $1, error_message = $2, updated_at = NOW()
+      `UPDATE messages SET status = 'FAILED', error_code = $1, error_message = $2, updated_at = NOW()
        WHERE id = $3 AND user_id = $4 AND status IN ('PENDING', 'PROCESSING')`,
       [input.code, input.message, input.messageId, input.userId],
     );
@@ -273,59 +278,59 @@ export class QuotaService {
     paidAt: Date;
   }, attempt = 0): Promise<QuotaView> {
     const client = await this.database.pool.connect();
-    let releaseHandled = false;
+    let released = false;
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
       const orderResult = await client.query<{
         id: string;
-        user_id: string;
-        voice_profile_id: string;
-        quota: number;
-        status: string;
-        quota_granted_at: Date | null;
+        points: number;
+        points_granted_at: Date | null;
       }>(
-        `SELECT id, user_id, voice_profile_id, quota, status, quota_granted_at
-         FROM orders WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+        `SELECT id, points, points_granted_at FROM orders WHERE id = $1 AND user_id = $2 FOR UPDATE`,
         [input.orderId, input.userId],
       );
       const order = orderResult.rows[0];
       if (!order) throw new NotFoundException('order not found');
-      const voice = await lockVoice(client, input.userId, order.voice_profile_id);
-      if (order.quota_granted_at) {
+      const account = await lockAccount(client, input.userId);
+      if (order.points_granted_at) {
         await client.query('COMMIT');
-        return toQuota(voice);
+        return toCompatibilityQuota(account.balance);
       }
-
-      const nextBalance = voice.paid_quota_remaining + Number(order.quota);
+      const amount = Number(order.points);
+      account.balance += amount;
       await client.query(
-        `UPDATE orders
-         SET status = 'PAID', transaction_id = $1, paid_at = $2, quota_granted_at = NOW(), updated_at = NOW()
-         WHERE id = $3`,
+        `UPDATE orders SET status = 'PAID', transaction_id = $1, paid_at = $2,
+         points_granted_at = NOW(), quota_granted_at = NOW(), updated_at = NOW() WHERE id = $3`,
         [input.transactionId, input.paidAt, input.orderId],
       );
+      await client.query('UPDATE point_accounts SET balance = $1, updated_at = NOW() WHERE user_id = $2', [account.balance, input.userId]);
       await client.query(
-        `UPDATE voice_profiles SET paid_quota_remaining = $1, updated_at = NOW() WHERE id = $2`,
-        [nextBalance, order.voice_profile_id],
+        `INSERT INTO point_ledgers
+         (id, user_id, order_id, type, amount, balance_after, request_key, source, created_at)
+         VALUES ($1, $2, $3, 'PURCHASE_GRANT', $4, $5, $6, 'WECHAT_PAY', NOW())`,
+        [randomUUID(), input.userId, input.orderId, amount, account.balance, `purchase:${input.orderId}`],
       );
-      await client.query(
-        `INSERT INTO quota_ledgers
-         (id, user_id, voice_profile_id, order_id, type, bucket, amount, balance_after, created_at)
-         VALUES ($1, $2, $3, $4, 'PURCHASE_GRANT', 'PAID', $5, $6, NOW())`,
-        [randomUUID(), input.userId, order.voice_profile_id, input.orderId, order.quota, nextBalance],
-      );
-      voice.paid_quota_remaining = nextBalance;
       await client.query('COMMIT');
-      return toQuota(voice);
+      return toCompatibilityQuota(account.balance);
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);
       if (attempt < 3 && this.retryable(error)) {
-        releaseHandled = true;
+        released = true;
         client.release();
         return this.grantPaidQuota(input, attempt + 1);
       }
       throw error;
     } finally {
-      if (!releaseHandled) client.release();
+      if (!released) client.release();
     }
+  }
+
+  grantPurchasedPoints(input: {
+    userId: string;
+    orderId: string;
+    transactionId: string;
+    paidAt: Date;
+  }): Promise<QuotaView> {
+    return this.grantPaidQuota(input);
   }
 }

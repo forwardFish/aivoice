@@ -60,13 +60,14 @@ test('WeChat Pay creates signed JSAPI params and notification grants quota once'
       userId: 'user-id',
       voiceProfileId: 'voice-id',
       amountFen: 990,
-      quota: 10,
+      quota: 50,
+      points: 50,
     }),
   } as unknown as OrderService;
   const quotaService = {
-    grantPaidQuota: async (input: unknown) => {
+    grantPurchasedPoints: async (input: unknown) => {
       grants.push(input);
-      return { paidQuotaRemaining: 10 };
+      return { paidQuotaRemaining: 50 };
     },
   } as unknown as QuotaService;
   const service = new WechatPayService(database, orderService, quotaService);
@@ -85,14 +86,16 @@ test('WeChat Pay creates signed JSAPI params and notification grants quota once'
       orderNo: 'order-no',
       userId: 'user-id',
       voiceProfileId: 'voice-id',
-      productCode: 'VOICE_QUOTA_10',
+      productCode: 'POINTS_50',
       amountFen: 990,
-      quota: 10,
+      quota: 50,
+      points: 50,
       status: 'PENDING',
       prepayId: '',
       transactionId: null,
       paidAt: null,
       quotaGrantedAt: null,
+      pointsGrantedAt: null,
       notifyDigest: '',
       createdAt: new Date(),
       updatedAt: new Date(),

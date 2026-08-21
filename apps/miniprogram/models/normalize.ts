@@ -8,10 +8,12 @@ import {
   OrderDetail,
   OrdersResponse,
   PermissionType,
+  PointsBalanceResponse,
+  PointsLedgersResponse,
+  ProductListResponse,
   PreviewResponse,
   PurchaseOption,
-  QuotaLedgerItem,
-  QuotaLedgersResponse,
+  PointsLedgerItem,
   QuotaResponse,
   TrialEligibility,
   UploadPolicyResponse,
@@ -37,14 +39,13 @@ function stringOr(value: unknown, fallback = ''): string {
 }
 
 export function normalizeQuota(input: unknown): QuotaResponse {
-  const raw = record(record(input).quota || input)
-  const trial = numberOr(raw.trialQuotaRemaining ?? raw.trial_quota_remaining, 0)
-  const paid = numberOr(raw.paidQuotaRemaining ?? raw.paid_quota_remaining, 0)
-  const explicit = raw.availableQuota ?? raw.available_quota
+  const outer = record(input)
+  const raw = record(outer.points || outer.quota || input)
+  const legacyTrial = numberOr(raw.trialQuotaRemaining ?? raw.trial_quota_remaining, 0)
+  const legacyPaid = numberOr(raw.paidQuotaRemaining ?? raw.paid_quota_remaining, 0)
+  const explicit = raw.availablePoints ?? raw.available_points ?? raw.balance ?? raw.availableQuota ?? raw.available_quota
   return {
-    trialQuotaRemaining: trial,
-    paidQuotaRemaining: paid,
-    availableQuota: explicit == null ? trial + paid : numberOr(explicit, trial + paid),
+    availablePoints: explicit == null ? legacyTrial + legacyPaid : numberOr(explicit, legacyTrial + legacyPaid),
     trialEligibility: (raw.trialEligibility ?? raw.trial_eligibility) as TrialEligibility | undefined
   }
 }
@@ -68,7 +69,7 @@ function normalizeVoiceStatus(value: unknown): VoiceStatus {
 export function normalizeVoice(input: unknown): VoiceDetail {
   const outer = record(input)
   const raw = record(outer.voice || outer.profile || input)
-  const quota = normalizeQuota(raw.quota || raw)
+  const points = normalizeQuota(raw.points || raw.quota || raw)
   const nestedError = record(raw.error || raw.recoverableError || raw.recoverable_error)
   const errorRaw = Object.keys(nestedError).length ? nestedError : {
     code: raw.failureCode ?? raw.failure_code,
@@ -99,7 +100,8 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     freeRetryRemaining: raw.freeRetryRemaining == null && raw.free_retry_remaining == null
       ? (previewRetryCount == null ? undefined : Math.max(0, 1 - previewRetryCount))
       : numberOr(raw.freeRetryRemaining ?? raw.free_retry_remaining),
-    quota,
+    points,
+    quota: points,
     error: (errorRaw.code || errorRaw.message) ? {
       code: stringOr(errorRaw.code) || undefined,
       message: stringOr(errorRaw.message) || undefined,
@@ -162,7 +164,7 @@ export function normalizePreview(input: unknown, voice?: VoiceDetail): PreviewRe
     audioUrl: stringOr(raw.audioUrl ?? raw.audio_url ?? raw.url ?? raw.signedUrl ?? raw.signed_url ?? voice?.previewAudioUrl),
     text: stringOr(raw.text ?? raw.previewText ?? raw.preview_text ?? voice?.previewText, '你好呀，今天过得怎么样？'),
     durationMs: raw.durationMs == null && raw.duration_ms == null ? undefined : numberOr(raw.durationMs ?? raw.duration_ms),
-    trialEligibility: (raw.trialEligibility ?? raw.trial_eligibility ?? voice?.quota.trialEligibility) as TrialEligibility | undefined,
+    trialEligibility: (raw.trialEligibility ?? raw.trial_eligibility ?? voice?.points.trialEligibility ?? voice?.quota.trialEligibility) as TrialEligibility | undefined,
     freeRetryRemaining: raw.freeRetryRemaining == null && raw.free_retry_remaining == null
       ? voice?.freeRetryRemaining
       : numberOr(raw.freeRetryRemaining ?? raw.free_retry_remaining)
@@ -174,7 +176,8 @@ export function normalizeAcceptPreview(input: unknown): AcceptPreviewResponse {
   const voice = normalizeVoice(raw.voice || raw)
   return {
     voice,
-    quota: normalizeQuota(raw.quota || voice.quota),
+    points: normalizeQuota(raw.points || raw.quota || voice.points || voice.quota),
+    quota: normalizeQuota(raw.points || raw.quota || voice.points || voice.quota),
     trialGranted: Boolean(raw.trialGranted ?? raw.trial_granted)
   }
 }
@@ -207,7 +210,8 @@ export function normalizeConversation(input: unknown): ConversationResponse {
   return {
     conversationId: stringOr(raw.conversationId ?? raw.conversation_id ?? conversation.id) || undefined,
     messages: Array.isArray(list) ? list.map(normalizeMessage).filter(item => item.id || item.text) : [],
-    quota: raw.quota ? normalizeQuota(raw.quota) : undefined
+    points: raw.points || raw.quota ? normalizeQuota(raw.points || raw.quota) : undefined,
+    quota: raw.points || raw.quota ? normalizeQuota(raw.points || raw.quota) : undefined
   }
 }
 
@@ -223,7 +227,8 @@ export function normalizeMessageStatus(input: unknown): MessageStatusResponse {
     durationMs: raw.durationMs == null && raw.duration_ms == null ? message.durationMs : numberOr(raw.durationMs ?? raw.duration_ms),
     failureCode: stringOr(raw.failureCode ?? raw.failure_code ?? raw.errorCode ?? raw.error_code ?? message.failureCode) || undefined,
     message,
-    quota: raw.quota ? normalizeQuota(raw.quota) : undefined
+    points: raw.points || raw.quota ? normalizeQuota(raw.points || raw.quota) : undefined,
+    quota: raw.points || raw.quota ? normalizeQuota(raw.points || raw.quota) : undefined
   }
 }
 
@@ -231,14 +236,17 @@ export function normalizePurchaseOption(input: unknown): PurchaseOption | undefi
   const raw = record(input)
   const productCode = raw.productCode ?? raw.product_code
   const amountFen = raw.amountFen ?? raw.amount_fen
-  const quota = raw.quota
+  const points = raw.points ?? raw.point_count ?? raw.balance ?? raw.quota
   const autoRenew = raw.autoRenew ?? raw.auto_renew
-  if (!productCode || amountFen == null || quota == null || autoRenew == null) return undefined
+  if (!productCode || amountFen == null || points == null || autoRenew == null) return undefined
   return {
     productCode: stringOr(productCode),
     amountFen: numberOr(amountFen),
-    quota: numberOr(quota),
-    autoRenew: Boolean(autoRenew)
+    points: numberOr(points),
+    quota: numberOr(raw.quota ?? points),
+    autoRenew: Boolean(autoRenew),
+    title: stringOr(raw.title ?? raw.name) || undefined,
+    description: stringOr(raw.description ?? raw.desc) || undefined
   }
 }
 
@@ -249,8 +257,11 @@ export function normalizeOrder(input: unknown): OrderDetail {
     voiceId: stringOr(raw.voiceId ?? raw.voice_id ?? raw.voiceProfileId ?? raw.voice_profile_id) || undefined,
     productCode: stringOr(raw.productCode ?? raw.product_code) || undefined,
     amountFen: raw.amountFen == null && raw.amount_fen == null ? undefined : numberOr(raw.amountFen ?? raw.amount_fen),
+    points: raw.points == null && raw.point_count == null && raw.quota == null ? undefined : numberOr(raw.points ?? raw.point_count ?? raw.quota),
     quota: raw.quota == null ? undefined : numberOr(raw.quota),
     status: stringOr(raw.status, 'CREATED').toUpperCase() as any,
+    pointsGranted: Boolean(raw.pointsGranted ?? raw.points_granted ?? raw.pointsGrantedAt ?? raw.points_granted_at ?? raw.quotaGranted ?? raw.quota_granted),
+    pointsGrantedAt: stringOr(raw.pointsGrantedAt ?? raw.points_granted_at ?? raw.quotaGrantedAt ?? raw.quota_granted_at) || undefined,
     quotaGranted: Boolean(raw.quotaGranted ?? raw.quota_granted ?? raw.quotaGrantedAt ?? raw.quota_granted_at),
     quotaGrantedAt: stringOr(raw.quotaGrantedAt ?? raw.quota_granted_at) || undefined,
     createdAt: stringOr(raw.createdAt ?? raw.created_at) || undefined,
@@ -283,31 +294,32 @@ export function normalizeOrders(input: unknown): OrdersResponse {
   return { orders: Array.isArray(list) ? list.map(normalizeOrder).filter(item => item.id) : [] }
 }
 
-export function normalizeQuotaLedgers(input: unknown): QuotaLedgersResponse {
+export function normalizeQuotaLedgers(input: unknown): PointsLedgersResponse {
   const raw = record(input)
   const list = Array.isArray(input) ? input : raw.ledgers ?? raw.items ?? []
-  const ledgers: QuotaLedgerItem[] = Array.isArray(list) ? list.map(item => {
+  const ledgers: PointsLedgerItem[] = Array.isArray(list) ? list.map(item => {
     const row = record(item)
     return {
       id: stringOr(row.id),
       voiceId: stringOr(row.voiceId ?? row.voice_id) || undefined,
       voiceName: stringOr(row.voiceName ?? row.voice_name) || undefined,
-      bucket: row.bucket,
       type: stringOr(row.type) || undefined,
       amount: numberOr(row.amount),
-      trialBalanceAfter: row.trialBalanceAfter == null && row.trial_balance_after == null
+      balanceAfter: row.balanceAfter == null && row.balance_after == null && row.availablePointsAfter == null && row.available_points_after == null
         ? undefined
-        : numberOr(row.trialBalanceAfter ?? row.trial_balance_after),
-      paidBalanceAfter: row.paidBalanceAfter == null && row.paid_balance_after == null
-        ? undefined
-        : numberOr(row.paidBalanceAfter ?? row.paid_balance_after),
-      balanceAfter: row.balanceAfter == null && row.balance_after == null
-        ? undefined
-        : numberOr(row.balanceAfter ?? row.balance_after),
+        : numberOr(row.balanceAfter ?? row.balance_after ?? row.availablePointsAfter ?? row.available_points_after),
       createdAt: stringOr(row.createdAt ?? row.created_at) || undefined
     }
   }).filter(item => item.id) : []
   return { ledgers }
+}
+
+export function normalizeProducts(input: unknown): ProductListResponse {
+  const raw = record(input)
+  const list = Array.isArray(input) ? input : raw.products ?? raw.items ?? raw.list ?? []
+  return {
+    products: Array.isArray(list) ? list.map(normalizePurchaseOption).filter(Boolean) as PurchaseOption[] : []
+  }
 }
 
 export function normalizeUser(input: unknown): UserProfile {

@@ -8,6 +8,7 @@
     "pages/create/progress",
     "pages/create/preview",
     "pages/voice/workbench",
+    "pages/purchase/index",
     "pages/voices/index",
     "pages/account/index",
     "pages/voice/settings"

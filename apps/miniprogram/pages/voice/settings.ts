@@ -1,12 +1,12 @@
 import {
   clearConversation,
   deleteVoice,
+  getPoints,
   getVoice,
-  getVoiceQuota,
   saveVoiceProfile
 } from '../../services/api'
 import { ConversationStyle, PermissionType, VoiceStatus } from '../../models/api'
-import { ensureAuthenticated } from '../../utils/navigation'
+import { ensureAuthenticated, openPurchasePage } from '../../utils/navigation'
 import { confirm, toast } from '../../utils/ui'
 import {
   clearCreationSession,
@@ -64,9 +64,7 @@ Page({
     stageText: '未设置',
     callerText: '未设置',
     statusText: '',
-    availableQuota: 0,
-    trialQuota: 0,
-    paidQuota: 0,
+    availablePoints: 0,
     saving: false,
     clearing: false,
     deleting: false,
@@ -93,12 +91,7 @@ Page({
         this.setData({ state: 'success', deleted: true, voiceName: voice.name || '这个声音' })
         return
       }
-      let quota = voice.quota
-      try {
-        quota = await getVoiceQuota(this.data.voiceId)
-      } catch (_error) {
-        // Some backends expose quota only after READY. The voice detail remains authoritative.
-      }
+      const points = await getPoints().catch(() => voice.points || voice.quota)
       this.setData({
         state: 'success',
         deleted: false,
@@ -110,9 +103,7 @@ Page({
         stageText: voice.stageLabel || '未设置',
         callerText: '由声音资料保存',
         statusText: statusLabel(voice.status),
-        availableQuota: quota.availableQuota,
-        trialQuota: quota.trialQuotaRemaining,
-        paidQuota: quota.paidQuotaRemaining
+        availablePoints: points.availablePoints
       })
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音设置加载失败，请重试。' })
@@ -164,6 +155,9 @@ Page({
   openAccount() {
     wx.switchTab({ url: '/pages/account/index' })
   },
+  openPurchase() {
+    openPurchasePage({ voiceId: this.data.voiceId, source: 'settings' })
+  },
   goVoices() {
     wx.switchTab({ url: '/pages/voices/index' })
   },
@@ -171,7 +165,7 @@ Page({
     if (this.data.clearing) return
     const accepted = await confirm({
       title: '清空当前对话？',
-      content: '清空后，这些消息不会再参与后续上下文，操作无法恢复。生成次数不会返还。',
+      content: '清空后，这些消息不会再参与后续上下文，操作无法恢复。已消耗积分不会返还。',
       confirmText: '清空',
       confirmColor: '#D85B63'
     })
@@ -189,7 +183,7 @@ Page({
     if (this.data.deleting) return
     const accepted = await confirm({
       title: `删除“${this.data.voiceName}”？`,
-      content: '删除后将无法恢复声音样本、私有声音模型、对话和生成记录。该声音尚未使用的次数不会返还，账号级免费体验资格也不会恢复。',
+      content: '删除后将无法恢复声音样本、私有声音模型、对话和生成记录。已购买积分不会因删除声音而返还。',
       confirmText: '删除声音',
       confirmColor: '#D85B63'
     })

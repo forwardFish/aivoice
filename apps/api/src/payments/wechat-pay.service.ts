@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
-import { BadGatewayException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { BadGatewayException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { and, eq } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
-import { users } from '../db/schema.js';
+import { orders, users } from '../db/schema.js';
 import { OrderService } from '../orders/order.service.js';
 import { QuotaService } from '../quota/quota.service.js';
 import { loadWechatPayConfig, type WechatPayConfig } from './payment.config.js';
@@ -81,6 +81,24 @@ export class WechatPayService {
     if (missing.length) throw new Error(`WeChat Pay config missing: ${missing.join(', ')}`);
   }
 
+  private isLocalTestMode(): boolean {
+    return process.env.WECHAT_PAY_TEST_MODE === 'true' && process.env.NODE_ENV !== 'production';
+  }
+
+  private hasRealPrepayConfig(): boolean {
+    return Boolean(
+      this.config.appId &&
+      this.config.mchId &&
+      this.config.serialNo &&
+      this.config.privateKey &&
+      this.config.notifyUrl,
+    );
+  }
+
+  private isLocalMockMode(): boolean {
+    return this.isLocalTestMode() && !this.hasRealPrepayConfig();
+  }
+
   buildAuthorization(input: { method: string; path: string; body: string; timestamp: string; nonceStr: string }): string {
     const message = `${input.method}\n${input.path}\n${input.timestamp}\n${input.nonceStr}\n${input.body}\n`;
     const signature = signRsa(message, this.config.privateKey);
@@ -101,6 +119,20 @@ export class WechatPayService {
   }
 
   async createPrepay(order: Awaited<ReturnType<OrderService['createOrder']>>, openid: string) {
+    if (this.isLocalMockMode()) {
+      const prepayId = `mock-prepay-${order.id}`;
+      await this.orderService.attachPrepay(order.id, prepayId);
+      return {
+        prepayId,
+        payment: {
+          timeStamp: Math.floor(Date.now() / 1000).toString(),
+          nonceStr: nonce(),
+          package: `prepay_id=${prepayId}`,
+          signType: 'RSA' as const,
+          paySign: 'MOCK_PAY_SIGNATURE',
+        },
+      };
+    }
     this.assertPrepayConfig();
     const path = '/v3/pay/transactions/jsapi';
     const body = JSON.stringify({
@@ -151,11 +183,37 @@ export class WechatPayService {
 
   async refreshOrder(userId: string, orderId: string) {
     const order = await this.orderService.findUserOrder(userId, orderId);
+    if (this.isLocalMockMode()) {
+      return { order, granted: Boolean(order.pointsGrantedAt) };
+    }
     const query = new URLSearchParams({ mchid: this.config.mchId }).toString();
     const transaction = await this.requestWechat(`/v3/pay/transactions/out-trade-no/${encodeURIComponent(order.orderNo)}?${query}`);
     if (transaction.trade_state !== 'SUCCESS') return { order, granted: false };
-    const quota = await this.validateAndGrant(transaction);
-    return { order: await this.orderService.findUserOrder(userId, orderId), granted: true, quota };
+    const points = await this.validateAndGrant(transaction);
+    return { order: await this.orderService.findUserOrder(userId, orderId), granted: true, points };
+  }
+
+  async confirmLocalTestPayment(userId: string, orderId: string) {
+    if (!this.isLocalMockMode()) {
+      throw new ConflictException('local test payment is disabled');
+    }
+    const order = await this.orderService.findUserOrder(userId, orderId);
+    const paidAt = order.paidAt || new Date();
+    const transactionId = order.transactionId || `mock-tx-${order.id}`;
+    if (order.status !== 'PAID' || order.transactionId !== transactionId) {
+      await this.orderService.markPaid(order.id, transactionId, paidAt);
+    }
+    const points = await this.quotaService.grantPurchasedPoints({
+      userId: order.userId,
+      orderId: order.id,
+      transactionId,
+      paidAt,
+    });
+    const refreshedOrder = await this.database.db.query.orders.findFirst({
+      where: and(eq(orders.id, order.id), eq(orders.userId, userId)),
+    });
+    if (!refreshedOrder) throw new UnauthorizedException('order not found');
+    return { order: refreshedOrder, granted: true, points, testMode: true };
   }
 
   async validateAndGrant(transaction: WechatTransaction) {
@@ -169,7 +227,7 @@ export class WechatPayService {
     if (!transaction.payer?.openid || transaction.payer.openid !== user.openid) {
       throw new UnauthorizedException('payer openid mismatch');
     }
-    return this.quotaService.grantPaidQuota({
+    return this.quotaService.grantPurchasedPoints({
       userId: order.userId,
       orderId: order.id,
       transactionId: transaction.transaction_id,

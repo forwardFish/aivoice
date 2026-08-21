@@ -1,6 +1,7 @@
 import {
   API_BASE_URL,
   API_PREFIX,
+  LOCAL_DEV_MODE,
   REQUEST_TIMEOUT_MS,
   UPLOAD_TIMEOUT_MS
 } from '../config'
@@ -17,10 +18,11 @@ import {
   OrderDetail,
   OrdersResponse,
   PermissionType,
+  PointsBalanceResponse,
+  PointsLedgersResponse,
+  ProductListResponse,
   PreviewResponse,
   PurchaseOption,
-  QuotaLedgersResponse,
-  QuotaResponse,
   UploadPolicyResponse,
   UploadResult,
   UserProfile,
@@ -36,6 +38,7 @@ import {
   normalizeMessageStatus,
   normalizeOrder,
   normalizeOrders,
+  normalizeProducts,
   normalizePreview,
   normalizePurchaseOption,
   normalizeQuota,
@@ -103,13 +106,13 @@ function errorMessage(code: string, fallback = ''): string {
     PREVIEW_NOT_PLAYED: '请先完整播放当前试听。',
     PREVIEW_RETRY_EXHAUSTED: '本次免费重试机会已使用。',
     GENERATION_IN_PROGRESS: '当前声音已有生成任务，请等待完成。',
-    QUOTA_EXHAUSTED: '当前生成次数已用完。',
+    QUOTA_EXHAUSTED: '当前积分不足，请先购买积分。',
     CONTENT_BLOCKED: '这段内容不符合使用规则，请修改后重试。',
-    PROVIDER_FAILED: '声音服务暂时不可用，本次不会扣次数。',
+    PROVIDER_FAILED: '声音服务暂时不可用，本次不会扣积分。',
     ORDER_NOT_FOUND: '订单不存在或已失效。',
     PAYMENT_MISMATCH: '支付信息校验失败，请联系客服。',
     PAYMENT_PENDING: '支付结果正在确认，请稍候。',
-    PAYMENT_PAID_QUOTA_PENDING: '已支付，生成次数正在入账，请稍候。',
+    PAYMENT_PAID_QUOTA_PENDING: '已支付，积分正在入账，请稍候。',
     INTERNAL_ERROR: '服务暂时不可用，请稍后重试。'
   }
   return fallback || messages[code] || '请求失败，请稍后重试。'
@@ -184,6 +187,9 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
 }
 
 export function requestPayment(payment: WechatPaymentParams): Promise<void> {
+  if (LOCAL_DEV_MODE && /^prepay_id=mock-prepay-/i.test(String(payment.package || ''))) {
+    return Promise.resolve()
+  }
   return new Promise((resolve, reject) => {
     wx.requestPayment({
       ...payment,
@@ -397,8 +403,16 @@ export async function retryVoicePreview(voiceId: string): Promise<VoiceDetail> {
   return normalizeVoice(raw.voice || raw)
 }
 
-export async function getVoiceQuota(voiceId: string): Promise<QuotaResponse> {
+export async function getVoiceQuota(voiceId: string): Promise<PointsBalanceResponse> {
   return normalizeQuota(await requestRaw({ path: `/voices/${encodeURIComponent(voiceId)}/quota` }))
+}
+
+export async function getPoints(): Promise<PointsBalanceResponse> {
+  try {
+    return normalizeQuota(await requestRaw({ path: '/points' }))
+  } catch (_error) {
+    return normalizeQuota(await requestRaw({ path: '/me' }))
+  }
 }
 
 export async function getConversation(voiceId: string): Promise<ConversationResponse> {
@@ -447,6 +461,14 @@ export async function createOrder(productCode: string, voiceId: string): Promise
   }))
 }
 
+export async function listProducts(): Promise<ProductListResponse> {
+  try {
+    return normalizeProducts(await requestRaw({ path: '/products' }))
+  } catch (_first) {
+    return normalizeProducts(await requestRaw({ path: '/points/products' }))
+  }
+}
+
 export async function getOrder(orderId: string): Promise<OrderDetail> {
   return normalizeOrder(await requestRaw({ path: `/orders/${encodeURIComponent(orderId)}` }))
 }
@@ -459,12 +481,28 @@ export async function refreshOrder(orderId: string): Promise<OrderDetail> {
   }))
 }
 
+export async function confirmLocalTestPayment(orderId: string): Promise<OrderDetail> {
+  return normalizeOrder(await requestRaw({
+    path: `/orders/${encodeURIComponent(orderId)}/mock-paid`,
+    method: 'POST',
+    data: {}
+  }))
+}
+
 export async function listOrders(): Promise<OrdersResponse> {
   return normalizeOrders(await requestRaw({ path: '/orders' }))
 }
 
-export async function listQuotaLedgers(): Promise<QuotaLedgersResponse> {
+export async function listQuotaLedgers(): Promise<PointsLedgersResponse> {
   return normalizeQuotaLedgers(await requestRaw({ path: '/quota-ledgers' }))
+}
+
+export async function listPointLedgers(): Promise<PointsLedgersResponse> {
+  try {
+    return normalizeQuotaLedgers(await requestRaw({ path: '/point-ledgers' }))
+  } catch (_error) {
+    return listQuotaLedgers()
+  }
 }
 
 export async function deleteVoice(voiceId: string): Promise<void> {

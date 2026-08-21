@@ -41,8 +41,8 @@
       </view>
 
       <view wx:if="{{item.isReady}}" class="quota-row">
-        <text>{{item.quotaText}}</text>
-        <text>对话和“说一句”共用</text>
+        <text>{{item.pointsText}}</text>
+        <text>对话和“说一句”共用账户积分</text>
       </view>
 
       <view class="card-actions">

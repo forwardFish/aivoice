@@ -1,9 +1,10 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
   productCode!: string;
 
   @IsUUID()
-  voiceId!: string;
+  @IsOptional()
+  voiceId?: string;
 }

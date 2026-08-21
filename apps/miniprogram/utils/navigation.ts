@@ -38,3 +38,14 @@ export function openVoiceProgress(voiceId: string): void {
 export function openPreview(voiceId: string): void {
   wx.redirectTo({ url: `/pages/create/preview?voiceId=${encodeURIComponent(voiceId)}` })
 }
+
+export function openPurchasePage(input: {
+  voiceId: string
+  mode?: 'chat' | 'exact'
+  source?: 'quota-modal' | 'settings'
+}): void {
+  const query = [`voiceId=${encodeURIComponent(input.voiceId)}`]
+  if (input.mode) query.push(`mode=${encodeURIComponent(input.mode)}`)
+  if (input.source) query.push(`source=${encodeURIComponent(input.source)}`)
+  wx.navigateTo({ url: `/pages/purchase/index?${query.join('&')}` })
+}
