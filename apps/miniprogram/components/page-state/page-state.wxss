@@ -1,0 +1,109 @@
+.state-shell {
+  min-height: 560rpx;
+  padding: 90rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.state-compact {
+  min-height: 300rpx;
+  padding: 48rpx 28rpx;
+}
+
+.state-visual {
+  width: 126rpx;
+  height: 126rpx;
+  border-radius: 50%;
+  margin-bottom: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 58rpx;
+  font-weight: 700;
+  box-shadow: 0 18rpx 44rpx rgba(101, 82, 245, 0.16);
+}
+
+.loading-visual,
+.empty-visual {
+  position: relative;
+  background: radial-gradient(circle at 30% 25%, #ffffff, #eae7ff 58%, #cfdeff);
+}
+
+.loading-ring {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  bottom: 4rpx;
+  left: 4rpx;
+  border-radius: 50%;
+  border: 5rpx solid rgba(101, 82, 245, 0.14);
+  border-top-color: #6552f5;
+  animation: state-spin 1s linear infinite;
+}
+
+.loading-wave,
+.empty-wave {
+  display: flex;
+  align-items: center;
+  gap: 5rpx;
+}
+
+.loading-wave text,
+.empty-wave text {
+  width: 6rpx;
+  border-radius: 999rpx;
+  background: #6552f5;
+}
+
+.loading-wave text:nth-child(1), .empty-wave text:nth-child(1) { height: 22rpx; }
+.loading-wave text:nth-child(2), .empty-wave text:nth-child(2) { height: 36rpx; }
+.loading-wave text:nth-child(3), .empty-wave text:nth-child(3) { height: 52rpx; }
+.loading-wave text:nth-child(4), .empty-wave text:nth-child(4) { height: 36rpx; }
+.loading-wave text:nth-child(5), .empty-wave text:nth-child(5) { height: 22rpx; }
+
+.error-visual {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ea7d84, #cf525d);
+}
+
+.success-visual {
+  color: #ffffff;
+  background: linear-gradient(135deg, #62ca84, #43a968);
+}
+
+.state-title {
+  font-size: 33rpx;
+  line-height: 1.4;
+  font-weight: 650;
+  color: #11172d;
+}
+
+.state-description {
+  max-width: 560rpx;
+  margin-top: 14rpx;
+  font-size: 25rpx;
+  line-height: 1.65;
+  color: #737b94;
+}
+
+.state-action {
+  min-width: 240rpx;
+  height: 84rpx;
+  margin-top: 34rpx;
+  padding: 0 38rpx;
+  border-radius: 24rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5f52f5, #8d68f6);
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.state-action::after { border: none; }
+
+@keyframes state-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

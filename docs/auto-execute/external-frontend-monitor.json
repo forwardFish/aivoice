@@ -1,0 +1,20 @@
+{
+  "worker": "ChatGPT Pro",
+  "conversation": "https://chatgpt.com/g/g-p-6a87b626cf9481918348d8bd97f502b5-aiqin-qing-xiao-cheng-xu/c/6a87c880-dc1c-83e8-a4b4-80aa439e672b",
+  "handoff_zip_sha256": "233AD022DA07DA015E75931C5F8D6FA37EAD571C478C73DA6C3017247F3C63A8",
+  "status": "INTEGRATED",
+  "delivery_zip": "C:\\Users\\linyanhui\\Downloads\\nashide-ta-miniprogram-frontend-v0.4.zip",
+  "delivery_zip_sha256": "F5038CA338FA3495857D860C245B9B6A25642A6A56E179439A47761DD3131B52",
+  "integrated_at": "2026-08-21T18:26:23+08:00",
+  "dispatched_at": "2026-08-21T16:03:39+08:00",
+  "monitor_automation_id": "monitor-chatgpt-pro-frontend-zip",
+  "monitor_interval_minutes": 20,
+  "monitor_status": "DELETED_AFTER_INTEGRATION",
+  "monitor_deleted_at": "2026-08-21T18:50:00+08:00",
+  "expected_delivery": [
+    "apps/miniprogram/",
+    "docs/frontend-delivery-report.md",
+    "docs/frontend-api-usage.json"
+  ],
+  "download_path": "D:\\lyh\\agent\\agent-frame\\aivoice\\.runtime\\frontend-delivery"
+}

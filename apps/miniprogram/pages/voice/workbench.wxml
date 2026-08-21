@@ -1,0 +1,135 @@
+<view class="workbench-screen">
+  <app-nav title="{{voiceName}}" back="{{true}}" rightText="设置" bindrighttap="openSettings"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}" class="workbench-state">
+    <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端次数…"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="workbench-state soft-card">
+    <page-state mode="error" title="工作台暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadData"></page-state>
+  </view>
+
+  <view wx:else class="workbench-content fade-in">
+    <view wx:if="{{showModeChooser}}" class="mode-chooser">
+      <text class="chooser-title">想用 TA 的声音做什么？</text>
+      <text class="chooser-subtitle">选择一种模式开始体验</text>
+
+      <view class="mode-card chat-mode" data-mode="chat" bindtap="selectMode">
+        <view class="mode-copy">
+          <text class="mode-title">对话模式</text>
+          <text class="mode-description">和 TA 自由聊天，获得 AI 生成的声音回复</text>
+        </view>
+        <view class="chat-visual"><text></text><text></text><text></text></view>
+      </view>
+
+      <view class="mode-card exact-mode" data-mode="exact" bindtap="selectMode">
+        <view class="mode-copy">
+          <text class="mode-title warm">说一句模式</text>
+          <text class="mode-description">输入精确文字，让这个声音原样朗读</text>
+        </view>
+        <view class="mic-visual"><view class="mic-core"></view></view>
+      </view>
+
+      <text class="chooser-note">对话和“说一句”共用服务端生成次数。</text>
+    </view>
+
+    <view wx:else>
+      <view class="workbench-header">
+        <view class="quota-pill">{{quotaText}}</view>
+        <button class="change-mode" bindtap="chooseAnotherMode">切换使用方式</button>
+      </view>
+
+      <view class="segment-control">
+        <view class="segment-item {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话</view>
+        <view class="segment-item {{mode === 'exact' ? 'active warm' : ''}}" data-mode="exact" bindtap="switchMode">说一句</view>
+      </view>
+
+      <view wx:if="{{mode === 'chat'}}" class="chat-panel">
+        <view class="ai-notice">AI 生成内容不代表声音本人真实表达</view>
+        <scroll-view class="messages-scroll" scroll-y="{{true}}" scroll-into-view="{{scrollTarget}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+          <view wx:if="{{chatMessages.length === 0 && !sending}}" class="chat-empty">
+            <view class="assistant-avatar">{{voiceInitial}}</view>
+            <text class="empty-title">从一句简单的话开始</text>
+            <text class="empty-copy">这是使用“{{voiceName}}”声音输出的 AI 助手，不是真实声音本人。</text>
+            <view class="quick-prompts">
+              <button data-text="今天过得怎么样？" bindtap="useQuickPrompt">今天过得怎么样？</button>
+              <button data-text="陪我聊几句吧。" bindtap="useQuickPrompt">陪我聊几句</button>
+              <button data-text="给我一句温柔的鼓励。" bindtap="useQuickPrompt">给我一句鼓励</button>
+            </view>
+          </view>
+
+          <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'user-row' : 'assistant-row'}}">
+            <view wx:if="{{item.isAssistant}}" class="message-avatar">{{item.initial}}</view>
+            <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
+              <text class="message-text">{{item.text}}</text>
+              <audio-player wx:if="{{item.showAudio}}" class="message-audio" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI回复" compact="{{true}}"></audio-player>
+              <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣次数' : 'AI回复'}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{sending && pendingMode === 'chat'}}" class="message-row assistant-row pending-row">
+            <view class="message-avatar">{{voiceInitial}}</view>
+            <view class="message-bubble assistant-bubble">
+              <text class="pending-user-copy">你：{{pendingText}}</text>
+              <view class="typing-wave"><text></text><text></text><text></text><text></text></view>
+              <text class="message-tag">{{generationStatusText}}</text>
+            </view>
+          </view>
+          <view class="scroll-spacer"></view>
+        </scroll-view>
+
+        <view class="chat-composer">
+          <textarea class="composer-input" value="{{chatText}}" placeholder="输入想说的话…" maxlength="200" auto-height="{{true}}" bindinput="onChatInput" disabled="{{sending}}"></textarea>
+          <button class="send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
+        </view>
+      </view>
+
+      <view wx:else class="exact-panel">
+        <view class="ai-notice">生成音频会明确显示“AI生成”标识</view>
+        <text class="exact-label">输入你希望 TA 说的话</text>
+        <view class="exact-input-card soft-card">
+          <textarea class="exact-textarea" value="{{exactText}}" placeholder="例如：祝妈妈生日快乐，永远年轻漂亮！" maxlength="50" bindinput="onExactInput" disabled="{{sending}}"></textarea>
+          <text class="char-count">{{exactCount}}/50</text>
+        </view>
+        <button class="primary-button generate-button {{sending ? 'button-disabled' : ''}}" bindtap="generateExact" disabled="{{sending}}">
+          {{sending && pendingMode === 'exact' ? '正在生成 AI 语音…' : '生成语音'}}
+        </button>
+
+        <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+
+        <view class="results-heading">
+          <text class="section-title">生成记录</text>
+          <text class="section-caption">最近 10 轮内</text>
+        </view>
+        <view wx:if="{{sending && pendingMode === 'exact'}}" class="pending-result soft-card">
+          <view class="typing-wave"><text></text><text></text><text></text><text></text></view>
+          <text>{{generationStatusText}}</text>
+        </view>
+        <view wx:if="{{exactResults.length === 0 && !sending}}" class="exact-empty soft-card">
+          <text>还没有生成记录</text>
+          <text>输入一句话，成功生成后会显示在这里。</text>
+        </view>
+        <view wx:else class="result-list">
+          <view wx:for="{{exactResults}}" wx:key="id" class="result-card soft-card">
+            <text class="result-text">{{item.text}}</text>
+            <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}"></audio-player>
+            <text wx:else class="message-tag">{{item.status === 'FAILED' ? '生成失败，未扣次数' : 'AI生成'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <text wx:if="{{errorMessage && mode === 'chat'}}" class="chat-error">{{errorMessage}}</text>
+    </view>
+  </view>
+
+  <quota-purchase-dialog
+    visible="{{purchaseVisible}}"
+    voiceName="{{voiceName}}"
+    option="{{purchaseOption}}"
+    paying="{{paying}}"
+    pending="{{paymentPending}}"
+    message="{{purchaseMessage}}"
+    bindbuy="buyQuota"
+    bindcancel="closePurchase"
+  ></quota-purchase-dialog>
+</view>

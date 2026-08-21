@@ -1,0 +1,177 @@
+﻿{
+    "generatedAt":  "2026-08-21T12:24:42",
+    "schemaVersion":  "0.1",
+    "project":  "aivoice",
+    "features":  [
+                     {
+                         "source":  "docs/auto-execute",
+                         "id":  "FE-HARNESS-001",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "harness",
+                         "description":  "Harness is initialized and run-all fast mode has been executed",
+                         "surface":  "harness",
+                         "evidenceRequired":  [
+                                                  "verification-results.md",
+                                                  "AUTO_EXECUTE_DELIVERY_REPORT.md"
+                                              ],
+                         "requiredGates":  [
+                                               "init-harness",
+                                               "run-all-fast"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute",
+                                              "scripts/acceptance"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "PRD/docs/UI",
+                         "id":  "FS-010",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "requirements",
+                         "description":  "Convert requirement docs and UI references into acceptance criteria",
+                         "surface":  "docs/auto-execute",
+                         "evidenceRequired":  [
+                                                  "02-requirement-traceability-matrix.md"
+                                              ],
+                         "requiredGates":  [
+                                               "acceptance-pack"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/02-requirement-traceability-matrix.md",
+                                              "docs/auto-execute/04-visual-acceptance-checklist.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "UI references",
+                         "id":  "FS-020",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "frontend",
+                         "description":  "Implement UI screens/routes/components and states from the UI references",
+                         "surface":  "frontend",
+                         "evidenceRequired":  [
+                                                  "frontend logs",
+                                                  "screenshots"
+                                              ],
+                         "requiredGates":  [
+                                               "frontend-build",
+                                               "frontend-test",
+                                               "visual-smoke"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/14-frontend-implementation-plan.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "Requirement docs",
+                         "id":  "FS-030",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "backend",
+                         "description":  "Implement backend APIs/services/data behavior required by the PRD",
+                         "surface":  "backend",
+                         "evidenceRequired":  [
+                                                  "backend logs",
+                                                  "API smoke"
+                                              ],
+                         "requiredGates":  [
+                                               "backend-build",
+                                               "backend-test",
+                                               "api-smoke"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/15-backend-implementation-plan.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "frontend/backend code",
+                         "id":  "FS-040",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "contract",
+                         "description":  "Align frontend API calls with backend routes, request/response shape, auth, and errors",
+                         "surface":  "contract",
+                         "evidenceRequired":  [
+                                                  "contract map",
+                                                  "smoke logs"
+                                              ],
+                         "requiredGates":  [
+                                               "api-smoke",
+                                               "integration-smoke"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/13-frontend-backend-contract-map.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "PRD/UI acceptance criteria",
+                         "id":  "FS-050",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "integration",
+                         "description":  "Run full-stack integrated verification for the implemented product flows",
+                         "surface":  "full-flow",
+                         "evidenceRequired":  [
+                                                  "full-flow report"
+                                              ],
+                         "requiredGates":  [
+                                               "full-flow-smoke",
+                                               "e2e"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/16-integrated-verification-plan.md",
+                                              "docs/auto-execute/FULL_FLOW_ACCEPTANCE.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     },
+                     {
+                         "source":  "changed files + docs/auto-execute",
+                         "id":  "FS-060",
+                         "passes":  false,
+                         "evidence":  [
+
+                                      ],
+                         "category":  "review",
+                         "description":  "Review diff against PRD/UI, tests, evidence, and false-completion risks",
+                         "surface":  "review",
+                         "evidenceRequired":  [
+                                                  "09-code-review.md",
+                                                  "AUTO_EXECUTE_DELIVERY_REPORT.md"
+                                              ],
+                         "requiredGates":  [
+                                               "code-review"
+                                           ],
+                         "relatedFiles":  [
+                                              "docs/auto-execute/09-code-review.md",
+                                              "docs/AUTO_EXECUTE_DELIVERY_REPORT.md"
+                                          ],
+                         "priority":  "P0",
+                         "notes":  ""
+                     }
+                 ]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "voice_profiles" ADD COLUMN "quality_report" jsonb;

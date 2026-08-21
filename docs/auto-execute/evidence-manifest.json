@@ -1,0 +1,130 @@
+﻿{
+    "screenshots":  [
+
+                    ],
+    "finalReports":  [
+
+                     ],
+    "testReports":  [
+
+                    ],
+    "visualResults":  [
+
+                      ],
+    "schemaVersion":  "2.0",
+    "apiResults":  [
+
+                   ],
+    "logs":  [
+                 {
+                     "path":  "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                     "label":  "plan-fullstack-delivery",
+                     "addedAt":  "2026-08-21T12:56:48",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirements-candidates",
+                     "addedAt":  "2026-08-21T12:57:10",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirement-extract",
+                     "addedAt":  "2026-08-21T12:57:11",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-21T12:57:11",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\backend-test.json",
+                     "label":  "backend-test",
+                     "addedAt":  "2026-08-21T12:58:12",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\e2e-flow.log",
+                     "label":  "e2e-flow:configured",
+                     "addedAt":  "2026-08-21T12:58:18",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\e2e-flow.log",
+                     "label":  "e2e-flow:configured",
+                     "addedAt":  "2026-08-21T12:58:18",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                     "label":  "e2e-flow",
+                     "addedAt":  "2026-08-21T12:58:18",
+                     "exists":  true
+                 }
+             ],
+    "other":  [
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements.json",
+                      "label":  "requirements result",
+                      "addedAt":  "2026-08-21T12:56:48",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-candidates.json",
+                      "label":  "requirement candidates",
+                      "addedAt":  "2026-08-21T12:57:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-target.json",
+                      "label":  "requirement target",
+                      "addedAt":  "2026-08-21T12:57:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements-candidates.json",
+                      "label":  "requirements-candidates result",
+                      "addedAt":  "2026-08-21T12:57:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-extract.json",
+                      "label":  "requirement-extract result",
+                      "addedAt":  "2026-08-21T12:57:11",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-21T12:57:11",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend.json",
+                      "label":  "backend result",
+                      "addedAt":  "2026-08-21T12:58:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend-test.json",
+                      "label":  "backend-test result",
+                      "addedAt":  "2026-08-21T12:58:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                      "label":  "e2e-flow result",
+                      "addedAt":  "2026-08-21T12:58:18",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-21T16:22:34",
+                      "exists":  true
+                  }
+              ]
+}

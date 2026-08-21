@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aivoice
+      POSTGRES_PASSWORD: aivoice_local
+      POSTGRES_DB: aivoice
+    ports:
+      - "54329:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aivoice -d aivoice"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - aivoice-postgres:/var/lib/postgresql/data
+
+volumes:
+  aivoice-postgres:

@@ -1,0 +1,49 @@
+<view class="screen profile-screen">
+  <app-nav title="填写信息与授权" back="{{true}}"></app-nav>
+
+  <view class="profile-content fade-in">
+    <view class="intro-block">
+      <text class="page-title">给这个声音起个名字</text>
+      <text class="page-subtitle">只收集创建声音所需的最少信息；声音和生成内容不会公开展示。</text>
+    </view>
+
+    <view class="form-card glass-card">
+      <view class="field-block">
+        <text class="field-label">称呼 TA</text>
+        <input class="field-input" value="{{name}}" placeholder="例如：妈妈、小雨 · 5岁、大学时的我" maxlength="20" bindinput="onNameInput" />
+      </view>
+
+      <view class="field-block permission-block">
+        <view class="permission-heading">
+          <text class="field-label">声音使用权限</text>
+          <text class="permission-help" bindtap="showRules">为什么需要授权？</text>
+        </view>
+        <view class="permission-list">
+          <view wx:for="{{options}}" wx:key="key" class="permission-card {{permissionType === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectPermission">
+            <view class="radio-dot"><view wx:if="{{permissionType === item.key}}" class="radio-inner"></view></view>
+            <view class="permission-copy">
+              <text class="permission-title">{{item.title}}</text>
+              <text class="permission-description">{{item.description}}</text>
+            </view>
+            <view wx:if="{{permissionType === item.key}}" class="selected-check">✓</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{permissionType}}" class="consent-box" bindtap="toggleConfirmed">
+        <view class="check-box {{confirmed ? 'checked' : ''}}"><text wx:if="{{confirmed}}">✓</text></view>
+        <view class="consent-copy">
+          <text class="consent-label">声音使用确认</text>
+          <text class="consent-text">{{consentText}}</text>
+        </view>
+      </view>
+
+      <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+
+      <button class="primary-button {{submitting ? 'button-disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
+        {{submitting ? '正在提交…' : '开始创建免费试听'}}
+      </button>
+      <text class="ai-note">AI 生成内容会显示“AI生成”或“AI回复”标识。</text>
+    </view>
+  </view>
+</view>

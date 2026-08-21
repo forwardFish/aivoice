@@ -1,0 +1,33 @@
+{
+  "name": "aivoice-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/api",
+    "apps/worker"
+  ],
+  "scripts": {
+    "build": "npm run build -w @aivoice/contracts && npm run build -w @aivoice/api && npm run build -w @aivoice/worker",
+    "typecheck": "npm run typecheck -w @aivoice/contracts && npm run typecheck:miniprogram && npm run typecheck -w @aivoice/api && npm run typecheck -w @aivoice/worker",
+    "typecheck:miniprogram": "tsc -p apps/miniprogram/tsconfig.json",
+    "test": "pwsh -NoProfile -File scripts/local/run-tests.ps1",
+    "test:workspace": "npm run build -w @aivoice/contracts && npm run test:miniprogram && npm run test -w @aivoice/api && npm run test -w @aivoice/worker",
+    "test:miniprogram": "tsx --test apps/miniprogram/test/**/*.test.ts",
+    "dev:api": "npm run dev -w @aivoice/api",
+    "dev:worker": "npm run dev -w @aivoice/worker",
+    "db:generate": "npm run db:generate -w @aivoice/api",
+    "db:migrate": "npm run db:migrate -w @aivoice/api"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "deepmerge-ts": "$deepmerge-ts"
+  },
+  "devDependencies": {
+    "@esbuild/win32-x64": "^0.28.2",
+    "deepmerge-ts": "8.0.0",
+    "miniprogram-automator": "^0.12.1"
+  }
+}

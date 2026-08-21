@@ -1,0 +1,19 @@
+<view class="audio-shell {{compact ? 'audio-compact' : ''}}" bindtap="toggle">
+  <view class="play-button {{playing ? 'is-playing' : ''}}">
+    <view wx:if="{{!playing}}" class="play-triangle"></view>
+    <view wx:else class="pause-bars"><text></text><text></text></view>
+  </view>
+  <view class="audio-main">
+    <view wx:if="{{label || tag}}" class="audio-meta">
+      <text class="audio-label">{{label}}</text>
+      <text wx:if="{{tag}}" class="audio-tag">{{tag}}</text>
+    </view>
+    <view class="wave-row">
+      <view class="wave-bars">
+        <view wx:for="{{bars}}" wx:key="index" class="wave-bar" style="height: {{item}}rpx;"></view>
+        <view class="wave-progress" style="width: {{progress}}%;"></view>
+      </view>
+      <text class="audio-time">{{currentText}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,2 @@
+ALTER TABLE "media_assets" ADD CONSTRAINT "media_assets_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_trial_voice_profile_id_voice_profiles_id_fk" FOREIGN KEY ("trial_voice_profile_id") REFERENCES "public"."voice_profiles"("id") ON DELETE set null ON UPDATE no action;

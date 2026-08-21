@@ -1,0 +1,314 @@
+﻿{
+    "sections":  [
+                     {
+                         "sectionId":  "SEC-001",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "绉佹湁澹伴煶澶嶅埢鎶€鏈棴鐜寖鍥?",
+                         "headingLevel":  1,
+                         "lineStart":  1,
+                         "lineEnd":  1,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-002",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "褰撳墠鐢ㄦ埛鐩爣",
+                         "headingLevel":  2,
+                         "lineStart":  2,
+                         "lineEnd":  4,
+                         "textDigest":  "缁欏畾涓€娈靛凡鑾锋巿鏉冪殑瑙嗛鍜屼竴娈典腑鏂囨枃鏈紝绋嬪簭鑳藉浠庤棰戞彁鍙栧弬鑰冧汉澹帮紝骞剁敓鎴愪互璇ュ弬鑰冨０闊虫湕璇绘寚瀹氭枃鏈殑鍙挱鏀鹃煶棰戙€?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-003",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "鏉ユ簮",
+                         "headingLevel":  2,
+                         "lineStart":  5,
+                         "lineEnd":  7,
+                         "textDigest":  "- 鐢ㄦ埛鍦?2026-08-21 鐨勭洿鎺ヨ姹傘€?- `nashide_ta_private_voice_wechat_mvp_prd_v0.4.md` 鐨?11銆?2銆?3銆?4銆?4.2銆?4.5銆?5.1 鍜?M1 绔犺妭銆?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-004",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "P0 楠屾敹瑕佹眰",
+                         "headingLevel":  2,
+                         "lineStart":  8,
+                         "lineEnd":  9,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P0",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-005",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "TVC-001 瑙嗛杈撳叆涓庡弬鑰冮煶棰?",
+                         "headingLevel":  3,
+                         "lineStart":  10,
+                         "lineEnd":  11,
+                         "textDigest":  "- 鎺ュ彈鏈湴瑙嗛璺緞銆?- 浣跨敤 FFprobe 楠岃瘉濯掍綋鍙В鐮併€?- 浣跨敤 FFmpeg 鎻愬彇鍗曞０閬撱€?4kHz銆?6-bit WAV銆?- 鏀寔閫夋嫨寮€濮嬫椂闂村拰 10鈥?0 绉掔墖娈碉紱榛樿閫夋嫨涓嶈秴杩?20 绉掔殑鐗囨銆?- 杈撳嚭鍩虹璐ㄩ噺鎶ュ憡锛氭椂闀裤€佸钩鍧囬煶閲忋€侀潤闊虫瘮渚嬨€佸墛娉㈡瘮渚嬨€?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-006",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "TVC-002 鎺堟潈闂ㄧ",
+                         "headingLevel":  3,
+                         "lineStart":  12,
+                         "lineEnd":  14,
+                         "textDigest":  "- 鏈樉寮忕‘璁ゆ嫢鏈夊０闊冲鍒诲拰鍚堟垚鏉冮檺鏃舵嫆缁濇墽琛屻€?- 缁撴灉娓呭崟鏍囪杈撳嚭涓?AI 鐢熸垚銆?- 榛樿鍒犻櫎涓存椂鍙傝€冮煶棰戙€?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-007",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "TVC-003 闆舵牱鏈０闊冲鍒?",
+                         "headingLevel":  3,
+                         "lineStart":  15,
+                         "lineEnd":  16,
+                         "textDigest":  "- 浣跨敤鍙浛鎹㈢殑 `VoiceProvider` 鎺ュ彛銆?- 鏈湴榛樿瀹炵幇涓?Chatterbox Multilingual锛屾敮鎸佷腑鏂囦笌 CPU銆?- 鎸囧畾涓枃鏂囨湰鍚庣敓鎴愰潪绌恒€佸彲瑙ｇ爜鐨?WAV 鏂囦欢銆?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-008",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "TVC-004 鍙鐜板叆鍙ｄ笌璇佹嵁",
+                         "headingLevel":  3,
+                         "lineStart":  17,
+                         "lineEnd":  19,
+                         "textDigest":  "- 鎻愪緵鍗曟潯 CLI 鍛戒护鎵ц瀹屾暣閾捐矾銆?- 鐢熸垚涓庨煶棰戝悓鍚嶇殑 JSON 娓呭崟锛屽寘鍚紩鎿庛€佹ā鍨嬨€佺墖娈靛弬鏁般€佽川閲忔姤鍛娿€佸搱甯屽拰鐘舵€侊紝涓嶄繚瀛樿緭鍏ユ枃鏈槑鏂囥€?- 鑷姩鍖栨祴璇曚娇鐢ㄥ亣 Provider 瑕嗙洊瑙嗛鍒拌緭鍑洪煶棰戠殑瀹屾暣鎺у埗娴併€?- 鐪熷疄妯″瀷楠屾敹蹇呴』浣跨敤鐢ㄦ埛鎻愪緵涓斿",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-009",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "鏈疆鏄庣‘涓嶅仛",
+                         "headingLevel":  2,
+                         "lineStart":  20,
+                         "lineEnd":  22,
+                         "textDigest":  "- 寰俊灏忕▼搴忛〉闈€佺櫥褰曘€佹敮浠樸€侀搴︺€佸璞″瓨鍌ㄥ拰 PostgreSQL銆?- LLM 瀵硅瘽銆佸唴瀹瑰畨鍏ㄤ緵搴斿晢鍜岄暱鏈熻蹇嗐€?- 鍏綉閮ㄧ讲銆佸晢鐢ㄤ笂绾裤€佷緵搴斿晢澶囨涓庣畻娉曟潗鏂欍€?- 澶氳璇濅汉鑷姩鍒嗙銆佽嚜鍔ㄨ浆鍐欍€侀煶鑹叉案涔呮墭绠°€?- 澹伴煶鐩镐技搴︾殑绾嚜鍔ㄧ粨璁猴紱鏈€缁堜富瑙傜浉浼",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-010",
+                         "source":  "docs\\technical_voice_clone_spike_scope.md",
+                         "title":  "鏈€缁堝垽瀹?",
+                         "headingLevel":  2,
+                         "lineStart":  23,
+                         "lineEnd":  24,
+                         "textDigest":  "- 鑷姩鍖栨帶鍒舵祦銆佸獟浣撹川閲忓拰缁撴灉鍙В鐮侀€氳繃锛屼絾缂哄皯鐢ㄦ埛鎺堟潈瑙嗛鎴栫敤鎴峰惉杈細`PASS_WITH_LIMITATION`銆?- 鐢ㄦ埛鎺堟潈瑙嗛鐪熷疄鐢熸垚鎴愬姛锛屼笖鐢ㄦ埛纭澹伴煶鍙帴鍙楋細`PASS`銆?",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     }
+                 ],
+    "sourceDocuments":  [
+                            "docs\\technical_voice_clone_spike_scope.md"
+                        ],
+    "generatedAt":  "2026-08-21T12:57:11",
+    "ignoredReferences":  [
+                              "docs\\auto-execute\\00-environment-snapshot.md",
+                              "docs\\auto-execute\\00-goal.md",
+                              "docs\\auto-execute\\00-project-intake.md",
+                              "docs\\auto-execute\\00-total-task.md",
+                              "docs\\auto-execute\\01-prd-index.md",
+                              "docs\\auto-execute\\01-requirement-coverage.md",
+                              "docs\\auto-execute\\01-requirement-matrix.md",
+                              "docs\\auto-execute\\01-requirements-summary.md",
+                              "docs\\auto-execute\\01-task-decomposition.md",
+                              "docs\\auto-execute\\02-requirement-traceability-matrix.md",
+                              "docs\\auto-execute\\02-task-decomposition.md",
+                              "docs\\auto-execute\\02-ui-acceptance-matrix.md",
+                              "docs\\auto-execute\\03-architecture-plan.md",
+                              "docs\\auto-execute\\03-story-map.md",
+                              "docs\\auto-execute\\03-surface-map.md",
+                              "docs\\auto-execute\\04-contract-map.md",
+                              "docs\\auto-execute\\04-page-flow.md",
+                              "docs\\auto-execute\\04-story-test-matrix.md",
+                              "docs\\auto-execute\\04-visual-acceptance-checklist.md",
+                              "docs\\auto-execute\\05-api-contract.md",
+                              "docs\\auto-execute\\05-known-gaps-and-assumptions.md",
+                              "docs\\auto-execute\\05-test-matrix.md",
+                              "docs\\auto-execute\\06-database-schema.md",
+                              "docs\\auto-execute\\06-scope-classification.md",
+                              "docs\\auto-execute\\06-test-matrix.md",
+                              "docs\\auto-execute\\07-acceptance-checklist.md",
+                              "docs\\auto-execute\\07-acceptance-test-plan.md",
+                              "docs\\auto-execute\\07-decision-log.md",
+                              "docs\\auto-execute\\08-repair-log.md",
+                              "docs\\auto-execute\\08-test-matrix.md",
+                              "docs\\auto-execute\\09-code-review.md",
+                              "docs\\auto-execute\\10-agent-mistake-log.md",
+                              "docs\\auto-execute\\11-harness-improvement-log.md",
+                              "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                              "docs\\auto-execute\\13-frontend-backend-contract-map.md",
+                              "docs\\auto-execute\\14-frontend-implementation-plan.md",
+                              "docs\\auto-execute\\15-backend-implementation-plan.md",
+                              "docs\\auto-execute\\16-integrated-verification-plan.md",
+                              "docs\\auto-execute\\17-final-acceptance-checklist.md",
+                              "docs\\auto-execute\\18-acceptance-comparison-loop.md",
+                              "docs\\auto-execute\\AGENT_READABILITY.md",
+                              "docs\\auto-execute\\agent-orchestration.md",
+                              "docs\\auto-execute\\blockers.md",
+                              "docs\\auto-execute\\final-convergence-report.md",
+                              "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\gap-closure-log.md",
+                              "docs\\auto-execute\\GOLDEN_RULES.md",
+                              "docs\\auto-execute\\harness-repair-plan.md",
+                              "docs\\auto-execute\\harness-self-eval-report.md",
+                              "docs\\auto-execute\\index.md",
+                              "docs\\auto-execute\\latest\\blockers.md",
+                              "docs\\auto-execute\\latest\\HANDOFF.md",
+                              "docs\\auto-execute\\latest\\next-agent-action.md",
+                              "docs\\auto-execute\\latest\\repair-plan.md",
+                              "docs\\auto-execute\\latest\\run-id.txt",
+                              "docs\\auto-execute\\latest\\verification-results.md",
+                              "docs\\auto-execute\\next-agent-action.md",
+                              "docs\\auto-execute\\progress.md",
+                              "docs\\auto-execute\\QUALITY_GATES.md",
+                              "docs\\auto-execute\\STATUS_SEMANTICS.md",
+                              "docs\\auto-execute\\UI_REFERENCE_INVENTORY.md",
+                              "docs\\auto-execute\\verification-results.md",
+                              "docs\\auto-execute\\visual-diff-report.md"
+                          ],
+    "summary":  {
+                    "limitations":  0,
+                    "p0":  1,
+                    "gaps":  0,
+                    "requiresImplementation":  0,
+                    "total":  10,
+                    "manualReviewRequired":  10,
+                    "p1":  0
+                },
+    "schemaVersion":  "2.0",
+    "status":  "MANUAL_REVIEW_REQUIRED"
+}

@@ -1,0 +1,97 @@
+<view class="settings-screen">
+  <app-nav title="声音设置" back="{{true}}"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}" class="settings-state">
+    <page-state mode="loading" title="正在读取声音设置" description="正在同步服务端资料、状态和次数…"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="settings-state soft-card">
+    <page-state mode="error" title="设置暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadSettings"></page-state>
+  </view>
+
+  <view wx:elif="{{deleted}}" class="settings-state soft-card">
+    <page-state mode="success" title="声音删除流程已提交" description="服务端将继续删除声音样本、模型和相关记录。" actionText="返回我的声音" bindaction="goVoices"></page-state>
+  </view>
+
+  <view wx:else class="settings-content fade-in">
+    <view class="settings-hero glass-card">
+      <view class="hero-wave"><text></text><text></text><text></text><text></text><text></text></view>
+      <view class="hero-copy">
+        <text class="hero-name">{{voiceName}}</text>
+        <text class="hero-meta">{{statusText}} · 剩余 {{availableQuota}} 次</text>
+      </view>
+    </view>
+
+    <view class="section-heading">
+      <text class="section-title">基本资料</text>
+      <text class="section-caption">修改操作始终提交服务端，不在本地覆盖声音资料。</text>
+    </view>
+    <view class="form-card soft-card">
+      <text class="field-label">声音名称</text>
+      <view class="name-row">
+        <input class="name-input" value="{{nameDraft}}" maxlength="20" bindinput="onNameInput" />
+        <button class="save-name" bindtap="saveName" disabled="{{saving}}">{{saving ? '保存中…' : '保存'}}</button>
+      </view>
+
+      <view class="info-row" bindtap="showPermissionRules">
+        <text>声音使用权限</text>
+        <view><text>{{permissionText}}</text><text class="arrow">›</text></view>
+      </view>
+      <view class="info-row">
+        <text>阶段标签</text>
+        <text>{{stageText}}</text>
+      </view>
+      <view class="info-row">
+        <text>对话风格</text>
+        <text>{{styleText}}</text>
+      </view>
+    </view>
+
+    <view class="section-heading">
+      <text class="section-title">生成次数</text>
+      <text class="section-caption">免费和付费次数共用于对话与“说一句”。</text>
+    </view>
+    <view class="quota-card soft-card">
+      <view class="quota-total">
+        <text class="quota-number">{{availableQuota}}</text>
+        <text>可用次数</text>
+      </view>
+      <view class="quota-detail">
+        <view><text>{{trialQuota}}</text><text>免费体验</text></view>
+        <view class="quota-divider"></view>
+        <view><text>{{paidQuota}}</text><text>付费次数</text></view>
+      </view>
+      <button class="orders-link" bindtap="openAccount">查看订单与次数流水</button>
+    </view>
+
+    <view class="section-heading {{focus === 'conversation' ? 'focused-heading' : ''}}">
+      <text class="section-title">数据管理</text>
+      <text class="section-caption">删除和清空操作由服务端执行并返回最终状态。</text>
+    </view>
+    <view class="action-card soft-card {{focus === 'conversation' ? 'focused-card' : ''}}">
+      <view class="action-row" bindtap="clearChat">
+        <view>
+          <text class="action-title">清空当前对话</text>
+          <text class="action-copy">清空后不再用于最近 10 轮上下文</text>
+        </view>
+        <text class="action-state">{{clearing ? '处理中…' : '›'}}</text>
+      </view>
+      <view class="action-row" bindtap="openAccount">
+        <view>
+          <text class="action-title">订单与次数记录</text>
+          <text class="action-copy">查看服务端订单和额度流水</text>
+        </view>
+        <text class="action-state">›</text>
+      </view>
+    </view>
+
+    <text wx:if="{{successMessage}}" class="success-message">{{successMessage}}</text>
+    <text wx:if="{{errorMessage}}" class="error-message">{{errorMessage}}</text>
+
+    <view class="danger-zone">
+      <text class="danger-title">危险操作</text>
+      <button class="delete-voice-button" bindtap="removeVoice" disabled="{{deleting}}">{{deleting ? '正在提交删除…' : '删除整个声音'}}</button>
+      <text class="danger-copy">删除后无法恢复，账号级免费体验资格不会因删除而恢复。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,89 @@
+<view class="account-screen">
+  <app-nav title="我的"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}" class="account-state">
+    <page-state mode="loading" title="正在同步账户" description="正在获取声音、次数和订单信息…"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="account-state soft-card">
+    <page-state mode="error" title="账户信息暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="retryLoad"></page-state>
+  </view>
+
+  <view wx:else class="account-content fade-in">
+    <view class="profile-card glass-card">
+      <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="profile-avatar fallback">{{userInitial}}</view>
+      <view class="profile-copy">
+        <text class="profile-name">{{user.nickname || '微信用户'}}</text>
+        <text class="profile-caption">{{voiceCount}} 个声音 · 共剩余 {{availableQuota}} 次</text>
+      </view>
+      <button class="edit-button" bindtap="editNickname" disabled="{{updatingProfile}}">{{updatingProfile ? '保存中' : '编辑'}}</button>
+    </view>
+
+    <view class="summary-grid">
+      <view class="summary-card soft-card" bindtap="goVoices">
+        <text class="summary-value">{{voiceCount}}</text>
+        <text class="summary-label">我的声音</text>
+      </view>
+      <view class="summary-card soft-card" bindtap="goVoices">
+        <text class="summary-value brand">{{availableQuota}}</text>
+        <text class="summary-label">剩余生成次数</text>
+      </view>
+    </view>
+
+    <view class="section-card soft-card">
+      <view class="section-heading" bindtap="toggleOrders">
+        <view><text class="section-title">我的订单</text><text class="section-caption">支付和次数到账均以服务端为准</text></view>
+        <text class="chevron">{{orderExpanded ? '⌃' : '›'}}</text>
+      </view>
+      <view wx:if="{{orderExpanded}}" class="section-body">
+        <view wx:if="{{orders.length === 0}}" class="sub-empty">还没有订单</view>
+        <view wx:for="{{orders}}" wx:key="id" class="order-row">
+          <view>
+            <text class="row-title">购买 {{item.quotaText}}</text>
+            <text class="row-meta">{{item.timeText}} · {{item.statusText}}</text>
+          </view>
+          <text class="order-price">{{item.priceText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card soft-card">
+      <view class="section-heading" bindtap="toggleLedgers">
+        <view><text class="section-title">次数记录</text><text class="section-caption">免费、购买和成功生成流水</text></view>
+        <text class="chevron">{{ledgerExpanded ? '⌃' : '›'}}</text>
+      </view>
+      <view wx:if="{{ledgerExpanded}}" class="section-body">
+        <view wx:if="{{ledgers.length === 0}}" class="sub-empty">还没有次数记录</view>
+        <view wx:for="{{ledgers}}" wx:key="id" class="ledger-row">
+          <view>
+            <text class="row-title">{{item.title}}</text>
+            <text class="row-meta">{{item.voiceName || '私有声音'}} · {{item.timeText}}</text>
+          </view>
+          <text class="ledger-amount {{item.positive ? 'positive' : ''}}">{{item.amountText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="menu-card soft-card">
+      <view class="menu-row" data-type="help" bindtap="showInfo"><text>使用帮助</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="service" bindtap="showInfo"><text>退款与售后</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="feedback" bindtap="showInfo"><text>意见反馈</text><text>›</text></view>
+    </view>
+
+    <view class="menu-card soft-card">
+      <view class="menu-row" data-type="privacy" bindtap="showInfo"><text>数据与隐私</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="rules" bindtap="showInfo"><text>声音使用规则</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="policy" bindtap="showInfo"><text>隐私政策</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="terms" bindtap="showInfo"><text>服务协议</text><text>›</text></view>
+    </view>
+
+    <button class="logout-button" bindtap="removeAccount" disabled="{{deletingAccount}}">{{deletingAccount ? '正在注销…' : '注销账号'}}</button>
+    <text class="version-note">那时的 TA · 微信原生小程序前端 v0.4</text>
+  </view>
+</view>

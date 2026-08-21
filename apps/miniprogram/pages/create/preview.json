@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "app-nav": "/components/app-nav/app-nav",
+    "audio-player": "/components/audio-player/audio-player",
+    "page-state": "/components/page-state/page-state"
+  }
+}

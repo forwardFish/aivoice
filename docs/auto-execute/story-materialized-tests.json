@@ -1,0 +1,9 @@
+﻿{
+    "status":  "PENDING",
+    "schemaVersion":  "2.0",
+    "generatedAt":  "2026-08-21T12:24:41",
+    "note":  "P0/P1 story test points must be generated, bound, manual-review, or deferred.",
+    "stories":  [
+
+                ]
+}

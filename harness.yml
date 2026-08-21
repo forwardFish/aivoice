@@ -1,0 +1,101 @@
+﻿project:
+  name: aivoice
+  root: D:\lyh\agent\agent-frame\aivoice
+
+docs:
+  requirements:
+    - "D:\lyh\agent\agent-frame\aivoice\docs\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md"
+  ui: []
+lanes:
+  intake:
+    enabled: true
+  requirements:
+    enabled: true
+  stories:
+    enabled: true
+  frontend:
+    enabled: true
+  backend:
+    enabled: true
+  contract:
+    enabled: true
+  visual:
+    enabled: true
+  integration:
+    enabled: true
+  reportIntegrity:
+    enabled: true
+  secretGuard:
+    enabled: true
+
+commands:
+  install: "npm install"
+  lint: ""
+  typecheck: "npm run typecheck"
+  test: "npm test"
+  build: "npm run build"
+  smoke: ""
+  acceptance: "npm run typecheck"
+  uiStart: ""
+  uiBaseUrl: "http://127.0.0.1:3000"
+  frontendTest: ""
+  backendTest: "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\local\\run-backend-gates.ps1"
+  e2e: ""
+  apiSmoke: ""
+  uiCapture: ""
+  uiCompare: ""
+
+verifierDependencies:
+  allowInstallDevDependencies: false
+  allowEphemeralNpx: true
+  installPlaywrightBrowsers: false
+  packages:
+    - "playwright"
+    - "pixelmatch"
+    - "pngjs"
+
+visual:
+  diffThreshold: 0.03
+  allowPassWithLimitation: true
+  requireScreenshotForP0: true
+  requireDesktopScreenshot: true
+  requireMobileScreenshot: true
+  allowManualReviewWhenNoBrowser: true
+
+uiMapping: []
+
+resumable:
+  enabled: true
+  handoffFile: docs/auto-execute/latest/HANDOFF.md
+  latestDir: docs/auto-execute/latest
+  resumeCommand: powershell -ExecutionPolicy Bypass -File .\scripts\acceptance\resume-convergence.ps1
+  prohibitResetOnResume: true
+  updateHandoffAfterEachLane: true
+
+supervisor:
+  enabled: false
+  mode: codex-exec
+  maxWorkerRounds: 20
+  taskFile: TODO.md
+  logDir: .codex-runs
+  askForApproval: never
+  sandbox: workspace-write
+  oneTaskPerWorker: true
+  updateHandoffEveryRound: true
+  stopOnBlocked: true
+
+safety:
+  allowCommit: false
+  allowPush: false
+  allowDeploy: false
+  allowProductionDb: false
+  allowPayment: false
+
+convergence:
+  maxRepairRounds: 5
+  requireFinalGate: true
+  requireEvidenceForPass: true
+  requirePrdSectionCoverage: true
+  requireStoryVerification: true
+  requireUiScreenshots: true
+  requireContractVerification: true

@@ -1,0 +1,37 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+                     {
+                         "status":  "PASS",
+                         "command":  ".\\.venv\\Scripts\\python.exe -m unittest tests.test_pipeline.VoiceClonePipelineTests.test_video_to_generated_audio_with_fake_provider -v",
+                         "log":  "docs/auto-execute/logs/e2e-flow.log",
+                         "failureClass":  "none"
+                     }
+                 ],
+    "lane":  "e2e-flow",
+    "status":  "PASS",
+    "evidence":  [
+                     "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                     "docs/auto-execute/logs",
+                     "docs/auto-execute/results/generated-story-tests.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Implement or configure a full-flow/E2E verifier for P0/P1 requirements."
+                    ],
+    "updatedAt":  "2026-08-21T12:58:18",
+    "failureClass":  "none",
+    "e2eEnvironment":  {
+                           "playwrightPackageAvailable":  false,
+                           "npxAvailable":  true,
+                           "browserAvailable":  false,
+                           "baseUrlConfigured":  true,
+                           "serverReachable":  false
+                       },
+    "e2eClassification":  "PASS",
+    "diagnosis":  "No E2E/full-flow failure detected.",
+    "evidenceKind":  "configured-command",
+    "p0p1E2EStoryCount":  0
+}

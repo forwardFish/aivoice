@@ -1,0 +1,14 @@
+<view class="state-shell {{compact ? 'state-compact' : ''}}">
+  <view wx:if="{{mode === 'loading'}}" class="state-visual loading-visual">
+    <view class="loading-ring"></view>
+    <view class="loading-wave"><text></text><text></text><text></text><text></text><text></text></view>
+  </view>
+  <view wx:elif="{{mode === 'error'}}" class="state-visual error-visual">!</view>
+  <view wx:elif="{{mode === 'empty'}}" class="state-visual empty-visual">
+    <view class="empty-wave"><text></text><text></text><text></text><text></text><text></text></view>
+  </view>
+  <view wx:else class="state-visual success-visual">✓</view>
+  <text class="state-title">{{title}}</text>
+  <text wx:if="{{description}}" class="state-description">{{description}}</text>
+  <button wx:if="{{actionText}}" class="state-action" bindtap="onAction">{{actionText}}</button>
+</view>

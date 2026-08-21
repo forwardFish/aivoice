@@ -1,0 +1,48 @@
+<view class="screen preview-screen">
+  <app-nav title="免费试听" back="{{true}}"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}">
+    <page-state mode="loading" title="正在准备试听" description="马上就能听见创建结果…"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="soft-card state-card">
+    <page-state mode="error" title="试听暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadPreview"></page-state>
+  </view>
+
+  <view wx:else class="preview-content fade-in">
+    <view class="success-badge">✓</view>
+    <text class="preview-title">试听完成</text>
+    <text class="preview-subtitle">{{voiceName}}的私有 AI 声音已为你生成</text>
+
+    <view class="avatar-orb">
+      <view class="avatar-wave left"><text></text><text></text><text></text></view>
+      <view class="avatar-core">{{voiceInitial}}</view>
+      <view class="avatar-wave right"><text></text><text></text><text></text></view>
+    </view>
+    <text class="voice-name">{{voiceName}}</text>
+
+    <view class="preview-audio glass-card">
+      <audio-player src="{{audioUrl}}" durationMs="{{durationMs}}" label="{{previewText}}" tag="AI生成" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
+    </view>
+
+    <view wx:if="{{!playCompleted}}" class="play-tip">
+      <view class="tip-dot"></view>
+      <text>请完整播放一次试听，播放结束后即可使用这个声音。</text>
+    </view>
+    <view wx:else class="play-tip completed">
+      <view class="tip-dot"></view>
+      <text>试听已完整播放，可以继续体验。</text>
+    </view>
+
+    <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+
+    <button class="primary-button {{!playCompleted || accepting ? 'button-disabled' : ''}}" bindtap="acceptPreview" disabled="{{!playCompleted || accepting}}">
+      {{accepting ? '正在进入…' : trialEligible ? '使用这个声音，免费体验 1 次' : '使用这个声音'}}
+    </button>
+    <button class="secondary-button retry-button" bindtap="retryPreview" disabled="{{retrying}}">
+      {{retrying ? '正在重新创建…' : '换一段重新创建'}}
+    </button>
+
+    <text class="price-note">后续 ¥9.9 可购买 10 次生成；对话和“说一句”共用，不自动续费。</text>
+  </view>
+</view>

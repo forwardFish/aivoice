@@ -1,0 +1,866 @@
+{
+  "schemaVersion": "1.0.0",
+  "project": "那时的 TA",
+  "platform": "WeChat Native Mini Program",
+  "sourceRoot": "apps/miniprogram/",
+  "apiBasePath": "/v1",
+  "apiBaseUrlConfig": "apps/miniprogram/config.ts#API_BASE_URL",
+  "authentication": {
+    "scheme": "Bearer",
+    "storage": "wx storage token scoped to this project",
+    "protectedRequestHeader": "Authorization: Bearer <token>",
+    "unauthorizedBehavior": [
+      "save current safe route",
+      "clear local token and user",
+      "reLaunch pages/login/index"
+    ],
+    "frontendSecrets": false
+  },
+  "sharedClientRules": {
+    "quotaAuthority": "server only",
+    "orderAuthority": "server only",
+    "voiceStatusAuthority": "server only",
+    "generationIdempotency": "new UUIDv4 Idempotency-Key for every chat/exact generation action",
+    "previewAcceptance": "disabled until InnerAudioContext ended event",
+    "purchaseTrigger": "only after a user-initiated generation receives QUOTA_EXHAUSTED",
+    "lastGenerationBehavior": "show and play the successful result normally; do not auto-open purchase modal when quota becomes zero",
+    "paymentConfirmation": "wx.requestPayment success must be followed by server order refresh and server quota confirmation",
+    "draftPreservation": "chat and exact text drafts survive purchase modal, cancellation, order refresh and page re-entry",
+    "providerVoiceId": "never stored or rendered",
+    "generatedContentLabels": [
+      "AI回复",
+      "AI生成"
+    ]
+  },
+  "pages": [
+    {
+      "route": "pages/login/index",
+      "title": "登录",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "POST",
+          "path": "/v1/auth/wechat",
+          "authRequired": false,
+          "requestFields": [
+            "code",
+            "profile.nickname?",
+            "profile.avatarUrl?"
+          ],
+          "responseFields": [
+            "token",
+            "user.id",
+            "user.nickname?",
+            "user.avatarUrl?",
+            "trialEligibility?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "idle",
+        "loading",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "wx.login",
+        "chooseAvatar",
+        "nickname input",
+        "agreement confirmation",
+        "safe post-login route recovery"
+      ]
+    },
+    {
+      "route": "pages/home/index",
+      "title": "首页",
+      "tabBar": true,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/home",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "recentVoices[].id",
+            "recentVoices[].name",
+            "recentVoices[].status",
+            "recentVoices[].avatarUrl?",
+            "recentVoices[].lastUsedAt?",
+            "recentVoices[].quota",
+            "voiceCount?",
+            "trialEligibility?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "empty",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "create voice",
+        "open recent READY voice",
+        "pull to refresh"
+      ],
+      "businessGuards": [
+        "only READY voices are rendered",
+        "maximum three recent voices",
+        "processing/failed/draft are never rendered"
+      ]
+    },
+    {
+      "route": "pages/create/select-video",
+      "title": "选择视频",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "POST",
+          "path": "/v1/voices",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voice.id",
+            "voice.status"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/upload-policy",
+          "authRequired": true,
+          "requestFields": [
+            "fileName",
+            "mimeType",
+            "sizeBytes"
+          ],
+          "responseFields": [
+            "uploadUrl",
+            "fileField?",
+            "objectKey?",
+            "mediaId?",
+            "headers?",
+            "formData?"
+          ]
+        },
+        {
+          "method": "POST_MULTIPART",
+          "path": "/v1/voices/:id/media-upload",
+          "authRequired": true,
+          "requestFields": [
+            "file",
+            "uploadPolicy.formData",
+            "uploadPolicy.headers",
+            "Authorization: Bearer <token>"
+          ],
+          "responseFields": [
+            "objectKey?",
+            "mediaId?",
+            "etag?"
+          ],
+          "notes": "wx.uploadFile uses the server-issued uploadUrl and fieldName; current server-upload mode requires the Bearer token"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/media",
+          "authRequired": true,
+          "requestFields": [
+            "objectKey?",
+            "mediaId?",
+            "fileName",
+            "mimeType",
+            "sizeBytes",
+            "durationMs"
+          ],
+          "responseFields": [
+            "voice.id",
+            "voice.status",
+            "voice.sourceDurationMs?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "idle",
+        "selected",
+        "uploading",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "wx.chooseMedia",
+        "wx.getVideoInfo",
+        "12-60 second validation",
+        "100MB validation",
+        "upload progress",
+        "continue to clip selection"
+      ]
+    },
+    {
+      "route": "pages/create/select-clip",
+      "title": "标记声音片段",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "PUT",
+          "path": "/v1/voices/:id/clip",
+          "authRequired": true,
+          "requestFields": [
+            "startMs",
+            "endMs"
+          ],
+          "responseFields": [
+            "voice.id",
+            "voice.status",
+            "voice.clipStartMs?",
+            "voice.clipEndMs?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "invalid",
+        "valid",
+        "saving",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "video playback",
+        "set start/end from current time",
+        "dual sliders",
+        "preview selected clip",
+        "confirm clear single-speaker segment"
+      ],
+      "businessGuards": [
+        "minimum 10 seconds",
+        "maximum 30 seconds",
+        "start before end",
+        "confirmation required"
+      ]
+    },
+    {
+      "route": "pages/create/voice-profile",
+      "title": "声音信息与授权",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "PUT",
+          "path": "/v1/voices/:id/profile",
+          "authRequired": true,
+          "requestFields": [
+            "name",
+            "permissionType"
+          ],
+          "responseFields": [
+            "voice.id",
+            "voice.name",
+            "voice.permissionType",
+            "voice.status",
+            "consentVersion",
+            "consentText"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/consents",
+          "authRequired": true,
+          "requestFields": [
+            "consentVersion",
+            "consentText",
+            "confirmed"
+          ],
+          "responseFields": [],
+          "notes": "confirmed is always true; consent text is the exact dynamic text for the selected permission type"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/process",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voice.id",
+            "voice.status",
+            "voice.progress?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "idle",
+        "permission-selected",
+        "confirmed",
+        "submitting",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "name input",
+        "SELF/OTHER/MINOR selection",
+        "dynamic consent confirmation",
+        "view usage rules",
+        "start processing"
+      ],
+      "dynamicConsentText": {
+        "SELF": "我同意使用我的声音样本创建私有 AI 声音。",
+        "OTHER": "我已告知声音本人，并取得其对声音克隆和 AI 合成使用的明确同意。",
+        "MINOR": "我是该未成年人的监护人，或已取得其监护人的明确授权。"
+      }
+    },
+    {
+      "route": "pages/create/progress",
+      "title": "创建进度",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/process",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voice.id",
+            "voice.status",
+            "voice.progress?"
+          ],
+          "idempotency": "server endpoint is contractually idempotent"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "name",
+            "status",
+            "progress?",
+            "processingStage?",
+            "error?",
+            "previewText?",
+            "previewAudioUrl?",
+            "quota"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "queued",
+        "processing",
+        "preview-ready",
+        "ready",
+        "failed",
+        "recoverable-error"
+      ],
+      "mainInteractions": [
+        "start/recover processing",
+        "poll status",
+        "redirect to preview",
+        "redirect to workbench",
+        "retry from clip or video",
+        "open My Voices"
+      ]
+    },
+    {
+      "route": "pages/create/preview",
+      "title": "免费试听",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "name",
+            "status",
+            "freeRetryRemaining?",
+            "quota",
+            "error?"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id/preview",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voiceId",
+            "audioUrl",
+            "text",
+            "durationMs?",
+            "trialEligibility?",
+            "freeRetryRemaining?"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/preview-played",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "previewPlayedAt"
+          ],
+          "notes": "called only after InnerAudioContext ended; server also enforces elapsed preview duration"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/accept-preview",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voice",
+            "quota",
+            "trialGranted?"
+          ],
+          "idempotency": "server grants account-level trial at most once"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/retry-preview",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voice.id",
+            "voice.status",
+            "voice.freeRetryRemaining?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "playing",
+        "play-completed",
+        "accepting",
+        "retrying",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "play fixed preview",
+        "unlock accept only after playback ended",
+        "accept voice",
+        "retry clip"
+      ],
+      "businessGuards": [
+        "no similarity survey",
+        "accept and retry are the only outcome actions",
+        "price is disclosed but payment is not forced on preview"
+      ]
+    },
+    {
+      "route": "pages/voice/workbench",
+      "title": "声音工作台",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "name",
+            "status",
+            "quota",
+            "error?"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id/quota",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "trialQuotaRemaining",
+            "paidQuotaRemaining",
+            "availableQuota",
+            "trialEligibility?"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id/conversation",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "conversationId?",
+            "messages[]",
+            "quota?"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/messages",
+          "authRequired": true,
+          "requestFields": [
+            "text"
+          ],
+          "responseFields": [
+            "messageId",
+            "status"
+          ],
+          "idempotency": "new UUIDv4 Idempotency-Key header per user generation action"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/voices/:id/exact-speech",
+          "authRequired": true,
+          "requestFields": [
+            "text"
+          ],
+          "responseFields": [
+            "messageId",
+            "status"
+          ],
+          "idempotency": "new UUIDv4 Idempotency-Key header per user generation action"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/messages/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "messageId",
+            "status",
+            "text?",
+            "audioUrl?",
+            "durationMs?",
+            "failureCode?",
+            "message?",
+            "quota?"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/orders",
+          "authRequired": true,
+          "requestFields": [
+            "productCode",
+            "voiceId"
+          ],
+          "responseFields": [
+            "order.id",
+            "order.voiceId?",
+            "order.productCode?",
+            "order.amountFen?",
+            "order.quota?",
+            "order.status",
+            "payment.timeStamp",
+            "payment.nonceStr",
+            "payment.package",
+            "payment.signType",
+            "payment.paySign"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/orders/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "status",
+            "quotaGranted?",
+            "quotaGrantedAt?",
+            "productCode?",
+            "amountFen?",
+            "quota?"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/v1/orders/:id/refresh",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "status",
+            "quotaGranted?",
+            "quotaGrantedAt?",
+            "productCode?",
+            "amountFen?",
+            "quota?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "mode-chooser",
+        "chat-empty",
+        "chat-ready",
+        "exact-empty",
+        "exact-ready",
+        "generation-processing",
+        "generation-failed",
+        "content-blocked",
+        "quota-exhausted-modal",
+        "paying",
+        "payment-pending",
+        "paid",
+        "error"
+      ],
+      "mainInteractions": [
+        "chat input",
+        "exact speech input",
+        "quick prompts",
+        "poll generation",
+        "play AI audio",
+        "open settings",
+        "purchase quota",
+        "resume pending order"
+      ],
+      "businessGuards": [
+        "draft is persisted through payment/cancel/refresh",
+        "quota is never decremented or incremented locally",
+        "purchase modal is shown only after the active generation request receives QUOTA_EXHAUSTED",
+        "last successful result remains visible when server quota becomes zero",
+        "server purchase option must exactly match VOICE_QUOTA_10/990/10/autoRenew=false",
+        "wx.requestPayment success is not quota authority",
+        "generation resumes only after PAID plus server quota-grant confirmation plus positive server quota",
+        "AI回复 is shown for chat audio and AI生成 for exact speech audio"
+      ]
+    },
+    {
+      "route": "pages/voices/index",
+      "title": "我的声音",
+      "tabBar": true,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/voices",
+          "authRequired": true,
+          "requestFields": [
+            "status query optional; current UI requests all then filters presentation groups"
+          ],
+          "responseFields": [
+            "voices[].id",
+            "voices[].name",
+            "voices[].status",
+            "voices[].quota",
+            "voices[].progress?",
+            "voices[].error?",
+            "voices[].permissionType?",
+            "voices[].conversationStyle?",
+            "nextCursor?"
+          ]
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "empty",
+        "error",
+        "success"
+      ],
+      "mainInteractions": [
+        "filter all/ready/processing/draft/failed",
+        "continue chat",
+        "open exact speech",
+        "open progress",
+        "open preview",
+        "resume draft",
+        "open settings",
+        "create voice"
+      ],
+      "businessGuards": [
+        "processing/failed/draft are managed here, not on Home"
+      ]
+    },
+    {
+      "route": "pages/account/index",
+      "title": "我的",
+      "tabBar": true,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/me",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "user",
+            "trialEligibility?",
+            "voiceCount?"
+          ]
+        },
+        {
+          "method": "PATCH",
+          "path": "/v1/me/profile",
+          "authRequired": true,
+          "requestFields": [
+            "nickname?",
+            "avatarUrl?"
+          ],
+          "responseFields": [
+            "user"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "voices[]"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/orders",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "orders[].id",
+            "orders[].voiceId?",
+            "orders[].productCode?",
+            "orders[].amountFen?",
+            "orders[].quota?",
+            "orders[].status",
+            "orders[].createdAt?",
+            "orders[].paidAt?"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/quota-ledgers",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "ledgers[].id",
+            "ledgers[].voiceId?",
+            "ledgers[].voiceName?",
+            "ledgers[].bucket?",
+            "ledgers[].type?",
+            "ledgers[].amount",
+            "ledgers[].trialBalanceAfter?",
+            "ledgers[].paidBalanceAfter?",
+            "ledgers[].createdAt?"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/v1/account",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [],
+          "idempotency": "server deletion workflow is contractually idempotent"
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "success",
+        "orders-empty",
+        "ledgers-empty",
+        "updating-profile",
+        "deleting-account",
+        "error"
+      ],
+      "mainInteractions": [
+        "edit nickname",
+        "expand orders",
+        "expand quota ledgers",
+        "open help/policy/rules",
+        "delete account"
+      ]
+    },
+    {
+      "route": "pages/voice/settings",
+      "title": "声音设置",
+      "tabBar": false,
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "id",
+            "name",
+            "status",
+            "permissionType?",
+            "stageLabel?",
+            "conversationStyle?",
+            "quota"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/v1/voices/:id/quota",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [
+            "trialQuotaRemaining",
+            "paidQuotaRemaining",
+            "availableQuota",
+            "trialEligibility?"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/v1/voices/:id/profile",
+          "authRequired": true,
+          "requestFields": [
+            "name",
+            "permissionType"
+          ],
+          "responseFields": [
+            "voice"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/v1/voices/:id/conversation",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": []
+        },
+        {
+          "method": "DELETE",
+          "path": "/v1/voices/:id",
+          "authRequired": true,
+          "requestFields": [],
+          "responseFields": [],
+          "idempotency": "server schedules idempotent provider/storage deletion"
+        }
+      ],
+      "uiStates": [
+        "loading",
+        "success",
+        "saving",
+        "clearing",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "mainInteractions": [
+        "rename voice",
+        "show permission rules",
+        "show server quota buckets",
+        "clear conversation",
+        "open account orders/ledger",
+        "two-step delete confirmation"
+      ]
+    }
+  ],
+  "sharedComponents": [
+    {
+      "path": "components/app-nav",
+      "purpose": "custom navigation and status/menu-button safe area"
+    },
+    {
+      "path": "components/page-state",
+      "purpose": "loading, empty, recoverable error and success states"
+    },
+    {
+      "path": "components/audio-player",
+      "purpose": "InnerAudioContext playback, progress and ended event"
+    },
+    {
+      "path": "components/quota-purchase-dialog",
+      "purpose": "single server-driven quota product modal with paying/pending states"
+    }
+  ],
+  "serverOnlyEndpointsNotCalledByFrontend": [
+    {
+      "method": "POST",
+      "path": "/v1/payments/wechat/notify",
+      "reason": "WeChat payment callback belongs to the backend and must never be called by the mini-program"
+    }
+  ]
+}

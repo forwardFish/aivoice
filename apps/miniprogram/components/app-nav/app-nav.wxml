@@ -1,0 +1,10 @@
+<view class="nav-placeholder" style="height: {{statusBarHeight + navHeight}}px;"></view>
+<view class="nav-shell {{transparent ? 'nav-transparent' : ''}} {{fixed ? 'nav-fixed' : ''}}" style="padding-top: {{statusBarHeight}}px; height: {{statusBarHeight + navHeight}}px;">
+  <view class="nav-inner" style="height: {{navHeight}}px; padding-left: {{menuWidth + menuRight + 8}}px; padding-right: {{menuWidth + menuRight + 8}}px;">
+    <view wx:if="{{back}}" class="nav-back" bindtap="goBack" aria-label="返回">
+      <view class="nav-back-arrow"></view>
+    </view>
+    <text class="nav-title">{{title}}</text>
+    <view wx:if="{{rightText}}" class="nav-right" bindtap="onRightTap">{{rightText}}</view>
+  </view>
+</view>

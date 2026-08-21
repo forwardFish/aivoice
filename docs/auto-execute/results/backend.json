@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "No backend detected"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "backend",
+    "status":  "DEFERRED",
+    "evidence":  [
+
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+
+                    ],
+    "updatedAt":  "2026-08-21T12:58:12"
+}

@@ -1,0 +1,3 @@
+ALTER TABLE "voice_profiles" ADD COLUMN "preview_played_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "voice_profiles" ADD COLUMN "preview_retry_count" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "voice_profiles" ADD CONSTRAINT "voice_profiles_preview_retry_count_valid" CHECK ("voice_profiles"."preview_retry_count" >= 0 AND "voice_profiles"."preview_retry_count" <= 1);

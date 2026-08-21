@@ -1,0 +1,23 @@
+# Acceptance Checklist
+
+- [x] Native mini-program P0-P9 compiles and has loading/empty/error/success states.
+- [x] WeChat login exchanges code server-side; token expires/revokes; session key is not exposed (real AppID acceptance remains separate).
+- [x] User cannot access another user's voices, messages, files or orders.
+- [x] Dynamic consent is required and persisted before processing.
+- [x] Video/clip constraints and quality errors are visible.
+- [x] Aliyun voice registration and fixed preview work behind Provider Adapter.
+- [x] Preview acceptance is idempotent and grants trial quota once per account.
+- [x] Exact speech reads supplied text; chat uses only last 10 rounds.
+- [x] Same voice permits only one active generation.
+- [x] Failure never consumes quota; success consumes trial before paid.
+- [x] Last successful result is visible/playable when quota becomes zero; no automatic purchase popup.
+- [x] Next active generation displays ¥9.9/10 purchase option and retains the draft.
+- [x] Pay notification and active refresh cannot double-grant quota.
+- [x] Repeated purchase adds 10 to the prior paid balance.
+- [ ] Deletion removes provider voice and private media with compensation status.
+- [x] Frontend contains no server/payment/provider secrets or provider voice ID.
+- [x] PostgreSQL-backed API and Worker full-flow evidence exists.
+- [x] Real user sound acceptance and real-device UI acceptance remain clearly separate gates.
+- [x]微信开发者工具连续主流程完成模拟登录、视频上传、片段、授权、真实阿里云试听、完整播放、接受、免费精确语音和零额度结果保留。
+- [ ] All local runtimes start together and a simulated real user completes login, create voice, upload, clip, consent, processing, preview, free exact speech, zero-quota purchase prompt and post-payment continuation through page clicks.
+- [ ] UI evidence includes stable screenshots plus console/network inspection; build or API-only evidence cannot substitute for the click flow.

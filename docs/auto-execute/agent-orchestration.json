@@ -1,0 +1,19 @@
+{
+  "mode": "serial-fallback",
+  "runtime_surface": "codex-app",
+  "orchestrator": "/root",
+  "agents": [],
+  "external_collaboration": {
+    "worker": "ChatGPT Pro",
+    "lane": "frontend",
+    "conversation": "https://chatgpt.com/g/g-p-6a87b626cf9481918348d8bd97f502b5-aiqin-qing-xiao-cheng-xu/c/6a87c880-dc1c-83e8-a4b4-80aa439e672b",
+    "deliverable": "native mini-program ZIP",
+    "status": "delivered_and_integrated",
+    "dispatched_at": "2026-08-21T16:03:39+08:00",
+    "delivered_at": "2026-08-21T17:27:00+08:00",
+    "delivery_sha256": "F5038CA338FA3495857D860C245B9B6A25642A6A56E179439A47761DD3131B52"
+  },
+  "handoff_paths": ["docs/frontend-handoff/FRONTEND_IMPLEMENTATION_BRIEF.md", "docs/auto-execute/latest/HANDOFF.md"],
+  "verification_paths": ["docs/auto-execute/verification-results.md"],
+  "fallback_reason": "External ChatGPT Pro frontend lane is required by the user; backend execution remains local and serial."
+}

@@ -1,0 +1,26 @@
+{
+  "goal": {
+    "id": "AIVOICE-MVP-001",
+    "statement": "Migrate reusable WeChat login/payment foundations, implement the full aivoice PRD, integrate the external ChatGPT Pro native mini-program frontend, and verify the full stack.",
+    "source": "user_goal_mode",
+    "project_root": "D:\\lyh\\agent\\agent-frame\\aivoice",
+    "status": "active",
+    "success_criteria": [
+      "Native WeChat mini-program implements P0-P9 and exact PRD flows",
+      "NestJS API and PostgreSQL are authoritative for auth, voices, payments, quotas and jobs",
+      "Aliyun CosyVoice enrollment and synthesis are integrated behind VoiceProvider",
+      "WeChat login and Pay v3 are migrated and hardened",
+      "Trial and paid quotas are idempotent, transactional and success-only",
+      "Frontend/backend/full-flow/security/final gates produce evidence"
+    ],
+    "out_of_scope": ["production deployment", "real payment charge", "realtime calls", "public voice marketplace"],
+    "final_verdict": null
+  },
+  "total_task": {
+    "id": "TOTAL-AIVOICE-MVP-001",
+    "decomposition_path": "docs/auto-execute/02-task-decomposition.md",
+    "state_path": "docs/auto-execute/state.json",
+    "orchestration_path": "docs/auto-execute/agent-orchestration.json",
+    "final_report_path": "docs/auto-execute/11-final-acceptance-report.md"
+  }
+}

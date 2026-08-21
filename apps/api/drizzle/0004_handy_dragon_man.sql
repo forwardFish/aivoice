@@ -1,0 +1,1 @@
+ALTER TABLE "voice_profiles" ADD COLUMN "preview_playback_started_at" timestamp with time zone;

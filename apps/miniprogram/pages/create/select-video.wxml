@@ -1,0 +1,49 @@
+<view class="screen select-video-screen">
+  <app-nav title="选择视频" back="{{true}}"></app-nav>
+
+  <view wx:if="{{state === 'uploading'}}" class="upload-state fade-in">
+    <view class="upload-orb">
+      <view class="upload-wave"><text></text><text></text><text></text><text></text><text></text></view>
+      <text class="upload-percent">{{uploadProgress}}%</text>
+    </view>
+    <text class="upload-title">正在安全上传视频</text>
+    <text class="upload-copy">本次只处理你主动选择的视频，请保持小程序在前台。</text>
+    <view class="progress-track"><view class="progress-value" style="width: {{uploadProgress}}%;"></view></view>
+  </view>
+
+  <view wx:else class="page-body fade-in">
+    <view class="intro-block">
+      <text class="page-title">选择一段有清晰人声的视频</text>
+      <text class="page-subtitle">视频时长 12–60 秒；稍后你会从中选择 10–30 秒单人说话片段。</text>
+    </view>
+
+    <view wx:if="{{state === 'selected' || state === 'error'}}" class="preview-card glass-card">
+      <video wx:if="{{selected}}" class="video-preview" src="{{selected.tempFilePath}}" controls="{{true}}" object-fit="cover"></video>
+      <view wx:if="{{selected}}" class="video-meta">
+        <view><text class="meta-label">时长</text><text class="meta-value">{{selected.durationText}}</text></view>
+        <view><text class="meta-label">大小</text><text class="meta-value">{{selected.sizeText}}</text></view>
+      </view>
+      <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
+      <button wx:if="{{selected}}" class="primary-button" bindtap="uploadAndContinue">上传并继续</button>
+      <button class="secondary-button change-button" bindtap="chooseVideo">重新选择</button>
+    </view>
+
+    <view wx:else class="guide-card glass-card">
+      <view class="media-illustration">
+        <view class="film-frame"><view class="film-play"></view></view>
+      </view>
+      <view class="guide-list">
+        <view class="guide-item"><view class="guide-check">✓</view><text>目标人物单独说话</text></view>
+        <view class="guide-item"><view class="guide-check">✓</view><text>声音清楚、环境安静</text></view>
+        <view class="guide-item"><view class="guide-check">✓</view><text>没有电视、音乐或多人重叠声音</text></view>
+        <view class="guide-item"><view class="guide-check">✓</view><text>视频不超过 60 秒和 100MB</text></view>
+      </view>
+      <button class="primary-button" bindtap="chooseVideo">从相册选择视频</button>
+    </view>
+
+    <view class="privacy-note">
+      <view class="privacy-icon"></view>
+      <text>不会扫描你的相册，也不会读取未选择的其他视频。</text>
+    </view>
+  </view>
+</view>

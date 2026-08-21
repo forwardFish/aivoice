@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+                     null
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "requirement-section-map",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\requirement-section-map.json",
+                     "docs\\auto-execute\\gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Normalize uncovered P0/P1 PRD sections into requirement/story targets."
+                    ],
+    "updatedAt":  "2026-08-21T12:57:11"
+}

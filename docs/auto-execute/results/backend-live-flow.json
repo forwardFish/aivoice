@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "2.0",
+  "lane": "backend-live-flow",
+  "status": "PASS",
+  "updatedAt": "2026-08-21T16:30:00+08:00",
+  "servingPath": {
+    "database": "postgres",
+    "api": "compiled-nestjs",
+    "worker": "compiled-node-worker",
+    "voiceProvider": "aliyun-cosyvoice-v3.5-flash"
+  },
+  "checks": {
+    "login": "PASS",
+    "videoUpload": "PASS",
+    "consent": "PASS",
+    "voiceEnrollment": "PASS",
+    "preview": "PASS",
+    "trialGrant": "PASS",
+    "exactSpeech": "PASS",
+    "successOnlyConsume": "PASS",
+    "quotaExhaustedPurchaseOption": "PASS",
+    "privatePlayback": "PASS",
+    "sourceVideoDeletion": "PASS"
+  },
+  "audio": {
+    "durationSeconds": 4.29,
+    "sampleRate": 24000,
+    "channels": 1,
+    "codec": "pcm_s16le",
+    "bytes": 205964,
+    "sha256": "1CB204ABE59BD979191FBC1863F58E73DE3A8A8E54FD9E837C5F444A6CD3709D"
+  },
+  "evidence": [
+    "docs/auto-execute/FULL_FLOW_ACCEPTANCE.md",
+    ".runtime/backend-e2e/generated.wav"
+  ],
+  "blockers": [],
+  "nextActions": [
+    "Integrate the ChatGPT Pro mini-program ZIP and run the native page-click flow."
+  ]
+}

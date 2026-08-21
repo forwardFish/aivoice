@@ -1,0 +1,9 @@
+{
+  "desc": "那时的 TA 小程序页面索引规则",
+  "rules": [
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}

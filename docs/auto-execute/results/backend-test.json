@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "No backend detected"
+                 ],
+    "commands":  [
+                     null
+                 ],
+    "lane":  "backend-test",
+    "status":  "DEFERRED",
+    "evidence":  [
+                     "docs/auto-execute/logs"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Repair backend build/unit/integration/API smoke failures and rerun run-backend-test.ps1."
+                    ],
+    "updatedAt":  "2026-08-21T12:58:12"
+}

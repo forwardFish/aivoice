@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+                     "No requirements auto-extracted"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "requirements-candidates",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\requirement-candidates.json",
+                     "docs\\auto-execute\\requirement-target.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Normalize requirement-candidates.json into requirement-target.json before final convergence."
+                    ],
+    "updatedAt":  "2026-08-21T12:57:10"
+}

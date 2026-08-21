@@ -1,0 +1,52 @@
+<view class="login-screen">
+  <app-nav transparent="{{true}}"></app-nav>
+
+  <view wx:if="{{success}}" class="login-success">
+    <page-state mode="success" title="登录成功" description="正在进入那时的 TA…"></page-state>
+  </view>
+
+  <view wx:else class="login-content fade-in">
+    <view class="brand-mark">
+      <view class="brand-wave"><text></text><text></text><text></text><text></text><text></text></view>
+    </view>
+    <text class="login-title">那时的 TA</text>
+    <text class="login-subtitle">从旧视频里，找回一个熟悉的声音。</text>
+
+    <view class="login-card glass-card">
+      <text class="card-title">微信登录</text>
+      <text class="card-caption">头像和昵称仅用于你的账户展示，也可以稍后补充。</text>
+
+      <view class="profile-row">
+        <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image wx:if="{{avatarUrl}}" class="avatar-image" src="{{avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="avatar-placeholder">+</view>
+        </button>
+        <view class="nickname-wrap">
+          <text class="mini-label">昵称（可选）</text>
+          <input class="nickname-input" type="nickname" value="{{nickname}}" placeholder="填写微信昵称" bindinput="onNicknameInput" maxlength="20" />
+        </view>
+      </view>
+
+      <view class="agreement-row" bindtap="toggleAgreement">
+        <view class="check-box {{agreed ? 'checked' : ''}}"><text wx:if="{{agreed}}">✓</text></view>
+        <view class="agreement-copy">
+          <text>我已阅读并同意</text>
+          <text class="agreement-link" data-type="terms" catchtap="showAgreement">《服务协议》</text>
+          <text>和</text>
+          <text class="agreement-link" data-type="privacy" catchtap="showAgreement">《隐私政策》</text>
+        </view>
+      </view>
+
+      <text wx:if="{{errorMessage}}" class="login-error">{{errorMessage}}</text>
+
+      <button class="primary-button login-button {{loading ? 'button-disabled' : ''}}" bindtap="submitLogin" disabled="{{loading}}">
+        {{loading ? '登录中…' : '微信登录'}}
+      </button>
+    </view>
+
+    <view class="trust-line">
+      <view class="trust-dot"></view>
+      <text>私有声音，仅自己可用，可随时删除</text>
+    </view>
+  </view>
+</view>

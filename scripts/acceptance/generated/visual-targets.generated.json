@@ -1,0 +1,13 @@
+﻿{
+    "visualTargets":  [
+                          {
+                              "storyId":  "STORY-GENERAL-007",
+                              "testPointId":  "TP-STORY-GENERAL-007-001",
+                              "target":  "\u003cabsolute UI/screenshot/design paths\u003e",
+                              "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence"
+                          }
+                      ],
+    "uiTarget":  "docs\\auto-execute\\ui-target.json",
+    "schemaVersion":  "2.0",
+    "generatedAt":  "2026-05-14T19:14:19"
+}
