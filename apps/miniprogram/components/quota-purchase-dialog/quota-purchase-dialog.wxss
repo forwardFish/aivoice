@@ -1,170 +1,23 @@
-.dialog-overlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 999;
-  padding: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(19, 22, 37, 0.58);
-}
-
-.dialog-card {
-  width: 100%;
-  max-width: 620rpx;
-  padding: 44rpx 40rpx 30rpx;
-  border-radius: 38rpx;
-  background: #ffffff;
-  box-shadow: 0 38rpx 100rpx rgba(21, 22, 42, 0.28);
-  text-align: center;
-}
-
-.dialog-visual {
-  width: 124rpx;
-  height: 124rpx;
-  margin: 0 auto 20rpx;
-  position: relative;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff, #eae7ff 60%, #d4dcff);
-  box-shadow: 0 20rpx 42rpx rgba(101, 82, 245, 0.18);
-}
-
-.bag-handle {
-  position: absolute;
-  left: 39rpx;
-  top: 25rpx;
-  width: 46rpx;
-  height: 34rpx;
-  border: 6rpx solid #7563ef;
-  border-bottom: none;
-  border-radius: 24rpx 24rpx 0 0;
-}
-
-.bag-body {
-  position: absolute;
-  left: 27rpx;
-  top: 50rpx;
-  width: 70rpx;
-  height: 58rpx;
-  border-radius: 12rpx 12rpx 18rpx 18rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 34rpx;
-  background: linear-gradient(135deg, #8f7dff, #6552f5);
-}
-
-.dialog-title {
-  display: block;
-  font-size: 35rpx;
-  line-height: 1.4;
-  font-weight: 700;
-  color: #11172d;
-}
-
-.dialog-subtitle {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 25rpx;
-  color: #737b94;
-}
-
-.product-card {
-  margin-top: 28rpx;
-  padding: 26rpx 28rpx;
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-align: left;
-  background: linear-gradient(135deg, #f5f3ff, #fbfbff);
-  border: 1rpx solid #e5e1ff;
-}
-
-.product-quota {
-  display: block;
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #6552f5;
-}
-
-.product-copy {
-  display: block;
-  margin-top: 5rpx;
-  font-size: 23rpx;
-  color: #737b94;
-}
-
-.product-price {
-  font-size: 38rpx;
-  font-weight: 700;
-  color: #6552f5;
-}
-
-.benefits {
-  margin: 24rpx 8rpx 18rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  text-align: left;
-  font-size: 23rpx;
-  line-height: 1.55;
-  color: #737b94;
-}
-
-.pending-box {
-  margin-bottom: 18rpx;
-  padding: 18rpx;
-  border-radius: 18rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14rpx;
-  background: #f4f2ff;
-  color: #6552f5;
-  font-size: 23rpx;
-}
-
-.mini-spinner {
-  width: 28rpx;
-  height: 28rpx;
-  border-radius: 50%;
-  border: 4rpx solid rgba(101, 82, 245, 0.18);
-  border-top-color: #6552f5;
-  animation: dialog-spin 0.9s linear infinite;
-}
-
-.buy-button {
-  width: 100%;
-  min-height: 94rpx;
-  border-radius: 26rpx;
-  color: #ffffff;
-  background: linear-gradient(135deg, #5f52f5, #8d68f6);
-  box-shadow: 0 18rpx 36rpx rgba(101, 82, 245, 0.24);
-  font-size: 29rpx;
-  font-weight: 650;
-}
-
-.buy-button.is-disabled {
-  opacity: 0.62;
-  box-shadow: none;
-}
-
-.cancel-button {
-  width: 100%;
-  height: 76rpx;
-  margin-top: 10rpx;
-  color: #737b94;
-  font-size: 26rpx;
-}
-
-button::after { border: none; }
-
-@keyframes dialog-spin {
-  from { transform: rotate(0); }
-  to { transform: rotate(360deg); }
-}
+.dialog-mask { position:fixed; z-index:999; inset:0; padding:34rpx; display:flex; align-items:center; justify-content:center; background:rgba(19,22,39,.54); }
+.dialog-card { width:100%; max-width:650rpx; padding:30rpx 34rpx 31rpx; position:relative; overflow:hidden; border-radius:46rpx; text-align:center; background:radial-gradient(circle at 80% 2%,rgba(207,194,255,.38),transparent 33%),radial-gradient(circle at 5% 60%,rgba(255,224,207,.26),transparent 30%),linear-gradient(160deg,#fff 0%,#f8f6ff 100%); border:1rpx solid rgba(255,255,255,.95); box-shadow:0 42rpx 110rpx rgba(16,19,42,.30),inset 0 1rpx 0 rgba(255,255,255,.99); }
+.dialog-close { width:58rpx; height:58rpx; position:absolute; z-index:5; top:20rpx; right:20rpx; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#757b90; background:rgba(255,255,255,.80); border:1rpx solid rgba(229,229,239,.88); box-shadow:0 8rpx 20rpx rgba(60,64,93,.07); font-size:35rpx; font-weight:300; }
+.dialog-visual { width:236rpx; height:188rpx; margin:0 auto 8rpx; position:relative; }
+.bag-shadow { width:172rpx; height:34rpx; position:absolute; left:31rpx; bottom:6rpx; border-radius:50%; background:rgba(97,80,220,.20); filter:blur(12rpx); }
+.bag-handle { width:84rpx; height:62rpx; position:absolute; z-index:1; left:75rpx; top:20rpx; border:16rpx solid #8e73f1; border-bottom:0; border-radius:48rpx 48rpx 0 0; box-shadow:inset 0 3rpx 0 rgba(255,255,255,.40); }
+.bag-body { width:174rpx; height:132rpx; position:absolute; z-index:2; left:31rpx; top:52rpx; border-radius:27rpx 27rpx 43rpx 43rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(circle at 30% 15%,rgba(255,255,255,.56),transparent 30%),linear-gradient(145deg,#715cf2,#b175eb); border:3rpx solid rgba(255,255,255,.50); box-shadow:0 20rpx 38rpx rgba(101,82,245,.27),inset 0 2rpx 0 rgba(255,255,255,.42); }
+.bag-star { color:#fff8d7; font-size:35rpx; text-shadow:0 0 16rpx rgba(255,231,160,.72); }
+.bag-wave { height:35rpx; margin-top:8rpx; display:flex; align-items:center; gap:5rpx; }
+.bag-wave text { width:5rpx; border-radius:999rpx; background:rgba(255,255,255,.88); }
+.bag-wave text:nth-child(1),.bag-wave text:nth-child(5){height:12rpx}.bag-wave text:nth-child(2),.bag-wave text:nth-child(4){height:24rpx}.bag-wave text:nth-child(3){height:34rpx}
+.coin { position:absolute; z-index:3; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(145deg,#f4a36b,#ef7485); box-shadow:0 10rpx 24rpx rgba(232,111,118,.25); font-size:20rpx; font-weight:700; }
+.coin-a { width:44rpx; height:44rpx; left:6rpx; top:88rpx; }.coin-b { width:50rpx; height:50rpx; right:3rpx; top:46rpx; }
+.spark { position:absolute; width:10rpx; height:10rpx; border-radius:50%; background:#fff; box-shadow:0 0 16rpx rgba(255,211,140,.95); }.spark-a{left:34rpx;top:24rpx}.spark-b{right:32rpx;bottom:42rpx}
+.dialog-title,.dialog-description,.package-eyebrow,.package-code,.package-price,.package-renew,.dialog-note,.dialog-message{display:block}
+.dialog-title { color:#12182f; font-size:38rpx; font-weight:760; }
+.dialog-description { max-width:520rpx; margin:14rpx auto 0; color:#7c8399; font-size:23rpx; line-height:1.62; }
+.package-card { margin-top:26rpx; padding:22rpx 24rpx; border-radius:30rpx; display:flex; align-items:center; justify-content:space-between; gap:20rpx; text-align:left; background:radial-gradient(circle at 82% 12%,rgba(255,228,209,.32),transparent 42%),linear-gradient(145deg,#f1edff,#fff); border:2rpx solid rgba(190,178,249,.76); box-shadow:0 14rpx 30rpx rgba(101,82,245,.10); }
+.package-left{flex:1;min-width:0}.package-eyebrow{color:#6755dd;font-size:18rpx;font-weight:680}.package-points{margin-top:5rpx;display:flex;align-items:baseline;gap:7rpx}.points-number{color:#151b32;font-size:44rpx;line-height:1;font-weight:780}.points-unit{color:#5f667d;font-size:22rpx;font-weight:650}.package-code{margin-top:7rpx;color:#9297aa;font-size:17rpx}.package-right{flex:0 0 auto;text-align:right}.package-price{color:#ee684c;font-size:35rpx;font-weight:780}.package-renew{margin-top:7rpx;color:#898ea2;font-size:18rpx}
+.benefit-row { margin-top:18rpx; display:flex; justify-content:center; gap:28rpx; color:#747b91; font-size:19rpx; }.benefit-row view{display:flex;align-items:center;gap:7rpx}.benefit-check{color:#58b679;font-weight:780}
+.dialog-message { margin-top:16rpx; color:#d95d66; font-size:20rpx; line-height:1.45; }
+.dialog-primary { width:100%; height:92rpx; margin-top:24rpx; border-radius:28rpx; color:#fff; background:linear-gradient(135deg,#6252f4,#8d68f2); box-shadow:0 18rpx 38rpx rgba(101,82,245,.24); font-size:28rpx; font-weight:690; }.dialog-primary[disabled]{opacity:.56;box-shadow:none}
+.dialog-secondary { width:100%; height:66rpx; margin-top:8rpx; color:#7c8398; background:transparent; font-size:23rpx; }.dialog-note{color:#989cad;font-size:17rpx;line-height:1.45}
