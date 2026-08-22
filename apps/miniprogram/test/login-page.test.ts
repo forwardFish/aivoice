@@ -18,6 +18,9 @@ test('login page matches the latest visual hierarchy without restoring profile o
   assert.match(view, /《隐私政策》/)
   assert.doesNotMatch(view, /chooseAvatar|nickname-input|avatar-picker/)
   assert.match(style, /\.wechat-login-button\s*\{[^}]*linear-gradient/s)
+  assert.match(style, /\.wechat-login-button\s*\{[^}]*width:590rpx\s*!important/s)
+  assert.match(style, /\.wechat-login-button\s*\{[^}]*height:120rpx/s)
+  assert.match(style, /\.wechat-login-button\s*\{[^}]*font-size:40rpx/s)
   assert.match(style, /\.login-clouds\s*\{/)
 })
 
