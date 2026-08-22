@@ -22,6 +22,9 @@
   </view>
 
   <view wx:else class="processing-content fade-in">
+    <text class="processing-title">正在创建“{{voiceName}}”</text>
+    <text class="processing-subtitle">{{statusText}}</text>
+
     <view class="process-visual">
       <view class="orbit orbit-outer"></view>
       <view class="orbit orbit-middle"></view>
@@ -31,9 +34,6 @@
       </view>
       <view class="progress-badge"><text class="progress-number">{{progress}}</text><text class="progress-unit">%</text></view>
     </view>
-
-    <text class="processing-title">正在创建“{{voiceName}}”</text>
-    <text class="processing-subtitle">{{statusText}}</text>
 
     <view class="simple-stages">
       <view wx:for="{{stages}}" wx:key="label" class="stage-row {{item.done ? 'is-done' : item.active ? 'is-active' : ''}}">

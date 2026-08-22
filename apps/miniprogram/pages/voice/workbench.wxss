@@ -2,12 +2,12 @@
 .mode-entry { background: radial-gradient(circle at 78% 25%, rgba(201,190,255,.28), transparent 31%), radial-gradient(circle at 9% 73%, rgba(255,226,213,.22), transparent 30%); }
 .workbench-state { min-height: 78vh; }
 
-.mode-chooser { min-height: calc(100vh - 120rpx); padding: 43rpx 44rpx calc(36rpx + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.mode-chooser { min-height: calc(100vh - 120rpx); padding: 128rpx 44rpx calc(160rpx + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
 .mode-heading { text-align: center; }
 .mode-title { display: block; color: #11172d; font-size: 38rpx; line-height: 1.35; font-weight: 750; letter-spacing: .8rpx; }
 .mode-subtitle { display: block; margin-top: 14rpx; color: #7b8299; font-size: 24rpx; }
-.mode-cards { margin-top: 45rpx; display: flex; flex-direction: column; gap: 27rpx; }
-.mode-card { min-height: 315rpx; padding: 43rpx 33rpx 39rpx 42rpx; border-radius: 38rpx; position: relative; overflow: hidden; }
+.mode-cards { margin-top: 90rpx; display: flex; flex-direction: column; gap: 88rpx; }
+.mode-card { min-height: 340rpx; padding: 43rpx 33rpx 39rpx 42rpx; border-radius: 38rpx; position: relative; overflow: hidden; }
 .mode-card::after { content: ''; width: 260rpx; height: 260rpx; position: absolute; right: -62rpx; top: -54rpx; border-radius: 50%; background: radial-gradient(circle, rgba(164,139,255,.22), rgba(164,139,255,0)); }
 .mode-exact { background: radial-gradient(circle at 15% 90%, rgba(255,221,203,.30), transparent 44%), radial-gradient(circle at 87% 12%, rgba(197,188,255,.32), transparent 44%), rgba(255,255,255,.86); }
 .mode-copy { width: 56%; position: relative; z-index: 3; }
