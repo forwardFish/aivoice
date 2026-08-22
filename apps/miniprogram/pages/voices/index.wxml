@@ -15,15 +15,19 @@
     <page-state mode="error" title="声音列表暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="retryLoad"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'empty'}}" class="voices-state soft-card">
-    <page-state mode="empty" title="{{activeFilter === 'ALL' ? '还没有声音' : '当前分类没有声音'}}" description="{{activeFilter === 'ALL' ? '从相册选择一段视频，创建第一个私有 AI 声音。' : '可以切换到“全部”查看其他声音。'}}" actionText="{{activeFilter === 'ALL' ? '创建新声音' : '查看全部'}}" bindaction="handleEmptyAction"></page-state>
+  <view wx:elif="{{state === 'empty'}}" class="voices-empty soft-card">
+    <view class="empty-orb">
+      <view class="empty-wave"><text></text><text></text><text></text><text></text><text></text></view>
+    </view>
+    <text class="empty-title">{{activeFilter === 'ALL' ? '还没有声音' : '当前分类没有声音'}}</text>
+    <text class="empty-copy">{{activeFilter === 'ALL' ? '从相册选择一段视频，创建第一个私有 AI 声音。' : '可以切换到“全部”查看其他声音。'}}</text>
+    <button class="empty-action" bindtap="handleEmptyAction">{{activeFilter === 'ALL' ? '创建新声音' : '查看全部'}}</button>
   </view>
 
   <view wx:else class="voice-list fade-in">
     <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card">
       <view class="card-top">
-        <image wx:if="{{item.avatarUrl}}" class="voice-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback">{{item.initial}}</view>
+        <image class="voice-avatar" src="{{item.displayAvatar}}" mode="aspectFill"></image>
         <view class="voice-copy">
           <view class="name-row">
             <text class="voice-name">{{item.name}}</text>
@@ -32,7 +36,9 @@
           <text wx:if="{{item.stageLabel}}" class="stage-label">{{item.stageLabel}}</text>
           <text class="voice-meta">{{item.metaText}}</text>
         </view>
-        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings">···</button>
+        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings">
+          <image class="settings-icon" src="/assets/ui/more-plain.png" mode="aspectFit"></image>
+        </button>
       </view>
 
       <view wx:if="{{item.showProgress}}" class="progress-wrap">

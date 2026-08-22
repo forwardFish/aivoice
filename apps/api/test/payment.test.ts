@@ -143,3 +143,37 @@ test('WeChat Pay creates signed JSAPI params and notification grants quota once'
     paidAt: new Date('2026-08-21T15:00:00+08:00'),
   });
 });
+
+test('WeChat Pay notification supports the configured WeChat Pay public key id', () => {
+  const wechatPay = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+  delete process.env.WECHAT_PAY_PLATFORM_CERT;
+  delete process.env.WECHAT_PAY_PLATFORM_CERT_PATH;
+  Object.assign(process.env, {
+    WECHAT_PAY_PUBLIC_KEY_ID: 'PUB_KEY_ID_TEST',
+    WECHAT_PAY_PUBLIC_KEY: publicPem(wechatPay.publicKey),
+  });
+  const service = new WechatPayService(
+    {} as DatabaseService,
+    {} as OrderService,
+    {} as QuotaService,
+  );
+  const rawBody = Buffer.from('{"event_type":"TRANSACTION.SUCCESS"}');
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonce = 'public-key-notify-nonce';
+  const signature = crypto.createSign('RSA-SHA256')
+    .update(`${timestamp}\n${nonce}\n${rawBody.toString('utf8')}\n`)
+    .sign(wechatPay.privateKey, 'base64');
+
+  assert.equal(service.verifyNotifySignature({
+    'wechatpay-serial': 'PUB_KEY_ID_TEST',
+    'wechatpay-timestamp': timestamp,
+    'wechatpay-nonce': nonce,
+    'wechatpay-signature': signature,
+  }, rawBody), true);
+  assert.equal(service.verifyNotifySignature({
+    'wechatpay-serial': 'WRONG_KEY_ID',
+    'wechatpay-timestamp': timestamp,
+    'wechatpay-nonce': nonce,
+    'wechatpay-signature': signature,
+  }, rawBody), false);
+});

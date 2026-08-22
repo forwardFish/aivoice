@@ -1,5 +1,7 @@
 # Account Points Flow Acceptance
 
+> Historical evidence note (2026-08-22): this page records the former 5-point registration contract. The current approved contract grants 10 points at registration; code and automated assertions have been updated, but the DevTools click evidence must be rerun with an account authorized for the formal AppID.
+
 Date: 2026-08-21
 Environment: local PostgreSQL + local API + WeChat DevTools automation (`touristappid`)
 Authority: server `point_accounts` and `point_ledgers`; no client-side balance mutation

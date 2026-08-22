@@ -13,7 +13,7 @@ export interface PointsConfig {
 
 export function loadPointsConfig(): PointsConfig {
   return {
-    signupBonusPoints: positiveInteger('SIGNUP_BONUS_POINTS', 5),
+    signupBonusPoints: positiveInteger('SIGNUP_BONUS_POINTS', 10),
     generationCost: positiveInteger('GENERATION_POINT_COST', 1),
     product: {
       productCode: String(process.env.POINTS_PACKAGE_CODE || POINTS_PRODUCT_DEFAULTS.productCode).trim(),

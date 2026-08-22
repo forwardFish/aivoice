@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProductsController } from '../src/orders/order.controller.js';
+import { loadPointsConfig } from '../src/quota/points.config.js';
+
+test('registration bonus defaults to the approved 10 points', () => {
+  const previous = process.env.SIGNUP_BONUS_POINTS;
+  delete process.env.SIGNUP_BONUS_POINTS;
+  try {
+    assert.equal(loadPointsConfig().signupBonusPoints, 10);
+  } finally {
+    if (previous === undefined) delete process.env.SIGNUP_BONUS_POINTS;
+    else process.env.SIGNUP_BONUS_POINTS = previous;
+  }
+});
 
 test('products endpoint shape is sourced from backend point configuration', () => {
   const previous = {

@@ -1,6 +1,6 @@
 .account-screen {
   min-height: 100vh;
-  padding: 0 30rpx calc(44rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(176rpx + env(safe-area-inset-bottom));
 }
 
 .account-state {
@@ -32,10 +32,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-size: 38rpx;
-  font-weight: 700;
-  background: linear-gradient(135deg, #8d7cf7, #617edc);
+  background: radial-gradient(circle at 32% 28%, #ffffff, #ece9ff 60%, #d6dfff);
+  box-shadow:
+    0 12rpx 28rpx rgba(99, 82, 245, 0.14),
+    inset 0 0 0 2rpx rgba(255, 255, 255, 0.8);
+}
+
+.profile-fallback-icon {
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .profile-copy {

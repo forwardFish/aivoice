@@ -9,6 +9,14 @@
 - Signup points, generation cost, package points, price and validity are backend-configurable. The mini-program never owns or invents a balance.
 - Keep an `INVITE_GRANT` ledger source for a future invitation mechanism, but do not expose invitation UI or rewards in this delivery.
 
+## 2026-08-21 local acceptance closure (current run)
+
+- Page-click the `OTHER` and `MINOR` authorization variants and verify their server-canonical consent copy.
+- Complete one real AI conversation through reply generation, cloned-voice audio playback, point debit, and a failure/no-debit check.
+- Exercise My Voices and Voice Settings, including conversation clearing and delete confirmation behavior.
+- Create a disposable, clearly named Aliyun test voice and then delete that exact provider voice plus its private local media; preserve evidence but no reusable voice asset.
+- Replace placeholder agreement/privacy text with product-specific drafts and keep AI-generation disclosure visible. Legal review before public launch remains an external gate.
+
 ## Statement
 
 基于 `nashide_ta_private_voice_wechat_mvp_prd_v0.4.md`，把已验证的阿里云 CosyVoice 声音复刻链路、从 `printersheet` 白名单迁移的微信登录/支付能力，以及由指定 ChatGPT Pro 交付的微信原生前端，集成为可运行、可验证的“那时的 TA”微信小程序 MVP。
@@ -31,7 +39,7 @@
 1. 微信原生小程序覆盖 PRD P0-P9 页面与首次体验、回访、声音管理路径。
 2. 真实微信登录代码交换 openid，密钥只在服务端。
 3. 视频上传、片段选择、动态声音权限确认、音色注册和固定试听可串联。
-4. 新账号注册时由服务端幂等赠送 5 积分；接受试听不再赠送积分。
+4. 新账号注册时由服务端幂等赠送 10 积分；接受试听不再赠送积分。
 5. 对话和“说一句”共用账号积分；只有成功输出才扣 1 积分。
 6. 余额为 0 时下一次主动生成才出现 ¥9.9/50 积分购买框。
 7. 微信支付 API v3 回调、主动查单、金额/openid 校验与积分入账幂等。
@@ -51,4 +59,4 @@
 
 ## Final verdict
 
-Pending.
+`PASS_WITH_LIMITATION` for the local functional/legal closure run. Formal AppID, real merchant payment, operator details, WeChat privacy declaration, applicable AI/deep-synthesis filing, production deployment, final legal review and real-device acceptance remain external launch gates.

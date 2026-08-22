@@ -19,7 +19,7 @@ test('account points are registration-granted, shared, success-only and idempote
     );
     const [user] = await database.db.insert(users).values({ openid: 'points-test-openid' }).returning();
     const grants = await Promise.all(Array.from({ length: 4 }, () => points.ensureSignupGrant(user.id)));
-    assert.ok(grants.every((item) => item.balance === 5));
+    assert.ok(grants.every((item) => item.balance === 10));
     assert.equal((await database.db.query.pointLedgers.findMany({ where: eq(pointLedgers.type, 'REGISTER_GRANT') })).length, 1);
 
     const [voiceA, voiceB] = await database.db.insert(voiceProfiles).values([
@@ -40,7 +40,7 @@ test('account points are registration-granted, shared, success-only and idempote
       points.completeMessage({ userId: user.id, voiceId: voiceA.id, messageId: message.id, outputText: '成功生成' }),
       points.completeMessage({ userId: user.id, voiceId: voiceA.id, messageId: message.id, outputText: '成功生成' }),
     ]);
-    assert.ok(completions.every((item) => item.availableQuota === 4));
+    assert.ok(completions.every((item) => item.availableQuota === 9));
     assert.equal((await database.db.query.pointLedgers.findMany({ where: eq(pointLedgers.type, 'GENERATION_CONSUME') })).length, 1);
 
     const [failed] = await database.db.insert(messages).values({
@@ -53,7 +53,7 @@ test('account points are registration-granted, shared, success-only and idempote
       inputText: '失败不扣分',
     }).returning();
     await points.failMessage({ userId: user.id, messageId: failed.id, code: 'PROVIDER_FAILED', message: 'test' });
-    assert.equal((await points.getPoints(user.id)).balance, 4);
+    assert.equal((await points.getPoints(user.id)).balance, 9);
 
     const makeOrder = (orderNo: string) => database.db.insert(orders).values({
       orderNo,
@@ -68,10 +68,10 @@ test('account points are registration-granted, shared, success-only and idempote
       points.grantPurchasedPoints({ userId: user.id, orderId: firstOrder.id, transactionId: 'tx-1', paidAt: new Date() }),
       points.grantPurchasedPoints({ userId: user.id, orderId: firstOrder.id, transactionId: 'tx-1', paidAt: new Date() }),
     ]);
-    assert.ok(purchases.every((item) => item.availableQuota === 54));
+    assert.ok(purchases.every((item) => item.availableQuota === 59));
     const [secondOrder] = await makeOrder('points-order-2');
     await points.grantPurchasedPoints({ userId: user.id, orderId: secondOrder.id, transactionId: 'tx-2', paidAt: new Date() });
-    assert.equal((await points.getPoints(user.id)).balance, 104);
+    assert.equal((await points.getPoints(user.id)).balance, 109);
     assert.equal((await database.db.query.pointLedgers.findMany({ where: eq(pointLedgers.type, 'PURCHASE_GRANT') })).length, 2);
 
     await database.db.update(pointAccounts).set({ balance: 1 }).where(eq(pointAccounts.userId, user.id));

@@ -12,3 +12,9 @@
 - Type: DOCUMENTED_BLOCKER
 - Details: Secret-like files found; confirm they are safe test fixtures or remove them.
 
+
+## secret-guard
+- Time: 2026-08-22 22:15:21
+- Type: DOCUMENTED_BLOCKER
+- Details: Secret-like files found; confirm they are safe test fixtures or remove them.
+

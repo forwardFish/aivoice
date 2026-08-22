@@ -1,0 +1,88 @@
+{
+  "startedAt": "2026-08-21T23:21:23.6252015+08:00",
+  "attempt": 3,
+  "apiBase": "http://127.0.0.1:8787/v1",
+  "steps": [
+    {
+      "name": "login",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:23.7891329+08:00",
+      "details": {
+        "initialPoints": 5,
+        "userId": "7410c70a-dbb9-4e4a-97c4-1559bf14a8e3"
+      }
+    },
+    {
+      "name": "create-draft",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:23.8139955+08:00",
+      "details": {
+        "voiceId": "bffc9f02-5168-4982-a323-4a9c0a67908a"
+      }
+    },
+    {
+      "name": "upload-source-video",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:24.0335776+08:00",
+      "details": {
+        "mediaId": "421c5cd2-f390-4f15-881e-80a14742f0db",
+        "durationMs": 60000
+      }
+    },
+    {
+      "name": "queue-processing",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:24.0806798+08:00",
+      "details": {
+        "voiceId": "bffc9f02-5168-4982-a323-4a9c0a67908a"
+      }
+    },
+    {
+      "name": "voice-ready",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:52.4337845+08:00",
+      "details": {
+        "status": "READY"
+      }
+    },
+    {
+      "name": "preview-accepted",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:58.4004172+08:00",
+      "details": {
+        "previewDownloadedBytes": 209804,
+        "durationMs": 4370,
+        "trialGranted": false
+      }
+    },
+    {
+      "name": "chat-submitted",
+      "status": "PASS",
+      "at": "2026-08-21T23:21:58.4318806+08:00",
+      "details": {
+        "messageId": "b24295c1-1111-4bb3-b584-ac49ceb98215",
+        "pointsBefore": 5,
+        "text": "今天过得怎么样？记得早点休息。"
+      }
+    },
+    {
+      "name": "chat-ready",
+      "status": "PASS",
+      "at": "2026-08-21T23:22:02.5111523+08:00",
+      "details": {
+        "generatedAudioBytes": 186764,
+        "availablePointsAfterSuccess": 4,
+        "outputText": "谢谢关心，我很好！你也早点休息哦～",
+        "conversationMessageCount": 2
+      }
+    }
+  ],
+  "user": {
+    "userId": "7410c70a-dbb9-4e4a-97c4-1559bf14a8e3",
+    "nickname": "对话验收C"
+  },
+  "voice": {
+    "voiceId": "bffc9f02-5168-4982-a323-4a9c0a67908a",
+    "name": "对话验收专用-20260821-c"
+  }
+}

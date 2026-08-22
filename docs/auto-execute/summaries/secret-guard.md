@@ -1,6 +1,6 @@
 ﻿# Secret Guard
 
-Generated: 08/21/2026 16:20:42
+Generated: 08/22/2026 22:14:00
 
 
 ## Suspect files
@@ -8,8 +8,3 @@ Generated: 08/21/2026 16:20:42
 - .env.example
 - .env.local
 - apps\api\.env.example
-
-## Untracked suspect files
-
-- .env.example
-- apps/api/.env.example

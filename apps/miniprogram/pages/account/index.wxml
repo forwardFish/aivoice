@@ -12,7 +12,9 @@
   <view wx:else class="account-content fade-in">
     <view class="profile-card glass-card">
       <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="profile-avatar fallback">{{userInitial}}</view>
+      <view wx:else class="profile-avatar fallback">
+        <image class="profile-fallback-icon" src="/assets/ui/tab-account-outline.png" mode="aspectFit"></image>
+      </view>
       <view class="profile-copy">
         <text class="profile-name">{{user.nickname || '微信用户'}}</text>
         <text class="profile-caption">{{voiceCount}} 个声音 · 共剩余 {{availablePoints}} 积分</text>
@@ -81,6 +83,8 @@
       <view class="menu-row" data-type="policy" bindtap="showInfo"><text>隐私政策</text><text>›</text></view>
       <view class="divider"></view>
       <view class="menu-row" data-type="terms" bindtap="showInfo"><text>服务协议</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="ai" bindtap="showInfo"><text>AI生成标识说明</text><text>›</text></view>
     </view>
 
     <button class="logout-button" bindtap="removeAccount" disabled="{{deletingAccount}}">{{deletingAccount ? '正在注销…' : '注销账号'}}</button>

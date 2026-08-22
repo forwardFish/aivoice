@@ -10,8 +10,20 @@ function Get-Rel($Root, $Path) {
 }
 
 $frontendCalls = @()
-$files = Get-ChildItem -LiteralPath $ProjectRoot -Recurse -File -Include *.dart -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notmatch "\\.dart_tool\\|\\build\\" }
+$flutterRoots = @()
+if (Test-Path -LiteralPath (Join-Path $ProjectRoot "pubspec.yaml")) { $flutterRoots += $ProjectRoot }
+$appsRoot = Join-Path $ProjectRoot "apps"
+if (Test-Path -LiteralPath $appsRoot) {
+  $flutterRoots += @(Get-ChildItem -LiteralPath $appsRoot -Directory -ErrorAction SilentlyContinue |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "pubspec.yaml") } |
+    ForEach-Object FullName)
+}
+$files = @($flutterRoots | ForEach-Object {
+  $lib = Join-Path $_ "lib"
+  if (Test-Path -LiteralPath $lib) {
+    Get-ChildItem -LiteralPath $lib -Recurse -File -Include *.dart -ErrorAction SilentlyContinue
+  }
+})
 foreach ($file in $files) {
   try { $text = Get-Content -LiteralPath $file.FullName -Raw } catch { $text = "" }
   if ($null -eq $text) { $text = "" }

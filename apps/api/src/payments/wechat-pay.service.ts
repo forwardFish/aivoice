@@ -236,16 +236,34 @@ export class WechatPayService {
   }
 
   verifyNotifySignature(headers: Record<string, string | string[] | undefined>, rawBody: Buffer): boolean {
-    if (!this.config.platformCert) throw new Error('WECHAT_PAY_PLATFORM_CERT is required');
     const signature = header(headers, 'wechatpay-signature');
     const timestamp = header(headers, 'wechatpay-timestamp');
     const nonceStr = header(headers, 'wechatpay-nonce');
+    const wechatpaySerial = header(headers, 'wechatpay-serial');
     if (!signature || !timestamp || !nonceStr) return false;
     const timestampSeconds = Number(timestamp);
     if (!Number.isFinite(timestampSeconds) || Math.abs(Date.now() / 1000 - timestampSeconds) > 300) return false;
-    return crypto.createVerify('RSA-SHA256')
-      .update(`${timestamp}\n${nonceStr}\n${rawBody.toString('utf8')}\n`)
-      .verify(this.config.platformCert, signature, 'base64');
+    const verificationKeys: string[] = [];
+    if (
+      this.config.publicKey
+      && this.config.publicKeyId
+      && wechatpaySerial === this.config.publicKeyId
+    ) {
+      verificationKeys.push(this.config.publicKey);
+    }
+    if (this.config.platformCert) verificationKeys.push(this.config.platformCert);
+    if (!this.config.publicKey && !this.config.platformCert) {
+      throw new Error('WECHAT_PAY_PUBLIC_KEY or WECHAT_PAY_PLATFORM_CERT is required');
+    }
+    if (!verificationKeys.length) return false;
+    const message = `${timestamp}\n${nonceStr}\n${rawBody.toString('utf8')}\n`;
+    return verificationKeys.some((key) => {
+      try {
+        return crypto.createVerify('RSA-SHA256').update(message).verify(key, signature, 'base64');
+      } catch {
+        return false;
+      }
+    });
   }
 
   async handleNotify(input: {

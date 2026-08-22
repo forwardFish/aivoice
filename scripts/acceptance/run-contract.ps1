@@ -18,8 +18,22 @@ if (!(Test-Path -LiteralPath $contract)) {
 
 $frontendCalls = @()
 $apiDefs = @()
-$files = Get-ChildItem -LiteralPath $ProjectRoot -Recurse -File -Include *.ts,*.tsx,*.js,*.jsx,*.dart,*.py -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notmatch "\\node_modules\\|\\.git\\|\\build\\|\\dist\\|\\.dart_tool\\" }
+$sourceRoots = @()
+$rootSrc = Join-Path $ProjectRoot "src"
+if (Test-Path -LiteralPath $rootSrc) { $sourceRoots += $rootSrc }
+foreach ($container in @("apps", "packages")) {
+  $containerRoot = Join-Path $ProjectRoot $container
+  if (!(Test-Path -LiteralPath $containerRoot)) { continue }
+  foreach ($project in Get-ChildItem -LiteralPath $containerRoot -Directory -ErrorAction SilentlyContinue) {
+    $projectSrc = Join-Path $project.FullName "src"
+    if (Test-Path -LiteralPath $projectSrc) { $sourceRoots += $projectSrc }
+    if ($project.Name -eq "miniprogram") { $sourceRoots += $project.FullName }
+  }
+}
+$files = @($sourceRoots | ForEach-Object {
+  Get-ChildItem -LiteralPath $_ -Recurse -File -Include *.ts,*.tsx,*.js,*.jsx,*.dart,*.py -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch "\\node_modules\\|\\.git\\|\\build\\|\\dist\\|\\.dart_tool\\" }
+})
 foreach ($file in $files) {
   try { $txt = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop } catch { continue }
   if ([string]::IsNullOrEmpty($txt)) { continue }
@@ -36,6 +50,20 @@ foreach ($file in $files) {
       if ($methodMatch.Success) { $method = $methodMatch.Groups[1].Value.ToUpperInvariant() }
     }
     $frontendCalls += @{ file = $rel; call = $callText; path = $m.Groups[3].Value; method = $method }
+  }
+  foreach ($m in [regex]::Matches($txt, '(?s)requestRaw(?:<[^>]+>)?\s*\(\s*\{(?<body>.{0,800}?)\}\s*\)')) {
+    $body = $m.Groups['body'].Value
+    $pathMatch = [regex]::Match($body, '(?s)\bpath\s*:\s*([`"''])(?<path>.*?)\1')
+    if (!$pathMatch.Success) { continue }
+    $methodMatch = [regex]::Match($body, '(?i)\bmethod\s*:\s*["'']?(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)')
+    $method = if ($methodMatch.Success) { $methodMatch.Groups[1].Value.ToUpperInvariant() } else { "GET" }
+    $frontendCalls += @{
+      file = $rel
+      call = "requestRaw"
+      path = $pathMatch.Groups['path'].Value
+      method = $method
+      framework = "wechat-miniprogram"
+    }
   }
   foreach ($m in [regex]::Matches($txt, '(Get|Post|Put|Patch|Delete)\(["'']([^"'']*)["'']\)|(router|app)\.(get|post|put|patch|delete)\(["'']([^"'']*)["'']')) {
     $method = if (![string]::IsNullOrWhiteSpace($m.Groups[1].Value)) { $m.Groups[1].Value.ToUpperInvariant() } else { $m.Groups[4].Value.ToUpperInvariant() }

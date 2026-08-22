@@ -74,7 +74,7 @@ One continuous WeChat DevTools run passed 12 recorded stages:
 7. SELF profile and canonical consent submitted.
 8. Real Aliyun enrollment and 5.81-second preview produced.
 9. Preview played completely and server timing proof accepted.
-10. Preview accepted; this historical pre-points run granted the then-current trial quota. The current contract instead grants 5 points at registration.
+10. Preview accepted; this historical pre-points run granted the then-current trial quota. The current contract instead grants 10 points at registration.
 11. Workbench opened.
 12. Exact text `请照顾好自己，我们都很想你。` produced a playable 4.29-second audio; quota moved from 1 to 0 while the result remained visible.
 

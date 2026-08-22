@@ -8,7 +8,7 @@
 4. Voice metadata plus dynamic permission confirmation for self/other/minor.
 5. FFmpeg extraction, quality gate, Aliyun voice enrollment and fixed preview.
 6. Preview must finish playing before acceptance; retry uses a new clip.
-7. First successful login grants one shared account balance of 5 points exactly once.
+7. First successful login grants one shared account balance of 10 points exactly once.
 8. Workbench supports chat and exact-speech text input with AI labels.
 9. All accepted voices under one account share the same point balance; each successful generation consumes 1 point.
 10. Failed or blocked generation does not consume points; zero balance returns `POINTS_EXHAUSTED` with a server-owned purchase option and purchase appears only on the next active generation attempt.

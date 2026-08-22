@@ -21,3 +21,8 @@
 - [x]微信开发者工具连续主流程完成模拟登录、视频上传、片段、授权、真实阿里云试听、完整播放、接受、免费精确语音和零额度结果保留。
 - [ ] All local runtimes start together and a simulated real user completes login, create voice, upload, clip, consent, processing, preview, free exact speech, zero-quota purchase prompt and post-payment continuation through page clicks.
 - [ ] UI evidence includes stable screenshots plus console/network inspection; build or API-only evidence cannot substitute for the click flow.
+- [x] OTHER and MINOR authorization are each page-clicked and show the matching server-canonical consent text.
+- [x] A real AI chat round returns reply text and playable cloned-voice audio, consumes the configured point cost once, and a controlled failure consumes zero.
+- [x] My Voices and Voice Settings are page-clicked; conversation clear and delete confirmation behavior are evidenced.
+- [x] One newly created disposable Aliyun voice is deleted from provider, DB lifecycle and local private media with no reusable test asset left behind.
+- [x] Service agreement, privacy policy and AI-generation disclosures are product-specific drafts; public launch remains subject to formal legal review.

@@ -2,7 +2,7 @@
 
 Base path: `/v1`. JSON unless an upload endpoint explicitly uses multipart or returns a signed policy.
 
-Backend configuration defaults: `SIGNUP_BONUS_POINTS=5`, `GENERATION_POINT_COST=1`, `POINTS_PACKAGE_CODE=POINTS_50`, `POINTS_PACKAGE_PRICE_FEN=990`, `POINTS_PACKAGE_AMOUNT=50`, `POINTS_VALIDITY_DAYS=180`. Invalid/non-positive values fail closed to validated defaults; the client only renders values returned by the API.
+Backend configuration defaults: `SIGNUP_BONUS_POINTS=10`, `GENERATION_POINT_COST=1`, `POINTS_PACKAGE_CODE=POINTS_50`, `POINTS_PACKAGE_PRICE_FEN=990`, `POINTS_PACKAGE_AMOUNT=50`, `POINTS_VALIDITY_DAYS=180`. Invalid/non-positive values fail closed to validated defaults; the client only renders values returned by the API.
 
 ## Auth
 

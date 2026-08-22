@@ -1,12 +1,14 @@
 import { getPoints, listVoices } from '../../services/api'
 import { VoiceStatus, VoiceSummary } from '../../models/api'
 import { formatDateTime, voiceInitial } from '../../utils/format'
+import { resolveVoiceAvatar } from '../../utils/avatar'
 import {
   ensureAuthenticated,
   openPreview,
   openVoiceProgress,
   openWorkbench
 } from '../../utils/navigation'
+import { syncTabBarSelection } from '../../utils/tab-bar'
 
 const FILTERS = [
   { key: 'ALL', label: '全部' },
@@ -45,6 +47,7 @@ function viewModel(voice: VoiceSummary, availablePoints: number): any {
   return {
     ...voice,
     initial: voiceInitial(voice.name),
+    displayAvatar: resolveVoiceAvatar(voice),
     group: groupForStatus(voice.status),
     statusLabel: meta.label,
     statusTone: meta.tone,
@@ -81,6 +84,7 @@ Page({
     errorMessage: ''
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/voices/index')
     if (!ensureAuthenticated()) return
     this.loadVoices()
   },

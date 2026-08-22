@@ -1,0 +1,103 @@
+.legal-screen {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6f5ff 0%, #eef4ff 100%);
+}
+
+.legal-scroll {
+  height: calc(100vh - 88rpx);
+}
+
+.legal-content {
+  padding: 28rpx 24rpx 40rpx;
+}
+
+.hero-card,
+.section-card,
+.footer-card {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 28rpx;
+  box-shadow: 0 18rpx 36rpx rgba(80, 95, 140, 0.09);
+}
+
+.hero-card {
+  padding: 32rpx 28rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1d2742;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #60708f;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.meta-pill {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eff1ff;
+  color: #5a59c7;
+  font-size: 22rpx;
+}
+
+.hero-summary {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: #32415f;
+}
+
+.section-card,
+.footer-card {
+  margin-top: 20rpx;
+  padding: 28rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1d2742;
+}
+
+.paragraph-row {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 18rpx;
+}
+
+.bullet {
+  width: 28rpx;
+  flex: 0 0 28rpx;
+  font-size: 30rpx;
+  line-height: 1.7;
+  color: #6756e2;
+}
+
+.paragraph {
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: #34435e;
+}
+
+.footer-text {
+  display: block;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: #6b7891;
+}

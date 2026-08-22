@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-08-21T23:41:00+08:00",
+  "environment": "local API + single rebuilt Worker + real Aliyun CosyVoice",
+  "messageId": "2fe02592-7dd7-44a2-b65d-5ca2145f5b5e",
+  "messageStatus": "READY",
+  "durationMs": 4530,
+  "playableAudio": true,
+  "pointsBefore": 48,
+  "pointsAfter": 47,
+  "riffAigcChunkCount": 1,
+  "metadata": {
+    "AIGC": {
+      "Label": "1",
+      "ContentProducer": "那时的TA",
+      "ProduceID": "2fe02592-7dd7-44a2-b65d-5ca2145f5b5e",
+      "ReservedCode1": "",
+      "ContentPropagator": "那时的TA",
+      "PropagateID": "2fe02592-7dd7-44a2-b65d-5ca2145f5b5e",
+      "ReservedCode2": ""
+    }
+  }
+}

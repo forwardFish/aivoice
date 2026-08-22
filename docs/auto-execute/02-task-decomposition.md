@@ -21,3 +21,9 @@
 | AV-017 | Points worker | Worker builder | Debit account points in the successful output transaction only | Worker | AV-015, AV-016 | worker integration tests | PASS |
 | AV-018 | Points frontend | Frontend builder | Replace per-voice quota UI with server-authoritative account points and 50-point purchase | mini-program | AV-015 | typecheck/unit/UI flow | PASS |
 | AV-019 | Points acceptance | Codex + verifier | Prove register 5 -> successful debit -> zero/failure -> purchase +50 -> repurchase/continue | full local stack | AV-016..AV-018 | DB/API/page evidence | PASS |
+| AV-020 | Consent UI acceptance | UI tester + Codex | Click OTHER and MINOR, verify canonical copy, confirmation and navigation | mini-program + API | AV-009 | DevTools page data/screenshots/DB | PASS |
+| AV-021 | AI chat acceptance | Integration tester + Codex | Run real chat reply, cloned-voice audio, playback, debit and failure/no-debit | API + Worker + mini-program | AV-005, AV-017 | page/DB/provider evidence | PASS |
+| AV-022 | Management UI acceptance | UI tester + Codex | Exercise My Voices, Settings, conversation clear and delete confirmation | mini-program | AV-009 | DevTools screenshots/state/network | PASS |
+| AV-023 | Real deletion acceptance | Codex + deletion verifier | Create and delete one dedicated Aliyun test voice and local private media | Worker + provider + DB | AV-005 | provider/DB/filesystem evidence | PASS |
+| AV-024 | Legal and AI disclosure | Legal researcher + frontend builder | Replace placeholder agreements, add product-specific privacy/service drafts and verify AI labels | docs + mini-program | AV-002 | source review, UI test, legal limitation | PASS_WITH_LIMITATION |
+| AV-025 | Closure gates | Reviewer + Codex | Run full tests, UI evidence review, guard lanes and final comparison | full repo | AV-020..AV-024 | final gate/evidence report | PASS_WITH_LIMITATION |

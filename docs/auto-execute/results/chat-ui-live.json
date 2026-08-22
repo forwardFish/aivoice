@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-08-21T23:10:00+08:00",
+  "environment": "WeChat DevTools miniprogram-automator + local API/Worker + real Aliyun",
+  "route": "pages/voice/workbench",
+  "voiceId": "fcc6c7ce-b85b-4499-8647-6cdd62a842ff",
+  "mode": "chat",
+  "pointsAfter": 49,
+  "messages": [
+    {
+      "role": "USER",
+      "status": "READY",
+      "text": "今天过得怎么样？请用一句温柔的话回答我。",
+      "audio": false
+    },
+    {
+      "role": "ASSISTANT",
+      "status": "READY",
+      "text": "今天有你的牵挂，心里暖暖的。",
+      "audio": true,
+      "visibleTag": "AI回复"
+    }
+  ],
+  "playback": {
+    "playing": true,
+    "currentText": "00:01",
+    "progressPercent": 35.9897,
+    "durationMs": 3890
+  },
+  "consoleErrors": [],
+  "pageExceptions": []
+}

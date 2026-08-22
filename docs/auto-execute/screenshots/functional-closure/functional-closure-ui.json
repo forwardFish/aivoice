@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-08-21T16:05:05.476Z",
+  "endpoint": "ws://127.0.0.1:9420",
+  "apiBase": "http://127.0.0.1:8787",
+  "loginCodeType": "mock",
+  "screenshots": [
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\consent-other.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\consent-minor.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voices-index.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voice-settings.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voice-settings-after-cancel.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-terms.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-privacy.png",
+    "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-ai.png"
+  ],
+  "steps": [
+    {
+      "name": "seed-session",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:05.726Z",
+      "userId": "e55eb138-b9b6-4095-9874-1e86c632d1c9"
+    },
+    {
+      "name": "consent-other",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:11.575Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\consent-other.png",
+      "voiceId": "04667f08-ed8e-49d5-81a1-a8e5113497ea",
+      "consentText": "我已告知声音本人，并取得其对声音克隆和 AI 合成使用的明确同意。"
+    },
+    {
+      "name": "consent-minor",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:16.080Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\consent-minor.png",
+      "voiceId": "1fe5588e-b8ed-42fa-9f39-f8be02408f6b",
+      "consentText": "我是该未成年人的监护人，或已取得其监护人的明确授权。"
+    },
+    {
+      "name": "voices-index",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:20.463Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voices-index.png",
+      "voiceCount": 3,
+      "readyVoiceId": "11111111-1111-4111-8111-111111111111",
+      "readyVoiceSelection": "auto"
+    },
+    {
+      "name": "voice-settings",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:21.364Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voice-settings.png",
+      "voiceId": "11111111-1111-4111-8111-111111111111",
+      "permissionType": "SELF"
+    },
+    {
+      "name": "clear-chat-cancel",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:22.198Z",
+      "modal": {
+        "title": "清空当前对话？",
+        "content": "清空后，这些消息不会再参与后续上下文，操作无法恢复。已消耗积分不会返还。",
+        "confirmText": "清空"
+      }
+    },
+    {
+      "name": "delete-cancel",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:23.305Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\voice-settings-after-cancel.png",
+      "modals": [
+        "删除“Points Test Voice”？",
+        "再次确认删除"
+      ],
+      "statusAfterCancel": "READY"
+    },
+    {
+      "name": "legal-terms",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:27.714Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-terms.png",
+      "title": "服务协议",
+      "version": "v0.9-draft"
+    },
+    {
+      "name": "legal-privacy",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:32.100Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-privacy.png",
+      "title": "隐私政策",
+      "version": "v0.9-draft"
+    },
+    {
+      "name": "legal-ai",
+      "status": "PASS",
+      "at": "2026-08-21T16:05:36.530Z",
+      "screenshot": "D:\\lyh\\agent\\agent-frame\\aivoice\\docs\\auto-execute\\screenshots\\functional-closure\\legal-ai.png",
+      "title": "AI 生成标识说明",
+      "version": "v0.9-draft"
+    }
+  ],
+  "logs": [],
+  "connectionMode": "connect",
+  "finishedAt": "2026-08-21T16:05:36.531Z"
+}

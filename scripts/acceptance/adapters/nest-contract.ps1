@@ -18,8 +18,19 @@ function Join-ApiPath($A, $B) {
 }
 
 $apiDefinitions = @()
-$files = Get-ChildItem -LiteralPath $ProjectRoot -Recurse -File -Include *.controller.ts,*.controller.js -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notmatch "\\node_modules\\|\\dist\\|\\build\\" }
+$sourceRoots = @()
+$rootSrc = Join-Path $ProjectRoot "src"
+if (Test-Path -LiteralPath $rootSrc) { $sourceRoots += $rootSrc }
+$appsRoot = Join-Path $ProjectRoot "apps"
+if (Test-Path -LiteralPath $appsRoot) {
+  $sourceRoots += @(Get-ChildItem -LiteralPath $appsRoot -Directory -ErrorAction SilentlyContinue |
+    ForEach-Object { Join-Path $_.FullName "src" } |
+    Where-Object { Test-Path -LiteralPath $_ })
+}
+$files = @($sourceRoots | ForEach-Object {
+  Get-ChildItem -LiteralPath $_ -Recurse -File -Include *.controller.ts,*.controller.js -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch "\\node_modules\\|\\dist\\|\\build\\" }
+})
 foreach ($file in $files) {
   try { $text = Get-Content -LiteralPath $file.FullName -Raw } catch { $text = "" }
   if ($null -eq $text) { $text = "" }

@@ -13,7 +13,42 @@
                       ],
     "schemaVersion":  "2.0",
     "apiResults":  [
-
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-21T23:59:19",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-21T23:59:19",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-22T00:03:19",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-22T00:03:19",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-22T00:04:00",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-22T00:04:00",
+                           "exists":  true
+                       }
                    ],
     "logs":  [
                  {
@@ -62,6 +97,24 @@
                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
                      "label":  "e2e-flow",
                      "addedAt":  "2026-08-21T12:58:18",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-21T23:59:19",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-22T00:03:19",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-22T00:04:00",
                      "exists":  true
                  }
              ],
@@ -124,6 +177,30 @@
                       "path":  "docs\\auto-execute\\results\\secret-guard.json",
                       "label":  "secret-guard result",
                       "addedAt":  "2026-08-21T16:22:34",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-21T23:59:19",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-22T00:03:19",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-22T00:04:00",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-22T22:15:21",
                       "exists":  true
                   }
               ]

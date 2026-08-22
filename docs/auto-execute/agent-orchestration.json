@@ -30,6 +30,27 @@
         "apps/miniprogram/test/purchase-page.test.ts"
       ],
       "evidence": ["miniprogram typecheck/tests"]
+    },
+    {
+      "id": "/root/legal_compliance_research",
+      "role": "Legal/Platform Researcher",
+      "assigned_tasks": ["AV-024 official compliance source research"],
+      "allowed_paths": [],
+      "evidence": ["researcher final report with official source links"]
+    },
+    {
+      "id": "/root/ui_functional_acceptance",
+      "role": "UI Test Engineer",
+      "assigned_tasks": ["AV-020 consent UI", "AV-022 management UI"],
+      "allowed_paths": ["scripts/acceptance/", "apps/miniprogram/test/", "docs/auto-execute/screenshots/functional-closure/"],
+      "evidence": ["DevTools automation script, page data, console/exception log, screenshots"]
+    },
+    {
+      "id": "/root/deletion_acceptance_review",
+      "role": "Deletion Verifier",
+      "assigned_tasks": ["AV-023 deletion lifecycle review"],
+      "allowed_paths": [],
+      "evidence": ["verifier final report with provider/DB/filesystem acceptance conditions"]
     }
   ],
   "external_collaboration": {

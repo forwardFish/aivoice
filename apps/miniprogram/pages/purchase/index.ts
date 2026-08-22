@@ -249,13 +249,6 @@ Page({
   },
   showAgreement(event: any) {
     const type = String(event.currentTarget.dataset.type || '')
-    wx.showModal({
-      title: type === 'privacy' ? '隐私政策' : '服务协议',
-      content: type === 'privacy'
-        ? '购买页不会保存支付密钥、商户私钥或供应商音色 ID。支付结果与积分到账均以服务端订单和积分查询为准。'
-        : '购买的是成功生成所需积分，不自动续费；AI 生成语音不代表声音本人真实表达，且不得用于冒充、诈骗或身份核验。',
-      showCancel: false,
-      confirmText: '知道了'
-    })
+    wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(type === 'privacy' ? 'privacy' : 'terms')}` })
   }
 })

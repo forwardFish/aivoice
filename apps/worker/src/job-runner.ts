@@ -7,6 +7,7 @@ import { evaluateContentSafety } from '@aivoice/contracts';
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
 import { WorkerDatabase } from './db.js';
 import { recoverExpiredLeases } from './lease-recovery.js';
+import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
 import { cleanupUnpersistedReference, inspectReferenceQuality, ReferenceQualityError } from './media/quality.js';
 import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
@@ -401,8 +402,14 @@ export class JobRunner {
     const objectKey = path.join('generated', job.user_id, job.voice_profile_id, `${job.message_id}.wav`).replaceAll('\\', '/');
     const audioPath = this.safePath(objectKey);
     await fs.mkdir(path.dirname(audioPath), { recursive: true });
-    await fs.writeFile(audioPath, audio);
-    await this.completeGeneratedMessage({ job, outputText, audioPath, objectKey });
+    try {
+      await fs.writeFile(audioPath, audio);
+      await embedAigcMetadata(audioPath, job.message_id);
+      await this.completeGeneratedMessage({ job, outputText, audioPath, objectKey });
+    } catch (error) {
+      await fs.unlink(audioPath).catch(() => undefined);
+      throw error;
+    }
   }
 
   private async deleteVoice(job: JobRow): Promise<void> {

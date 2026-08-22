@@ -48,3 +48,15 @@
 - Status: PASS
 - Details: E2E/full-flow verifier status PASS
 - Evidence: D:\lyh\agent\agent-frame\aivoice\docs\auto-execute\results\e2e-flow.json
+
+## contract
+- Time: 2026-08-22 00:03:19
+- Status: PASS
+- Details: Contract discovery generated; agent must reconcile map with PRD/UI
+- Evidence: D:\lyh\agent\agent-frame\aivoice\docs\auto-execute\results\contract-discovery.json
+
+## contract
+- Time: 2026-08-22 00:04:00
+- Status: PASS
+- Details: Contract discovery generated; agent must reconcile map with PRD/UI
+- Evidence: D:\lyh\agent\agent-frame\aivoice\docs\auto-execute\results\contract-discovery.json

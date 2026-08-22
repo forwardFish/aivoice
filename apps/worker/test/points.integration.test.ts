@@ -7,6 +7,8 @@ import test from 'node:test';
 import { encryptProviderId } from '../src/crypto/provider-id.js';
 import { WorkerDatabase } from '../src/db.js';
 import { JobRunner } from '../src/job-runner.js';
+import { readAigcChunks } from '../src/media/aigc.js';
+import { probeWav } from '../src/media/ffmpeg.js';
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 
@@ -69,11 +71,13 @@ test('successful generation consumes points once while provider and disk failure
   const successMessageId = crypto.randomUUID();
   const failedMessageId = crypto.randomUUID();
   const diskFailureMessageId = crypto.randomUUID();
+  const metadataFailureMessageId = crypto.randomUUID();
   const fakeVoiceProvider = {
     targetModel: 'fake-model',
     async enroll() { return 'unused'; },
     async synthesize(_providerVoiceId: string, text: string) {
       if (text === 'FAIL_PROVIDER') throw new Error('provider unavailable');
+      if (text === 'FAIL_AIGC') return Buffer.from('invalid wav');
       return silentPcmWav();
     },
     async deleteVoice() { return undefined; },
@@ -121,8 +125,9 @@ test('successful generation consumes points once while provider and disk failure
        (id,conversation_id,user_id,voice_profile_id,idempotency_key,mode,status,input_text,output_text,error_code,error_message,created_at,updated_at)
        VALUES ($1,$2,$3,$4,'success','EXACT_SPEECH','PENDING','你好','','','',NOW(),NOW()),
               ($5,$2,$3,$4,'failure','EXACT_SPEECH','PENDING','FAIL_PROVIDER','','','',NOW(),NOW()),
-              ($6,$2,$3,$4,'disk-failure','EXACT_SPEECH','PENDING','FAIL_DISK','','','',NOW(),NOW())`,
-      [successMessageId, conversationId, userId, voiceId, failedMessageId, diskFailureMessageId],
+              ($6,$2,$3,$4,'disk-failure','EXACT_SPEECH','PENDING','FAIL_DISK','','','',NOW(),NOW()),
+              ($7,$2,$3,$4,'metadata-failure','EXACT_SPEECH','PENDING','FAIL_AIGC','','','',NOW(),NOW())`,
+      [successMessageId, conversationId, userId, voiceId, failedMessageId, diskFailureMessageId, metadataFailureMessageId],
     );
     const diskFailurePath = path.resolve(
       mediaRoot,
@@ -137,6 +142,7 @@ test('successful generation consumes points once while provider and disk failure
       { id: crypto.randomUUID(), messageId: successMessageId, dedupe: `generation-duplicate:${successMessageId}` },
       { id: crypto.randomUUID(), messageId: failedMessageId, dedupe: `generation:${failedMessageId}` },
       { id: crypto.randomUUID(), messageId: diskFailureMessageId, dedupe: `generation:${diskFailureMessageId}` },
+      { id: crypto.randomUUID(), messageId: metadataFailureMessageId, dedupe: `generation:${metadataFailureMessageId}` },
     ];
     for (const job of jobs) {
       await database.pool.query(
@@ -147,6 +153,7 @@ test('successful generation consumes points once while provider and disk failure
       );
     }
 
+    assert.equal(await runner.runOnce(), true);
     assert.equal(await runner.runOnce(), true);
     assert.equal(await runner.runOnce(), true);
     assert.equal(await runner.runOnce(), true);
@@ -181,6 +188,22 @@ test('successful generation consumes points once while provider and disk failure
     assert.equal(messages.rows.find((row) => row.id === successMessageId)?.status, 'READY');
     assert.equal(messages.rows.find((row) => row.id === failedMessageId)?.status, 'FAILED');
     assert.equal(messages.rows.find((row) => row.id === diskFailureMessageId)?.status, 'FAILED');
+    const metadataFailure = await database.pool.query<{ status: string }>(
+      'SELECT status FROM messages WHERE id=$1',
+      [metadataFailureMessageId],
+    );
+    assert.equal(metadataFailure.rows[0]?.status, 'FAILED');
+    const metadataFailurePath = path.resolve(mediaRoot, 'generated', userId, voiceId, `${metadataFailureMessageId}.wav`);
+    await assert.rejects(fs.access(metadataFailurePath));
+
+    const generatedPath = path.resolve(mediaRoot, 'generated', userId, voiceId, `${successMessageId}.wav`);
+    const taggedWav = await fs.readFile(generatedPath);
+    const chunks = readAigcChunks(taggedWav);
+    assert.equal(chunks.length, 1);
+    assert.equal(chunks[0]?.AIGC.ProduceID, successMessageId);
+    assert.equal(chunks[0]?.AIGC.PropagateID, successMessageId);
+    const probe = await probeWav(generatedPath);
+    assert.ok(probe.durationMs > 0);
   } finally {
     await isolationLock.query('SELECT pg_advisory_unlock(812345678)').catch(() => undefined);
     isolationLock.release();

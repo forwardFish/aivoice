@@ -10,6 +10,7 @@ import { OrderDetail, PointsLedgerItem, UserProfile } from '../../models/api'
 import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { clearLocalProjectData, setUser } from '../../utils/storage'
+import { syncTabBarSelection } from '../../utils/tab-bar'
 import { confirm, toast } from '../../utils/ui'
 
 function orderStatusLabel(status: string): string {
@@ -71,6 +72,7 @@ Page({
     deletingAccount: false
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/account/index')
     if (!ensureAuthenticated()) return
     this.loadAccount()
   },
@@ -155,6 +157,11 @@ Page({
   },
   showInfo(event: any) {
     const type = String(event.currentTarget.dataset.type || '')
+    if (type === 'policy' || type === 'terms' || type === 'ai') {
+      const target = type === 'policy' ? 'privacy' : type
+      wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(target)}` })
+      return
+    }
     const contentMap: Record<string, { title: string; content: string }> = {
       help: {
         title: '使用帮助',
@@ -175,14 +182,6 @@ Page({
       rules: {
         title: '声音使用规则',
         content: '仅可使用本人声音，或已取得声音本人、合法权利人或监护人明确授权的声音。不得用于身份核验、财产操作、营销外呼或冒充公众人物。'
-      },
-      policy: {
-        title: '隐私政策',
-        content: '正式上线时由运营主体发布完整隐私政策，并说明数据类型、处理目的、保存期限、删除方式和第三方处理者。'
-      },
-      terms: {
-        title: '服务协议',
-        content: 'AI 生成回复和语音不代表声音本人真实表达；购买的是成功生成所需积分，不是声音模型所有权或自动续费会员。'
       }
     }
     const item = contentMap[type]

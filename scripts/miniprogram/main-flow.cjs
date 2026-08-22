@@ -7,7 +7,8 @@ const evidenceDir = path.join(projectRoot, '.runtime', 'ui-evidence', 'main-flow
 const progressPath = path.join(evidenceDir, 'progress.json')
 const inputVideo = path.join(projectRoot, '.runtime', 'backend-e2e', 'authorized-12s.mp4')
 const inputVideoUrl = process.env.WECHAT_TEST_VIDEO_URL || 'http://127.0.0.1:8790/authorized-12s.mp4'
-const endpoint = process.env.WECHAT_AUTOMATION_WS || 'ws://127.0.0.1:9421'
+const endpoint = process.env.WECHAT_AUTOMATION_WS || 'ws://127.0.0.1:9420'
+const cliPath = process.env.WECHAT_DEVTOOLS_CLI || 'D:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat'
 
 fs.mkdirSync(evidenceDir, { recursive: true })
 
@@ -77,10 +78,30 @@ async function requireElement(page, selector) {
   return element
 }
 
+async function openMiniProgram() {
+  try {
+    return {
+      miniProgram: await withTimeout(automator.connect({ wsEndpoint: endpoint }), 'automation connection', 30_000),
+      mode: 'connect'
+    }
+  } catch (_error) {
+    return {
+      miniProgram: await withTimeout(automator.launch({
+        cliPath,
+        projectPath: path.join(projectRoot, 'apps', 'miniprogram'),
+        trustProject: true,
+        timeout: 60_000
+      }), 'automation launch', 90_000),
+      mode: 'launch'
+    }
+  }
+}
+
 async function main() {
   if (!fs.existsSync(inputVideo)) throw new Error(`authorized test video is missing: ${inputVideo}`)
   flush()
-  const miniProgram = await withTimeout(automator.connect({ wsEndpoint: endpoint }), 'automation connection', 30_000)
+  const { miniProgram, mode } = await openMiniProgram()
+  evidence.connectionMode = mode
   miniProgram.on('console', (...args) => {
     evidence.logs.push({ type: 'console', at: new Date().toISOString(), message: args.map(String).join(' ') })
     flush()

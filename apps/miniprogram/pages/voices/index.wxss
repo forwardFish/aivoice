@@ -1,6 +1,6 @@
 .voices-screen {
   min-height: 100vh;
-  padding: 0 30rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(176rpx + env(safe-area-inset-bottom));
 }
 
 .filter-scroll {
@@ -44,6 +44,78 @@
   border-radius: 30rpx;
 }
 
+.voices-empty {
+  margin-top: 24rpx;
+  min-height: 560rpx;
+  padding: 90rpx 40rpx 84rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-orb {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 32% 28%, #ffffff, #ece9ff 58%, #d8ddff);
+  box-shadow: 0 18rpx 44rpx rgba(101, 82, 245, 0.14);
+}
+
+.empty-wave {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.empty-wave text {
+  width: 6rpx;
+  border-radius: 999rpx;
+  background: #6552f5;
+}
+
+.empty-wave text:nth-child(1) { height: 22rpx; }
+.empty-wave text:nth-child(2) { height: 36rpx; }
+.empty-wave text:nth-child(3) { height: 52rpx; }
+.empty-wave text:nth-child(4) { height: 36rpx; }
+.empty-wave text:nth-child(5) { height: 22rpx; }
+
+.empty-title {
+  margin-top: 34rpx;
+  color: #12204a;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 52rpx;
+  line-height: 1.08;
+  font-weight: 700;
+}
+
+.empty-copy {
+  margin-top: 22rpx;
+  max-width: 560rpx;
+  color: #7b829f;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.empty-action {
+  min-width: 324rpx;
+  height: 88rpx;
+  margin-top: 34rpx;
+  padding: 0 34rpx;
+  border-radius: 24rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5f52f5, #8d68f6);
+  font-size: 30rpx;
+  font-weight: 650;
+}
+
+.empty-action::after {
+  border: none;
+}
+
 .voice-list {
   display: flex;
   flex-direction: column;
@@ -67,16 +139,6 @@
   height: 92rpx;
   border-radius: 50%;
   background: #efedff;
-}
-
-.voice-avatar.fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 34rpx;
-  font-weight: 700;
-  background: linear-gradient(135deg, #8c7bf6, #627ddc);
 }
 
 .voice-copy {
@@ -139,13 +201,18 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  color: #72798f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #f4f4fa;
-  font-size: 28rpx;
-  letter-spacing: 2rpx;
 }
 
 .settings-button::after { border: none; }
+
+.settings-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
 
 .progress-wrap {
   margin-top: 24rpx;

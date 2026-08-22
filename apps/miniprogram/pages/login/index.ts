@@ -31,14 +31,7 @@ Page({
   },
   showAgreement(event: any) {
     const type = event.currentTarget.dataset.type
-    wx.showModal({
-      title: type === 'privacy' ? '隐私政策' : '服务协议',
-      content: type === 'privacy'
-        ? '正式上线前请由运营方发布完整隐私政策。本前端不会保存声音模型 ID、API 密钥或支付密钥。'
-        : '正式上线前请由运营方发布完整服务协议。AI 生成内容不代表声音本人真实表达。',
-      showCancel: false,
-      confirmText: '知道了'
-    })
+    wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(type === 'privacy' ? 'privacy' : 'terms')}` })
   },
   async submitLogin() {
     if (this.data.loading) return

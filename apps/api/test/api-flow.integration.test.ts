@@ -139,7 +139,7 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .post(`/v1/voices/${voiceId}/preview-played`).set(auth).send({}).expect(201);
     const accepted = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/accept-preview`).set(auth).send({}).expect(201);
-    assert.equal(accepted.body.paidQuotaRemaining, 5);
+    assert.equal(accepted.body.paidQuotaRemaining, 10);
     const ledgers = await request(app.getHttpServer()).get('/v1/points/ledgers').set(auth).expect(200);
     assert.equal(ledgers.body.ledgers[0].type, 'REGISTER_GRANT');
 
@@ -183,7 +183,7 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       transactionId: 'http-flow-paid-transaction',
       paidAt: new Date(),
     });
-    assert.equal(paidQuota.paidQuotaRemaining, 54);
+    assert.equal(paidQuota.paidQuotaRemaining, 59);
     const chat = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/messages`)
       .set(auth).set('Idempotency-Key', 'http-flow-chat-1')

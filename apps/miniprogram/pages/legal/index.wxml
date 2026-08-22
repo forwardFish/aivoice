@@ -1,0 +1,29 @@
+<view class="legal-screen">
+  <app-nav title="{{doc ? doc.title : '文档说明'}}"></app-nav>
+
+  <scroll-view scroll-y class="legal-scroll">
+    <view wx:if="{{doc}}" class="legal-content fade-in">
+      <view class="hero-card">
+        <text class="hero-title">{{doc.title}}</text>
+        <text class="hero-subtitle">{{doc.subtitle}}</text>
+        <view class="meta-row">
+          <text class="meta-pill">版本 {{doc.version}}</text>
+          <text class="meta-pill">更新于 {{doc.updatedAt}}</text>
+        </view>
+        <text class="hero-summary">{{doc.summary}}</text>
+      </view>
+
+      <view wx:for="{{doc.sections}}" wx:key="heading" class="section-card">
+        <text class="section-title">{{item.heading}}</text>
+        <view wx:for="{{item.paragraphs}}" wx:key="*this" class="paragraph-row">
+          <text class="bullet">•</text>
+          <text class="paragraph">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="footer-card">
+        <text class="footer-text">{{doc.footer}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

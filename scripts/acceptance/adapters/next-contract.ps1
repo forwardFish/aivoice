@@ -35,8 +35,21 @@ function Convert-PagesRouteToApiPath($Root, $File) {
 }
 
 $apiDefinitions = @()
-$appRoutes = Get-ChildItem -LiteralPath $ProjectRoot -Recurse -File -Include route.ts,route.tsx,route.js,route.jsx -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -match "\\app\\api\\" -and $_.FullName -notmatch "\\node_modules\\|\\.next\\|\\dist\\|\\build\\" }
+$nextApiRoots = @()
+$candidateBases = @($ProjectRoot)
+$appsRoot = Join-Path $ProjectRoot "apps"
+if (Test-Path -LiteralPath $appsRoot) {
+  $candidateBases += @(Get-ChildItem -LiteralPath $appsRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object FullName)
+}
+foreach ($base in $candidateBases) {
+  foreach ($relative in @("app\api", "pages\api")) {
+    $candidate = Join-Path $base $relative
+    if (Test-Path -LiteralPath $candidate) { $nextApiRoots += $candidate }
+  }
+}
+$appRoutes = @($nextApiRoots | Where-Object { $_ -match "\\app\\api$" } | ForEach-Object {
+  Get-ChildItem -LiteralPath $_ -Recurse -File -Include route.ts,route.tsx,route.js,route.jsx -ErrorAction SilentlyContinue
+})
 foreach ($file in $appRoutes) {
   try { $text = Get-Content -LiteralPath $file.FullName -Raw } catch { $text = "" }
   if ($null -eq $text) { $text = "" }
@@ -51,8 +64,9 @@ foreach ($file in $appRoutes) {
   }
 }
 
-$pagesRoutes = Get-ChildItem -LiteralPath $ProjectRoot -Recurse -File -Include *.ts,*.tsx,*.js,*.jsx -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -match "\\pages\\api\\" -and $_.FullName -notmatch "\\node_modules\\|\\.next\\|\\dist\\|\\build\\" }
+$pagesRoutes = @($nextApiRoots | Where-Object { $_ -match "\\pages\\api$" } | ForEach-Object {
+  Get-ChildItem -LiteralPath $_ -Recurse -File -Include *.ts,*.tsx,*.js,*.jsx -ErrorAction SilentlyContinue
+})
 foreach ($file in $pagesRoutes) {
   $apiDefinitions += [PSCustomObject]@{ framework="next"; method="UNKNOWN"; path=(Convert-PagesRouteToApiPath $ProjectRoot $file.FullName); file=Get-Rel $ProjectRoot $file.FullName; source="pages-api" }
 }
