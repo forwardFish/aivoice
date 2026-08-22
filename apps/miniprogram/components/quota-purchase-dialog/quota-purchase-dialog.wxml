@@ -2,11 +2,7 @@
   <view class="dialog-card float-in" catchtap="noop">
     <button class="dialog-close" bindtap="cancel" aria-label="关闭">×</button>
     <view class="dialog-visual">
-      <view class="bag-shadow"></view>
-      <view class="bag-handle"></view>
-      <view class="bag-body"><view class="bag-star">✦</view><view class="bag-wave"><text></text><text></text><text></text><text></text><text></text></view></view>
-      <view class="coin coin-a">+</view><view class="coin coin-b">✦</view>
-      <view class="spark spark-a"></view><view class="spark spark-b"></view>
+      <image class="points-bag-image" src="/assets/ui/points-bag.png" mode="aspectFit"></image>
     </view>
     <text class="dialog-title">积分已用完</text>
     <text class="dialog-description">继续使用“{{voiceName}}”生成新的声音内容，需要补充账户积分。</text>

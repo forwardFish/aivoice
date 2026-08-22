@@ -1,17 +1,8 @@
 .dialog-mask { position:fixed; z-index:999; inset:0; padding:34rpx; display:flex; align-items:center; justify-content:center; background:rgba(19,22,39,.54); }
 .dialog-card { width:100%; max-width:650rpx; padding:30rpx 34rpx 31rpx; position:relative; overflow:hidden; border-radius:46rpx; text-align:center; background:radial-gradient(circle at 80% 2%,rgba(207,194,255,.38),transparent 33%),radial-gradient(circle at 5% 60%,rgba(255,224,207,.26),transparent 30%),linear-gradient(160deg,#fff 0%,#f8f6ff 100%); border:1rpx solid rgba(255,255,255,.95); box-shadow:0 42rpx 110rpx rgba(16,19,42,.30),inset 0 1rpx 0 rgba(255,255,255,.99); }
 .dialog-close { width:58rpx; height:58rpx; position:absolute; z-index:5; top:20rpx; right:20rpx; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#757b90; background:rgba(255,255,255,.80); border:1rpx solid rgba(229,229,239,.88); box-shadow:0 8rpx 20rpx rgba(60,64,93,.07); font-size:35rpx; font-weight:300; }
-.dialog-visual { width:236rpx; height:188rpx; margin:0 auto 8rpx; position:relative; }
-.bag-shadow { width:172rpx; height:34rpx; position:absolute; left:31rpx; bottom:6rpx; border-radius:50%; background:rgba(97,80,220,.20); filter:blur(12rpx); }
-.bag-handle { width:84rpx; height:62rpx; position:absolute; z-index:1; left:75rpx; top:20rpx; border:16rpx solid #8e73f1; border-bottom:0; border-radius:48rpx 48rpx 0 0; box-shadow:inset 0 3rpx 0 rgba(255,255,255,.40); }
-.bag-body { width:174rpx; height:132rpx; position:absolute; z-index:2; left:31rpx; top:52rpx; border-radius:27rpx 27rpx 43rpx 43rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(circle at 30% 15%,rgba(255,255,255,.56),transparent 30%),linear-gradient(145deg,#715cf2,#b175eb); border:3rpx solid rgba(255,255,255,.50); box-shadow:0 20rpx 38rpx rgba(101,82,245,.27),inset 0 2rpx 0 rgba(255,255,255,.42); }
-.bag-star { color:#fff8d7; font-size:35rpx; text-shadow:0 0 16rpx rgba(255,231,160,.72); }
-.bag-wave { height:35rpx; margin-top:8rpx; display:flex; align-items:center; gap:5rpx; }
-.bag-wave text { width:5rpx; border-radius:999rpx; background:rgba(255,255,255,.88); }
-.bag-wave text:nth-child(1),.bag-wave text:nth-child(5){height:12rpx}.bag-wave text:nth-child(2),.bag-wave text:nth-child(4){height:24rpx}.bag-wave text:nth-child(3){height:34rpx}
-.coin { position:absolute; z-index:3; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(145deg,#f4a36b,#ef7485); box-shadow:0 10rpx 24rpx rgba(232,111,118,.25); font-size:20rpx; font-weight:700; }
-.coin-a { width:44rpx; height:44rpx; left:6rpx; top:88rpx; }.coin-b { width:50rpx; height:50rpx; right:3rpx; top:46rpx; }
-.spark { position:absolute; width:10rpx; height:10rpx; border-radius:50%; background:#fff; box-shadow:0 0 16rpx rgba(255,211,140,.95); }.spark-a{left:34rpx;top:24rpx}.spark-b{right:32rpx;bottom:42rpx}
+.dialog-visual { width:236rpx; height:200rpx; margin:0 auto 4rpx; display:flex; align-items:center; justify-content:center; }
+.points-bag-image { width:220rpx; height:220rpx; }
 .dialog-title,.dialog-description,.package-eyebrow,.package-code,.package-price,.package-renew,.dialog-note,.dialog-message{display:block}
 .dialog-title { color:#12182f; font-size:38rpx; font-weight:760; }
 .dialog-description { max-width:520rpx; margin:14rpx auto 0; color:#7c8399; font-size:23rpx; line-height:1.62; }

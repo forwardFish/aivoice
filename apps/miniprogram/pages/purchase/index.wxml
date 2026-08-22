@@ -18,10 +18,7 @@
 
       <view class="product-card luminous-card">
         <view class="product-top">
-          <view class="compact-bag">
-            <view class="bag-handle"></view>
-            <view class="bag-body"><text>✦</text><view class="bag-wave"><text></text><text></text><text></text><text></text><text></text></view></view>
-          </view>
+          <image class="compact-bag" src="/assets/ui/points-bag.png" mode="aspectFit"></image>
 
           <view class="product-main">
             <view class="product-tags"><text>账号积分包</text><text>一次性购买</text></view>
