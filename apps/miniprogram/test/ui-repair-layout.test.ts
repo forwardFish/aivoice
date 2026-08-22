@@ -64,13 +64,21 @@ test('P1 screens use simplified hierarchy while retaining real business actions'
 
   assert.match(progressView, /class="simple-stages"/)
   assert.doesNotMatch(progressView, /stages-card|time-card|status-pill/)
+  assert.match(progressView, /title="创建中"/)
+  assert.match(progressView, /\/assets\/ui\/icon-waveform\.png/)
+  assert.ok(progressView.indexOf('class="processing-title"') < progressView.indexOf('class="process-visual"'))
 
   assert.match(previewView, /wx:if="\{\{avatarUrl\}\}"/)
+  assert.match(previewView, /title="试听完成"/)
+  assert.match(previewView, /\/assets\/ui\/icon-waveform\.png/)
+  assert.doesNotMatch(previewView, /class="neutral-wave"><text/)
   assert.match(previewView, /bindtap="acceptPreview"/)
   assert.match(previewView, /bindtap="retryPreview"/)
   assert.match(previewView, /¥9\.9 购买 50 个账号积分/)
 
   assert.match(profileView, /class="permission-card/)
+  assert.match(profileView, /class="profile-intro"/)
+  assert.doesNotMatch(profileView, /class="profile-heading"|class="heading-wave"/)
   assert.match(profileView, /class="consent-card/)
   assert.match(profileView, /class="profile-footer/)
   assert.match(profileView, /bindtap="submit"/)

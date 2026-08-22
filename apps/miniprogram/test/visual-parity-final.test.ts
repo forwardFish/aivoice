@@ -139,6 +139,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(audioView, /\/assets\/ui\/play-line\.png/)
   assert.match(clipView, /\/assets\/ui\/play-line\.png/)
   assert.match(selectVideoView, /\/assets\/ui\/play-line\.png/)
+  assert.match(selectVideoView, /class="mini-plus" src="\/assets\/ui\/icon-add\.png"/)
   assert.match(accountView, /\/assets\/ui\/user-outline\.png/)
   assert.doesNotMatch(voicesView, /rightText="新建"/)
   assert.match(voicesView, /\/assets\/ui\/icon-more-vertical\.png/)
