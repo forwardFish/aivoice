@@ -75,7 +75,9 @@ test('P1 screens use simplified hierarchy while retaining real business actions'
   assert.match(profileView, /bindtap="submit"/)
   assert.match(profileStyle, /\.profile-footer\s*\{[^}]*position:\s*fixed/s)
 
-  assert.match(workbenchView, /class="mode-card-summary"/)
+  assert.match(workbenchView, /class="mode-card-line"/)
+  assert.match(workbenchView, /\/assets\/ui\/chat-mode\.png/)
+  assert.match(workbenchView, /\/assets\/ui\/mic-mode\.png/)
   assert.match(workbenchView, /两种模式共享账号积分，仅成功生成后扣减/)
 })
 

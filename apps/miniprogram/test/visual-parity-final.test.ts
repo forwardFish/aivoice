@@ -99,6 +99,8 @@ test('selection markup, metadata and icon assets consume real state without hard
   const audioView = read('components/audio-player/audio-player.wxml')
   const clipView = read('pages/create/select-clip.wxml')
   const accountView = read('pages/account/index.wxml')
+  const workbenchView = read('pages/voice/workbench.wxml')
+  const workbenchStyle = read('pages/voice/workbench.wxss')
 
   assert.match(selectVideoTs, /selectedIndex:\s*-1/)
   assert.match(selectVideoTs, /dataset\.index/)
@@ -130,9 +132,17 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(clipView, /\/assets\/ui\/play-line\.png/)
   assert.match(selectVideoView, /\/assets\/ui\/play-line\.png/)
   assert.match(accountView, /\/assets\/ui\/user-outline\.png/)
+  assert.match(workbenchView, /\/assets\/ui\/chat-mode\.png/)
+  assert.match(workbenchView, /\/assets\/ui\/mic-mode\.png/)
+  assert.match(workbenchView, /和 TA 自由聊天/)
+  assert.match(workbenchView, /生成一段 TA 的声音/)
+  assert.doesNotMatch(workbenchView, /class="mode-arrow/)
+  assert.doesNotMatch(workbenchStyle, /\.css-mic-icon/)
 
   assert.equal(gitBlobSha('assets/ui/play-line.png'), '69993a28a1e2c811bf669dfb3362397b46c30f47')
   assert.equal(gitBlobSha('assets/ui/user-outline.png'), '137da405b5c59809cf399c1db49b1a9941744528')
+  assert.equal(gitBlobSha('assets/ui/chat-mode.png'), '462c373e093d5148ba62517b35f1cedd12c53d9e')
+  assert.equal(gitBlobSha('assets/ui/mic-mode.png'), 'ae1275e2afdedbfa0bf88cff8928aa9d496ed274')
 })
 
 test('fixed actions remain protected on compact screens and legacy ten-use copy stays absent', () => {

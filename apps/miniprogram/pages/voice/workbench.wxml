@@ -20,23 +20,19 @@
         <view class="mode-card luminous-card" data-mode="chat" bindtap="selectMode">
           <view class="mode-copy">
             <text class="mode-card-title">对话模式</text>
-            <text class="mode-card-summary">聊几句，听见 AI 生成的声音回应</text>
+            <text class="mode-card-line">和 TA 自由聊天</text>
+            <text class="mode-card-line">获取 TA 的回应</text>
           </view>
-          <view class="mode-card-icon css-chat-icon">
-            <view class="chat-dots"><text></text><text></text><text></text></view>
-          </view>
-          <view class="mode-arrow">›</view>
+          <image class="mode-card-icon mode-card-image" src="/assets/ui/chat-mode.png" mode="aspectFit"></image>
         </view>
 
         <view class="mode-card mode-exact luminous-card" data-mode="exact" bindtap="selectMode">
           <view class="mode-copy">
             <text class="mode-card-title exact-title">说一句模式</text>
-            <text class="mode-card-summary">输入准确文字，让 TA 原样说出来</text>
+            <text class="mode-card-line">让 TA 说你想说的话</text>
+            <text class="mode-card-line">生成一段 TA 的声音</text>
           </view>
-          <view class="mode-card-icon css-mic-icon">
-            <view class="mic-capsule"></view><view class="mic-arc"></view><view class="mic-stem"></view>
-          </view>
-          <view class="mode-arrow exact-arrow">›</view>
+          <image class="mode-card-icon mode-card-image" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
         </view>
       </view>
 
