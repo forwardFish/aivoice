@@ -60,7 +60,7 @@
         </view>
 
         <button class="preview-button {{!valid ? 'is-disabled' : ''}}" bindtap="previewSelection" disabled="{{!valid}}">
-          <view class="preview-play"></view>
+          <view class="preview-play ui-sprite sprite-play-line"><image class="ui-sprite-sheet" src="/assets/ui/play-line.png" mode="aspectFit"></image></view>
           <text>{{previewing ? '正在播放所选片段' : '试听所选片段'}}</text>
         </button>
       </view>

@@ -3,7 +3,8 @@
 .audio-player.is-disabled { opacity:.55; }
 .play-button { flex:0 0 auto; width:82rpx; height:82rpx; position:relative; border-radius:50%; display:flex; align-items:center; justify-content:center; }
 .is-compact .play-button { width:66rpx; height:66rpx; }
-.play-image { width:0; height:0; margin-left:7rpx; border-top:17rpx solid transparent; border-bottom:17rpx solid transparent; border-left:25rpx solid #6552f5; filter:drop-shadow(0 3rpx 5rpx rgba(101,82,245,.22)); }
+.play-image { width:72rpx; height:72rpx; }
+.is-compact .play-image { width:58rpx; height:58rpx; }
 .pause-icon { width:70rpx; height:70rpx; border-radius:50%; display:flex; align-items:center; justify-content:center; gap:8rpx; background:linear-gradient(145deg,#715ff6,#9c70f5); box-shadow:0 12rpx 26rpx rgba(101,82,245,.25); }
 .pause-icon text { width:6rpx; height:27rpx; border-radius:999rpx; background:#fff; }
 .is-compact .pause-icon { width:58rpx; height:58rpx; }

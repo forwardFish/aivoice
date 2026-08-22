@@ -9,6 +9,8 @@ const WORKBENCH_DRAFT_PREFIX = 'nashide_ta_workbench_draft:'
 export interface CreationSession {
   voiceId: string
   tempFilePath?: string
+  thumbTempFilePath?: string
+  selectedTileIndex?: number
   fileName?: string
   mimeType?: string
   sizeBytes?: number

@@ -62,8 +62,10 @@
 
         <view class="voice-info">
           <text class="voice-name">{{item.name}}</text>
-          <text class="voice-meta">{{item.lastUsedText}}</text>
-          <text class="voice-points">{{item.pointsText}}</text>
+          <view class="voice-meta-row">
+            <text class="voice-meta">{{item.metaText}}</text>
+            <text wx:if="{{item.durationText}}" class="voice-duration">{{item.durationText}}</text>
+          </view>
         </view>
 
         <view class="voice-wave ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>

@@ -25,8 +25,8 @@
 
       <view class="media-browser glass-card">
         <view class="media-grid">
-          <view wx:for="{{mediaTiles}}" wx:key="id" class="media-tile" bindtap="chooseVideo">
-            <block wx:if="{{selected && index === 0}}">
+          <view wx:for="{{mediaTiles}}" wx:key="id" class="media-tile {{selected && selectedIndex === index ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="chooseVideo">
+            <block wx:if="{{selected && selectedIndex === index}}">
               <image wx:if="{{selected.thumbTempFilePath}}" class="selected-media" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
               <video wx:else class="selected-media" src="{{selected.tempFilePath}}" controls="{{false}}" muted="{{true}}" show-center-play-btn="{{false}}" enable-progress-gesture="{{false}}" object-fit="cover"></video>
               <view class="media-shade"></view>
@@ -39,7 +39,9 @@
                 <view class="scene-line line-a"></view>
                 <view class="scene-line line-b"></view>
               </view>
-              <view class="play-chip">▶</view>
+              <view class="play-chip ui-sprite sprite-play-line">
+                <image class="ui-sprite-sheet" src="/assets/ui/play-line.png" mode="aspectFit"></image>
+              </view>
               <view class="selection-circle"></view>
             </block>
           </view>
@@ -65,11 +67,12 @@
     <view class="selection-footer safe-bottom">
       <view wx:if="{{selected}}" class="selected-summary">
         <image wx:if="{{selected.thumbTempFilePath}}" class="summary-thumb" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
-        <view wx:else class="summary-thumb neutral-thumb"><view class="mini-play"></view></view>
+        <video wx:else class="summary-thumb" src="{{selected.tempFilePath}}" controls="{{false}}" muted="{{true}}" show-center-play-btn="{{false}}" enable-progress-gesture="{{false}}" object-fit="cover"></video>
         <view class="summary-copy">
-          <text class="summary-title">已选择 1 段视频</text>
+          <text class="summary-title">已选择第 {{selectedIndex + 1}} 格视频</text>
           <text class="summary-meta">{{selected.durationText}} · {{selected.sizeText}}</text>
         </view>
+        <button class="summary-clear" catchtap="resetSelection" aria-label="清除选择">×</button>
       </view>
       <view wx:else class="selected-summary">
         <view class="summary-thumb neutral-thumb"><view class="mini-plus">＋</view></view>

@@ -48,8 +48,9 @@
 
 .voice-info { flex: 1; min-width: 109rpx; }
 .voice-name { display: block; overflow: hidden; color: #141a31; font-size: 26rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-.voice-meta { display: block; max-width: 205rpx; margin-top: 5rpx; overflow: hidden; color: #838aa1; font-size: 17rpx; text-overflow: ellipsis; white-space: nowrap; }
-.voice-points { display: block; margin-top: 4rpx; color: #6959e4; font-size: 15rpx; }
+.voice-meta-row { margin-top: 7rpx; display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.voice-meta { flex: 1; min-width: 0; overflow: hidden; color: #838aa1; font-size: 16rpx; text-overflow: ellipsis; white-space: nowrap; }
+.voice-duration { flex: 0 0 auto; color: #6b5be4; font-size: 16rpx; font-variant-numeric: tabular-nums; }
 .voice-wave { flex: 0 0 auto; width: 101rpx; height: 49rpx; opacity: .45; }
 .voice-play { flex: 0 0 auto; width: 62rpx; height: 62rpx; }
 .voice-more { flex: 0 0 auto; width: 14rpx; height: 39rpx; margin-left: -4rpx; opacity: .53; }

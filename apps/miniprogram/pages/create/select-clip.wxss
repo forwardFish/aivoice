@@ -41,7 +41,7 @@
 .range-slider { flex: 1; margin: 0 -2rpx; }
 .preview-button { width: 100%; height: 62rpx; margin-top: 8rpx; border-radius: 20rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; color: #6655e8; background: linear-gradient(145deg, #efedff, #fff); border: 1rpx solid rgba(211, 204, 249, .92); font-size: 20rpx; font-weight: 650; }
 .preview-button.is-disabled { opacity: .44; }
-.preview-play { width: 0; height: 0; margin-left: 3rpx; border-top: 8rpx solid transparent; border-bottom: 8rpx solid transparent; border-left: 13rpx solid #6655e8; }
+.preview-play { width: 35rpx; height: 35rpx; }
 
 .inline-error { display: block; margin: 13rpx 4rpx 0; padding: 13rpx 16rpx; border-radius: 17rpx; color: #d75c66; background: rgba(255, 238, 239, .90); font-size: 18rpx; line-height: 1.5; }
 .clip-content-spacer { height: 38rpx; }
@@ -66,6 +66,7 @@
   .fine-tune { margin-top: 7rpx; }
   .slider-line { min-height: 39rpx; }
   .preview-button { height: 55rpx; }
+  .preview-play { width: 31rpx; height: 31rpx; }
   .footer-consent-copy text:last-child { display: none; }
   .footer-next { min-height: 80rpx; }
 }

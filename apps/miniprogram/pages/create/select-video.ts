@@ -5,6 +5,7 @@ import {
   uploadToPolicy
 } from '../../services/api'
 import { formatDurationMs } from '../../utils/format'
+import { DEFAULT_MEDIA_TILE_INDEX, normalizeMediaTileIndex } from '../../utils/media-selection'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { getCreationSession, setCreationSession } from '../../utils/storage'
 
@@ -21,6 +22,7 @@ Page({
   data: {
     state: 'idle',
     selected: null as any,
+    selectedIndex: -1,
     uploadProgress: 0,
     errorMessage: '',
     existingVoiceId: '',
@@ -41,29 +43,39 @@ Page({
     const existingVoiceId = String(options.voiceId || '')
     const session = getCreationSession()
     if (existingVoiceId && session && session.voiceId === existingVoiceId && session.tempFilePath) {
+      const selectedIndex = normalizeMediaTileIndex(session.selectedTileIndex)
       this.setData({
         existingVoiceId,
         state: 'selected',
+        selectedIndex,
         selected: {
           tempFilePath: session.tempFilePath,
-          thumbTempFilePath: '',
+          thumbTempFilePath: session.thumbTempFilePath || '',
+          tileIndex: selectedIndex,
           fileName: session.fileName,
           mimeType: session.mimeType,
           sizeBytes: session.sizeBytes,
           durationMs: session.durationMs,
           durationText: formatDurationMs(session.durationMs),
-          sizeText: `${(session.sizeBytes / 1024 / 1024).toFixed(1)} MB`
+          sizeText: `${(Number(session.sizeBytes || 0) / 1024 / 1024).toFixed(1)} MB`
         }
       })
       return
     }
-    this.setData({ existingVoiceId })
+    this.setData({ existingVoiceId, selectedIndex: -1 })
   },
   openAlbumTab() {
     this.chooseVideo()
   },
-  async chooseVideo() {
+  async chooseVideo(event?: any) {
     if (this.data.state === 'uploading') return
+    const requestedIndex = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.index
+      : undefined
+    const fallbackIndex = this.data.selectedIndex >= 0
+      ? this.data.selectedIndex
+      : DEFAULT_MEDIA_TILE_INDEX
+    const selectedIndex = normalizeMediaTileIndex(requestedIndex, fallbackIndex)
     this.setData({ errorMessage: '' })
     try {
       const result = await new Promise<any>((resolve, reject) => {
@@ -91,9 +103,11 @@ Page({
       const mimeType = info.type ? `video/${String(info.type).replace(/^video\//, '')}` : 'video/mp4'
       this.setData({
         state: 'selected',
+        selectedIndex,
         selected: {
           tempFilePath: file.tempFilePath,
           thumbTempFilePath: String(file.thumbTempFilePath || ''),
+          tileIndex: selectedIndex,
           fileName,
           mimeType,
           sizeBytes,
@@ -109,7 +123,7 @@ Page({
   },
   resetSelection() {
     if (this.data.state === 'uploading') return
-    this.setData({ state: 'idle', selected: null, uploadProgress: 0, errorMessage: '' })
+    this.setData({ state: 'idle', selected: null, selectedIndex: -1, uploadProgress: 0, errorMessage: '' })
   },
   async uploadAndContinue() {
     if (this.data.state === 'uploading' || !this.data.selected) return
@@ -141,6 +155,8 @@ Page({
       setCreationSession({
         voiceId: voice.id,
         tempFilePath: selected.tempFilePath,
+        thumbTempFilePath: selected.thumbTempFilePath || '',
+        selectedTileIndex: this.data.selectedIndex,
         fileName: selected.fileName,
         mimeType: selected.mimeType,
         sizeBytes: selected.sizeBytes,
