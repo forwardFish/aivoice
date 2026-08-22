@@ -55,7 +55,7 @@
 
     <view class="voice-list">
       <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card" data-id="{{item.id}}" bindtap="openVoice">
-        <image wx:if="{{item.avatarUrl}}" class="voice-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
         <view wx:else class="voice-avatar fallback">
           <view class="fallback-wave"><text></text><text></text><text></text><text></text><text></text></view>
         </view>

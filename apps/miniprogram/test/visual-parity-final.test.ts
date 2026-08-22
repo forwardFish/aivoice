@@ -124,7 +124,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(homeView, /wx:if="\{\{item\.durationText\}\}"/)
   assert.doesNotMatch(homeView, /voice-points|item\.pointsText/)
   assert.doesNotMatch(homeView, /00:21|00:20|00:18|00:24/)
-  assert.match(homeView, /wx:if="\{\{item\.avatarUrl\}\}"/)
+  assert.match(homeView, /wx:if="\{\{item\.displayAvatarUrl\}\}"/)
   assert.match(homeView, /class="voice-avatar fallback"/)
 
   assert.match(appStyle, /\.sprite-play-line \.ui-sprite-sheet/)

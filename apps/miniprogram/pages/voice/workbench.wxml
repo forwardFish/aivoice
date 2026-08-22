@@ -41,7 +41,8 @@
 
     <view wx:else class="workbench-body fade-in {{mode === 'exact' ? 'is-exact-mode' : ''}}">
       <view class="voice-banner luminous-card">
-        <view class="voice-avatar fallback"><view class="avatar-wave"><text></text><text></text><text></text></view></view>
+        <image wx:if="{{avatarUrl}}" class="voice-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="voice-avatar fallback"><view class="avatar-wave"><text></text><text></text><text></text></view></view>
         <view class="voice-banner-copy">
           <text class="voice-name">{{voiceName}}</text>
           <view class="voice-status-row"><view class="status-dot"></view><text>私有声音已就绪</text></view>

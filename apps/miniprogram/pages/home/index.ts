@@ -1,4 +1,5 @@
 import { getHome } from '../../services/api'
+import { resolveVoiceAvatar } from '../../utils/default-avatar'
 import { formatDateTime, formatDurationMs, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated, openWorkbench } from '../../utils/navigation'
 
@@ -44,6 +45,7 @@ Page({
         .map(voice => ({
           ...voice,
           initial: voiceInitial(voice.name),
+          displayAvatarUrl: resolveVoiceAvatar(voice),
           ...voiceMetadata(voice)
         }))
       this.setData({ state: voices.length ? 'success' : 'empty', voices })

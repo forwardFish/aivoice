@@ -22,7 +22,7 @@
   <view wx:else class="voice-list fade-in">
     <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card">
       <view class="card-top">
-        <image wx:if="{{item.avatarUrl}}" class="voice-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
         <view wx:else class="voice-avatar fallback">{{item.initial}}</view>
         <view class="voice-copy">
           <view class="name-row">

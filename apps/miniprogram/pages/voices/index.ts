@@ -1,5 +1,6 @@
 import { getPoints, listVoices } from '../../services/api'
 import { VoiceStatus, VoiceSummary } from '../../models/api'
+import { resolveVoiceAvatar } from '../../utils/default-avatar'
 import { formatDateTime, voiceInitial } from '../../utils/format'
 import {
   ensureAuthenticated,
@@ -45,6 +46,7 @@ function viewModel(voice: VoiceSummary, availablePoints: number): any {
   return {
     ...voice,
     initial: voiceInitial(voice.name),
+    displayAvatarUrl: resolveVoiceAvatar(voice),
     group: groupForStatus(voice.status),
     statusLabel: meta.label,
     statusTone: meta.tone,
