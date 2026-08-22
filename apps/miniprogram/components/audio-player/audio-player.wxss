@@ -17,3 +17,12 @@
 .wave-bar { flex:1; min-width:3rpx; max-width:7rpx; border-radius:999rpx; background:#d8d4f6; }
 .wave-progress { height:100%; position:absolute; left:0; top:0; overflow:hidden; pointer-events:none; background:linear-gradient(90deg,rgba(105,87,244,.28),rgba(160,114,244,.12)); border-right:2rpx solid #7965ee; }
 .audio-time { flex:0 0 auto; color:#9297a9; font-size:18rpx; }
+.download-button { flex:0 0 auto; width:68rpx; height:68rpx; position:relative; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.88); border:1rpx solid rgba(226,224,240,.9); box-shadow:0 9rpx 23rpx rgba(60,64,98,.08); }
+.download-arrow { width:5rpx; height:27rpx; position:absolute; left:50%; top:14rpx; border-radius:999rpx; background:#171d34; transform:translateX(-50%); }
+.download-arrow::before,
+.download-arrow::after { content:''; width:16rpx; height:5rpx; position:absolute; bottom:1rpx; border-radius:999rpx; background:#171d34; }
+.download-arrow::before { left:-11rpx; transform:rotate(45deg); }
+.download-arrow::after { right:-11rpx; transform:rotate(-45deg); }
+.download-tray { width:30rpx; height:12rpx; position:absolute; left:50%; bottom:11rpx; border:4rpx solid #171d34; border-top:0; border-radius:0 0 7rpx 7rpx; transform:translateX(-50%); }
+.download-button[disabled] { opacity:.55; }
+.is-compact .download-button { width:56rpx; height:56rpx; }

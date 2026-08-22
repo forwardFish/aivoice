@@ -123,7 +123,7 @@
             <view wx:else class="result-list">
               <view wx:for="{{exactResults}}" wx:key="id" class="result-card soft-card">
                 <view class="result-top"><text class="result-text">{{item.text}}</text><text class="ai-tag">AI 生成</text></view>
-                <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}"></audio-player>
+                <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}" downloadable="{{true}}"></audio-player>
                 <text wx:else class="message-error">{{item.status === 'FAILED' ? '生成失败，本次未扣积分' : '正在生成…'}}</text>
               </view>
             </view>

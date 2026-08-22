@@ -15,10 +15,12 @@ Component({
     label: { type: String, value: '' },
     tag: { type: String, value: '' },
     disabled: { type: Boolean, value: false },
-    compact: { type: Boolean, value: false }
+    compact: { type: Boolean, value: false },
+    downloadable: { type: Boolean, value: false }
   },
   data: {
     playing: false,
+    downloading: false,
     progress: 0,
     currentText: '00:00',
     bars: [18, 30, 42, 26, 52, 36, 46, 24, 40, 32, 50, 28, 20, 12]
@@ -77,6 +79,33 @@ Component({
         this.audio.play()
         this.triggerEvent('play')
       }
+    },
+    download() {
+      if (!this.data.downloadable || !this.data.src || this.data.downloading) return
+      this.setData({ downloading: true })
+      wx.downloadFile({
+        url: this.data.src,
+        success: (downloadResult: any) => {
+          if (Number(downloadResult.statusCode || 0) !== 200 || !downloadResult.tempFilePath) {
+            this.setData({ downloading: false })
+            wx.showToast({ title: '下载失败，请重试', icon: 'none' })
+            return
+          }
+          wx.saveFile({
+            tempFilePath: downloadResult.tempFilePath,
+            success: (saveResult: any) => {
+              this.triggerEvent('download', { savedFilePath: saveResult.savedFilePath })
+              wx.showToast({ title: '声音已保存', icon: 'success' })
+            },
+            fail: () => wx.showToast({ title: '保存失败，请重试', icon: 'none' }),
+            complete: () => this.setData({ downloading: false })
+          })
+        },
+        fail: () => {
+          this.setData({ downloading: false })
+          wx.showToast({ title: '下载失败，请重试', icon: 'none' })
+        }
+      })
     }
   }
 })

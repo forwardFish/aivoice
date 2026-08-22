@@ -16,4 +16,8 @@
       <text class="audio-time">{{currentText}}</text>
     </view>
   </view>
+  <button wx:if="{{downloadable && src}}" class="download-button" catchtap="download" disabled="{{downloading}}" aria-label="下载音频">
+    <view class="download-arrow"></view>
+    <view class="download-tray"></view>
+  </button>
 </view>
