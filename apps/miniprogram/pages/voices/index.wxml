@@ -1,5 +1,5 @@
 <view class="voices-screen">
-  <app-nav title="我的声音" rightText="新建" bindrighttap="createVoice"></app-nav>
+  <app-nav title="我的声音"></app-nav>
 
   <scroll-view class="filter-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
     <view class="filter-row">
@@ -32,7 +32,7 @@
           <text wx:if="{{item.stageLabel}}" class="stage-label">{{item.stageLabel}}</text>
           <text class="voice-meta">{{item.metaText}}</text>
         </view>
-        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings">···</button>
+        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings"><image src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image></button>
       </view>
 
       <view wx:if="{{item.showProgress}}" class="progress-wrap">

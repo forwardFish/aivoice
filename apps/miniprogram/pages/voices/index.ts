@@ -8,6 +8,7 @@ import {
   openVoiceProgress,
   openWorkbench
 } from '../../utils/navigation'
+import { syncTabBarSelection } from '../../utils/tab-bar'
 
 const FILTERS = [
   { key: 'ALL', label: '全部' },
@@ -83,6 +84,7 @@ Page({
     errorMessage: ''
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/voices/index')
     if (!ensureAuthenticated()) return
     this.loadVoices()
   },

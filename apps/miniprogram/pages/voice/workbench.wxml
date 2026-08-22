@@ -1,5 +1,5 @@
 <view class="workbench screen-shell {{showModeChooser ? 'mode-entry' : ''}}">
-  <app-nav title="{{showModeChooser ? '' : voiceName}}" back="{{true}}" rightText="{{showModeChooser ? '' : '设置'}}" transparent="{{true}}" bindrighttap="openSettings"></app-nav>
+  <app-nav title="{{showModeChooser ? '' : voiceName}}" back="{{true}}" rightText="{{showModeChooser ? '' : '切换模式'}}" transparent="{{true}}" bindrighttap="chooseAnotherMode"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="workbench-state">
     <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端积分…"></page-state>
@@ -40,27 +40,13 @@
     </view>
 
     <view wx:else class="workbench-body fade-in {{mode === 'exact' ? 'is-exact-mode' : ''}}">
-      <view class="voice-banner luminous-card">
-        <image wx:if="{{avatarUrl}}" class="voice-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback"><view class="avatar-wave"><text></text><text></text><text></text></view></view>
-        <view class="voice-banner-copy">
-          <text class="voice-name">{{voiceName}}</text>
-          <view class="voice-status-row"><view class="status-dot"></view><text>私有声音已就绪</text></view>
-        </view>
-        <view class="point-pill"><text class="point-number">{{points.availablePoints}}</text><text class="point-unit">账号积分</text></view>
-      </view>
-
-      <view class="mode-tabs glass-card">
-        <view class="mode-tab {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话模式</view>
-        <view class="mode-tab {{mode === 'exact' ? 'active exact-active' : ''}}" data-mode="exact" bindtap="switchMode">说一句</view>
-      </view>
-      <button class="change-mode" bindtap="chooseAnotherMode">重新选择使用方式</button>
+      <text class="workbench-balance">剩余账号积分：{{points.availablePoints}}</text>
 
       <block wx:if="{{mode === 'chat'}}">
         <view class="ai-notice"><text class="notice-spark">✦</text><text>AI 生成内容不代表声音本人真实表达</text></view>
         <scroll-view class="message-list" scroll-y="{{true}}" scroll-into-view="{{scrollTarget}}" enhanced="{{true}}" show-scrollbar="{{false}}">
           <view wx:if="{{chatMessages.length === 0 && !sending}}" class="chat-intro glass-card">
-            <view class="intro-orb css-chat-icon small-chat-icon"><view class="chat-dots"><text></text><text></text><text></text></view></view>
+            <image class="intro-mode-image" src="/assets/ui/chat-mode.png" mode="aspectFit"></image>
             <text class="intro-title">从一句简单的话开始</text>
             <text class="intro-copy">这是使用“{{voiceName}}”声音输出的 AI 助手，不是真实声音本人。</text>
             <view class="quick-prompts">
@@ -71,7 +57,8 @@
           </view>
 
           <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'is-user' : ''}}">
-            <view wx:if="{{item.isAssistant}}" class="message-avatar">{{item.initial}}</view>
+            <image wx:if="{{item.isAssistant && avatarUrl}}" class="message-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <view wx:elif="{{item.isAssistant}}" class="message-avatar">{{item.initial}}</view>
             <view class="message-bubble {{item.isUser ? 'bubble-user' : 'bubble-assistant'}}">
               <view wx:if="{{item.isAssistant}}" class="ai-tag-row"><text class="ai-tag">AI 回复</text><text class="message-status">{{item.status === 'PROCESSING' ? '生成中' : item.status === 'FAILED' ? '生成失败' : item.status === 'BLOCKED' ? '未通过审核' : '已完成'}}</text></view>
               <text class="message-text">{{item.text}}</text>
@@ -116,11 +103,11 @@
             </view>
 
             <text wx:if="{{errorMessage}}" class="inline-error exact-inline-error">{{errorMessage}}</text>
-
-            <button class="primary-button exact-generate {{sending || !exactText ? 'button-disabled' : ''}}" disabled="{{sending || !exactText}}" bindtap="generateExact">
-              {{sending ? '正在生成声音…' : '生成语音'}}
-            </button>
           </view>
+
+          <button class="primary-button exact-generate {{sending || !exactText ? 'button-disabled' : ''}}" disabled="{{sending || !exactText}}" bindtap="generateExact">
+            {{sending ? '正在生成声音…' : '生成语音'}}
+          </button>
 
           <view class="result-heading"><text class="section-title">生成记录</text><text>最近 10 轮</text></view>
 
@@ -128,7 +115,7 @@
             <view wx:if="{{sending && pendingMode === 'exact'}}" class="pending-result soft-card"><view class="typing"><text></text><text></text><text></text></view><text>{{generationStatusText}}</text></view>
 
             <view wx:if="{{exactResults.length === 0 && !sending}}" class="exact-empty soft-card">
-              <view class="inline-wave ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+              <image class="inline-wave" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
               <text class="empty-result-title">还没有生成记录</text>
               <text>输入一句话，成功生成后会显示在这里。</text>
             </view>

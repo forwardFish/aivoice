@@ -1,8 +1,6 @@
 <view class="audio-player {{compact ? 'is-compact' : ''}} {{disabled ? 'is-disabled' : ''}}" bindtap="toggle">
   <view class="play-button {{playing ? 'is-playing' : ''}}">
-    <view wx:if="{{!playing}}" class="play-image ui-sprite sprite-play-line">
-      <image class="ui-sprite-sheet" src="/assets/ui/play-line.png" mode="aspectFit"></image>
-    </view>
+    <image wx:if="{{!playing}}" class="play-image" src="/assets/ui/play-line.png" mode="aspectFit"></image>
     <view wx:else class="pause-icon"><text></text><text></text></view>
   </view>
   <view class="audio-main">

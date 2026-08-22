@@ -1,6 +1,6 @@
 .account-screen {
   min-height: 100vh;
-  padding: 0 30rpx calc(44rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(190rpx + env(safe-area-inset-bottom));
 }
 
 .account-state {

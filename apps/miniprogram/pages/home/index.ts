@@ -1,4 +1,5 @@
 import { getHome } from '../../services/api'
+import { syncTabBarSelection } from '../../utils/tab-bar'
 import { resolveVoiceAvatar } from '../../utils/default-avatar'
 import { formatDateTime, formatDurationMs, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated, openWorkbench } from '../../utils/navigation'
@@ -29,6 +30,7 @@ Page({
     voices: [] as any[]
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/home/index')
     if (!ensureAuthenticated()) return
     this.loadHome()
   },

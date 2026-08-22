@@ -3,7 +3,7 @@
 
   <view wx:if="{{state === 'uploading'}}" class="upload-state fade-in">
     <view class="upload-orb luminous-card">
-      <view class="upload-wave-image ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+      <image class="upload-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
       <text class="upload-percent">{{uploadProgress}}%</text>
     </view>
     <text class="upload-title">正在安全上传视频</text>

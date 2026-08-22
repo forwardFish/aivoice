@@ -1,6 +1,6 @@
 .voices-screen {
   min-height: 100vh;
-  padding: 0 30rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(190rpx + env(safe-area-inset-bottom));
 }
 
 .filter-scroll {
@@ -139,11 +139,12 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  color: #72798f;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background: #f4f4fa;
-  font-size: 28rpx;
-  letter-spacing: 2rpx;
 }
+.settings-button image { width:18rpx; height:42rpx; opacity:.65; }
 
 .settings-button::after { border: none; }
 

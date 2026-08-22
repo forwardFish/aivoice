@@ -1,5 +1,25 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
 import test from 'node:test'
+
+const miniprogramRoot = path.resolve(__dirname, '..')
+
+test('login page matches the latest visual hierarchy without restoring profile onboarding', () => {
+  const view = fs.readFileSync(path.join(miniprogramRoot, 'pages/login/index.wxml'), 'utf8')
+  const style = fs.readFileSync(path.join(miniprogramRoot, 'pages/login/index.wxss'), 'utf8')
+
+  assert.match(view, /\/assets\/ui\/hero-memory\.png/)
+  assert.match(view, /class="wechat-login-button/)
+  assert.match(view, /\/assets\/ui\/wechat-mark\.png/)
+  assert.doesNotMatch(view, /wechat-bubble|bubble-large|bubble-small/)
+  assert.match(view, /欢迎来到那时的TA/)
+  assert.match(view, /《用户协议》/)
+  assert.match(view, /《隐私政策》/)
+  assert.doesNotMatch(view, /chooseAvatar|nickname-input|avatar-picker/)
+  assert.match(style, /\.wechat-login-button\s*\{[^}]*linear-gradient/s)
+  assert.match(style, /\.login-clouds\s*\{/)
+})
 
 test('login page uses wx.login code with HTTPS production config and stores only API session data', async () => {
   const storage = new Map<string, any>()

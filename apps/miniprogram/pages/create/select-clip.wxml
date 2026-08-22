@@ -1,5 +1,5 @@
 <view class="clip-screen screen-shell">
-  <app-nav title="选择目标声音" back="{{true}}" transparent="{{true}}"></app-nav>
+  <app-nav title="标记声音片段" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="page-state-wrap">
     <page-state mode="loading" title="正在读取视频" description="正在恢复刚才选择的视频…"></page-state>
@@ -12,8 +12,8 @@
   <block wx:else>
     <view class="clip-content fade-in">
       <view class="compact-heading">
-        <text class="page-title">截出 TA 清楚说话的一段</text>
-        <text class="page-subtitle">选择 10–30 秒，尽量避开音乐和多人重叠说话</text>
+        <text class="page-title">请标记 TA 说话的片段</text>
+        <text class="page-subtitle">建议选择清晰朗读、安静的 10–30 秒片段</text>
       </view>
 
       <view class="video-stage luminous-card">

@@ -1,10 +1,11 @@
 <view class="nav-placeholder" style="height: {{statusBarHeight + navHeight}}px;"></view>
 <view class="nav-shell {{transparent ? 'nav-transparent' : ''}} {{fixed ? 'nav-fixed' : ''}}" style="padding-top: {{statusBarHeight}}px; height: {{statusBarHeight + navHeight}}px;">
-  <view class="nav-row" style="height: {{navHeight}}px; padding-left: {{menuWidth + menuRight + 8}}px; padding-right: {{menuWidth + menuRight + 8}}px;">
+  <view class="nav-row {{rightText ? 'has-action' : ''}} {{back ? 'has-back' : ''}}" style="height: {{navHeight}}px; padding-left: {{back ? 56 : menuWidth + menuRight + 8}}px; padding-right: {{rightText && back ? menuWidth + menuRight + 62 : menuWidth + menuRight + 8}}px;">
     <view wx:if="{{back}}" class="back-button" bindtap="goBack" aria-label="返回">
-      <view class="back-icon"></view>
+      <image class="back-icon" src="/assets/ui/back-line.png" mode="aspectFit"></image>
     </view>
     <text class="nav-title">{{title}}</text>
-    <button wx:if="{{rightText}}" class="nav-right-action" style="right: {{menuRight + menuWidth + 8}}px;" bindtap="onRightTap">{{rightText}}</button>
+    <button wx:if="{{rightText && !back}}" class="nav-left-action" bindtap="onRightTap">{{rightText}}</button>
+    <button wx:if="{{rightText && back}}" class="nav-right-action" style="right: {{menuRight + menuWidth + 8}}px;" bindtap="onRightTap">{{rightText}}</button>
   </view>
 </view>

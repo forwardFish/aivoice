@@ -19,14 +19,11 @@
 .mode-exact .mode-card-icon { width: 210rpx; height: 210rpx; right: 14rpx; bottom: 9rpx; }
 .mode-card-image { display: block; }
 
-.css-chat-icon { border-radius: 46% 46% 46% 34%; background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.48), transparent 30%), linear-gradient(145deg,#b99bff,#6e5be9 58%,#8b70f1); box-shadow: 0 25rpx 47rpx rgba(101,82,245,.23), inset 0 3rpx 0 rgba(255,255,255,.6); display: flex; align-items: center; justify-content: center; }
-.css-chat-icon::after { content: ''; position: absolute; left: 19%; bottom: -7%; width: 30%; height: 27%; background: #8067ee; clip-path: polygon(0 0,100% 0,20% 100%); }
-.chat-dots { position: relative; z-index: 2; display: flex; gap: 13rpx; }
-.chat-dots text { width: 22rpx; height: 22rpx; border-radius: 50%; background: rgba(255,255,255,.94); }
 .mode-footer-note { margin-top: auto; padding-top: 31rpx; display: flex; align-items: center; justify-content: center; gap: 11rpx; color: #8a90a6; font-size: 20rpx; text-align: center; }
 .note-spark { width: 9rpx; height: 9rpx; border-radius: 50%; background: linear-gradient(135deg,#7a67f5,#ef8b70); box-shadow: 0 0 13rpx rgba(114,93,244,.42); }
 
 .workbench-body { min-height: calc(100vh - 120rpx); padding: 10rpx 30rpx 0; display: flex; flex-direction: column; }
+.workbench-balance { display:block; margin:2rpx 0 20rpx; color:#7b8298; font-size:25rpx; text-align:center; }
 .voice-banner { min-height: 116rpx; padding: 17rpx 20rpx; border-radius: 31rpx; display: flex; align-items: center; gap: 16rpx; }
 .voice-avatar { flex: 0 0 auto; width: 76rpx; height: 76rpx; border-radius: 50%; border: 3rpx solid rgba(255,255,255,.92); box-shadow: 0 9rpx 23rpx rgba(60,64,98,.12); background: #eceaff; }
 .voice-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg,#ece9ff,#dcd8f9); }
@@ -47,14 +44,12 @@
 .mode-tab.active { color: #6452f5; background: linear-gradient(145deg,#f0edff,#fff); box-shadow: 0 7rpx 19rpx rgba(101,82,245,.12); }
 .mode-tab.exact-active { color: #eb6c50; background: linear-gradient(145deg,#fff0eb,#fff); }
 .change-mode { align-self: flex-end; height: 42rpx; margin: 4rpx 2rpx 0; padding: 0 7rpx; color: #9297a9; background: transparent; font-size: 17rpx; }
-.ai-notice { margin: 5rpx 0 0; padding: 11rpx 16rpx; border-radius: 16rpx; display: flex; align-items: center; justify-content: center; gap: 7rpx; color: #8a90a6; background: rgba(255,255,255,.54); font-size: 17rpx; }
+.ai-notice { margin: 0 0 6rpx; padding: 8rpx 16rpx; border-radius: 16rpx; display: flex; align-items: center; justify-content: center; gap: 7rpx; color: #8a90a6; background: rgba(255,255,255,.45); font-size: 17rpx; }
 .notice-spark { color: #7965ee; }
 
-.message-list { flex: 1; height: calc(100vh - 480rpx); margin-top: 9rpx; }
+.message-list { flex: 1; height: calc(100vh - 310rpx); margin-top: 9rpx; }
 .chat-intro { margin: 17rpx 16rpx; padding: 27rpx 25rpx; border-radius: 28rpx; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.small-chat-icon { width: 94rpx; height: 87rpx; position: relative; }
-.small-chat-icon .chat-dots { gap: 7rpx; }
-.small-chat-icon .chat-dots text { width: 12rpx; height: 12rpx; }
+.intro-mode-image { width:104rpx; height:104rpx; }
 .intro-title { margin-top: 14rpx; color: #171d35; font-size: 26rpx; font-weight: 680; }
 .intro-copy { max-width: 520rpx; margin-top: 11rpx; color: #858ba1; font-size: 20rpx; line-height: 1.6; }
 .quick-prompts { width: 100%; margin-top: 18rpx; display: flex; flex-wrap: wrap; justify-content: center; gap: 10rpx; }
@@ -87,17 +82,17 @@
 .send-arrow { font-size: 28rpx; line-height: 1; }
 
 .exact-workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.exact-primary-card { padding: 22rpx 23rpx 21rpx; border-radius: 31rpx; }
+.exact-primary-card { padding: 28rpx 25rpx 25rpx; border-radius: 31rpx; }
 .exact-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14rpx; }
 .exact-title-wrap { flex: 1; min-width: 0; }
 .exact-title { display: block; color: #171d34; font-size: 28rpx; font-weight: 720; }
 .exact-subtitle { display: block; margin-top: 6rpx; color: #868ca1; font-size: 18rpx; line-height: 1.45; }
 .exact-count { flex: 0 0 auto; color: #969bad; font-size: 18rpx; }
-.exact-textarea { width: 100%; min-height: 205rpx; margin-top: 15rpx; padding: 20rpx 21rpx; border-radius: 23rpx; color: #171d33; background: #f5f4fb; font-size: 25rpx; line-height: 1.58; }
+.exact-textarea { width: 100%; min-height: 335rpx; margin-top: 22rpx; padding: 25rpx 23rpx; border-radius: 25rpx; color: #171d33; background: #f5f4fb; font-size: 27rpx; line-height: 1.58; }
 .exact-helper { margin-top: 11rpx; display: flex; align-items: flex-start; gap: 8rpx; color: #9297aa; font-size: 17rpx; line-height: 1.45; }
 .helper-dot { flex: 0 0 auto; width: 8rpx; height: 8rpx; margin-top: 8rpx; border-radius: 50%; background: #7d6af1; box-shadow: 0 0 9rpx rgba(101,82,245,.32); }
 .exact-inline-error { margin-top: 11rpx; padding: 11rpx 14rpx; border-radius: 16rpx; background: #fff0f1; }
-.exact-generate { min-height: 82rpx; margin-top: 14rpx; border-radius: 25rpx; }
+.exact-generate { width:100%; min-height: 96rpx; margin-top: 27rpx; border-radius: 31rpx; font-size:31rpx; }
 
 .result-heading { margin: 18rpx 5rpx 11rpx; display: flex; align-items: center; justify-content: space-between; }
 .result-heading .section-title { font-size: 27rpx; }
@@ -122,12 +117,13 @@
   .mode-footer-note { padding-top: 18rpx; }
 
   .workbench-body { padding-top: 5rpx; }
+  .workbench-balance { margin-bottom:12rpx; font-size:22rpx; }
   .voice-banner { min-height: 96rpx; padding: 12rpx 16rpx; }
   .voice-avatar { width: 63rpx; height: 63rpx; }
   .mode-tabs { margin-top: 10rpx; }
   .change-mode { height: 34rpx; }
   .exact-primary-card { padding: 17rpx 19rpx; }
-  .exact-textarea { min-height: 150rpx; margin-top: 10rpx; }
+  .exact-textarea { min-height: 230rpx; margin-top: 13rpx; }
   .exact-helper { margin-top: 7rpx; }
   .exact-generate { min-height: 74rpx; margin-top: 10rpx; }
   .result-heading { margin-top: 12rpx; }

@@ -50,8 +50,9 @@ test('P0 screens keep their primary actions and navigation visible on compact vi
   assert.match(homeView, /class="hero/)
   assert.match(homeView, /class="voice-card/)
   assert.match(homeView, /class="voice-avatar fallback"/)
-  assert.match(homeView, /class="fallback-wave"/)
-  assert.match(homeStyle, /padding:\s*0 32rpx calc\(132rpx \+ env\(safe-area-inset-bottom\)\)/)
+  assert.match(homeView, /class="fallback-wave-image"/)
+  assert.match(homeStyle, /padding:\s*0 32rpx calc\(190rpx \+ env\(safe-area-inset-bottom\)\)/)
+  assert.match(read('custom-tab-bar/index.wxss'), /\.custom-tab-shell\s*\{[^}]*position:\s*fixed/s)
 })
 
 test('P1 screens use simplified hierarchy while retaining real business actions', () => {

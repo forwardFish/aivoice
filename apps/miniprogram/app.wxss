@@ -238,14 +238,7 @@ image { display: block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse-soft { 0%, 100% { transform: scale(1); opacity: .76; } 50% { transform: scale(1.06); opacity: 1; } }
 
-/* Crops from docs/UI/icon/ChatGPT Image 2026年8月21日 21_41_42 (2).png. */
 .ui-sprite { position: relative; display: block; overflow: hidden; }
 .ui-sprite-sheet { width: 100%; height: auto; position: absolute; left: 0; top: 0; max-width: none; pointer-events: none; }
-.sprite-memory .ui-sprite-sheet { width: 283.40%; transform: translate(-2.6693%, -6.0547%); }
-.sprite-add .ui-sprite-sheet { width: 497.09%; transform: translate(-40.4948%, -13.1836%); }
-.sprite-arrow .ui-sprite-sheet { width: 609.53%; transform: translate(-64.8438%, -16.3086%); }
-.sprite-waveform .ui-sprite-sheet { width: 438.86%; transform: translate(-47.8516%, -50.2930%); }
-.sprite-more .ui-sprite-sheet { width: 3339.13%; transform: translate(-74.2188%, -53.9063%); }
-.sprite-play-glass .ui-sprite-sheet { width: 779.70%; transform: translate(-4.2318%, -50.8789%); }
 /* Direct transparent line-play asset from docs/UI/icon/ChatGPT Image 2026年8月21日 21_46_32 (9).png. */
 .sprite-play-line .ui-sprite-sheet { width: 132%; height: 132%; left: -16%; top: -16%; transform: none; object-fit: contain; }

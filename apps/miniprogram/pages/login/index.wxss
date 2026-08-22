@@ -1,205 +1,68 @@
 .login-screen {
   min-height: 100vh;
-  padding: 0 42rpx calc(50rpx + env(safe-area-inset-bottom));
-  background:
-    radial-gradient(circle at 18% 18%, rgba(117, 155, 255, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 20%, rgba(172, 126, 255, 0.18), transparent 30%),
-    #f8f8ff;
-}
-
-.login-content {
-  padding-top: 92rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.brand-mark {
-  width: 144rpx;
-  height: 144rpx;
-  border-radius: 42rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at 30% 24%, #ffffff, #e4e0ff 58%, #cddcff);
-  box-shadow: 0 26rpx 70rpx rgba(94, 78, 226, 0.22);
-}
-
-.brand-wave {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.brand-wave text {
-  width: 8rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(180deg, #9c8eff, #5f52f5);
-}
-
-.brand-wave text:nth-child(1) { height: 34rpx; }
-.brand-wave text:nth-child(2) { height: 54rpx; }
-.brand-wave text:nth-child(3) { height: 78rpx; }
-.brand-wave text:nth-child(4) { height: 54rpx; }
-.brand-wave text:nth-child(5) { height: 34rpx; }
-
-.login-title {
-  margin-top: 34rpx;
-  font-size: 54rpx;
-  line-height: 1.25;
-  font-weight: 750;
-  color: #11172d;
-}
-
-.login-subtitle {
-  margin-top: 12rpx;
-  font-size: 28rpx;
-  color: #737b94;
-}
-
-.login-card {
-  width: 100%;
-  margin-top: 68rpx;
-  padding: 42rpx 34rpx 36rpx;
-}
-
-.card-title {
-  display: block;
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #11172d;
-}
-
-.card-caption {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 24rpx;
-  line-height: 1.6;
-  color: #7e859c;
-}
-
-.profile-row {
-  margin-top: 34rpx;
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
-
-.avatar-picker {
-  flex: 0 0 auto;
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
+  position: relative;
   overflow: hidden;
-  background: #efedff;
+  padding: 0 40rpx calc(40rpx + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 92% 7%, rgba(204,197,255,.38), transparent 25%),
+    radial-gradient(circle at 4% 92%, rgba(225,200,255,.34), transparent 29%),
+    linear-gradient(158deg,#fafbff 0%,#f7f6ff 42%,#fbf9ff 72%,#f6edff 100%);
 }
 
-.avatar-image,
-.avatar-placeholder {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
+.login-aurora { position:absolute; border-radius:50%; pointer-events:none; filter:blur(3rpx); }
+.aurora-a { width:420rpx; height:360rpx; right:-176rpx; top:100rpx; background:radial-gradient(circle,rgba(179,160,255,.23),transparent 68%); }
+.aurora-b { width:520rpx; height:400rpx; left:-220rpx; bottom:-110rpx; background:radial-gradient(circle,rgba(203,169,255,.26),transparent 68%); }
+.login-clouds { height:230rpx; position:absolute; left:-40rpx; right:-40rpx; bottom:-35rpx; opacity:.63; background:
+  radial-gradient(ellipse at 6% 90%,rgba(255,255,255,.95) 0 18%,transparent 19%),
+  radial-gradient(ellipse at 22% 86%,rgba(255,255,255,.9) 0 24%,transparent 25%),
+  radial-gradient(ellipse at 43% 94%,rgba(255,255,255,.94) 0 23%,transparent 24%),
+  radial-gradient(ellipse at 68% 86%,rgba(255,255,255,.9) 0 23%,transparent 24%),
+  radial-gradient(ellipse at 91% 93%,rgba(255,255,255,.96) 0 25%,transparent 26%);
 }
 
-.avatar-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 52rpx;
-  color: #6552f5;
-}
+.login-spark { width:7rpx; height:7rpx; position:absolute; border-radius:50%; background:#fff; box-shadow:0 0 18rpx rgba(255,229,172,.95); transform:rotate(45deg); }
+.login-spark::before,
+.login-spark::after { content:''; position:absolute; left:50%; top:50%; border-radius:999rpx; background:rgba(255,255,255,.94); transform:translate(-50%,-50%); }
+.login-spark::before { width:3rpx; height:27rpx; }
+.login-spark::after { width:27rpx; height:3rpx; }
+.spark-a { left:76rpx; top:134rpx; }
+.spark-b { right:66rpx; top:75rpx; transform:scale(.7) rotate(45deg); }
+.spark-c { left:54rpx; top:850rpx; transform:scale(.55) rotate(45deg); }
+.spark-d { right:88rpx; bottom:118rpx; transform:scale(.75) rotate(45deg); }
 
-.nickname-wrap {
-  flex: 1;
-  min-width: 0;
-}
+.login-content { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
+.login-hero { width:100%; height:500rpx; position:relative; }
+.login-brand-copy { position:absolute; z-index:3; left:24rpx; top:150rpx; }
+.login-title { display:block; color:#0d1e4a; font-family:Georgia,"Songti SC","STSong",serif; font-size:72rpx; line-height:1.08; font-weight:720; letter-spacing:1rpx; }
+.login-subtitle { display:block; margin-top:30rpx; color:#52658d; font-size:28rpx; letter-spacing:1rpx; }
+.login-memory { width:430rpx; height:430rpx; position:absolute; z-index:2; right:-108rpx; top:0; opacity:.82; }
 
-.mini-label {
-  display: block;
-  margin-bottom: 10rpx;
-  font-size: 23rpx;
-  color: #737b94;
-}
+.welcome-block { margin-top:72rpx; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.welcome-title { color:#102756; font-size:43rpx; line-height:1.25; font-weight:720; letter-spacing:1rpx; }
+.welcome-subtitle { margin-top:26rpx; color:#607098; font-size:29rpx; letter-spacing:1rpx; }
 
-.nickname-input {
-  width: 100%;
-  height: 82rpx;
-  padding: 0 22rpx;
-  border-radius: 20rpx;
-  border: 1rpx solid #e7e8f2;
-  background: #fafaff;
-  color: #11172d;
-  font-size: 28rpx;
-}
+.wechat-login-button { width:590rpx; height:112rpx; margin-top:68rpx; padding:0 42rpx; border:2rpx solid rgba(255,255,255,.78); border-radius:58rpx; display:flex; align-items:center; justify-content:center; gap:23rpx; color:#fff; background:linear-gradient(100deg,#ac7cf7 0%,#765cf5 48%,#6b64ef 100%); box-shadow:0 24rpx 54rpx rgba(111,83,235,.26),inset 0 2rpx 4rpx rgba(255,255,255,.34); font-size:38rpx; font-weight:560; }
+.wechat-login-button::after { border:0; }
+.wechat-mark { width:66rpx; height:54rpx; flex:0 0 auto; }
 
-.agreement-row {
-  margin-top: 34rpx;
-  display: flex;
-  align-items: flex-start;
-  gap: 16rpx;
-}
+.agreement-row { width:610rpx; margin-top:42rpx; display:flex; align-items:center; justify-content:center; gap:15rpx; }
+.check-box { flex:0 0 auto; width:38rpx; height:38rpx; border:3rpx solid #8b95aa; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:24rpx; }
+.check-box.checked { border-color:#6552f5; background:#6552f5; }
+.agreement-copy { color:#30384d; font-size:22rpx; line-height:1.6; white-space:nowrap; }
+.agreement-link { color:#4e36ef; }
 
-.check-box {
-  flex: 0 0 auto;
-  width: 38rpx;
-  height: 38rpx;
-  border-radius: 10rpx;
-  border: 2rpx solid #c6cad9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 24rpx;
-}
+.login-error { width:590rpx; margin-top:30rpx; padding:17rpx 22rpx; border-radius:18rpx; background:rgba(255,238,241,.9); color:#c9515b; font-size:22rpx; line-height:1.45; text-align:center; }
+.login-success { position:relative; z-index:3; padding-top:170rpx; }
 
-.check-box.checked {
-  border-color: #6552f5;
-  background: #6552f5;
-}
-
-.agreement-copy {
-  flex: 1;
-  font-size: 23rpx;
-  line-height: 1.65;
-  color: #737b94;
-}
-
-.agreement-link {
-  color: #6552f5;
-}
-
-.login-error {
-  display: block;
-  margin-top: 20rpx;
-  padding: 16rpx 18rpx;
-  border-radius: 16rpx;
-  background: #fff0f1;
-  color: #c9515b;
-  font-size: 23rpx;
-  line-height: 1.5;
-}
-
-.login-button {
-  margin-top: 32rpx;
-}
-
-.trust-line {
-  margin-top: 36rpx;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  color: #858ca2;
-  font-size: 23rpx;
-}
-
-.trust-dot {
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: #55bb76;
-  box-shadow: 0 0 0 8rpx rgba(85, 187, 118, 0.12);
-}
-
-.login-success {
-  padding-top: 120rpx;
+@media (max-height:740px) {
+  .login-hero { height:410rpx; }
+  .login-brand-copy { top:105rpx; }
+  .login-title { font-size:62rpx; }
+  .login-subtitle { margin-top:20rpx; font-size:24rpx; }
+  .login-memory { width:360rpx; height:360rpx; right:-80rpx; }
+  .welcome-block { margin-top:35rpx; }
+  .welcome-title { font-size:37rpx; }
+  .welcome-subtitle { margin-top:16rpx; font-size:25rpx; }
+  .wechat-login-button { height:98rpx; margin-top:42rpx; }
+  .agreement-row { margin-top:28rpx; }
 }

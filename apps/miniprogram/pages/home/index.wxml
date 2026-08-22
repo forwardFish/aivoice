@@ -6,19 +6,19 @@
       <text class="brand-title">那时的TA</text>
       <text class="brand-subtitle">把记忆里的声音，轻轻留住</text>
     </view>
-    <view class="hero-memory ui-sprite sprite-memory"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+    <image class="hero-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
     <view class="hero-glow"></view>
     <view class="hero-spark hero-spark-a"></view>
     <view class="hero-spark hero-spark-b"></view>
   </view>
 
   <view class="create-card luminous-card float-in" bindtap="createVoice">
-    <view class="create-icon ui-sprite sprite-add"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+    <image class="create-icon" src="/assets/ui/icon-add.png" mode="aspectFit"></image>
     <view class="create-copy">
       <text class="create-title">创建新声音</text>
       <text class="create-subtitle">从旧视频中提取 TA 的声音</text>
     </view>
-    <view class="create-arrow ui-sprite sprite-arrow"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+    <image class="create-arrow" src="/assets/ui/icon-arrow.png" mode="aspectFit"></image>
   </view>
 
   <view wx:if="{{state === 'loading'}}" class="home-state glass-card fade-in">
@@ -32,7 +32,7 @@
   <view wx:elif="{{state === 'empty'}}" class="empty-section fade-in">
     <view class="section-row"><text class="section-title">最近的声音</text></view>
     <view class="empty-card soft-card">
-      <view class="empty-wave-image ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+      <image class="empty-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
       <text class="empty-title">还没有留下声音</text>
       <text class="empty-copy">选一段 12–60 秒的旧视频，完成试听后，声音会出现在这里。</text>
       <view class="empty-steps">
@@ -44,7 +44,6 @@
       </view>
       <button class="empty-action" bindtap="createVoice">创建第一个声音</button>
     </view>
-    <view class="privacy-note"><view class="privacy-lock"></view><text>私有声音仅自己可用，可随时删除</text></view>
   </view>
 
   <view wx:else class="recent-section fade-in">
@@ -56,25 +55,22 @@
     <view class="voice-list">
       <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card" data-id="{{item.id}}" bindtap="openVoice">
         <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback">
-          <view class="fallback-wave"><text></text><text></text><text></text><text></text><text></text></view>
-        </view>
+        <view wx:else class="voice-avatar fallback"><image class="fallback-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
 
         <view class="voice-info">
           <text class="voice-name">{{item.name}}</text>
           <view class="voice-meta-row">
             <text class="voice-meta">{{item.metaText}}</text>
-            <text wx:if="{{item.durationText}}" class="voice-duration">{{item.durationText}}</text>
           </view>
         </view>
 
-        <view class="voice-wave ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
-        <view class="voice-play ui-sprite sprite-play-glass"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
-        <view class="voice-more ui-sprite sprite-more"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+        <image class="voice-wave" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+        <text wx:if="{{item.durationText}}" class="voice-duration">{{item.durationText}}</text>
+        <image class="voice-play" src="/assets/ui/icon-play-glass.png" mode="aspectFit"></image>
+        <image class="voice-more" src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image>
       </view>
     </view>
 
-    <view class="privacy-note"><view class="privacy-lock"></view><text>声音仅本人可见；处理任务请到“我的声音”查看</text></view>
   </view>
 
   <view class="tabbar-safe-space"></view>
