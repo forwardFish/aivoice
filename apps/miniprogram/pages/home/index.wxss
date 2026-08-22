@@ -1,41 +1,76 @@
-.home-screen { min-height:100vh; padding:0 34rpx calc(38rpx + env(safe-area-inset-bottom)); }
-.hero { height:318rpx; padding:44rpx 8rpx 0; position:relative; }
-.hero-copy { position:relative; z-index:3; padding-top:24rpx; }
-.brand-title { display:block; color:#11172d; font-family:Georgia,"Songti SC","STSong",serif; font-size:60rpx; line-height:1.1; font-weight:720; letter-spacing:1rpx; }
-.brand-subtitle { display:block; margin-top:20rpx; color:#747b93; font-size:27rpx; letter-spacing:1rpx; }
-.hero-memory { width:350rpx; height:300rpx; position:absolute; z-index:2; top:0; right:-36rpx; opacity:.76; filter:saturate(.84); }
-.hero::after { content:''; width:300rpx; height:180rpx; position:absolute; top:78rpx; right:-4rpx; z-index:1; border-radius:50%; background:radial-gradient(circle,rgba(166,147,255,.26),rgba(166,147,255,0)); }
-.hero-spark { position:absolute; z-index:3; width:9rpx; height:9rpx; border-radius:50%; background:#fff; box-shadow:0 0 18rpx rgba(255,225,160,.96); }
-.hero-spark-a{right:292rpx;top:56rpx}.hero-spark-b{right:22rpx;top:224rpx;width:6rpx;height:6rpx}
-.create-card { min-height:206rpx; padding:30rpx 28rpx 30rpx 24rpx; border-radius:42rpx; display:flex; align-items:center; gap:18rpx; position:relative; overflow:hidden; }
-.create-card::before { content:''; width:250rpx; height:250rpx; position:absolute; right:-60rpx; top:-100rpx; border-radius:50%; background:radial-gradient(circle,rgba(188,173,255,.22),rgba(188,173,255,0)); }
-.create-icon { flex:0 0 auto; width:116rpx; height:116rpx; position:relative; z-index:1; }
-.create-copy { flex:1; min-width:0; position:relative; z-index:1; }
-.create-title { display:block; color:#141a32; font-size:36rpx; font-weight:740; }
-.create-subtitle { display:block; margin-top:16rpx; color:#737b94; font-size:25rpx; }
-.create-arrow { flex:0 0 auto; width:88rpx; height:88rpx; position:relative; z-index:1; }
-.home-state { margin-top:40rpx; border-radius:34rpx; overflow:hidden; }
-.empty-section,.recent-section { margin-top:52rpx; }
-.section-row { min-height:56rpx; margin:0 6rpx 22rpx; display:flex; align-items:center; justify-content:space-between; }
-.section-title { font-family:Georgia,"Songti SC","STSong",serif; font-size:40rpx; font-weight:720; }
-.section-link { padding:12rpx 0 12rpx 20rpx; color:#777e98; font-size:24rpx; }
-.empty-card { padding:42rpx 42rpx 40rpx; border-radius:36rpx; display:flex; flex-direction:column; align-items:center; text-align:center; }
-.empty-wave-image { width:190rpx; height:82rpx; opacity:.63; }
-.empty-title { margin-top:16rpx; color:#171d34; font-size:31rpx; font-weight:700; }
-.empty-copy { max-width:520rpx; margin-top:14rpx; color:#7d849c; font-size:24rpx; line-height:1.7; }
-.empty-action { min-width:280rpx; height:78rpx; margin-top:30rpx; padding:0 30rpx; border-radius:24rpx; color:#fff; background:linear-gradient(135deg,#6253f5,#8b69f5); box-shadow:0 16rpx 32rpx rgba(101,82,245,.20); font-size:25rpx; font-weight:660; }
-.voice-list { display:flex; flex-direction:column; gap:18rpx; }
-.voice-card { min-height:126rpx; padding:18rpx 14rpx 18rpx 18rpx; border-radius:32rpx; display:flex; align-items:center; gap:16rpx; overflow:hidden; }
-.voice-avatar { flex:0 0 auto; width:88rpx; height:88rpx; border-radius:50%; border:3rpx solid rgba(255,255,255,.92); box-shadow:0 9rpx 24rpx rgba(58,62,94,.13); background:#ecebff; }
-.voice-avatar.fallback { display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(145deg,#8e7af5,#5979d5); font-size:32rpx; font-weight:700; }
-.voice-info { flex:1; min-width:112rpx; }
-.voice-name { display:block; overflow:hidden; color:#141a31; font-size:29rpx; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
-.voice-meta { display:block; max-width:210rpx; margin-top:9rpx; overflow:hidden; color:#838aa1; font-size:21rpx; text-overflow:ellipsis; white-space:nowrap; }
-.voice-wave { flex:0 0 auto; width:116rpx; height:56rpx; opacity:.48; }
-.voice-points { flex:0 0 auto; max-width:88rpx; color:#77809a; font-size:19rpx; line-height:1.3; text-align:center; }
-.voice-play { flex:0 0 auto; width:70rpx; height:70rpx; }
-.voice-more { flex:0 0 auto; width:16rpx; height:44rpx; margin-left:-4rpx; opacity:.56; }
-.privacy-note { margin:28rpx 8rpx 0; display:flex; align-items:center; justify-content:center; gap:13rpx; color:#8a90a5; font-size:21rpx; line-height:1.5; text-align:center; }
-.privacy-lock { width:21rpx; height:17rpx; position:relative; border:3rpx solid #7f72eb; border-radius:4rpx; }
-.privacy-lock::before { content:''; width:10rpx; height:10rpx; position:absolute; left:3rpx; top:-12rpx; border:3rpx solid #7f72eb; border-bottom:0; border-radius:10rpx 10rpx 0 0; }
-@media (max-width:350px){.hero-memory{width:310rpx;right:-54rpx}.voice-wave{width:88rpx}.voice-points{display:none}}
+.home-screen { min-height: 100vh; padding: 0 32rpx calc(132rpx + env(safe-area-inset-bottom)); }
+.hero { height: 270rpx; padding: 27rpx 7rpx 0; position: relative; }
+.hero-copy { position: relative; z-index: 4; padding-top: 24rpx; }
+.brand-title { display: block; color: #11172d; font-family: Georgia, "Songti SC", "STSong", serif; font-size: 57rpx; line-height: 1.08; font-weight: 720; letter-spacing: .8rpx; }
+.brand-subtitle { display: block; margin-top: 17rpx; color: #747b93; font-size: 24rpx; letter-spacing: .7rpx; }
+.hero-memory { width: 306rpx; height: 263rpx; position: absolute; z-index: 3; top: -4rpx; right: -31rpx; opacity: .80; filter: saturate(.87); }
+.hero-glow { width: 286rpx; height: 178rpx; position: absolute; z-index: 1; top: 59rpx; right: -4rpx; border-radius: 50%; background: radial-gradient(circle, rgba(166,147,255,.26), rgba(166,147,255,0)); }
+.hero-spark { position: absolute; z-index: 4; width: 8rpx; height: 8rpx; border-radius: 50%; background: #fff; box-shadow: 0 0 17rpx rgba(255,225,160,.95); }
+.hero-spark-a { right: 265rpx; top: 44rpx; }
+.hero-spark-b { right: 16rpx; top: 202rpx; width: 6rpx; height: 6rpx; }
+
+.create-card { min-height: 171rpx; padding: 24rpx 25rpx 24rpx 21rpx; border-radius: 38rpx; display: flex; align-items: center; gap: 16rpx; position: relative; overflow: hidden; }
+.create-card::before { content: ''; width: 220rpx; height: 220rpx; position: absolute; right: -54rpx; top: -87rpx; border-radius: 50%; background: radial-gradient(circle, rgba(188,173,255,.21), rgba(188,173,255,0)); }
+.create-icon { flex: 0 0 auto; width: 98rpx; height: 98rpx; position: relative; z-index: 2; }
+.create-copy { flex: 1; min-width: 0; position: relative; z-index: 2; }
+.create-title { display: block; color: #141a32; font-size: 33rpx; font-weight: 740; }
+.create-subtitle { display: block; margin-top: 12rpx; color: #737b94; font-size: 22rpx; }
+.create-arrow { flex: 0 0 auto; width: 76rpx; height: 76rpx; position: relative; z-index: 2; }
+
+.home-state { margin-top: 29rpx; border-radius: 31rpx; overflow: hidden; }
+.empty-section,
+.recent-section { margin-top: 33rpx; }
+.section-row { min-height: 49rpx; margin: 0 5rpx 15rpx; display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-family: Georgia, "Songti SC", "STSong", serif; font-size: 36rpx; font-weight: 720; }
+.section-link { padding: 10rpx 0 10rpx 18rpx; color: #777e98; font-size: 21rpx; }
+
+.empty-card { padding: 29rpx 31rpx 28rpx; border-radius: 32rpx; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.empty-wave-image { width: 157rpx; height: 69rpx; opacity: .58; }
+.empty-title { margin-top: 10rpx; color: #171d34; font-size: 28rpx; font-weight: 700; }
+.empty-copy { max-width: 520rpx; margin-top: 10rpx; color: #7d849c; font-size: 20rpx; line-height: 1.6; }
+.empty-steps { width: 100%; margin-top: 20rpx; display: flex; align-items: center; justify-content: center; }
+.empty-steps > view:not(.step-line) { display: flex; flex-direction: column; align-items: center; gap: 6rpx; color: #72798f; font-size: 16rpx; }
+.empty-steps > view:not(.step-line) text:first-child { width: 35rpx; height: 35rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg,#6552f5,#9870f4); font-size: 16rpx; font-weight: 700; }
+.step-line { width: 58rpx; height: 2rpx; margin: -19rpx 11rpx 0; background: linear-gradient(90deg,#d5d0f5,#ebe9f8); }
+.empty-action { min-width: 260rpx; height: 69rpx; margin-top: 21rpx; padding: 0 27rpx; border-radius: 22rpx; color: #fff; background: linear-gradient(135deg,#6253f5,#8b69f5); box-shadow: 0 14rpx 29rpx rgba(101,82,245,.19); font-size: 22rpx; font-weight: 660; }
+
+.voice-list { display: flex; flex-direction: column; gap: 13rpx; }
+.voice-card { min-height: 112rpx; padding: 14rpx 12rpx 14rpx 15rpx; border-radius: 29rpx; display: flex; align-items: center; gap: 13rpx; overflow: hidden; }
+.voice-avatar { flex: 0 0 auto; width: 78rpx; height: 78rpx; border-radius: 50%; border: 3rpx solid rgba(255,255,255,.94); box-shadow: 0 8rpx 20rpx rgba(58,62,94,.12); background: #ecebff; }
+.voice-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg,#efedff,#dedaf8); }
+.fallback-wave { display: flex; align-items: center; gap: 3rpx; }
+.fallback-wave text { width: 4rpx; border-radius: 999rpx; background: #6b5ae5; }
+.fallback-wave text:nth-child(1),
+.fallback-wave text:nth-child(5) { height: 15rpx; }
+.fallback-wave text:nth-child(2),
+.fallback-wave text:nth-child(4) { height: 27rpx; }
+.fallback-wave text:nth-child(3) { height: 39rpx; }
+
+.voice-info { flex: 1; min-width: 109rpx; }
+.voice-name { display: block; overflow: hidden; color: #141a31; font-size: 26rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.voice-meta { display: block; max-width: 205rpx; margin-top: 5rpx; overflow: hidden; color: #838aa1; font-size: 17rpx; text-overflow: ellipsis; white-space: nowrap; }
+.voice-points { display: block; margin-top: 4rpx; color: #6959e4; font-size: 15rpx; }
+.voice-wave { flex: 0 0 auto; width: 101rpx; height: 49rpx; opacity: .45; }
+.voice-play { flex: 0 0 auto; width: 62rpx; height: 62rpx; }
+.voice-more { flex: 0 0 auto; width: 14rpx; height: 39rpx; margin-left: -4rpx; opacity: .53; }
+
+.privacy-note { margin: 19rpx 7rpx 0; display: flex; align-items: center; justify-content: center; gap: 10rpx; color: #8a90a5; font-size: 18rpx; line-height: 1.45; text-align: center; }
+.privacy-lock { width: 19rpx; height: 16rpx; position: relative; border: 3rpx solid #7f72eb; border-radius: 4rpx; }
+.privacy-lock::before { content: ''; width: 8rpx; height: 9rpx; position: absolute; left: 3rpx; top: -12rpx; border: 3rpx solid #7f72eb; border-bottom: 0; border-radius: 8rpx 8rpx 0 0; }
+.tabbar-safe-space { height: 10rpx; }
+
+@media (max-height: 740px) {
+  .home-screen { padding-bottom: calc(112rpx + env(safe-area-inset-bottom)); }
+  .hero { height: 230rpx; padding-top: 17rpx; }
+  .brand-title { font-size: 52rpx; }
+  .brand-subtitle { margin-top: 12rpx; font-size: 21rpx; }
+  .hero-memory { width: 270rpx; height: 232rpx; }
+  .create-card { min-height: 145rpx; }
+  .create-icon { width: 84rpx; height: 84rpx; }
+  .create-title { font-size: 30rpx; }
+  .recent-section,
+  .empty-section { margin-top: 24rpx; }
+  .voice-card { min-height: 98rpx; }
+  .voice-avatar { width: 68rpx; height: 68rpx; }
+  .voice-wave { width: 83rpx; }
+}

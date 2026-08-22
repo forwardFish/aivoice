@@ -23,7 +23,18 @@ Page({
     selected: null as any,
     uploadProgress: 0,
     errorMessage: '',
-    existingVoiceId: ''
+    existingVoiceId: '',
+    mediaTiles: [
+      { id: 'memory-1', scene: 'sunset' },
+      { id: 'memory-2', scene: 'window' },
+      { id: 'memory-3', scene: 'sea' },
+      { id: 'memory-4', scene: 'garden' },
+      { id: 'memory-5', scene: 'lamp' },
+      { id: 'memory-6', scene: 'mountain' },
+      { id: 'memory-7', scene: 'cloud' },
+      { id: 'memory-8', scene: 'table' },
+      { id: 'memory-9', scene: 'night' }
+    ]
   },
   onLoad(options: Record<string, string>) {
     if (!ensureAuthenticated()) return
@@ -35,6 +46,7 @@ Page({
         state: 'selected',
         selected: {
           tempFilePath: session.tempFilePath,
+          thumbTempFilePath: '',
           fileName: session.fileName,
           mimeType: session.mimeType,
           sizeBytes: session.sizeBytes,
@@ -46,6 +58,9 @@ Page({
       return
     }
     this.setData({ existingVoiceId })
+  },
+  openAlbumTab() {
+    this.chooseVideo()
   },
   async chooseVideo() {
     if (this.data.state === 'uploading') return
@@ -78,6 +93,7 @@ Page({
         state: 'selected',
         selected: {
           tempFilePath: file.tempFilePath,
+          thumbTempFilePath: String(file.thumbTempFilePath || ''),
           fileName,
           mimeType,
           sizeBytes,

@@ -10,15 +10,17 @@
   </view>
 
   <view wx:else class="preview-content fade-in">
-    <view class="success-label"><view class="success-check">✓</view><text>创建成功</text></view>
-    <text class="preview-title">听听“{{voiceName}}”的新声音</text>
-    <text class="preview-subtitle">请完整播放一次试听，确认效果后再开始使用。</text>
+    <view class="success-label"><view class="success-check">✓</view><text>试听已生成</text></view>
+    <text class="preview-title">听听“{{voiceName}}”</text>
+    <text class="preview-subtitle">完整播放一次后，即可开始使用这个声音</text>
 
     <view class="voice-visual">
-      <view class="visual-ring ring-a"></view><view class="visual-ring ring-b"></view>
-      <view class="wave-side wave-left"><text></text><text></text><text></text><text></text></view>
-      <view class="avatar-core">{{voiceInitial}}</view>
-      <view class="wave-side wave-right"><text></text><text></text><text></text><text></text></view>
+      <view class="visual-ring ring-a"></view>
+      <view class="visual-ring ring-b"></view>
+      <image wx:if="{{avatarUrl}}" class="avatar-core" src="{{avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="avatar-core neutral-avatar">
+        <view class="neutral-wave"><text></text><text></text><text></text><text></text><text></text></view>
+      </view>
       <view class="visual-spark spark-a"></view><view class="visual-spark spark-b"></view>
     </view>
 
@@ -32,7 +34,7 @@
       <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" tag="AI生成" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
       <view class="play-status {{playCompleted ? 'is-complete' : ''}}">
         <view class="status-icon"><text wx:if="{{playCompleted}}">✓</text><view wx:else class="status-pulse"></view></view>
-        <text>{{playCompleted ? '试听已完整播放，可以继续使用' : '播放结束后，“使用这个声音”按钮会解锁'}}</text>
+        <text>{{playCompleted ? '试听已完整播放，可以继续使用' : '播放结束后解锁“使用这个声音”'}}</text>
       </view>
     </view>
 
@@ -45,10 +47,7 @@
       {{retrying ? '正在重新创建…' : freeRetryRemaining > 0 ? '换一段重新创建（剩余 ' + freeRetryRemaining + ' 次）' : '换一段重新创建'}}
     </button>
 
-    <view class="points-note soft-card">
-      <view class="points-gift">✦</view>
-      <view><text>新账号赠送 5 个账号积分</text><text>后续 ¥9.9 购买 50 个账号积分；对话与“说一句”共享，不自动续费。</text></view>
-    </view>
+    <text class="points-note">新账号赠送 5 个账号积分；后续 ¥9.9 购买 50 个账号积分。对话与“说一句”共享使用，不自动续费。</text>
     <text class="safety-note">AI 生成内容不代表声音本人真实表达，请勿用于冒充、诈骗或身份核验。</text>
   </view>
 </view>

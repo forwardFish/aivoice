@@ -15,35 +15,42 @@
         <text class="mode-title">想用 TA 的声音做什么？</text>
         <text class="mode-subtitle">选择一种模式开始体验</text>
       </view>
+
       <view class="mode-cards">
         <view class="mode-card luminous-card" data-mode="chat" bindtap="selectMode">
           <view class="mode-copy">
             <text class="mode-card-title">对话模式</text>
-            <text class="mode-card-line">和 TA 自由聊天</text>
-            <text class="mode-card-line">获取 TA 的回应</text>
+            <text class="mode-card-summary">聊几句，听见 AI 生成的声音回应</text>
           </view>
-          <view class="mode-card-icon chat-icon css-chat-icon"><view class="chat-dots"><text></text><text></text><text></text></view></view>
+          <view class="mode-card-icon css-chat-icon">
+            <view class="chat-dots"><text></text><text></text><text></text></view>
+          </view>
+          <view class="mode-arrow">›</view>
         </view>
+
         <view class="mode-card mode-exact luminous-card" data-mode="exact" bindtap="selectMode">
           <view class="mode-copy">
             <text class="mode-card-title exact-title">说一句模式</text>
-            <text class="mode-card-line">让 TA 说你想说的话</text>
-            <text class="mode-card-line">生成一段 TA 的声音</text>
+            <text class="mode-card-summary">输入准确文字，让 TA 原样说出来</text>
           </view>
-          <view class="mode-card-icon microphone-icon css-mic-icon"><view class="mic-capsule"></view><view class="mic-arc"></view><view class="mic-stem"></view></view>
+          <view class="mode-card-icon css-mic-icon">
+            <view class="mic-capsule"></view><view class="mic-arc"></view><view class="mic-stem"></view>
+          </view>
+          <view class="mode-arrow exact-arrow">›</view>
         </view>
       </view>
-      <view class="mode-footer-note"><view class="note-spark"></view><text>对话和“说一句”共用账户积分</text></view>
+
+      <view class="mode-footer-note"><view class="note-spark"></view><text>两种模式共享账号积分，仅成功生成后扣减</text></view>
     </view>
 
-    <view wx:else class="workbench-body fade-in">
+    <view wx:else class="workbench-body fade-in {{mode === 'exact' ? 'is-exact-mode' : ''}}">
       <view class="voice-banner luminous-card">
-        <view class="voice-avatar fallback">{{voiceInitial}}</view>
+        <view class="voice-avatar fallback"><view class="avatar-wave"><text></text><text></text><text></text></view></view>
         <view class="voice-banner-copy">
           <text class="voice-name">{{voiceName}}</text>
           <view class="voice-status-row"><view class="status-dot"></view><text>私有声音已就绪</text></view>
         </view>
-        <view class="point-pill"><text class="point-number">{{points.availablePoints}}</text><text class="point-unit">账户积分</text></view>
+        <view class="point-pill"><text class="point-number">{{points.availablePoints}}</text><text class="point-unit">账号积分</text></view>
       </view>
 
       <view class="mode-tabs glass-card">
@@ -94,33 +101,51 @@
       </block>
 
       <block wx:else>
-        <scroll-view class="exact-scroll" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
-          <view class="exact-hero luminous-card">
-            <view class="exact-hero-icon css-mic-icon small-mic-icon"><view class="mic-capsule"></view><view class="mic-arc"></view><view class="mic-stem"></view></view>
-            <view class="exact-hero-copy"><text class="exact-hero-title">让 TA 说一句你想听的话</text><text class="exact-hero-description">输入准确文字，生成一段带有 AI 标识的声音。</text></view>
-          </view>
+        <view class="exact-workspace">
+          <view class="exact-primary-card luminous-card">
+            <view class="exact-card-heading">
+              <view class="exact-title-wrap">
+                <text class="exact-title">想让 TA 说什么？</text>
+                <text class="exact-subtitle">输入准确文字，生成带 AI 标识的声音</text>
+              </view>
+              <text class="exact-count">{{exactCount}}/50</text>
+            </view>
 
-          <view class="exact-input-card glass-card">
-            <view class="input-heading"><text>想让 TA 说什么？</text><text>{{exactCount}}/50</text></view>
             <textarea class="exact-textarea" value="{{exactText}}" placeholder="例如：天气凉了，记得多穿一件衣服。" maxlength="50" bindinput="onExactInput" disabled="{{sending}}"></textarea>
-            <view class="exact-helper"><view class="helper-dot"></view><text>支持 1–50 个字符；成功生成后才扣 1 个账户积分</text></view>
-          </view>
 
-          <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+            <view class="exact-helper">
+              <view class="helper-dot"></view>
+              <text>1–50 个字符；成功生成后才扣 1 个账号积分</text>
+            </view>
+
+            <text wx:if="{{errorMessage}}" class="inline-error exact-inline-error">{{errorMessage}}</text>
+
+            <button class="primary-button exact-generate {{sending || !exactText ? 'button-disabled' : ''}}" disabled="{{sending || !exactText}}" bindtap="generateExact">
+              {{sending ? '正在生成声音…' : '生成语音'}}
+            </button>
+          </view>
 
           <view class="result-heading"><text class="section-title">生成记录</text><text>最近 10 轮</text></view>
-          <view wx:if="{{sending && pendingMode === 'exact'}}" class="pending-result soft-card"><view class="typing"><text></text><text></text><text></text></view><text>{{generationStatusText}}</text></view>
-          <view wx:if="{{exactResults.length === 0 && !sending}}" class="exact-empty soft-card"><view class="inline-wave ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view><text class="empty-result-title">还没有生成记录</text><text>输入一句话，成功生成后会显示在这里。</text></view>
-          <view wx:else class="result-list">
-            <view wx:for="{{exactResults}}" wx:key="id" class="result-card soft-card">
-              <view class="result-top"><text class="result-text">{{item.text}}</text><text class="ai-tag">AI 生成</text></view>
-              <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}"></audio-player>
-              <text wx:else class="message-error">{{item.status === 'FAILED' ? '生成失败，本次未扣积分' : '正在生成…'}}</text>
+
+          <scroll-view class="exact-history-scroll" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+            <view wx:if="{{sending && pendingMode === 'exact'}}" class="pending-result soft-card"><view class="typing"><text></text><text></text><text></text></view><text>{{generationStatusText}}</text></view>
+
+            <view wx:if="{{exactResults.length === 0 && !sending}}" class="exact-empty soft-card">
+              <view class="inline-wave ui-sprite sprite-waveform"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view>
+              <text class="empty-result-title">还没有生成记录</text>
+              <text>输入一句话，成功生成后会显示在这里。</text>
             </view>
-          </view>
-          <view class="exact-bottom-space"></view>
-        </scroll-view>
-        <view class="exact-action safe-bottom"><button class="primary-button" disabled="{{sending || !exactText}}" bindtap="generateExact">{{sending ? '正在生成声音…' : '生成这句话'}}</button></view>
+
+            <view wx:else class="result-list">
+              <view wx:for="{{exactResults}}" wx:key="id" class="result-card soft-card">
+                <view class="result-top"><text class="result-text">{{item.text}}</text><text class="ai-tag">AI 生成</text></view>
+                <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI生成" compact="{{true}}"></audio-player>
+                <text wx:else class="message-error">{{item.status === 'FAILED' ? '生成失败，本次未扣积分' : '正在生成…'}}</text>
+              </view>
+            </view>
+            <view class="exact-history-spacer"></view>
+          </scroll-view>
+        </view>
       </block>
     </view>
   </block>

@@ -11,59 +11,75 @@
     <view class="progress-track"><view class="progress-value" style="width: {{uploadProgress}}%;"></view></view>
   </view>
 
-  <view wx:else class="page-body fade-in">
-    <view class="page-heading">
-      <text class="page-title">选择一段 TA 的旧视频</text>
-      <text class="page-subtitle">从相册中挑一段声音清楚的视频</text>
-    </view>
-
-    <view wx:if="{{selected}}" class="selected-card luminous-card">
-      <video class="video-preview" src="{{selected.tempFilePath}}" controls="{{true}}" object-fit="cover"></video>
-      <view class="selected-meta">
-        <view class="selected-copy">
-          <text class="selected-name">已选择视频</text>
-          <text class="selected-detail">{{selected.durationText}} · {{selected.sizeText}}</text>
-        </view>
-        <button class="replace-link" bindtap="chooseVideo">重新选择</button>
+  <block wx:else>
+    <view class="page-body fade-in">
+      <view class="page-heading">
+        <text class="page-title">选择一段 TA 的旧视频</text>
+        <text class="page-subtitle">挑一段声音清楚、背景安静的 12–60 秒视频</text>
       </view>
+
+      <view class="media-tabs">
+        <button class="media-tab" bindtap="openAlbumTab">相册</button>
+        <view class="media-tab is-active">视频</view>
+      </view>
+
+      <view class="media-browser glass-card">
+        <view class="media-grid">
+          <view wx:for="{{mediaTiles}}" wx:key="id" class="media-tile" bindtap="chooseVideo">
+            <block wx:if="{{selected && index === 0}}">
+              <image wx:if="{{selected.thumbTempFilePath}}" class="selected-media" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
+              <video wx:else class="selected-media" src="{{selected.tempFilePath}}" controls="{{false}}" muted="{{true}}" show-center-play-btn="{{false}}" enable-progress-gesture="{{false}}" object-fit="cover"></video>
+              <view class="media-shade"></view>
+              <view class="duration-chip">{{selected.durationText}}</view>
+              <view class="selection-circle is-selected">✓</view>
+            </block>
+            <block wx:else>
+              <view class="neutral-scene scene-{{item.scene}}">
+                <view class="scene-orb"></view>
+                <view class="scene-line line-a"></view>
+                <view class="scene-line line-b"></view>
+              </view>
+              <view class="play-chip">▶</view>
+              <view class="selection-circle"></view>
+            </block>
+          </view>
+        </view>
+      </view>
+
+      <view class="selection-hint">
+        <view class="hint-dot"></view>
+        <text>点击任意缩略图区域，从系统相册选择真实视频</text>
+      </view>
+
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
-      <button class="primary-button next-button" bindtap="uploadAndContinue">使用这段视频</button>
+
+      <view class="quality-line soft-card">
+        <view><text class="quality-check">✓</text><text>单人说话</text></view>
+        <view><text class="quality-check">✓</text><text>声音清楚</text></view>
+        <view><text class="quality-check">✓</text><text>没有音乐</text></view>
+      </view>
+
+      <view class="privacy-note"><view class="privacy-lock"></view><text>不会扫描相册，也不会读取未选择的其他视频</text></view>
     </view>
 
-    <block wx:else>
-      <view class="gallery-card glass-card" bindtap="chooseVideo">
-        <view class="gallery-grid">
-          <view class="thumb thumb-1"><view class="thumb-person child"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-2"><view class="thumb-person adult"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-3"><view class="thumb-person elder"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-4"><view class="thumb-person child"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-5 feature"><view class="gallery-memory ui-sprite sprite-memory"><image class="ui-sprite-sheet" src="/assets/ui/icon-sheet.png" mode="widthFix"></image></view></view>
-          <view class="thumb thumb-6"><view class="thumb-person adult"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-7"><view class="thumb-person elder"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-8"><view class="thumb-person child"></view><view class="thumb-play">▶</view></view>
-          <view class="thumb thumb-9"><view class="thumb-person adult"></view><view class="thumb-play">▶</view></view>
-        </view>
-        <view class="gallery-overlay">
-          <view class="album-icon"><view class="album-mountain"></view><view class="album-sun"></view></view>
-          <text class="album-title">从手机相册选择</text>
-          <text class="album-copy">12–60 秒 · 不超过 100MB</text>
+    <view class="selection-footer safe-bottom">
+      <view wx:if="{{selected}}" class="selected-summary">
+        <image wx:if="{{selected.thumbTempFilePath}}" class="summary-thumb" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
+        <view wx:else class="summary-thumb neutral-thumb"><view class="mini-play"></view></view>
+        <view class="summary-copy">
+          <text class="summary-title">已选择 1 段视频</text>
+          <text class="summary-meta">{{selected.durationText}} · {{selected.sizeText}}</text>
         </view>
       </view>
-
-      <view wx:if="{{errorMessage}}" class="inline-error error-card">{{errorMessage}}</view>
-      <button class="primary-button select-button" bindtap="chooseVideo">选择一段视频</button>
-
-      <view class="quality-card soft-card">
-        <view class="quality-title-row"><view class="quality-spark">✦</view><text>更容易成功的视频</text></view>
-        <view class="quality-grid">
-          <view><view class="quality-check">✓</view><text>TA 单独说话</text></view>
-          <view><view class="quality-check">✓</view><text>声音清楚</text></view>
-          <view><view class="quality-check">✓</view><text>背景安静</text></view>
-          <view><view class="quality-check">✓</view><text>没有音乐</text></view>
+      <view wx:else class="selected-summary">
+        <view class="summary-thumb neutral-thumb"><view class="mini-plus">＋</view></view>
+        <view class="summary-copy">
+          <text class="summary-title">尚未选择视频</text>
+          <text class="summary-meta">支持 12–60 秒，最大 100MB</text>
         </view>
       </view>
-    </block>
-
-    <view class="privacy-note"><view class="privacy-lock"></view><text>不会扫描相册，也不会读取未选择的其他视频</text></view>
-  </view>
+      <button wx:if="{{selected}}" class="footer-next" bindtap="uploadAndContinue">下一步</button>
+      <button wx:else class="footer-next is-choose" bindtap="chooseVideo">选择视频</button>
+    </view>
+  </block>
 </view>

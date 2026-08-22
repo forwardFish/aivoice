@@ -22,39 +22,32 @@
   </view>
 
   <view wx:else class="processing-content fade-in">
-    <view class="heading-block">
-      <text class="page-title">正在创建“{{voiceName}}”</text>
-      <text class="page-subtitle">{{statusText}}</text>
-    </view>
-
     <view class="process-visual">
       <view class="orbit orbit-outer"></view>
       <view class="orbit orbit-middle"></view>
-      <view class="spark spark-a"></view><view class="spark spark-b"></view><view class="spark spark-c"></view>
+      <view class="spark spark-a"></view><view class="spark spark-b"></view>
       <view class="sound-orb">
         <view class="sound-wave"><text></text><text></text><text></text><text></text><text></text><text></text><text></text></view>
       </view>
       <view class="progress-badge"><text class="progress-number">{{progress}}</text><text class="progress-unit">%</text></view>
     </view>
 
-    <view class="status-pill"><view class="status-spinner"></view><text>{{statusText}}</text></view>
+    <text class="processing-title">正在创建“{{voiceName}}”</text>
+    <text class="processing-subtitle">{{statusText}}</text>
 
-    <view class="stages-card luminous-card">
-      <view class="stages-heading"><text>创建进度</text><text>以服务端状态为准</text></view>
-      <view class="stages-list">
-        <view wx:for="{{stages}}" wx:key="label" class="stage-row {{item.done ? 'is-done' : item.active ? 'is-active' : ''}}">
-          <view class="stage-rail"><view class="stage-icon"><text wx:if="{{item.done}}">✓</text><view wx:elif="{{item.active}}" class="stage-dot"></view></view><view wx:if="{{index < stages.length - 1}}" class="stage-line"></view></view>
-          <view class="stage-copy"><text class="stage-label">{{item.label}}</text><text class="stage-state">{{item.done ? '已完成' : item.active ? '处理中' : '等待中'}}</text></view>
+    <view class="simple-stages">
+      <view wx:for="{{stages}}" wx:key="label" class="stage-row {{item.done ? 'is-done' : item.active ? 'is-active' : ''}}">
+        <view class="stage-icon">
+          <text wx:if="{{item.done}}">✓</text>
+          <view wx:elif="{{item.active}}" class="stage-dot"></view>
         </view>
+        <text class="stage-label">{{item.label}}</text>
+        <text class="stage-state">{{item.done ? '已完成' : item.active ? '处理中' : '等待中'}}</text>
       </view>
     </view>
 
-    <view class="time-card soft-card">
-      <view class="clock-icon"><view class="clock-hand"></view></view>
-      <view><text>通常需要 1–3 分钟</text><text>离开页面不会中断任务，可以稍后在“我的声音”继续查看。</text></view>
-    </view>
-
+    <text class="time-note">通常需要 1–3 分钟。离开页面不会中断任务，可在“我的声音”继续查看。</text>
     <text wx:if="{{errorMessage}}" class="recover-note">{{errorMessage}}</text>
-    <button class="secondary-button leave-button" bindtap="goVoices">离开并在我的声音中查看</button>
+    <button class="leave-button" bindtap="goVoices">离开并稍后查看</button>
   </view>
 </view>
