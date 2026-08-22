@@ -2,13 +2,7 @@
   <app-nav title="填写信息与授权" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view class="profile-content fade-in">
-    <view class="profile-heading">
-      <view class="heading-icon"><view class="heading-wave"><text></text><text></text><text></text></view></view>
-      <view class="heading-copy">
-        <text class="page-title">给这个声音起个名字</text>
-        <text class="page-subtitle">名称只在你的账号内显示，稍后可以修改</text>
-      </view>
-    </view>
+    <text class="profile-intro">信息仅用于生成声音，严格保密</text>
 
     <view class="name-card soft-card">
       <view class="field-heading"><text>称呼 TA</text><text>{{name.length || 0}}/20</text></view>

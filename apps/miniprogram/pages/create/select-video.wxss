@@ -47,7 +47,7 @@
 .selected-summary { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12rpx; }
 .summary-thumb { flex: 0 0 auto; width: 72rpx; height: 72rpx; border-radius: 17rpx; overflow: hidden; background: #e9e8f4; object-fit: cover; }
 .neutral-thumb { display: flex; align-items: center; justify-content: center; color: #6c5be8; background: linear-gradient(145deg, #efedff, #e2def9); }
-.mini-plus { font-size: 29rpx; font-weight: 300; }
+.mini-plus { width:46rpx; height:46rpx; }
 .summary-copy { flex: 1; min-width: 0; }
 .summary-title { display: block; overflow: hidden; color: #272d43; font-size: 21rpx; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
 .summary-meta { display: block; margin-top: 6rpx; overflow: hidden; color: #8c92a5; font-size: 17rpx; text-overflow: ellipsis; white-space: nowrap; }

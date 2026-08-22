@@ -1,5 +1,5 @@
 <view class="progress-screen screen-shell">
-  <app-nav title="创建声音" back="{{true}}" transparent="{{true}}"></app-nav>
+  <app-nav title="创建中" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="state-wrap">
     <page-state mode="loading" title="正在恢复创建任务" description="正在从服务端同步真实处理进度…"></page-state>
@@ -27,7 +27,7 @@
       <view class="orbit orbit-middle"></view>
       <view class="spark spark-a"></view><view class="spark spark-b"></view>
       <view class="sound-orb">
-        <view class="sound-wave"><text></text><text></text><text></text><text></text><text></text><text></text><text></text></view>
+        <image class="sound-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
       </view>
       <view class="progress-badge"><text class="progress-number">{{progress}}</text><text class="progress-unit">%</text></view>
     </view>

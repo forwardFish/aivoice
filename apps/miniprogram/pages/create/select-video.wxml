@@ -75,7 +75,7 @@
         <button class="summary-clear" catchtap="resetSelection" aria-label="清除选择">×</button>
       </view>
       <view wx:else class="selected-summary">
-        <view class="summary-thumb neutral-thumb"><view class="mini-plus">＋</view></view>
+        <view class="summary-thumb neutral-thumb"><image class="mini-plus" src="/assets/ui/icon-add.png" mode="aspectFit"></image></view>
         <view class="summary-copy">
           <text class="summary-title">尚未选择视频</text>
           <text class="summary-meta">支持 12–60 秒，最大 100MB</text>

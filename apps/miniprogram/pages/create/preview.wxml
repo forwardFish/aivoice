@@ -1,5 +1,5 @@
 <view class="preview-screen screen-shell">
-  <app-nav title="免费试听" back="{{true}}" transparent="{{true}}"></app-nav>
+  <app-nav title="试听完成" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="state-wrap">
     <page-state mode="loading" title="正在准备试听" description="马上就能听见创建结果…"></page-state>
@@ -11,16 +11,14 @@
 
   <view wx:else class="preview-content fade-in">
     <view class="success-label"><view class="success-check">✓</view><text>试听已生成</text></view>
-    <text class="preview-title">听听“{{voiceName}}”</text>
+    <text class="preview-title">TA 的声音已为你生成</text>
     <text class="preview-subtitle">完整播放一次后，即可开始使用这个声音</text>
 
     <view class="voice-visual">
       <view class="visual-ring ring-a"></view>
       <view class="visual-ring ring-b"></view>
       <image wx:if="{{avatarUrl}}" class="avatar-core" src="{{avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="avatar-core neutral-avatar">
-        <view class="neutral-wave"><text></text><text></text><text></text><text></text><text></text></view>
-      </view>
+      <view wx:else class="avatar-core neutral-avatar"><image class="neutral-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
       <view class="visual-spark spark-a"></view><view class="visual-spark spark-b"></view>
     </view>
 

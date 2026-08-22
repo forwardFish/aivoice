@@ -12,13 +12,7 @@
 .ring-b { width: 166rpx; height: 166rpx; border-color: rgba(137,116,241,.26); box-shadow: 0 0 44rpx rgba(137,116,241,.12); }
 .avatar-core { width: 132rpx; height: 132rpx; position: relative; z-index: 3; border-radius: 50%; border: 4rpx solid rgba(255,255,255,.82); box-shadow: 0 22rpx 48rpx rgba(101,82,245,.25); background: #e8e4ff; }
 .neutral-avatar { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 22%,#f9f7ff,#ded8ff 58%,#9a86ee); }
-.neutral-wave { display: flex; align-items: center; gap: 5rpx; }
-.neutral-wave text { width: 5rpx; border-radius: 999rpx; background: #fff; }
-.neutral-wave text:nth-child(1),
-.neutral-wave text:nth-child(5) { height: 22rpx; }
-.neutral-wave text:nth-child(2),
-.neutral-wave text:nth-child(4) { height: 39rpx; }
-.neutral-wave text:nth-child(3) { height: 57rpx; }
+.neutral-wave-image { width:88rpx; height:48rpx; }
 .visual-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 16rpx rgba(255,224,154,.95); }
 .spark-a { width: 8rpx; height: 8rpx; top: 30rpx; right: 47rpx; }
 .spark-b { width: 6rpx; height: 6rpx; bottom: 29rpx; left: 43rpx; }
