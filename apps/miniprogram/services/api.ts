@@ -526,7 +526,7 @@ export async function createOrder(productCode: string, voiceId?: string): Promis
     path: '/orders',
     method: 'POST',
     data: { productCode, ...(voiceId ? { voiceId } : {}) },
-    headers: { 'Idempotency-Key': uuidV4() }
+    headers: { 'Idempotency-Key': await uuidV4() }
   }))
 }
 

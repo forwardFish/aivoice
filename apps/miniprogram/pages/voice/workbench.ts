@@ -221,7 +221,7 @@ Page({
       generationStatusText: mode === 'chat' ? '正在生成 AI 回复…' : '正在生成 AI 语音…'
     })
     try {
-      const idempotencyKey = uuidV4()
+      const idempotencyKey = await uuidV4()
       const accepted = mode === 'chat'
         ? await sendChatMessage(this.data.voiceId, text, idempotencyKey)
         : await sendExactSpeech(this.data.voiceId, text, idempotencyKey)
