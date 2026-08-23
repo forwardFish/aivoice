@@ -37,10 +37,10 @@
         </view>
 
         <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings" aria-label="声音设置">
-          <image src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image>
+          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
         </button>
         <button wx:else class="settings-button" data-id="{{item.id}}" data-status="{{item.status}}" catchtap="openPrimary" aria-label="查看声音状态">
-          <image src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image>
+          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
         </button>
       </view>
 
@@ -59,7 +59,7 @@
       </view>
 
       <button wx:elif="{{item.group === 'DRAFT' || item.group === 'FAILED'}}" class="resume-action {{item.group === 'FAILED' ? 'failed-action' : ''}}" data-id="{{item.id}}" data-status="{{item.status}}" catchtap="openPrimary">
-        <view class="draft-pencil"><view></view></view><text>{{item.primaryAction}}</text>
+        <text class="draft-pencil">✎</text><text>{{item.primaryAction}}</text>
       </button>
     </view>
   </view>

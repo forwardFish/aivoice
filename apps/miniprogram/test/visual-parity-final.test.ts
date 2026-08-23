@@ -150,7 +150,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(voicesView, /class="progress-wrap"/)
   assert.match(voicesView, /class="resume-action/)
   assert.doesNotMatch(voicesView, /filter-shell|rightText="新建"/)
-  assert.match(voicesView, /\/assets\/ui\/icon-more-vertical\.png/)
+  assert.match(voicesView, /\/assets\/ui\/icon-more-glass\.png/)
   assert.match(accountView, /data-type="contact"/)
   assert.doesNotMatch(accountView, /bindtap="openPurchase"/)
   assert.doesNotMatch(accountSource, /navigateTo\(\{\s*url:\s*['"]\/pages\/purchase\/index['"]/)
