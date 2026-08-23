@@ -7,7 +7,7 @@ const DEFAULT_AVATARS = {
   man: '/assets/avatars/man-01.png',
   grandma: '/assets/avatars/grandma-01.png',
   grandpa: '/assets/avatars/grandpa-01.png'
-} as const
+}
 
 type AvatarVoice = {
   avatarUrl?: string

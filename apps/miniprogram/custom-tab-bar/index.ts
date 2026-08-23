@@ -17,7 +17,7 @@ const TAB_LIST = [
     iconPath: '/assets/ui/tab-account-outline.png',
     selectedIconPath: '/assets/ui/tab-account-outline.png'
   }
-] as const
+]
 
 Component({
   data: {
@@ -41,7 +41,7 @@ Component({
       const selected = TAB_LIST.findIndex(item => item.pagePath === current)
       this.setData({ selected: selected >= 0 ? selected : 0 })
     },
-    switchTab(event: any) {
+    switchTab(event) {
       const index = Number(event.currentTarget.dataset.index || 0)
       const item = TAB_LIST[index]
       if (!item) return

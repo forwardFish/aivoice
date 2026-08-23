@@ -4,7 +4,7 @@
  * fallback domain below with a备案且已加入微信 request/upload 合法域名的 HTTPS 地址。
  * Never place AppSecret, API keys, payment certificates or provider credentials here.
  */
-function resolveApiBaseUrl(): string {
+function resolveApiBaseUrl() {
   try {
     const extConfig = typeof wx !== 'undefined' && typeof wx.getExtConfigSync === 'function'
       ? wx.getExtConfigSync()
