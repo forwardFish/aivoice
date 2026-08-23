@@ -10,11 +10,30 @@
 }
 
 .account-content {
-  padding-top: 24rpx;
+  padding-top: 16rpx;
+}
+
+.account-hero {
+  margin-top: 10rpx;
+  padding: 28rpx 26rpx 24rpx;
+  border-radius: 34rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.account-glow {
+  width: 240rpx;
+  height: 170rpx;
+  position: absolute;
+  right: -60rpx;
+  top: -40rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(193, 183, 255, .24), rgba(193, 183, 255, 0));
 }
 
 .profile-card {
-  padding: 30rpx;
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 20rpx;
@@ -22,9 +41,11 @@
 
 .profile-avatar {
   flex: 0 0 auto;
-  width: 104rpx;
-  height: 104rpx;
+  width: 112rpx;
+  height: 112rpx;
   border-radius: 50%;
+  border: 3rpx solid rgba(255,255,255,.95);
+  box-shadow: 0 12rpx 26rpx rgba(76,72,122,.14);
   background: #efedff;
 }
 
@@ -54,14 +75,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #11172d;
-  font-size: 34rpx;
-  font-weight: 700;
+  font-size: 35rpx;
+  font-weight: 720;
 }
 
 .profile-caption {
   display: block;
-  margin-top: 10rpx;
-  color: #7d849b;
+  margin-top: 11rpx;
+  color: #6f7993;
   font-size: 22rpx;
 }
 
@@ -80,7 +101,9 @@
 .edit-button::after { border: none; }
 
 .summary-grid {
-  margin-top: 20rpx;
+  position: relative;
+  z-index: 2;
+  margin-top: 22rpx;
   display: flex;
   gap: 18rpx;
 }
@@ -88,11 +111,12 @@
 .summary-card {
   flex: 1;
   min-width: 0;
-  min-height: 150rpx;
-  padding: 26rpx;
+  min-height: 138rpx;
+  padding: 24rpx;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border-radius: 28rpx;
 }
 
 .summary-value {
@@ -111,10 +135,31 @@
   font-size: 23rpx;
 }
 
+.section-block {
+  margin-top: 30rpx;
+  padding: 0 4rpx;
+}
+
+.service-block {
+  margin-top: 26rpx;
+}
+
+.section-copy .section-title {
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: 35rpx;
+  font-weight: 720;
+}
+
+.section-copy .section-caption {
+  display: block;
+  margin-top: 10rpx;
+}
+
 .section-card,
 .menu-card {
-  margin-top: 20rpx;
+  margin-top: 16rpx;
   overflow: hidden;
+  border-radius: 30rpx;
 }
 
 .section-heading {
@@ -217,7 +262,7 @@
 .logout-button {
   width: 100%;
   height: 92rpx;
-  margin-top: 24rpx;
+  margin-top: 28rpx;
   border-radius: 26rpx;
   color: #c9515b;
   background: #fff0f1;
@@ -233,4 +278,15 @@
   text-align: center;
   color: #a0a5b5;
   font-size: 20rpx;
+}
+
+@media (max-height: 740px) {
+  .account-screen { padding-bottom: calc(172rpx + env(safe-area-inset-bottom)); }
+  .account-hero { padding: 24rpx 22rpx 20rpx; }
+  .profile-avatar { width: 96rpx; height: 96rpx; }
+  .summary-card { min-height: 124rpx; padding: 22rpx; }
+  .summary-value { font-size: 42rpx; }
+  .section-block { margin-top: 24rpx; }
+  .section-heading { min-height: 102rpx; }
+  .menu-row { min-height: 88rpx; }
 }

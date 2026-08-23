@@ -68,6 +68,8 @@ export interface VoiceSummary {
   previewText?: string
   previewAudioUrl?: string
   freeRetryRemaining?: number
+  clipStartMs?: number
+  clipEndMs?: number
   points: PointsBalanceResponse
   quota: QuotaResponse
   error?: RecoverableVoiceError

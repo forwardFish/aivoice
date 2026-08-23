@@ -40,10 +40,11 @@
     </view>
 
     <view wx:else class="workbench-body fade-in {{mode === 'exact' ? 'is-exact-mode' : ''}}">
-      <text class="workbench-balance">剩余账号积分：{{points.availablePoints}}</text>
+      <view class="workbench-summary">
+        <text class="workbench-balance">剩余账号积分：{{points.availablePoints}}</text>
+      </view>
 
       <block wx:if="{{mode === 'chat'}}">
-        <view class="ai-notice"><text class="notice-spark">✦</text><text>AI 生成内容不代表声音本人真实表达</text></view>
         <scroll-view class="message-list" scroll-y="{{true}}" scroll-into-view="{{scrollTarget}}" enhanced="{{true}}" show-scrollbar="{{false}}">
           <view wx:if="{{chatMessages.length === 0 && !sending}}" class="chat-intro glass-card">
             <image class="intro-mode-image" src="/assets/ui/chat-mode.png" mode="aspectFit"></image>
@@ -78,30 +79,24 @@
         </scroll-view>
 
         <text wx:if="{{errorMessage}}" class="inline-error chat-inline-error">{{errorMessage}}</text>
-        <view class="chat-composer glass-card">
-          <textarea class="chat-input" value="{{chatText}}" placeholder="输入想对 TA 说的话…" maxlength="200" auto-height="{{true}}" bindinput="onChatInput" disabled="{{sending}}"></textarea>
-          <button class="send-button" bindtap="sendChat" disabled="{{sending || !chatText}}"><text>{{sending ? '生成中' : '发送'}}</text><text class="send-arrow">›</text></button>
+        <view class="chat-dock glass-card">
+          <button class="dock-side-button dock-emoji-button" data-text="今天过得怎么样？" bindtap="useQuickPrompt">☺</button>
+          <view class="chat-input-pill">
+            <textarea class="chat-input" value="{{chatText}}" placeholder="输入想对 TA 说的话…" maxlength="200" auto-height="{{true}}" bindinput="onChatInput" disabled="{{sending}}"></textarea>
+          </view>
+          <button class="dock-side-button dock-send-button" bindtap="sendChat" disabled="{{sending || !chatText}}">
+            <text wx:if="{{sending}}" class="dock-send-glyph">…</text>
+            <image wx:else class="dock-send-image" src="/assets/ui/icon-arrow.png" mode="aspectFit"></image>
+          </button>
         </view>
       </block>
 
       <block wx:else>
         <view class="exact-workspace">
+          <text class="exact-prompt-label">输入你想让 TA 说的话</text>
           <view class="exact-primary-card luminous-card">
-            <view class="exact-card-heading">
-              <view class="exact-title-wrap">
-                <text class="exact-title">想让 TA 说什么？</text>
-                <text class="exact-subtitle">输入准确文字，生成带 AI 标识的声音</text>
-              </view>
-              <text class="exact-count">{{exactCount}}/50</text>
-            </view>
-
             <textarea class="exact-textarea" value="{{exactText}}" placeholder="例如：天气凉了，记得多穿一件衣服。" maxlength="50" bindinput="onExactInput" disabled="{{sending}}"></textarea>
-
-            <view class="exact-helper">
-              <view class="helper-dot"></view>
-              <text>1–50 个字符；成功生成后才扣 1 个账号积分</text>
-            </view>
-
+            <text class="exact-count">{{exactCount}}/50</text>
             <text wx:if="{{errorMessage}}" class="inline-error exact-inline-error">{{errorMessage}}</text>
           </view>
 
@@ -109,7 +104,7 @@
             {{sending ? '正在生成声音…' : '生成语音'}}
           </button>
 
-          <view class="result-heading"><text class="section-title">生成记录</text><text>最近 10 轮</text></view>
+          <view class="result-heading"><text class="section-title">生成结果</text></view>
 
           <scroll-view class="exact-history-scroll" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
             <view wx:if="{{sending && pendingMode === 'exact'}}" class="pending-result soft-card"><view class="typing"><text></text><text></text><text></text></view><text>{{generationStatusText}}</text></view>
@@ -129,6 +124,7 @@
             </view>
             <view class="exact-history-spacer"></view>
           </scroll-view>
+          <view class="exact-footer-note"><view class="note-spark"></view><text>成功生成后将消耗 1 个账号积分</text></view>
         </view>
       </block>
     </view>

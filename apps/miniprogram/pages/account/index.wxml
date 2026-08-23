@@ -1,4 +1,4 @@
-<view class="account-screen">
+<view class="account-screen screen-shell">
   <app-nav title="我的"></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="account-state">
@@ -10,24 +10,34 @@
   </view>
 
   <view wx:else class="account-content fade-in">
-    <view class="profile-card glass-card">
-      <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="profile-avatar fallback"><image class="profile-avatar-icon" src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
-      <view class="profile-copy">
-        <text class="profile-name">{{user.nickname || '微信用户'}}</text>
-        <text class="profile-caption">{{voiceCount}} 个声音 · 共剩余 {{availablePoints}} 积分</text>
+    <view class="account-hero luminous-card">
+      <view class="account-glow"></view>
+      <view class="profile-card">
+        <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="profile-avatar fallback"><image class="profile-avatar-icon" src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
+        <view class="profile-copy">
+          <text class="profile-name">{{user.nickname || '微信用户'}}</text>
+          <text class="profile-caption">{{voiceCount}} 个声音 · 共剩余 {{availablePoints}} 积分</text>
+        </view>
+        <button class="edit-button" bindtap="editNickname" disabled="{{updatingProfile}}">{{updatingProfile ? '保存中' : '编辑'}}</button>
       </view>
-      <button class="edit-button" bindtap="editNickname" disabled="{{updatingProfile}}">{{updatingProfile ? '保存中' : '编辑'}}</button>
+
+      <view class="summary-grid">
+        <view class="summary-card soft-card" bindtap="goVoices">
+          <text class="summary-value">{{voiceCount}}</text>
+          <text class="summary-label">我的声音</text>
+        </view>
+        <view class="summary-card soft-card">
+          <text class="summary-value brand">{{availablePoints}}</text>
+          <text class="summary-label">剩余积分</text>
+        </view>
+      </view>
     </view>
 
-    <view class="summary-grid">
-      <view class="summary-card soft-card" bindtap="goVoices">
-        <text class="summary-value">{{voiceCount}}</text>
-        <text class="summary-label">我的声音</text>
-      </view>
-      <view class="summary-card soft-card" bindtap="goVoices">
-        <text class="summary-value brand">{{availablePoints}}</text>
-        <text class="summary-label">剩余积分</text>
+    <view class="section-block">
+      <view class="section-copy">
+        <text class="section-title">账户与订单</text>
+        <text class="section-caption">支付、积分和到账结果都以服务端记录为准</text>
       </view>
     </view>
 
@@ -65,12 +75,28 @@
       </view>
     </view>
 
+    <view class="section-block service-block">
+      <view class="section-copy">
+        <text class="section-title">服务</text>
+        <text class="section-caption">帮助、客服和反馈集中在这里</text>
+      </view>
+    </view>
+
     <view class="menu-card soft-card">
       <view class="menu-row" data-type="help" bindtap="showInfo"><text>使用帮助</text><text>›</text></view>
+      <view class="divider"></view>
+      <view class="menu-row" data-type="contact" bindtap="showInfo"><text>联系客服</text><text>›</text></view>
       <view class="divider"></view>
       <view class="menu-row" data-type="service" bindtap="showInfo"><text>退款与售后</text><text>›</text></view>
       <view class="divider"></view>
       <view class="menu-row" data-type="feedback" bindtap="showInfo"><text>意见反馈</text><text>›</text></view>
+    </view>
+
+    <view class="section-block service-block">
+      <view class="section-copy">
+        <text class="section-title">设置</text>
+        <text class="section-caption">数据、规则和账号管理</text>
+      </view>
     </view>
 
     <view class="menu-card soft-card">

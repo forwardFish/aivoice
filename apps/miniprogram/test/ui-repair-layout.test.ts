@@ -20,6 +20,9 @@ test('P0 screens keep their primary actions and navigation visible on compact vi
   const purchaseStyle = read('pages/purchase/index.wxss')
   const homeView = read('pages/home/index.wxml')
   const homeStyle = read('pages/home/index.wxss')
+  const voicesView = read('pages/voices/index.wxml')
+  const voicesStyle = read('pages/voices/index.wxss')
+  const accountView = read('pages/account/index.wxml')
 
   assert.match(selectVideoView, /class="media-tabs"/)
   assert.match(selectVideoView, /class="media-grid"/)
@@ -52,6 +55,13 @@ test('P0 screens keep their primary actions and navigation visible on compact vi
   assert.match(homeView, /class="voice-avatar fallback"/)
   assert.match(homeView, /class="fallback-wave-image"/)
   assert.match(homeStyle, /padding:\s*0 32rpx calc\(190rpx \+ env\(safe-area-inset-bottom\)\)/)
+  assert.match(voicesView, /class="voices-page-title fade-in">我的声音/)
+  assert.match(voicesView, /class="ready-actions"/)
+  assert.match(voicesView, /class="progress-wrap"/)
+  assert.match(voicesView, /class="resume-action/)
+  assert.doesNotMatch(voicesView, /filter-shell|rightText="新建"/)
+  assert.match(accountView, /class="account-hero luminous-card"/)
+  assert.match(accountView, /data-type="contact"/)
   assert.match(read('custom-tab-bar/index.wxss'), /\.custom-tab-shell\s*\{[^}]*position:\s*fixed/s)
 })
 

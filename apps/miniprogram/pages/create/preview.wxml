@@ -10,30 +10,36 @@
   </view>
 
   <view wx:else class="preview-content fade-in">
-    <view class="success-label"><view class="success-check">✓</view><text>试听已生成</text></view>
-    <text class="preview-title">TA 的声音已为你生成</text>
+    <text class="preview-title">TA 的声音已生成</text>
     <text class="preview-subtitle">完整播放一次后，即可开始使用这个声音</text>
 
     <view class="voice-visual">
-      <view class="visual-ring ring-a"></view>
-      <view class="visual-ring ring-b"></view>
+      <view class="side-wave left-wave">
+        <view class="wave-bar wave-tall"></view>
+        <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-short"></view>
+        <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-tall"></view>
+      </view>
       <image wx:if="{{avatarUrl}}" class="avatar-core" src="{{avatarUrl}}" mode="aspectFill"></image>
       <view wx:else class="avatar-core neutral-avatar"><image class="neutral-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
-      <view class="visual-spark spark-a"></view><view class="visual-spark spark-b"></view>
+      <view class="side-wave right-wave">
+        <view class="wave-bar wave-tall"></view>
+        <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-short"></view>
+        <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-tall"></view>
+      </view>
+      <view class="visual-spark spark-a"></view>
+      <view class="visual-spark spark-b"></view>
     </view>
 
-    <view class="voice-name-row"><text class="voice-name">{{voiceName}}</text><text class="private-tag">私有声音</text></view>
+    <text class="voice-name">{{voiceName}}</text>
 
-    <view class="preview-card luminous-card">
-      <view class="preview-card-heading">
-        <view><text class="preview-kicker">免费试听</text><text class="preview-copy">{{previewText}}</text></view>
-        <text class="ai-tag">AI生成</text>
-      </view>
-      <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" tag="AI生成" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
-      <view class="play-status {{playCompleted ? 'is-complete' : ''}}">
-        <view class="status-icon"><text wx:if="{{playCompleted}}">✓</text><view wx:else class="status-pulse"></view></view>
-        <text>{{playCompleted ? '试听已完整播放，可以继续使用' : '播放结束后解锁“使用这个声音”'}}</text>
-      </view>
+    <view class="preview-card soft-card">
+      <text class="preview-copy">{{previewText}}</text>
+      <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
+      <text class="preview-status {{playCompleted ? 'is-complete' : ''}}">{{playCompleted ? '试听已完整播放，可以继续使用这个声音' : '请完整播放一次后再继续'}}</text>
     </view>
 
     <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
@@ -46,6 +52,5 @@
     </button>
 
     <text class="points-note">新账号赠送 5 个账号积分；后续 ¥9.9 购买 50 个账号积分。对话与“说一句”共享使用，不自动续费。</text>
-    <text class="safety-note">AI 生成内容不代表声音本人真实表达，请勿用于冒充、诈骗或身份核验。</text>
   </view>
 </view>

@@ -13,17 +13,12 @@
 
   <block wx:else>
     <view class="page-body fade-in">
-      <view class="page-heading">
-        <text class="page-title">选择一段 TA 的旧视频</text>
-        <text class="page-subtitle">挑一段声音清楚、背景安静的 12–60 秒视频</text>
-      </view>
-
       <view class="media-tabs">
-        <button class="media-tab" bindtap="openAlbumTab">相册</button>
-        <view class="media-tab is-active">视频</view>
+        <button class="media-tab is-active" bindtap="openAlbumTab">相册</button>
+        <view class="media-tab">视频</view>
       </view>
 
-      <view class="media-browser glass-card">
+      <view class="media-browser">
         <view class="media-grid">
           <view wx:for="{{mediaTiles}}" wx:key="id" class="media-tile {{selected && selectedIndex === index ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="chooseVideo">
             <block wx:if="{{selected && selectedIndex === index}}">
@@ -39,45 +34,26 @@
                 <view class="scene-line line-a"></view>
                 <view class="scene-line line-b"></view>
               </view>
-              <view class="play-chip ui-sprite sprite-play-line">
-                <image class="ui-sprite-sheet" src="/assets/ui/play-line.png" mode="aspectFit"></image>
-              </view>
               <view class="selection-circle"></view>
             </block>
           </view>
         </view>
       </view>
 
-      <view class="selection-hint">
-        <view class="hint-dot"></view>
-        <text>点击任意缩略图区域，从系统相册选择真实视频</text>
-      </view>
-
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
-
-      <view class="quality-line soft-card">
-        <view><text class="quality-check">✓</text><text>单人说话</text></view>
-        <view><text class="quality-check">✓</text><text>声音清楚</text></view>
-        <view><text class="quality-check">✓</text><text>没有音乐</text></view>
-      </view>
-
-      <view class="privacy-note"><view class="privacy-lock"></view><text>不会扫描相册，也不会读取未选择的其他视频</text></view>
     </view>
 
     <view class="selection-footer safe-bottom">
       <view wx:if="{{selected}}" class="selected-summary">
-        <image wx:if="{{selected.thumbTempFilePath}}" class="summary-thumb" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
-        <video wx:else class="summary-thumb" src="{{selected.tempFilePath}}" controls="{{false}}" muted="{{true}}" show-center-play-btn="{{false}}" enable-progress-gesture="{{false}}" object-fit="cover"></video>
         <view class="summary-copy">
-          <text class="summary-title">已选择第 {{selectedIndex + 1}} 格视频</text>
-          <text class="summary-meta">{{selected.durationText}} · {{selected.sizeText}}</text>
+          <text class="summary-title">已选择 1 个视频</text>
+          <text class="summary-meta">{{selected.durationText}} · 仅处理这一段</text>
         </view>
         <button class="summary-clear" catchtap="resetSelection" aria-label="清除选择">×</button>
       </view>
       <view wx:else class="selected-summary">
-        <view class="summary-thumb neutral-thumb"><image class="mini-plus" src="/assets/ui/icon-add.png" mode="aspectFit"></image></view>
         <view class="summary-copy">
-          <text class="summary-title">尚未选择视频</text>
+          <text class="summary-title">选择 1 个视频</text>
           <text class="summary-meta">支持 12–60 秒，最大 100MB</text>
         </view>
       </view>

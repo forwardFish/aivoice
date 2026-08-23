@@ -1,7 +1,7 @@
-import { getPoints, listVoices } from '../../services/api'
+import { listVoices } from '../../services/api'
 import { VoiceStatus, VoiceSummary } from '../../models/api'
 import { resolveVoiceAvatar } from '../../utils/default-avatar'
-import { formatDateTime, voiceInitial } from '../../utils/format'
+import { formatDateTime, formatDurationMs, voiceInitial } from '../../utils/format'
 import {
   ensureAuthenticated,
   openPreview,
@@ -41,9 +41,12 @@ function statusMeta(voice: VoiceSummary): { label: string; tone: string; action:
   return map[voice.status]
 }
 
-function viewModel(voice: VoiceSummary, availablePoints: number): any {
+function viewModel(voice: VoiceSummary): any {
   const meta = statusMeta(voice)
   const progress = Math.max(0, Math.min(100, Number(voice.progress || 0)))
+  const clipDurationMs = typeof voice.clipStartMs === 'number' && typeof voice.clipEndMs === 'number'
+    ? Math.max(0, voice.clipEndMs - voice.clipStartMs)
+    : 0
   return {
     ...voice,
     initial: voiceInitial(voice.name),
@@ -56,23 +59,15 @@ function viewModel(voice: VoiceSummary, availablePoints: number): any {
     isDisabled: voice.status === 'DELETED',
     showProgress: ['UPLOADING', 'QUEUED', 'PROCESSING', 'DELETING'].indexOf(voice.status) >= 0,
     progress,
-    pointsText: `剩余 ${availablePoints} 积分`,
+    durationText: clipDurationMs > 0 ? formatDurationMs(clipDurationMs) : '',
     metaText: voice.status === 'READY'
-      ? `${voice.conversationStyle ? styleLabel(voice.conversationStyle) + ' · ' : ''}${formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)}`
+      ? `最近使用 ${formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)}`
+      : voice.status === 'PROCESSING' || voice.status === 'QUEUED' || voice.status === 'UPLOADING'
+        ? '正在创建声音模型…'
       : voice.error && voice.error.message
         ? voice.error.message
         : formatDateTime(voice.updatedAt || voice.createdAt)
   }
-}
-
-function styleLabel(value?: string): string {
-  const map: Record<string, string> = {
-    NATURAL: '自然',
-    GENTLE: '温柔',
-    LIVELY: '活泼',
-    CALM: '沉稳'
-  }
-  return map[String(value || '').toUpperCase()] || ''
 }
 
 Page({
@@ -94,10 +89,10 @@ Page({
   async loadVoices(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
     try {
-      const [response, points] = await Promise.all([listVoices(), getPoints()])
+      const response = await listVoices()
       this.allVoiceItems = response.voices
         .filter(item => item.status !== 'DELETED')
-        .map(item => viewModel(item, points.availablePoints))
+        .map(item => viewModel(item))
       this.applyFilter()
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音列表加载失败，请重试。' })

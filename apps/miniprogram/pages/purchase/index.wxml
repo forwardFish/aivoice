@@ -17,36 +17,28 @@
       </view>
 
       <view class="product-card luminous-card">
-        <view class="product-top">
-          <image class="compact-bag" src="/assets/ui/points-bag.png" mode="aspectFit"></image>
+        <image class="compact-bag" src="/assets/ui/points-bag.png" mode="aspectFit"></image>
 
-          <view class="product-main">
-            <view class="product-tags"><text>账号积分包</text><text>一次性购买</text></view>
-            <view class="point-line"><text class="point-number">{{purchaseOption.points}}</text><text class="point-unit">账号积分</text></view>
-            <text class="product-description">{{purchaseOption.description || '对话与“说一句”共享使用'}}</text>
-          </view>
+        <view class="product-tags"><text>账号积分包</text><text>一次性购买</text></view>
 
-          <view class="product-price">
-            <text>{{priceText}}</text>
-            <text>不自动续费</text>
-          </view>
+        <view class="point-line">
+          <text class="point-number">{{purchaseOption.points}}</text>
+          <text class="point-unit">账号积分</text>
         </view>
+        <text class="product-price">{{priceText}}</text>
+        <text class="product-description">{{purchaseOption.description || '对话与“说一句”共享使用'}}</text>
 
         <view class="account-strip">
-          <view class="account-icon">✦</view>
-          <view class="account-copy"><text>当前账号余额</text><text>{{pointsText}}</text></view>
-          <view class="voice-badge">{{voiceInitial}}</view>
+          <text class="account-label">当前账号余额</text>
+          <text class="account-value">{{pointsText}}</text>
         </view>
 
         <view class="product-benefits">
           <view><text class="benefit-check">✓</text><text>所有声音共享</text></view>
-          <view><text class="benefit-check">✓</text><text>成功生成才扣</text></view>
-          <view><text class="benefit-check">✓</text><text>支付后服务端确认入账</text></view>
+          <view><text class="benefit-check">✓</text><text>成功生成才扣积分</text></view>
+          <view><text class="benefit-check">✓</text><text>支付成功后服务端确认入账</text></view>
+          <view><text class="benefit-check">✓</text><text>不自动续费</text></view>
         </view>
-      </view>
-
-      <view class="purchase-notice soft-card">
-        <text class="notice-title">购买前请知悉</text>
         <text class="notice-copy">AI 生成语音不代表声音本人真实表达。失败、被拦截或服务异常不扣积分；支付结果与积分到账均以服务端订单校验为准。</text>
         <view class="legal-links"><text data-type="terms" bindtap="showAgreement">《服务协议》</text><text>·</text><text data-type="privacy" bindtap="showAgreement">《隐私政策》</text></view>
       </view>
@@ -60,7 +52,6 @@
       <button class="primary-button buy-button {{paying || pending ? 'button-disabled' : ''}}" bindtap="submitPurchase" disabled="{{paying || pending}}">
         {{paying ? '正在打开微信支付…' : pending ? '正在确认积分到账…' : '立即购买 ' + purchaseOption.points + ' 积分 · ' + priceText}}
       </button>
-      <button class="footer-cancel" bindtap="goBack" disabled="{{paying || pending}}">暂不购买</button>
       <text class="footer-note">未完成支付不会扣款；支付成功后自动确认入账并保留原输入。</text>
     </view>
   </block>
