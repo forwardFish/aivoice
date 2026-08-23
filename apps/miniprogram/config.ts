@@ -14,7 +14,7 @@ function resolveApiBaseUrl(): string {
   } catch (_error) {
     // ExtConfig is optional; fall back to the public compile-time origin.
   }
-  return 'https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com'
+  return 'https://aivoice-run-d9gu3ee7n56f21869-1434074357.ap-shanghai.app.tcloudbase.com'
 }
 
 export const API_BASE_URL = resolveApiBaseUrl()
