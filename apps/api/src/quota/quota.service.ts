@@ -38,6 +38,10 @@ function toCompatibilityQuota(balance: number): QuotaView {
   };
 }
 
+function quotaFromCloudResult(result: { balance?: number; quota?: { availableQuota?: number } }): QuotaView {
+  return toCompatibilityQuota(Number(result.balance ?? result.quota?.availableQuota ?? 0));
+}
+
 async function lockAccount(client: PoolClient, userId: string): Promise<LockedPointAccount> {
   await client.query(
     `INSERT INTO point_accounts (user_id, balance, created_at, updated_at)
@@ -79,6 +83,24 @@ export class QuotaService {
   }
 
   async ensureSignupGrant(userId: string, attempt = 0): Promise<PointsView> {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const user = await cloud.selectOne<{
+        openid: string;
+        unionid: string | null;
+        nickname: string;
+        avatarUrl: string;
+      }>('users', { filters: { id: userId, deletedAt: { is: null } } });
+      if (!user) throw new NotFoundException('user not found');
+      await cloud.rpc('rpc_auth_login_wechat', {
+        pOpenid: user.openid,
+        pUnionid: user.unionid,
+        pNickname: user.nickname,
+        pAvatarUrl: user.avatarUrl,
+        pSignupBonusPoints: loadPointsConfig().signupBonusPoints,
+      });
+      return this.getPoints(userId);
+    }
     const client = await this.database.pool.connect();
     let released = false;
     try {
@@ -115,6 +137,14 @@ export class QuotaService {
   }
 
   async getPoints(userId: string): Promise<PointsView> {
+    if (this.database.isCloudBase) {
+      const account = await this.database.requireCloud().selectOne<{ balance: number }>('point_accounts', {
+        select: 'balance',
+        filters: { userId },
+      });
+      if (!account) throw new NotFoundException('point account not found');
+      return toPoints(Number(account.balance));
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');
@@ -130,6 +160,14 @@ export class QuotaService {
   }
 
   async getQuota(userId: string, voiceId: string): Promise<QuotaView> {
+    if (this.database.isCloudBase) {
+      const voice = await this.database.requireCloud().selectOne<{ id: string }>('voice_profiles', {
+        select: 'id',
+        filters: { id: voiceId, userId, deletedAt: { is: null } },
+      });
+      if (!voice) throw new NotFoundException('voice not found');
+      return toCompatibilityQuota((await this.getPoints(userId)).balance);
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');
@@ -146,6 +184,36 @@ export class QuotaService {
   }
 
   async listPointLedgers(userId: string) {
+    if (this.database.isCloudBase) {
+      const rows = await this.database.requireCloud().select<{
+        id: string;
+        voiceProfileId: string | null;
+        orderId: string | null;
+        messageId: string | null;
+        type: string;
+        amount: number;
+        balanceAfter: number;
+        requestKey: string | null;
+        source: string;
+        createdAt: Date;
+      }>('point_ledgers', {
+        filters: { userId },
+        order: [{ column: 'createdAt', ascending: false }],
+        limit: 100,
+      });
+      return { ledgers: rows.map((row) => ({
+        id: row.id,
+        voiceId: row.voiceProfileId,
+        orderId: row.orderId,
+        messageId: row.messageId,
+        type: row.type,
+        amount: Number(row.amount),
+        balanceAfter: Number(row.balanceAfter),
+        requestKey: row.requestKey,
+        source: row.source,
+        createdAt: row.createdAt,
+      })) };
+    }
     const result = await this.database.pool.query<{
       id: string;
       voice_profile_id: string | null;
@@ -184,6 +252,16 @@ export class QuotaService {
   }
 
   async acceptPreview(userId: string, voiceId: string): Promise<QuotaView> {
+    if (this.database.isCloudBase) {
+      const result = await this.database.requireCloud().rpc<{
+        balance?: number;
+        quota?: { availableQuota?: number };
+      }>('rpc_voice_accept_preview', {
+        pUserId: userId,
+        pVoiceId: voiceId,
+      });
+      return quotaFromCloudResult(result);
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
@@ -209,7 +287,32 @@ export class QuotaService {
     voiceId: string;
     messageId: string;
     outputText: string;
+    generatedMedia?: {
+      objectKey: string;
+      mimeType: string;
+      bytes: number;
+      durationMs: number;
+      sha256: string;
+    };
   }, attempt = 0): Promise<QuotaView> {
+    if (this.database.isCloudBase) {
+      if (!input.generatedMedia) {
+        throw new ConflictException('generated media is required for CloudBase completion');
+      }
+      const result = await this.database.requireCloud().rpc<{ balance: number }>('rpc_message_complete_success', {
+        pUserId: input.userId,
+        pVoiceId: input.voiceId,
+        pMessageId: input.messageId,
+        pOutputText: input.outputText,
+        pObjectKey: input.generatedMedia.objectKey,
+        pMimeType: input.generatedMedia.mimeType,
+        pBytes: input.generatedMedia.bytes,
+        pDurationMs: input.generatedMedia.durationMs,
+        pSha256: input.generatedMedia.sha256,
+        pGenerationCost: loadPointsConfig().generationCost,
+      });
+      return toCompatibilityQuota(Number(result.balance));
+    }
     const client = await this.database.pool.connect();
     let released = false;
     try {
@@ -264,6 +367,15 @@ export class QuotaService {
   }
 
   async failMessage(input: { userId: string; messageId: string; code: string; message: string }): Promise<void> {
+    if (this.database.isCloudBase) {
+      await this.database.requireCloud().rpc('rpc_message_complete_failure', {
+        pUserId: input.userId,
+        pMessageId: input.messageId,
+        pErrorCode: input.code,
+        pErrorMessage: input.message,
+      });
+      return;
+    }
     await this.database.pool.query(
       `UPDATE messages SET status = 'FAILED', error_code = $1, error_message = $2, updated_at = NOW()
        WHERE id = $3 AND user_id = $4 AND status IN ('PENDING', 'PROCESSING')`,
@@ -276,7 +388,37 @@ export class QuotaService {
     orderId: string;
     transactionId: string;
     paidAt: Date;
+    orderNo?: string;
+    notifyDigest?: string;
+    appId?: string;
+    mchId?: string;
+    payerOpenid?: string;
+    amountFen?: number;
   }, attempt = 0): Promise<QuotaView> {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const order = await cloud.selectOne<{ orderNo: string; amountFen: number }>('orders', {
+        select: 'order_no,amount_fen',
+        filters: { id: input.orderId, userId: input.userId },
+      });
+      if (!order) throw new NotFoundException('order not found');
+      const user = await cloud.selectOne<{ openid: string }>('users', {
+        select: 'openid',
+        filters: { id: input.userId, deletedAt: { is: null } },
+      });
+      if (!user) throw new NotFoundException('user not found');
+      const result = await cloud.rpc<{ balance: number }>('rpc_payment_apply_success', {
+        pOrderNo: input.orderNo || order.orderNo,
+        pTransactionId: input.transactionId,
+        pPaidAt: input.paidAt.toISOString(),
+        pNotifyDigest: input.notifyDigest || '',
+        pAppid: input.appId || process.env.WECHAT_APP_ID || '',
+        pMchid: input.mchId || process.env.WECHAT_PAY_MCH_ID || '',
+        pPayerOpenid: input.payerOpenid || user.openid,
+        pAmountFen: input.amountFen ?? Number(order.amountFen),
+      });
+      return toCompatibilityQuota(Number(result.balance));
+    }
     const client = await this.database.pool.connect();
     let released = false;
     try {
@@ -330,6 +472,12 @@ export class QuotaService {
     orderId: string;
     transactionId: string;
     paidAt: Date;
+    orderNo?: string;
+    notifyDigest?: string;
+    appId?: string;
+    mchId?: string;
+    payerOpenid?: string;
+    amountFen?: number;
   }): Promise<QuotaView> {
     return this.grantPaidQuota(input);
   }

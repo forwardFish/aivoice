@@ -1,0 +1,10 @@
+{
+  "name": "aivoice-worker-function",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "@ffmpeg-installer/linux-x64": "4.1.0"
+  }
+}

@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import test from 'node:test';
 import type { DatabaseService } from '../src/db/database.service.js';
 import type { OrderService } from '../src/orders/order.service.js';
-import type { QuotaService } from '../src/quota/quota.service.js';
+import { QuotaService } from '../src/quota/quota.service.js';
 import { WechatPayService, type WechatTransaction } from '../src/payments/wechat-pay.service.js';
 
 function privatePem(key: crypto.KeyObject): string {
@@ -141,6 +141,12 @@ test('WeChat Pay creates signed JSAPI params and notification grants quota once'
     orderId: 'order-id',
     transactionId: 'transaction-id',
     paidAt: new Date('2026-08-21T15:00:00+08:00'),
+    orderNo: 'order-no',
+    notifyDigest: crypto.createHash('sha256').update(rawBody).digest('hex'),
+    appId: 'wx-test-app',
+    mchId: 'mch-test',
+    payerOpenid: 'openid-owner',
+    amountFen: 990,
   });
 });
 
@@ -176,4 +182,99 @@ test('WeChat Pay notification supports the configured WeChat Pay public key id',
     'wechatpay-nonce': nonce,
     'wechatpay-signature': signature,
   }, rawBody), false);
+});
+
+test('CloudBase notify and active query converge on rpc_payment_apply_success', async () => {
+  const merchant = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const platform = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const apiV3Key = '12345678901234567890123456789012';
+  Object.assign(process.env, {
+    WECHAT_APP_ID: 'wx-cloud-app',
+    WECHAT_PAY_MCH_ID: 'mch-cloud',
+    WECHAT_PAY_SERIAL_NO: 'serial-cloud',
+    WECHAT_PAY_PRIVATE_KEY: privatePem(merchant.privateKey),
+    WECHAT_PAY_PLATFORM_CERT: publicPem(platform.publicKey),
+    WECHAT_PAY_API_V3_KEY: apiV3Key,
+    WECHAT_PAY_NOTIFY_URL: 'https://api.example.test/v1/payments/wechat/notify',
+  });
+  const transaction: WechatTransaction = {
+    appid: 'wx-cloud-app',
+    mchid: 'mch-cloud',
+    out_trade_no: 'order-no-cloud',
+    transaction_id: 'transaction-cloud',
+    trade_state: 'SUCCESS',
+    success_time: '2026-08-22T08:00:00+08:00',
+    payer: { openid: 'openid-cloud' },
+    amount: { total: 990, currency: 'CNY' },
+  };
+  const rpcCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    selectOne: async (table: string) => {
+      if (table === 'users') return { id: 'user-cloud', openid: 'openid-cloud' };
+      if (table === 'orders') return { orderNo: 'order-no-cloud', amountFen: 990 };
+      return null;
+    },
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      rpcCalls.push({ name, args });
+      if (name === 'rpc_payment_apply_success') return { balance: 60, credited: true };
+      return { recorded: true };
+    },
+  };
+  const database = {
+    isCloudBase: true,
+    requireCloud: () => cloud,
+    get db(): never { throw new Error('Drizzle must not be used'); },
+    get pool(): never { throw new Error('pg must not be used'); },
+  } as unknown as DatabaseService;
+  const order = {
+    id: 'order-id-cloud',
+    orderNo: 'order-no-cloud',
+    userId: 'user-cloud',
+    amountFen: 990,
+    pointsGrantedAt: null,
+  };
+  const orderService = {
+    findByOrderNo: async () => order,
+    findUserOrder: async () => order,
+  } as unknown as OrderService;
+  const service = new WechatPayService(database, orderService, new QuotaService(database));
+
+  const body = { id: 'event-cloud', event_type: 'TRANSACTION.SUCCESS', resource: encryptNotify(apiV3Key, transaction) };
+  const rawBody = Buffer.from(JSON.stringify(body));
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const notifyNonce = 'notify-cloud';
+  const signature = crypto.createSign('RSA-SHA256')
+    .update(`${timestamp}\n${notifyNonce}\n${rawBody.toString('utf8')}\n`)
+    .sign(platform.privateKey, 'base64');
+  await service.handleNotify({
+    headers: {
+      'wechatpay-timestamp': timestamp,
+      'wechatpay-nonce': notifyNonce,
+      'wechatpay-signature': signature,
+      'request-id': 'request-cloud',
+    },
+    body,
+    rawBody,
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(transaction), { status: 200 });
+  try {
+    const refreshed = await service.refreshOrder('user-cloud', 'order-id-cloud');
+    assert.equal(refreshed.granted, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.deepEqual(rpcCalls.map((item) => item.name), [
+    'rpc_payment_record_notify_event',
+    'rpc_payment_apply_success',
+    'rpc_payment_apply_success',
+  ]);
+  for (const call of rpcCalls.filter((item) => item.name === 'rpc_payment_apply_success')) {
+    assert.equal(call.args.pAppid, 'wx-cloud-app');
+    assert.equal(call.args.pMchid, 'mch-cloud');
+    assert.equal(call.args.pPayerOpenid, 'openid-cloud');
+    assert.equal(call.args.pAmountFen, 990);
+  }
 });

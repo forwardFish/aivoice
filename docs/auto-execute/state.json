@@ -1,8 +1,9 @@
 {
-  "goal_id": "AIVOICE-MVP-001",
+  "goal_id": "AIVOICE-CLOUDBASE-002",
   "goal_status": "active",
-  "phase": "functional-closure-complete",
+  "phase": "cloudbase-core-deployed-external-launch-gates",
   "orchestration_mode": "native-subagents",
-  "external_frontend_worker": "chatgpt-pro",
-  "final_verdict": "PASS_WITH_LIMITATION"
+  "product_verdict": "PASS_WITH_LIMITATION",
+  "harness_verdict": "REPAIR_REQUIRED",
+  "harness_note": "The live technical flow passes, while normalized requirement/story/UI evidence and external WeChat gates remain incomplete."
 }

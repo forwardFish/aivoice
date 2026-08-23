@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-08-23T00:47:57.560Z",
+  "envId": "aivoice-d1g94bgoh67c6b974",
+  "scenario": "duplicate-and-concurrent-payment-rpc",
+  "signupBalance": 10,
+  "rollbackAfterInvalidAmount": true,
+  "concurrentCalls": 8,
+  "sameOrderIdempotent": true,
+  "creditedTrueCount": 1,
+  "finalBalance": 60,
+  "purchaseLedgerCount": 1,
+  "status": "PASS"
+}

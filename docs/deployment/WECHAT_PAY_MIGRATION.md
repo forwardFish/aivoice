@@ -1,6 +1,6 @@
 # WeChat Pay migration status
 
-Updated: 2026-08-22
+Updated: 2026-08-23
 
 ## Migrated securely from the reference project
 
@@ -23,14 +23,14 @@ These values belong to the old application or backend and must not be reused.
 
 ## Still required before real payment
 
-1. Configure the new mini-program AppSecret in the ignored local/production secret environment.
-2. Deploy the aivoice API on a public HTTPS domain and configure:
-   `https://<api-domain>/v1/payments/wechat/notify`.
-3. In Merchant Platform -> Account Center -> API Security, download the current WeChat Pay public key and copy its public-key id. Configure `WECHAT_PAY_PUBLIC_KEY_PATH` and `WECHAT_PAY_PUBLIC_KEY_ID`.
+1. In Merchant Platform -> Account Center -> API Security, download the current WeChat Pay public key and copy its public-key id. Configure `WECHAT_PAY_PUBLIC_KEY_PATH` and `WECHAT_PAY_PUBLIC_KEY_ID`.
    - A signed `/v3/certificates` request returned HTTP 406, so the merchant likely uses WeChat Pay public-key mode instead of platform-certificate mode.
    - The API now supports both public-key and platform-certificate notification verification.
-4. Confirm JSAPI payment is enabled for the mini-program payment scenario.
-5. If WeChat classifies the app as a transaction mini-program, integrate order shipping/fulfillment reporting before public payment.
+2. Confirm JSAPI payment is enabled for the mini-program payment scenario.
+3. Complete one real mini-program payment against the deployed callback and replay the signed notification.
+4. If WeChat classifies the app as a transaction mini-program, integrate order shipping/fulfillment reporting before public payment.
+
+The API is live at the CloudBase HTTPS origin. Callback and active query-order paths both converge on `rpc_payment_apply_success`; a real CloudBase concurrency test proved eight identical success calls produce one `+50` grant and one purchase ledger.
 
 ## Production settings
 

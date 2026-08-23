@@ -5,7 +5,54 @@ import { DatabaseService } from '../db/database.service.js';
 import { consentRecords, jobs, mediaAssets, voiceProfiles } from '../db/schema.js';
 import { QuotaService } from '../quota/quota.service.js';
 import { MediaService } from '../media/media.service.js';
+import { invokeWorkerAsync } from '../db/cloudbase-worker-invoker.js';
 import { CONSENT_TEXT, CONSENT_VERSION } from './consent-text.js';
+
+type Permission = 'SELF' | 'OTHER' | 'MINOR';
+type VoiceStatus = typeof voiceProfiles.status.enumValues[number];
+
+interface VoiceRow {
+  id: string;
+  userId: string;
+  name: string;
+  permissionType: Permission | null;
+  status: VoiceStatus;
+  clipStartMs: number | null;
+  clipEndMs: number | null;
+  acceptedAt: Date | string | null;
+  previewPlaybackStartedAt: Date | string | null;
+  previewPlayedAt: Date | string | null;
+  previewRetryCount: number;
+  trialQuotaRemaining: number;
+  paidQuotaRemaining: number;
+  failureCode: string;
+  failureMessage: string;
+  qualityReport: unknown;
+  lastUsedAt: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+interface VoiceJobRpcResult {
+  voiceId: string;
+  status: VoiceStatus;
+  jobId?: string;
+  idempotent?: boolean;
+}
+
+function firstRpcRow<T>(value: T | T[]): T {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function errorText(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const body = 'body' in error ? (error as Error & { body?: unknown }).body : undefined;
+  if (body && typeof body === 'object') {
+    const record = body as Record<string, unknown>;
+    return [record.code, record.message, record.details, record.hint].filter(Boolean).join(' ');
+  }
+  return error.message;
+}
 
 @Injectable()
 export class VoiceService {
@@ -18,7 +65,53 @@ export class VoiceService {
     private readonly mediaService: MediaService,
   ) {}
 
-  private async ownedVoice(userId: string, voiceId: string) {
+  private rethrowCloud(error: unknown): never {
+    const message = errorText(error);
+    if (/VOICE_NOT_FOUND|voice not found/i.test(message)) throw new NotFoundException('voice not found');
+    if (/PREVIEW_NOT_FOUND|preview not found/i.test(message)) throw new NotFoundException('preview not found');
+    if (/SOURCE_MEDIA_NOT_FOUND|source media not found/i.test(message)) throw new NotFoundException('source media not found');
+    const conflictAliases: Array<[string, string]> = [
+      ['INVALID_CLIP', 'clip must be 10-30 seconds'],
+      ['VOICE_NAME_REQUIRED', 'voice name is required'],
+      ['VOICE_OR_PERMISSION_NOT_FOUND', 'voice not found'],
+      ['INVALID_CONSENT', 'consent confirmation does not match current version'],
+      ['VOICE_PROFILE_INCOMPLETE', 'voice profile and clip are incomplete'],
+      ['SOURCE_VIDEO_REQUIRED', 'source video is required'],
+    ];
+    const alias = conflictAliases.find(([code]) => message.includes(code));
+    if (alias) {
+      if (alias[0] === 'VOICE_OR_PERMISSION_NOT_FOUND') throw new NotFoundException(alias[1]);
+      throw new ConflictException(alias[1]);
+    }
+    const knownConflict = [
+      'CONSENT_REQUIRED',
+      'VOICE_NOT_READY',
+      'PREVIEW_NOT_PLAYED',
+      'PREVIEW_RETRY_EXHAUSTED',
+      'source video is required',
+      'voice profile and clip are incomplete',
+      'clip must be 10-30 seconds',
+      'voice name is required',
+      'permission type is required',
+      'consent confirmation does not match current version',
+    ].find((code) => message.includes(code));
+    if (knownConflict) throw new ConflictException(knownConflict);
+    throw error;
+  }
+
+  private async triggerJob(jobId: string | undefined, type: 'PROCESS_VOICE' | 'DELETE_VOICE') {
+    if (!jobId) return;
+    await invokeWorkerAsync({ jobId, type });
+  }
+
+  private async ownedVoice(userId: string, voiceId: string): Promise<VoiceRow> {
+    if (this.database.isCloudBase) {
+      const voice = await this.database.requireCloud().selectOne<VoiceRow>('voice_profiles', {
+        filters: { id: voiceId, userId, deletedAt: null },
+      });
+      if (!voice) throw new NotFoundException('voice not found');
+      return voice;
+    }
     const voice = await this.database.db.query.voiceProfiles.findFirst({
       where: and(
         eq(voiceProfiles.id, voiceId),
@@ -30,7 +123,7 @@ export class VoiceService {
     return voice;
   }
 
-  private publicVoice(voice: typeof voiceProfiles.$inferSelect) {
+  private publicVoice(voice: VoiceRow | typeof voiceProfiles.$inferSelect) {
     return {
       id: voice.id,
       name: voice.name,
@@ -55,6 +148,14 @@ export class VoiceService {
   }
 
   async createDraft(userId: string, name = '') {
+    if (this.database.isCloudBase) {
+      const [voice] = await this.database.requireCloud().insert<VoiceRow>('voice_profiles', {
+        userId,
+        name: name.trim().slice(0, 40),
+      });
+      if (!voice) throw new Error('CloudBase did not return the created voice');
+      return this.publicVoice(voice);
+    }
     const [voice] = await this.database.db.insert(voiceProfiles).values({
       userId,
       name: name.trim().slice(0, 40),
@@ -72,7 +173,7 @@ export class VoiceService {
       preview: preview ? {
         mediaId: preview.id,
         durationMs: preview.durationMs,
-        url: this.mediaService.signedUrl(preview.id, userId),
+        url: await this.mediaService.signedUrl(preview.id, userId),
       } : null,
     };
   }
@@ -85,7 +186,7 @@ export class VoiceService {
     return {
       mediaId: preview.id,
       durationMs: preview.durationMs,
-      url: this.mediaService.signedUrl(preview.id, userId),
+      url: await this.mediaService.signedUrl(preview.id, userId),
       text: process.env.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。',
       trialEligibility: quota.trialEligibility,
       freeRetryRemaining: Math.max(0, 1 - voice.previewRetryCount),
@@ -95,6 +196,18 @@ export class VoiceService {
   async list(userId: string, statuses: string[] = []) {
     const allowed = statuses.filter((status): status is typeof voiceProfiles.status.enumValues[number] =>
       voiceProfiles.status.enumValues.includes(status as typeof voiceProfiles.status.enumValues[number]));
+    if (this.database.isCloudBase) {
+      const rows = await this.database.requireCloud().select<VoiceRow>('voice_profiles', {
+        filters: {
+          userId,
+          deletedAt: null,
+          ...(allowed.length ? { status: { in: allowed } } : {}),
+        },
+        order: [{ column: 'updatedAt', ascending: false }],
+        limit: 100,
+      });
+      return rows.map((voice) => this.publicVoice(voice));
+    }
     const where = allowed.length
       ? and(eq(voiceProfiles.userId, userId), inArray(voiceProfiles.status, allowed), isNull(voiceProfiles.deletedAt))
       : and(eq(voiceProfiles.userId, userId), isNull(voiceProfiles.deletedAt));
@@ -107,6 +220,18 @@ export class VoiceService {
   }
 
   async home(userId: string) {
+    if (this.database.isCloudBase) {
+      const rows = await this.database.requireCloud().select<VoiceRow>('voice_profiles', {
+        filters: { userId, status: 'READY', deletedAt: null },
+        order: [
+          { column: 'lastUsedAt', ascending: false },
+          { column: 'updatedAt', ascending: false },
+        ],
+        limit: 100,
+      });
+      const recent = rows.filter((voice) => Boolean(voice.acceptedAt)).slice(0, 6);
+      return { canCreateVoice: true, recentVoices: recent.map((voice) => this.publicVoice(voice)) };
+    }
     const recent = await this.database.db.query.voiceProfiles.findMany({
       where: and(
         eq(voiceProfiles.userId, userId),
@@ -121,9 +246,23 @@ export class VoiceService {
   }
 
   async updateClip(userId: string, voiceId: string, startMs: number, endMs: number) {
-    await this.ownedVoice(userId, voiceId);
     const duration = endMs - startMs;
     if (duration < 10_000 || duration > 30_000) throw new ConflictException('clip must be 10-30 seconds');
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_clip', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pStartMs: startMs,
+          pEndMs: endMs,
+        });
+        if (!firstRpcRow(result)) throw new NotFoundException('voice not found');
+        return this.publicVoice(await this.ownedVoice(userId, voiceId));
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
+    await this.ownedVoice(userId, voiceId);
     const [voice] = await this.database.db.update(voiceProfiles).set({
       clipStartMs: startMs,
       clipEndMs: endMs,
@@ -135,10 +274,25 @@ export class VoiceService {
     return this.publicVoice(voice);
   }
 
-  async updateProfile(userId: string, voiceId: string, name: string, permission: 'SELF' | 'OTHER' | 'MINOR') {
-    await this.ownedVoice(userId, voiceId);
+  async updateProfile(userId: string, voiceId: string, name: string, permission: Permission) {
     const cleanName = name.trim().slice(0, 40);
     if (!cleanName) throw new ConflictException('voice name is required');
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pName: cleanName,
+          pPermissionType: permission,
+        });
+        if (!firstRpcRow(result)) throw new NotFoundException('voice not found');
+        const voice = await this.ownedVoice(userId, voiceId);
+        return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[permission] };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
+    await this.ownedVoice(userId, voiceId);
     const [voice] = await this.database.db.update(voiceProfiles).set({
       name: cleanName,
       permissionType: permission,
@@ -154,6 +308,30 @@ export class VoiceService {
     if (!input.confirmed || input.version !== CONSENT_VERSION || input.text !== expected) {
       throw new ConflictException('consent confirmation does not match current version');
     }
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<{
+          id: string;
+          consentVersion: string;
+          confirmedAt: string | Date;
+        } | Array<{
+          id: string;
+          consentVersion: string;
+          confirmedAt: string | Date;
+        }>>('rpc_voice_confirm_consent', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pPermissionType: voice.permissionType,
+          pConsentVersion: CONSENT_VERSION,
+          pConsentTextHash: createHash('sha256').update(expected).digest('hex'),
+        });
+        const record = firstRpcRow(result);
+        if (!record) throw new Error('CloudBase did not return the consent record');
+        return { id: record.id, consentVersion: record.consentVersion, confirmedAt: record.confirmedAt };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const [record] = await this.database.db.insert(consentRecords).values({
       voiceProfileId: voiceId,
       permissionType: voice.permissionType,
@@ -165,6 +343,22 @@ export class VoiceService {
   }
 
   async process(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const voice = await this.ownedVoice(userId, voiceId);
+        if (!voice.permissionType) throw new ConflictException('voice profile and clip are incomplete');
+        const result = await this.database.requireCloud().rpc<VoiceJobRpcResult>('rpc_voice_queue_processing', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pConsentVersion: CONSENT_VERSION,
+          pConsentTextHash: createHash('sha256').update(CONSENT_TEXT[voice.permissionType]).digest('hex'),
+        });
+        await this.triggerJob(result.jobId, 'PROCESS_VOICE');
+        return this.get(userId, voiceId);
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
@@ -228,30 +422,77 @@ export class VoiceService {
   }
 
   async acceptPreview(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const accepted = await this.database.requireCloud().rpc<{
+          quota: {
+            trialQuotaRemaining: number;
+            paidQuotaRemaining: number;
+            availableQuota: number;
+            trialEligibility: 'ELIGIBLE' | 'GRANTED' | 'USED';
+          };
+        }>('rpc_voice_accept_preview', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+        });
+        const quota = accepted.quota;
+        const voice = await this.get(userId, voiceId);
+        return { ...quota, quota, voice, trialGranted: quota.trialQuotaRemaining > 0 };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const quota = await this.quotaService.acceptPreview(userId, voiceId);
     const voice = await this.get(userId, voiceId);
     return { ...quota, quota, voice, trialGranted: quota.trialQuotaRemaining > 0 };
   }
 
   async markPreviewPlayed(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<
+          { previewPlayedAt: string | Date } | Array<{ previewPlayedAt: string | Date }>
+        >('rpc_voice_mark_preview_played', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pMinElapsedMs: 0,
+        });
+        const updated = firstRpcRow(result);
+        return { previewPlayedAt: updated.previewPlayedAt };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const voice = await this.ownedVoice(userId, voiceId);
     if (voice.status !== 'READY') throw new ConflictException('VOICE_NOT_READY');
     const preview = await this.mediaService.latestAsset(voiceId, 'PREVIEW_AUDIO');
     if (!preview?.durationMs || !voice.previewPlaybackStartedAt) {
       throw new ConflictException('PREVIEW_NOT_PLAYED');
     }
-    const elapsedMs = Date.now() - voice.previewPlaybackStartedAt.getTime();
+    const elapsedMs = Date.now() - new Date(voice.previewPlaybackStartedAt).getTime();
     if (elapsedMs < Math.max(0, preview.durationMs - 750)) {
       throw new ConflictException('PREVIEW_NOT_PLAYED');
     }
     const [updated] = await this.database.db.update(voiceProfiles).set({
-      previewPlayedAt: voice.previewPlayedAt || new Date(),
+      previewPlayedAt: voice.previewPlayedAt ? new Date(voice.previewPlayedAt) : new Date(),
       updatedAt: new Date(),
     }).where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId))).returning();
     return { previewPlayedAt: updated.previewPlayedAt };
   }
 
   async retryPreview(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<VoiceJobRpcResult>('rpc_voice_retry_preview', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+        });
+        await this.triggerJob(result.jobId, 'PROCESS_VOICE');
+        return this.get(userId, voiceId);
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const voice = await this.ownedVoice(userId, voiceId);
     if (voice.status !== 'READY') throw new ConflictException('VOICE_NOT_READY');
     if (voice.previewRetryCount >= 1) throw new ConflictException('PREVIEW_RETRY_EXHAUSTED');
@@ -269,6 +510,21 @@ export class VoiceService {
   }
 
   async deleteVoice(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<
+          (VoiceJobRpcResult & { status: 'DELETING' }) | Array<VoiceJobRpcResult & { status: 'DELETING' }>
+        >('rpc_voice_delete_request', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+        });
+        const deleted = firstRpcRow(result);
+        await this.triggerJob(deleted?.jobId, 'DELETE_VOICE');
+        return { status: deleted?.status || 'DELETING' };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');

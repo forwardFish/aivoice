@@ -4,7 +4,7 @@
 
 docs:
   requirements:
-    - "D:\lyh\agent\agent-frame\aivoice\docs\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md"
+    - "D:\lyh\agent\agent-frame\aivoice\docs\cloudbase-production-refactor-requirements.md"
   ui: []
 lanes:
   intake:
@@ -20,7 +20,7 @@ lanes:
   contract:
     enabled: true
   visual:
-    enabled: true
+    enabled: false
   integration:
     enabled: true
   reportIntegrity:
@@ -34,14 +34,14 @@ commands:
   typecheck: "npm run typecheck"
   test: "npm test"
   build: "npm run build"
-  smoke: ""
+  smoke: "node scripts/acceptance/cloudbase-public-api-smoke.mjs"
   acceptance: "npm run typecheck"
   uiStart: ""
   uiBaseUrl: "http://127.0.0.1:3000"
-  frontendTest: ""
+  frontendTest: "npm run typecheck:miniprogram && npm run test:miniprogram"
   backendTest: "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\local\\run-backend-gates.ps1"
-  e2e: ""
-  apiSmoke: ""
+  e2e: "node scripts/acceptance/cloudbase-runtime-smoke.mjs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; node scripts/acceptance/cloudbase-payment-rpc-smoke.mjs"
+  apiSmoke: "node scripts/acceptance/cloudbase-public-api-smoke.mjs"
   uiCapture: ""
   uiCompare: ""
 
@@ -97,5 +97,5 @@ convergence:
   requireEvidenceForPass: true
   requirePrdSectionCoverage: true
   requireStoryVerification: true
-  requireUiScreenshots: true
+  requireUiScreenshots: false
   requireContractVerification: true

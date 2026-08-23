@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-08-22T14:45:05.875Z",
+  "envId": "aivoice-d1g94bgoh67c6b974",
+  "rest": {
+    "status": "PASS",
+    "request": "users?select=id&limit=1",
+    "rows": 0
+  },
+  "storage": {
+    "status": "PASS",
+    "bucket": "aivoice-jobs",
+    "bytes": 14,
+    "contentType": "application/json"
+  }
+}

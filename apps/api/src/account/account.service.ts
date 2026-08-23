@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { invokeWorkerAsync } from '../db/cloudbase-worker-invoker.js';
 import { DatabaseService } from '../db/database.service.js';
 
 @Injectable()
@@ -7,6 +8,19 @@ export class AccountService {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
 
   async deleteAccount(userId: string) {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const result = await cloud.rpc<{ status: 'DELETING'; jobId?: string }>('rpc_account_delete_request', {
+        pUserId: userId,
+      });
+      if (result.jobId) {
+        await invokeWorkerAsync({
+          jobId: result.jobId,
+          type: 'DELETE_ACCOUNT',
+        });
+      }
+      return { status: result.status || 'DELETING' };
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');

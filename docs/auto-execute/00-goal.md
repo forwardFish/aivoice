@@ -1,9 +1,18 @@
 # Goal
 
-## 2026-08-21 points contract (current authority)
+## 2026-08-22 CloudBase production refactor (current authority)
+
+- Preserve the complete pre-refactor baseline at commit `423ab2a` on `main` and `codex/aivoice-pre-cloudbase-rpc-20260822`.
+- Replace the deployed embedded PostgreSQL and container-local media with CloudBase PostgreSQL REST/RPC and CloudBase PG cloud storage.
+- Keep CloudBase Run as the low-capacity public API and WeChat Pay callback service.
+- Run long CosyVoice/FFmpeg/delete work in an event-invoked Cloud Function; no client or API HTTP request waits for job completion.
+- Preserve every existing product flow and page. Invitation rewards and a visual operations admin remain deferred.
+- Payment acceptance requires one atomic database RPC for paid-order state, the 50-point grant and its ledger, shared by callback and active query-order refresh.
+
+## 2026-08-22 points contract (current authority)
 
 - Points are account-level and shared by every authorized voice profile.
-- A newly registered account receives 5 signup points exactly once.
+- A newly registered account receives 10 signup points exactly once.
 - A successfully completed generation consumes 1 point exactly once; failed generations consume 0.
 - The only MVP purchase product is 50 points for CNY 9.90, non-subscription, and it may be purchased repeatedly.
 - Signup points, generation cost, package points, price and validity are backend-configurable. The mini-program never owns or invents a balance.
@@ -25,7 +34,8 @@
 
 - Local: `D:\lyh\agent\agent-frame\aivoice`
 - Remote: `https://github.com/forwardFish/aivoice`
-- Working branch: `codex/aivoice-fullstack`
+- Working branch: `codex/aivoice-cloudbase-rest-rpc`
+- Preserved fallback branch: `codex/aivoice-pre-cloudbase-rpc-20260822` at `423ab2a`
 
 ## Sources
 
@@ -48,10 +58,14 @@
 10. 前端、后端、合同、数据库、集成、声音与安全验证均有证据。
 11. 11 张 UI 参考状态均映射到真实页面/组件；登录页存在，独立积分购买页补齐，主要差异有开发者工具截图和比较证据。
 12. 本地可验证功能覆盖登录边界、SELF/OTHER/MINOR、对话、说一句、删除、零积分购买触发与草稿保留；真实 AppID 和真实扣款明确作为外部凭据门禁。
+13. CloudBase PostgreSQL REST/RPC 成为生产唯一持久数据路径，生产容器不再启动嵌入式 PostgreSQL。
+14. CloudBase PG 云存储成为生产媒体路径，100MB 视频使用签名 URL 直传而不是经过 Run 请求体。
+15. 支付回调和主动查单并发时只产生一次 `PURCHASE_GRANT` 和一次 `+50`，并通过真实 CloudBase RPC 证据证明。
+16. 超过 60 秒的 FFmpeg/CosyVoice 任务由异步云函数执行并可重试，API 只创建持久任务并返回 202。
 
 ## Out of scope
 
-实时语音通话、长期人格记忆、公开音色、音频下载、外呼、开放 API、自动说话人身份判定、OSS 和生产发布。当前用户明确要求本地文件完成本地测试，OSS 延后。
+实时语音通话、长期人格记忆、公开音色、音频下载、外呼、开放 API、自动说话人身份判定、邀请积分奖励和可视化运营后台。CloudBase 云存储、部署和微信支付现在属于本次范围。
 
 ## Stop conditions
 
@@ -59,4 +73,4 @@
 
 ## Final verdict
 
-`PASS_WITH_LIMITATION` for the local functional/legal closure run. Formal AppID, real merchant payment, operator details, WeChat privacy declaration, applicable AI/deep-synthesis filing, production deployment, final legal review and real-device acceptance remain external launch gates.
+`PASS_WITH_LIMITATION`: CloudBase REST/RPC, private storage, on-demand Function Worker, real Aliyun cloning, exact speech, AI chat, point debits, payment idempotency and provider/storage deletion passed on the live environment. Real WeChat login, merchant public-key configuration, a real charge/callback, domain allowlists, device testing and platform review remain manual launch gates.

@@ -51,6 +51,27 @@
       "assigned_tasks": ["AV-023 deletion lifecycle review"],
       "allowed_paths": [],
       "evidence": ["verifier final report with provider/DB/filesystem acceptance conditions"]
+    },
+    {
+      "id": "/root/cloudbase_architecture",
+      "role": "CloudBase Architect",
+      "assigned_tasks": ["CB-ARCH-001 REST/RPC, storage, worker and payment architecture contract"],
+      "allowed_paths": ["docs/auto-execute/CLOUDBASE_REST_RPC_ARCHITECTURE.md"],
+      "evidence": ["docs/auto-execute/CLOUDBASE_REST_RPC_ARCHITECTURE.md"]
+    },
+    {
+      "id": "/root/cloudbase_test_plan",
+      "role": "CloudBase Test Engineer",
+      "assigned_tasks": ["CB-TEST-001 hard verification matrix"],
+      "allowed_paths": ["docs/auto-execute/CLOUDBASE_REFACTOR_TEST_PLAN.md"],
+      "evidence": ["docs/auto-execute/CLOUDBASE_REFACTOR_TEST_PLAN.md"]
+    },
+    {
+      "id": "/root/direct_db_map",
+      "role": "Repository Explorer",
+      "assigned_tasks": ["CB-MAP-001 direct database and local media dependency map"],
+      "allowed_paths": [],
+      "evidence": ["explorer final report"]
     }
   ],
   "external_collaboration": {

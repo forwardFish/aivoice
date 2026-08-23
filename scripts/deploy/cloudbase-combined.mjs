@@ -34,7 +34,10 @@ state.envId = targetEnvId;
 state.runEnvId = runEnvId;
 state.serviceName = serviceName;
 state.mediaSigningSecret ||= crypto.randomBytes(32).toString('hex');
-state.providerEncryptionKey ||= crypto.randomBytes(32).toString('hex');
+state.providerEncryptionKey ||= crypto.randomBytes(32).toString('base64');
+if (/^[0-9a-f]{64}$/i.test(state.providerEncryptionKey)) {
+  state.providerEncryptionKey = Buffer.from(state.providerEncryptionKey, 'hex').toString('base64');
+}
 
 const databaseApp = new CloudBase({ envId: targetEnvId, region: 'ap-shanghai', secretId, secretKey });
 const runApp = new CloudBase({ envId: runEnvId, region: 'ap-shanghai', secretId, secretKey });
@@ -73,6 +76,28 @@ for (const name of migrations) {
   console.log(`migration applied ${name}`);
 }
 
+const cloudbaseSqlDir = path.join(projectRoot, 'apps/api/cloudbase');
+if (fs.existsSync(cloudbaseSqlDir)) {
+  const files = (await fsp.readdir(cloudbaseSqlDir)).filter((name) => name.endsWith('.sql')).sort();
+  for (const name of files) {
+    await query(await fsp.readFile(path.join(cloudbaseSqlDir, name), 'utf8'));
+    console.log(`cloudbase RPC applied ${name}`);
+  }
+}
+
+const runtimeProduct = {
+  code: localEnv.POINTS_PACKAGE_CODE || 'POINTS_50',
+  amountFen: Math.max(1, Number(localEnv.POINTS_PACKAGE_PRICE_FEN || 990)),
+  points: Math.max(1, Number(localEnv.POINTS_PACKAGE_AMOUNT || 50)),
+  validityDays: Math.max(1, Number(localEnv.POINTS_VALIDITY_DAYS || 180)),
+};
+await query(`
+  INSERT INTO runtime_products(product_code,amount_fen,points,validity_days,active,updated_at)
+  VALUES (${sqlString(runtimeProduct.code)},${runtimeProduct.amountFen},${runtimeProduct.points},${runtimeProduct.validityDays},true,now())
+  ON CONFLICT(product_code) DO UPDATE SET amount_fen=EXCLUDED.amount_fen,points=EXCLUDED.points,
+    validity_days=EXCLUDED.validity_days,active=true,updated_at=now()
+`);
+
 const publicBaseUrl = state.publicBaseUrl
   || 'https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com';
 state.publicBaseUrl = publicBaseUrl;
@@ -84,15 +109,27 @@ function secretFromFile(valueName, pathName) {
   return filePath && fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
 }
 
-const databaseUrl = 'postgresql://aivoice@127.0.0.1:5432/aivoice';
+if (!state.runtimeApiKey) {
+  throw new Error('CloudBase runtime API key is missing; run scripts/deploy/provision-cloudbase-runtime.mjs first');
+}
 const envParams = {
   NODE_ENV: 'production',
   PORT: '80',
-  DATABASE_URL: databaseUrl,
-  USE_EMBEDDED_POSTGRES: 'true',
+  DATABASE_BACKEND: 'cloudbase',
+  CLOUDBASE_ENV_ID: targetEnvId,
+  CLOUDBASE_API_KEY: state.runtimeApiKey,
+  CLOUDBASE_SOURCE_BUCKET: 'aivoice-source',
+  CLOUDBASE_AUDIO_BUCKET: 'aivoice-audio',
+  CLOUDBASE_JOB_EVENT_BUCKET: 'aivoice-jobs',
+  CLOUDBASE_WORKER_FUNCTION_NAME: 'aivoice-worker',
+  CLOUDBASE_WORKER_DISPATCHER: 'true',
+  CLOUDBASE_WORKER_DISPATCH_INTERVAL_MS: '15000',
+  CLOUDBASE_FUNCTION_NAMESPACE: targetEnvId,
+  CLOUDBASE_SCF_REGION: 'ap-shanghai',
+  CLOUDBASE_SCF_SECRET_ID: localEnv.CLOUDBASE_SCF_SECRET_ID || secretId,
+  CLOUDBASE_SCF_SECRET_KEY: localEnv.CLOUDBASE_SCF_SECRET_KEY || secretKey,
   SESSION_TTL_DAYS: localEnv.SESSION_TTL_DAYS || '30',
   PUBLIC_BASE_URL: publicBaseUrl,
-  MEDIA_LOCAL_ROOT: '/app/.runtime/media',
   MEDIA_SIGNING_SECRET: localEnv.MEDIA_SIGNING_SECRET || state.mediaSigningSecret,
   PROVIDER_ID_ENCRYPTION_KEY: localEnv.PROVIDER_ID_ENCRYPTION_KEY || state.providerEncryptionKey,
   WECHAT_APP_ID: localEnv.WECHAT_APP_ID || '',
@@ -109,12 +146,6 @@ const envParams = {
   WECHAT_PAY_NOTIFY_URL: `${publicBaseUrl}/v1/payments/wechat/notify`,
   WECHAT_PAY_DESCRIPTION: localEnv.WECHAT_PAY_DESCRIPTION || '那时的TA-50积分包',
   WECHAT_PAY_TEST_MODE: 'false',
-  DASHSCOPE_API_KEY: localEnv.DASHSCOPE_API_KEY || '',
-  DASHSCOPE_API_HOST: localEnv.DASHSCOPE_API_HOST || '',
-  DASHSCOPE_WORKSPACE_ID: localEnv.DASHSCOPE_WORKSPACE_ID || '',
-  AIVOICE_TARGET_MODEL: localEnv.AIVOICE_TARGET_MODEL || 'cosyvoice-v3.5-flash',
-  CHAT_MODEL: localEnv.CHAT_MODEL || 'qwen-flash',
-  VOICE_PREVIEW_TEXT: localEnv.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。',
   SIGNUP_BONUS_POINTS: localEnv.SIGNUP_BONUS_POINTS || '10',
   GENERATION_POINT_COST: localEnv.GENERATION_POINT_COST || '1',
   POINTS_PACKAGE_AMOUNT: localEnv.POINTS_PACKAGE_AMOUNT || '50',
@@ -131,7 +162,7 @@ await fsp.mkdir(stagingRoot, { recursive: true });
 for (const file of ['package.json', 'package-lock.json', 'tsconfig.base.json', 'Dockerfile']) {
   await fsp.copyFile(path.join(projectRoot, file), path.join(stagingRoot, file));
 }
-for (const dir of ['packages/contracts', 'apps/api', 'apps/worker', 'scripts/runtime']) {
+for (const dir of ['packages/contracts', 'packages/cloudbase-runtime', 'apps/api', 'scripts/runtime']) {
   const destination = path.join(stagingRoot, dir);
   await fsp.mkdir(path.dirname(destination), { recursive: true });
   await fsp.cp(path.join(projectRoot, dir), destination, {
@@ -148,10 +179,10 @@ const deployResult = await runApp.cloudrun.deploy({
   deployInfo: { ReleaseType: 'FULL' },
   serverConfig: {
     OpenAccessTypes: ['OA', 'PUBLIC', 'MINIAPP'],
-    Cpu: 1,
-    Mem: 2,
+    Cpu: 0.25,
+    Mem: 0.5,
     MinNum: 1,
-    MaxNum: 1,
+    MaxNum: 2,
     Port: 80,
     Dockerfile: 'Dockerfile',
     BuildDir: '',

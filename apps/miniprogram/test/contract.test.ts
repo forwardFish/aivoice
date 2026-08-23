@@ -29,6 +29,16 @@ test('normalizes the implemented backend voice lifecycle and permission values',
 
 test('normalizes server upload and preview response fields', () => {
   assert.deepEqual(normalizeUploadPolicy({ uploadUrl: 'http://127.0.0.1/upload', fieldName: 'file' }).fileField, 'file')
+  const signed = normalizeUploadPolicy({
+    mode: 'signed-put',
+    uploadUrl: 'https://storage.example.test/upload?token=signed',
+    method: 'PUT',
+    objectKey: 'source/user/voice/video.mp4',
+    maxBytes: 104857600
+  })
+  assert.equal(signed.mode, 'signed-put')
+  assert.equal(signed.uploadMethod, 'PUT')
+  assert.equal(signed.maxBytes, 104857600)
   assert.equal(normalizePreview({ url: 'http://127.0.0.1/audio', durationMs: 3210 }).audioUrl, 'http://127.0.0.1/audio')
 })
 
@@ -53,6 +63,9 @@ test('frontend source uses current server authority endpoints and no hardcoded c
   const profileSource = fs.readFileSync(path.join(appRoot, 'pages/create/voice-profile.ts'), 'utf8')
   assert.match(apiSource, /\/preview-played/)
   assert.match(apiSource, /uploadHeaders\.Authorization/)
+  assert.match(apiSource, /wx\.getFileSystemManager\(\)\.readFile/)
+  assert.match(apiSource, /method: 'PUT'/)
+  assert.match(apiSource, /path: '\/orders'[\s\S]*'Idempotency-Key': uuidV4\(\)/)
   assert.match(previewSource, /markVoicePreviewPlayed/)
   assert.doesNotMatch(profileSource, /CONSENT_VERSION/)
   assert.match(profileSource, /savedProfile\.consentVersion/)

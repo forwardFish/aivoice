@@ -101,12 +101,16 @@ export interface CreateVoiceResponse {
 }
 
 export interface UploadPolicyResponse {
+  mode?: 'server-upload' | 'signed-put'
   uploadUrl: string
+  uploadMethod?: 'POST' | 'PUT'
   fileField?: string
   objectKey?: string
   mediaId?: string
   headers?: Record<string, string>
   formData?: Record<string, string>
+  maxBytes?: number
+  expiresAt?: string
 }
 
 export interface UploadResult {

@@ -89,3 +89,76 @@ test('account points are registration-granted, shared, success-only and idempote
     await database.onModuleDestroy();
   }
 });
+
+test('CloudBase quota mutations use RPC and never access pg or Drizzle', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    selectOne: async (table: string) => {
+      if (table === 'point_accounts') return { balance: 10 };
+      if (table === 'voice_profiles') return { id: 'voice-cloud' };
+      if (table === 'orders') return { orderNo: 'order-cloud', amountFen: 990 };
+      if (table === 'users') return { openid: 'openid-cloud' };
+      return null;
+    },
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      if (name === 'rpc_voice_accept_preview') {
+        return { quota: { availableQuota: 10 } };
+      }
+      if (name === 'rpc_message_complete_success') return { balance: 9 };
+      if (name === 'rpc_payment_apply_success') return { balance: 59, credited: true };
+      return { updated: true };
+    },
+  };
+  const database = {
+    isCloudBase: true,
+    requireCloud: () => cloud,
+    get db(): never { throw new Error('Drizzle must not be used'); },
+    get pool(): never { throw new Error('pg must not be used'); },
+  } as unknown as DatabaseService;
+  const quota = new QuotaService(database);
+
+  assert.equal((await quota.getPoints('user-cloud')).balance, 10);
+  assert.equal((await quota.getQuota('user-cloud', 'voice-cloud')).availableQuota, 10);
+  assert.equal((await quota.acceptPreview('user-cloud', 'voice-cloud')).availableQuota, 10);
+  assert.equal((await quota.completeMessage({
+    userId: 'user-cloud',
+    voiceId: 'voice-cloud',
+    messageId: 'message-cloud',
+    outputText: '成功生成',
+    generatedMedia: {
+      objectKey: 'generated/message-cloud.wav',
+      mimeType: 'audio/wav',
+      bytes: 1234,
+      durationMs: 1000,
+      sha256: 'a'.repeat(64),
+    },
+  })).availableQuota, 9);
+  await quota.failMessage({
+    userId: 'user-cloud',
+    messageId: 'failed-cloud',
+    code: 'PROVIDER_FAILED',
+    message: 'provider failed',
+  });
+  assert.equal((await quota.grantPurchasedPoints({
+    userId: 'user-cloud',
+    orderId: 'order-id-cloud',
+    orderNo: 'order-cloud',
+    transactionId: 'transaction-cloud',
+    paidAt: new Date('2026-08-22T00:00:00.000Z'),
+    appId: 'wx-cloud',
+    mchId: 'mch-cloud',
+    payerOpenid: 'openid-cloud',
+    amountFen: 990,
+  })).availableQuota, 59);
+
+  assert.deepEqual(calls.map((item) => item.name), [
+    'rpc_voice_accept_preview',
+    'rpc_message_complete_success',
+    'rpc_message_complete_failure',
+    'rpc_payment_apply_success',
+  ]);
+  const payment = calls.at(-1)?.args;
+  assert.equal(payment?.pAmountFen, 990);
+  assert.equal(payment?.pPayerOpenid, 'openid-cloud');
+});

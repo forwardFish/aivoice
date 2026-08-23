@@ -1,23 +1,26 @@
 {
   "goal": {
-    "id": "AIVOICE-MVP-001",
-    "statement": "Migrate reusable WeChat login/payment foundations, implement the full aivoice PRD, integrate the external ChatGPT Pro native mini-program frontend, and verify the full stack.",
+    "id": "AIVOICE-CLOUDBASE-002",
+    "statement": "Migrate the complete aivoice product to CloudBase Run, CloudBase PostgreSQL REST/RPC, PG cloud storage and event Cloud Functions while preserving every existing flow and real WeChat Pay semantics.",
     "source": "user_goal_mode",
     "project_root": "D:\\lyh\\agent\\agent-frame\\aivoice",
     "status": "active",
     "success_criteria": [
       "Native WeChat mini-program implements P0-P9 and exact PRD flows",
-      "NestJS API and PostgreSQL are authoritative for auth, voices, payments, quotas and jobs",
+      "NestJS API and CloudBase PostgreSQL REST/RPC are authoritative for auth, voices, payments, points and jobs",
       "Aliyun CosyVoice enrollment and synthesis are integrated behind VoiceProvider",
       "WeChat login and Pay v3 are migrated and hardened",
       "Trial and paid quotas are idempotent, transactional and success-only",
+      "CloudBase PG storage replaces production local media and supports signed 100MB direct upload",
+      "Event Cloud Function Worker executes FFmpeg, CosyVoice, generation and deletion asynchronously",
+      "WeChat callback and active refresh converge through one atomic grant-once payment RPC",
       "Frontend/backend/full-flow/security/final gates produce evidence"
     ],
-    "out_of_scope": ["production deployment", "real payment charge", "realtime calls", "public voice marketplace"],
-    "final_verdict": null
+    "out_of_scope": ["invitation rewards", "visual operations admin", "realtime calls", "public voice marketplace"],
+    "final_verdict": "PASS_WITH_LIMITATION"
   },
   "total_task": {
-    "id": "TOTAL-AIVOICE-MVP-001",
+    "id": "TOTAL-AIVOICE-CLOUDBASE-002",
     "decomposition_path": "docs/auto-execute/02-task-decomposition.md",
     "state_path": "docs/auto-execute/state.json",
     "orchestration_path": "docs/auto-execute/agent-orchestration.json",

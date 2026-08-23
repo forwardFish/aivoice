@@ -193,7 +193,9 @@ test('purchase page confirms local paid order and returns to the workbench', asy
       }
       throw new Error(`unexpected request: ${url}`)
     },
-    requestPayment: () => undefined,
+    requestPayment: (options: any) => {
+      queueMicrotask(() => options.success?.())
+    },
     showToast: () => undefined,
     navigateBack: () => { navigatedBack += 1 },
     redirectTo: ({ url }: any) => { redirectedUrl = String(url || '') },

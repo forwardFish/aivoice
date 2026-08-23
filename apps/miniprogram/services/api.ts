@@ -49,6 +49,7 @@ import {
   normalizeVoices
 } from '../models/normalize'
 import { clearAuth, getToken, setPostLoginRoute } from '../utils/storage'
+import { uuidV4 } from '../utils/uuid'
 
 export class ApiError extends Error {
   statusCode: number
@@ -214,6 +215,9 @@ export function uploadToPolicy(options: {
   if (!policy.uploadUrl) {
     return Promise.reject(new ApiError('上传凭证缺少上传地址。', { code: 'INVALID_UPLOAD_POLICY' }))
   }
+  if (policy.mode === 'signed-put' || policy.uploadMethod === 'PUT') {
+    return uploadToSignedPut(policy, filePath, onProgress)
+  }
   return new Promise((resolve, reject) => {
     const uploadHeaders: Record<string, string> = { ...(policy.headers || {}) }
     const token = getToken()
@@ -260,6 +264,68 @@ export function uploadToPolicy(options: {
     if (task && typeof task.onProgressUpdate === 'function' && onProgress) {
       task.onProgressUpdate((event: any) => onProgress(Math.max(0, Math.min(100, Number(event.progress || 0)))))
     }
+  })
+}
+
+function uploadToSignedPut(
+  policy: UploadPolicyResponse,
+  filePath: string,
+  onProgress?: (progress: number) => void
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    onProgress?.(1)
+    wx.getFileSystemManager().readFile({
+      filePath,
+      success(file: any) {
+        const data = file && file.data
+        const bytes = data && typeof data.byteLength === 'number' ? Number(data.byteLength) : 0
+        if (!data || bytes <= 0) {
+          reject(new ApiError('无法读取待上传视频。', { code: 'INVALID_MEDIA' }))
+          return
+        }
+        if (policy.maxBytes && bytes > policy.maxBytes) {
+          reject(new ApiError('视频文件过大，请裁短或压缩后重试。', { code: 'VIDEO_TOO_LARGE' }))
+          return
+        }
+        onProgress?.(10)
+        wx.request({
+          url: policy.uploadUrl,
+          method: 'PUT',
+          data,
+          header: { ...(policy.headers || {}) },
+          timeout: UPLOAD_TIMEOUT_MS,
+          success(response: any) {
+            const statusCode = Number(response.statusCode || 0)
+            if (statusCode < 200 || statusCode >= 300) {
+              reject(new ApiError(`视频上传失败（HTTP ${statusCode}）。`, {
+                statusCode,
+                code: 'UPLOAD_FAILED'
+              }))
+              return
+            }
+            onProgress?.(100)
+            const headers = bodyRecord(response.header)
+            resolve({
+              objectKey: policy.objectKey,
+              mediaId: policy.mediaId,
+              etag: String(headers.etag || headers.ETag || '') || undefined
+            })
+          },
+          fail(error: any) {
+            reject(new ApiError(error.errMsg || error.message || '视频上传失败，请重试。', {
+              code: 'UPLOAD_FAILED',
+              data: bodyRecord(error)
+            }))
+          }
+        })
+      },
+      fail(error: any) {
+        reject(new ApiError(error.errMsg || error.message || '无法读取待上传视频。', {
+          code: 'INVALID_MEDIA',
+          data: bodyRecord(error)
+        }))
+      }
+    })
   })
 }
 
@@ -459,7 +525,8 @@ export async function createOrder(productCode: string, voiceId: string): Promise
   return normalizeCreateOrder(await requestRaw({
     path: '/orders',
     method: 'POST',
-    data: { productCode, voiceId }
+    data: { productCode, voiceId },
+    headers: { 'Idempotency-Key': uuidV4() }
   }))
 }
 

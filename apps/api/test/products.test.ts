@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { DatabaseService } from '../src/db/database.service.js';
 import { ProductsController } from '../src/orders/order.controller.js';
+import { OrderService } from '../src/orders/order.service.js';
 import { loadPointsConfig } from '../src/quota/points.config.js';
 
 test('registration bonus defaults to the approved 10 points', () => {
@@ -41,6 +43,66 @@ test('products endpoint shape is sourced from backend point configuration', () =
       title: '60积分包',
       description: '每次生成消耗2积分',
     }]);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test('CloudBase order creation freezes the approved product and payment identity through RPC', async () => {
+  const previous = {
+    WECHAT_APP_ID: process.env.WECHAT_APP_ID,
+    WECHAT_PAY_MCH_ID: process.env.WECHAT_PAY_MCH_ID,
+  };
+  Object.assign(process.env, { WECHAT_APP_ID: 'wx-cloud', WECHAT_PAY_MCH_ID: 'mch-cloud' });
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    selectOne: async () => ({ openid: 'openid-cloud' }),
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      return {
+        id: 'order-cloud',
+        orderNo: args.pOrderNo,
+        userId: args.pUserId,
+        productCode: args.pProductCode,
+        amountFen: args.pAmountFen,
+        points: args.pPoints,
+      };
+    },
+  };
+  const database = {
+    isCloudBase: true,
+    requireCloud: () => cloud,
+    get db(): never { throw new Error('Drizzle must not be used'); },
+    get pool(): never { throw new Error('pg must not be used'); },
+  } as unknown as DatabaseService;
+  try {
+    const service = new OrderService(database);
+    await assert.rejects(
+      service.createOrder('user-cloud', { productCode: 'POINTS_50' }),
+      /Idempotency-Key is required/,
+    );
+    const order = await service.createOrder(
+      'user-cloud',
+      { productCode: 'POINTS_50' },
+      'order-request-1',
+    );
+    const repeated = await service.createOrder(
+      'user-cloud',
+      { productCode: 'POINTS_50' },
+      'order-request-1',
+    );
+    assert.equal(order.amountFen, 990);
+    assert.equal(order.points, 50);
+    assert.equal(calls[0]?.name, 'rpc_order_create');
+    assert.equal(calls[0]?.args.pPayerOpenid, 'openid-cloud');
+    assert.equal(calls[0]?.args.pAppid, 'wx-cloud');
+    assert.equal(calls[0]?.args.pMchid, 'mch-cloud');
+    assert.equal(calls[0]?.args.pIdempotencyKey, 'order-request-1');
+    assert.equal(repeated.id, order.id);
+    assert.equal(calls[1]?.args.pIdempotencyKey, 'order-request-1');
   } finally {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];

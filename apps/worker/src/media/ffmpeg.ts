@@ -4,6 +4,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
+const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
 
 export async function extractReference(input: {
   videoPath: string;
@@ -14,7 +15,7 @@ export async function extractReference(input: {
   const durationMs = input.endMs - input.startMs;
   if (durationMs < 10_000 || durationMs > 30_000) throw new Error('reference clip must be 10-30 seconds');
   await fs.mkdir(path.dirname(input.outputPath), { recursive: true });
-  await execFileAsync('ffmpeg', [
+  await execFileAsync(ffmpegPath, [
     '-hide_banner', '-nostdin', '-loglevel', 'error', '-y',
     '-ss', (input.startMs / 1000).toFixed(3),
     '-i', input.videoPath,
@@ -25,16 +26,31 @@ export async function extractReference(input: {
 }
 
 export async function probeWav(filePath: string): Promise<{ durationMs: number; bytes: number }> {
-  const [{ stdout }, stat] = await Promise.all([
-    execFileAsync('ffprobe', [
-      '-v', 'error', '-show_entries', 'format=duration:stream=codec_name,sample_rate,channels', '-of', 'json', filePath,
-    ], { timeout: 20_000, encoding: 'utf8' }),
-    fs.stat(filePath),
-  ]);
-  const data = JSON.parse(stdout) as { format?: { duration?: string }; streams?: Array<{ codec_name?: string; sample_rate?: string; channels?: number }> };
-  const stream = data.streams?.[0];
-  if (!stream || stream.codec_name !== 'pcm_s16le' || stream.sample_rate !== '24000' || stream.channels !== 1) {
+  const buffer = await fs.readFile(filePath);
+  if (buffer.length < 44 || buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WAVE') {
     throw new Error('reference WAV contract failed');
   }
-  return { durationMs: Math.round(Number(data.format?.duration || 0) * 1000), bytes: stat.size };
+  let offset = 12;
+  let format: { audioFormat: number; channels: number; sampleRate: number; bitsPerSample: number } | null = null;
+  let dataBytes = 0;
+  while (offset + 8 <= buffer.length) {
+    const id = buffer.toString('ascii', offset, offset + 4);
+    const declaredSize = buffer.readUInt32LE(offset + 4);
+    const size = Math.min(declaredSize, Math.max(0, buffer.length - offset - 8));
+    if (id === 'fmt ' && size >= 16) {
+      format = {
+        audioFormat: buffer.readUInt16LE(offset + 8),
+        channels: buffer.readUInt16LE(offset + 10),
+        sampleRate: buffer.readUInt32LE(offset + 12),
+        bitsPerSample: buffer.readUInt16LE(offset + 22),
+      };
+    }
+    if (id === 'data') dataBytes = size;
+    offset += 8 + size + (size % 2);
+  }
+  if (!format || format.audioFormat !== 1 || format.channels !== 1 || format.sampleRate !== 24_000 || format.bitsPerSample !== 16 || dataBytes <= 0) {
+    throw new Error('reference WAV contract failed');
+  }
+  const bytesPerSecond = format.sampleRate * format.channels * (format.bitsPerSample / 8);
+  return { durationMs: Math.round((dataBytes / bytesPerSecond) * 1000), bytes: buffer.length };
 }

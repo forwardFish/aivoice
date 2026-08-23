@@ -51,6 +51,34 @@ export class AuthService {
     const nickname = String(input.profile?.nickname || '').trim().slice(0, 40);
     const avatarUrl = String(input.profile?.avatarUrl || '').trim().slice(0, 500);
 
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const loginResult = await cloud.rpc<{
+        user: typeof users.$inferSelect;
+      }>('rpc_auth_login_wechat', {
+        pOpenid: wechat.openid,
+        pUnionid: wechat.unionid || null,
+        pNickname: nickname,
+        pAvatarUrl: avatarUrl,
+        pSignupBonusPoints: Number(process.env.SIGNUP_BONUS_POINTS || 10),
+      });
+      const user = loginResult.user;
+      if (!user) throw new UnauthorizedException('user not found');
+      const token = randomBytes(32).toString('base64url');
+      const ttlDays = Math.max(1, Number(process.env.SESSION_TTL_DAYS || 30));
+      await cloud.rpc('rpc_auth_issue_session', {
+        pUserId: user.id,
+        pTokenHash: tokenHash(token),
+        pExpiresAt: new Date(Date.now() + ttlDays * 86_400_000).toISOString(),
+      });
+      return {
+        token,
+        user: publicUser(user),
+        trialEligibility: trialEligibility(user),
+        points: await new QuotaService(this.database).getPoints(user.id),
+      };
+    }
+
     const [user] = await this.database.db
       .insert(users)
       .values({
@@ -88,6 +116,23 @@ export class AuthService {
   }
 
   async me(userId: string) {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const user = await cloud.selectOne<typeof users.$inferSelect>('users', {
+        filters: { id: userId, deletedAt: { is: null } },
+      });
+      if (!user) throw new UnauthorizedException('user not found');
+      const voices = await cloud.select<{ id: string }>('voice_profiles', {
+        select: 'id',
+        filters: { userId, deletedAt: { is: null } },
+      });
+      return {
+        user: publicUser(user),
+        trialEligibility: trialEligibility(user),
+        voiceCount: voices.length,
+        points: await new QuotaService(this.database).getPoints(userId),
+      };
+    }
     const user = await this.database.db.query.users.findFirst({
       where: and(eq(users.id, userId), isNull(users.deletedAt)),
     });
@@ -107,6 +152,15 @@ export class AuthService {
   async updateProfile(userId: string, input: { nickname?: string; avatarUrl?: string }) {
     const nickname = input.nickname === undefined ? undefined : input.nickname.trim().slice(0, 40);
     const avatarUrl = input.avatarUrl === undefined ? undefined : input.avatarUrl.trim().slice(0, 500);
+    if (this.database.isCloudBase) {
+      const [user] = await this.database.requireCloud().update<typeof users.$inferSelect>('users', {
+        ...(nickname !== undefined ? { nickname } : {}),
+        ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+        updatedAt: new Date().toISOString(),
+      }, { filters: { id: userId, deletedAt: { is: null } } });
+      if (!user) throw new UnauthorizedException('user not found');
+      return { user: publicUser(user) };
+    }
     const [user] = await this.database.db.update(users).set({
       ...(nickname !== undefined ? { nickname } : {}),
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
@@ -118,6 +172,22 @@ export class AuthService {
 
   async authenticate(rawToken: string): Promise<AuthenticatedUser | null> {
     if (!rawToken) return null;
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const session = await cloud.selectOne<{ userId: string }>('sessions', {
+        select: 'user_id',
+        filters: {
+          tokenHash: tokenHash(rawToken),
+          expiresAt: { gt: new Date().toISOString() },
+          revokedAt: { is: null },
+        },
+      });
+      if (!session) return null;
+      const user = await cloud.selectOne<typeof users.$inferSelect>('users', {
+        filters: { id: session.userId, deletedAt: { is: null } },
+      });
+      return user ? publicUser(user) : null;
+    }
     const rows = await this.database.db
       .select({ user: users })
       .from(sessions)
@@ -134,6 +204,12 @@ export class AuthService {
 
   async revoke(rawToken: string): Promise<void> {
     if (!rawToken) return;
+    if (this.database.isCloudBase) {
+      await this.database.requireCloud().rpc('rpc_auth_revoke_session', {
+        pTokenHash: tokenHash(rawToken),
+      });
+      return;
+    }
     await this.database.db
       .update(sessions)
       .set({ revokedAt: new Date(), updatedAt: new Date() })

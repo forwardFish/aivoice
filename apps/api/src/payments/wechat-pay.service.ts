@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import { BadGatewayException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
-import { orders, users } from '../db/schema.js';
+import { users } from '../db/schema.js';
 import { OrderService } from '../orders/order.service.js';
 import { QuotaService } from '../quota/quota.service.js';
 import { loadWechatPayConfig, type WechatPayConfig } from './payment.config.js';
@@ -198,30 +198,29 @@ export class WechatPayService {
       throw new ConflictException('local test payment is disabled');
     }
     const order = await this.orderService.findUserOrder(userId, orderId);
-    const paidAt = order.paidAt || new Date();
+    const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
     const transactionId = order.transactionId || `mock-tx-${order.id}`;
-    if (order.status !== 'PAID' || order.transactionId !== transactionId) {
-      await this.orderService.markPaid(order.id, transactionId, paidAt);
-    }
     const points = await this.quotaService.grantPurchasedPoints({
       userId: order.userId,
       orderId: order.id,
       transactionId,
       paidAt,
+      orderNo: order.orderNo,
     });
-    const refreshedOrder = await this.database.db.query.orders.findFirst({
-      where: and(eq(orders.id, order.id), eq(orders.userId, userId)),
-    });
-    if (!refreshedOrder) throw new UnauthorizedException('order not found');
+    const refreshedOrder = await this.orderService.findUserOrder(userId, orderId);
     return { order: refreshedOrder, granted: true, points, testMode: true };
   }
 
-  async validateAndGrant(transaction: WechatTransaction) {
+  async validateAndGrant(transaction: WechatTransaction, context: { notifyDigest?: string } = {}) {
     if (transaction.appid !== this.config.appId || transaction.mchid !== this.config.mchId) {
       throw new UnauthorizedException('WeChat Pay appid/mchid mismatch');
     }
     const order = await this.orderService.findByOrderNo(transaction.out_trade_no);
-    const user = await this.database.db.query.users.findFirst({ where: eq(users.id, order.userId) });
+    const user = this.database.isCloudBase
+      ? await this.database.requireCloud().selectOne<typeof users.$inferSelect>('users', {
+        filters: { id: order.userId, deletedAt: { is: null } },
+      })
+      : await this.database.db.query.users.findFirst({ where: eq(users.id, order.userId) });
     if (!user) throw new UnauthorizedException('order user not found');
     if (Number(transaction.amount?.total) !== order.amountFen) throw new UnauthorizedException('PAYMENT_MISMATCH');
     if (!transaction.payer?.openid || transaction.payer.openid !== user.openid) {
@@ -232,6 +231,12 @@ export class WechatPayService {
       orderId: order.id,
       transactionId: transaction.transaction_id,
       paidAt: transaction.success_time ? new Date(transaction.success_time) : new Date(),
+      orderNo: order.orderNo,
+      notifyDigest: context.notifyDigest,
+      appId: transaction.appid,
+      mchId: transaction.mchid,
+      payerOpenid: transaction.payer.openid,
+      amountFen: Number(transaction.amount?.total),
     });
   }
 
@@ -285,6 +290,22 @@ export class WechatPayService {
       nonce: resource.nonce,
       associatedData: resource.associated_data || '',
     })) as WechatTransaction;
-    if (transaction.trade_state === 'SUCCESS') await this.validateAndGrant(transaction);
+    const notifyDigest = crypto.createHash('sha256').update(input.rawBody).digest('hex');
+    if (this.database.isCloudBase) {
+      const resourceDigest = crypto.createHash('sha256')
+        .update(JSON.stringify(transaction))
+        .digest('hex');
+      await this.database.requireCloud().rpc('rpc_payment_record_notify_event', {
+        pEventId: String(input.body.id || notifyDigest),
+        pOrderNo: transaction.out_trade_no || '',
+        pRequestId: header(input.headers, 'request-id') || header(input.headers, 'wechatpay-request-id'),
+        pRawDigest: notifyDigest,
+        pResourceDigest: resourceDigest,
+        pPayload: input.body,
+      });
+    }
+    if (transaction.trade_state === 'SUCCESS') {
+      await this.validateAndGrant(transaction, { notifyDigest });
+    }
   }
 }

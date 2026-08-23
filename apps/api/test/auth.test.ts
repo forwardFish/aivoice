@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { AuthService } from '../src/auth/auth.service.js';
 import { WechatCodeExchanger } from '../src/auth/wechat-code-exchanger.js';
+import type { DatabaseService } from '../src/db/database.service.js';
 
 function restoreEnv(name: string, value: string | undefined): void {
   if (value === undefined) delete process.env[name];
@@ -46,4 +48,55 @@ test('production forbids mock login and real code2Session never exposes session_
     restoreEnv('WECHAT_APP_ID', previous.WECHAT_APP_ID);
     restoreEnv('WECHAT_APP_SECRET', previous.WECHAT_APP_SECRET);
   }
+});
+
+test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or pg', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      if (name === 'rpc_auth_login_wechat') {
+        return {
+          user: {
+            id: 'user-cloud',
+            openid: 'openid-cloud',
+            unionid: 'unionid-cloud',
+            nickname: '云端用户',
+            avatarUrl: 'https://example.test/avatar.png',
+            trialCustomGenerationGrantedAt: null,
+            trialCustomGenerationConsumedAt: null,
+          },
+        };
+      }
+      return { sessionId: 'session-cloud' };
+    },
+    selectOne: async (table: string) => {
+      assert.equal(table, 'point_accounts');
+      return { balance: 10 };
+    },
+  };
+  const database = {
+    isCloudBase: true,
+    requireCloud: () => cloud,
+    get db(): never { throw new Error('Drizzle must not be used'); },
+    get pool(): never { throw new Error('pg must not be used'); },
+  } as unknown as DatabaseService;
+  const exchanger = {
+    exchange: async () => ({ openid: 'openid-cloud', unionid: 'unionid-cloud' }),
+  } as unknown as WechatCodeExchanger;
+
+  const result = await new AuthService(database, exchanger).login({
+    code: 'wx-code',
+    profile: { nickname: '云端用户', avatarUrl: 'https://example.test/avatar.png' },
+  });
+
+  assert.equal(result.user.id, 'user-cloud');
+  assert.equal(result.points.balance, 10);
+  assert.ok(result.token.length > 20);
+  assert.deepEqual(calls.map((item) => item.name), [
+    'rpc_auth_login_wechat',
+    'rpc_auth_issue_session',
+  ]);
+  assert.equal(calls[0]?.args.pSignupBonusPoints, 10);
+  assert.equal(typeof calls[1]?.args.pTokenHash, 'string');
 });

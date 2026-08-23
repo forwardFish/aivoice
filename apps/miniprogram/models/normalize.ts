@@ -146,13 +146,19 @@ export function normalizeVoices(input: unknown): VoicesResponse {
 
 export function normalizeUploadPolicy(input: unknown): UploadPolicyResponse {
   const raw = record(record(input).policy || input)
+  const method = stringOr(raw.uploadMethod ?? raw.upload_method ?? raw.method, 'POST').toUpperCase()
+  const mode = stringOr(raw.mode, method === 'PUT' ? 'signed-put' : 'server-upload')
   return {
+    mode: mode === 'signed-put' ? 'signed-put' : 'server-upload',
     uploadUrl: stringOr(raw.uploadUrl ?? raw.upload_url ?? raw.url),
+    uploadMethod: method === 'PUT' ? 'PUT' : 'POST',
     fileField: stringOr(raw.fileField ?? raw.file_field ?? raw.fieldName ?? raw.field_name ?? raw.name, 'file'),
     objectKey: stringOr(raw.objectKey ?? raw.object_key ?? raw.key) || undefined,
     mediaId: stringOr(raw.mediaId ?? raw.media_id) || undefined,
     headers: record(raw.headers) as Record<string, string>,
-    formData: record(raw.formData ?? raw.form_data ?? raw.fields) as Record<string, string>
+    formData: record(raw.formData ?? raw.form_data ?? raw.fields) as Record<string, string>,
+    maxBytes: raw.maxBytes == null && raw.max_bytes == null ? undefined : numberOr(raw.maxBytes ?? raw.max_bytes),
+    expiresAt: stringOr(raw.expiresAt ?? raw.expires_at) || undefined
   }
 }
 

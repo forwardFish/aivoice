@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./dist/main.js",
+    "./cloud-function": "./dist/cloud-function.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/main.ts",
@@ -12,6 +16,7 @@
   },
   "dependencies": {
     "@aivoice/contracts": "0.1.0",
+    "@aivoice/cloudbase-runtime": "0.1.0",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.16.3"

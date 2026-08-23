@@ -14,6 +14,7 @@
     "db:migrate:prod": "node dist/db/migrate.js"
   },
   "dependencies": {
+    "@aivoice/cloudbase-runtime": "0.1.0",
     "@aivoice/contracts": "0.1.0",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
@@ -26,7 +27,8 @@
     "multer": "^2.0.2",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "tencentcloud-sdk-nodejs-scf": "^4.1.168"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",

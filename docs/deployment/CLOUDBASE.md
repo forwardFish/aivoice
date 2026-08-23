@@ -1,52 +1,60 @@
-# CloudBase deployment
+# CloudBase production deployment
 
-## Target layout
+Updated: 2026-08-23
 
-- CloudBase PostgreSQL parent environment: `aivoice-d1g94bgoh67c6b974`.
-- Cloud Run child environment: `aivoice-run-d9gu3ee7n56f21869`.
-- Combined API and Worker service: `aivoice-api`.
-- Default HTTPS origin: `https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com`.
-- Keep the existing `aiassistant-0517` environment and `express-oy31` service unchanged.
+## Live layout
+
+- PostgreSQL/Storage/Function environment: `aivoice-d1g94bgoh67c6b974`.
+- CloudBase Run environment: `aivoice-run-d9gu3ee7n56f21869`.
+- Public API service: `aivoice-api`.
+- Public HTTPS origin: `https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com`.
 - Payment callback: `https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com/v1/payments/wechat/notify`.
+- Event Worker: `aivoice-worker`, Node.js 20, 900 seconds, 2048MB.
 
-The existing `aiassistant-0517-d6en8tw82f2f7fc` environment is a legacy environment. A live `ExecutePGSql` probe returned `ResourceNotFound.InstanceNotFound`, so it cannot supply the PostgreSQL database required by the current Drizzle schema and transaction logic.
+The production runtime no longer starts embedded PostgreSQL, FFmpeg or a resident Worker in Cloud Run. The API image is stateless. `DATABASE_URL`, `USE_EMBEDDED_POSTGRES` and `MEDIA_LOCAL_ROOT` are deliberately absent from the live service.
 
-The new Personal-tier PostgreSQL resource is a shared cluster. CloudBase disables raw PostgreSQL passwords and protocol-level direct connections for this shared cluster. The seven checked-in migrations are mirrored to CloudBase PostgreSQL through the management API, but the currently running MVP container uses an embedded PostgreSQL instance so that the unchanged NestJS/Drizzle transaction code can run. This embedded database is ephemeral and is not a production persistence solution.
+## Runtime authority
 
-## Container contract
+- Simple reads and narrow writes use CloudBase PostgreSQL REST.
+- Transactions, state machines, point grants/consumes, order fulfillment, job leases and deletion use the 33 functions in `apps/api/cloudbase/0007_cloudbase_runtime_rpc.sql`.
+- Source videos upload directly to private `aivoice-source` storage with a signed PUT URL; API request bodies never carry the 100MB video.
+- Preview/generated/reference audio lives in private `aivoice-audio` storage.
+- The Run API creates durable jobs and immediately returns to the mini-program. A background dispatcher invokes the on-demand function; PostgreSQL leases deduplicate multiple API replicas and retries.
+- The function copies bundled Linux FFmpeg to `/tmp`, calls Aliyun CosyVoice/DashScope, uploads outputs and commits final state through RPC.
 
-The root `Dockerfile` builds and starts embedded PostgreSQL, the NestJS API, the Worker, and FFmpeg in one fixed Cloud Run instance. On startup it applies the checked-in Drizzle migrations before listening on port `80`. The deployment script creates a strict staging directory and excludes local environment files, certificates, private keys, authorized source videos, generated media, test evidence, and documentation from the remote build context.
-
-Required Cloud Run environment variables:
+## Live Run sizing
 
 ```text
-NODE_ENV=production
-PORT=80
-DATABASE_URL=postgresql://...
-PUBLIC_BASE_URL=https://<default-domain>
-MEDIA_LOCAL_ROOT=/app/.runtime/media
-MEDIA_SIGNING_SECRET=...
-WECHAT_APP_ID=...
-WECHAT_APP_SECRET=...
-WECHAT_PAY_MCH_ID=...
-WECHAT_PAY_SERIAL_NO=...
-WECHAT_PAY_PRIVATE_KEY=...
-WECHAT_PAY_MERCHANT_CERT=...
-WECHAT_PAY_API_V3_KEY=...
-WECHAT_PAY_PUBLIC_KEY_ID=...
-WECHAT_PAY_PUBLIC_KEY=...
-WECHAT_PAY_NOTIFY_URL=https://<default-domain>/v1/payments/wechat/notify
-WECHAT_PAY_DESCRIPTION=那时的TA-50积分包
-WECHAT_PAY_TEST_MODE=false
+CPU=0.25
+MEM=0.5GB
+MIN_INSTANCES=1
+MAX_INSTANCES=2
+DATABASE_BACKEND=cloudbase
 ```
 
-Secret values must be configured in CloudBase service settings and must not be committed or uploaded as files in the Docker build context.
+One minimum API instance is intentional because WeChat Pay callbacks must remain reachable. Media processing is not resident in that instance.
 
-## Remaining production boundary
+## Provision and deploy
 
-The public service is running and `/v1/health` returns HTTP 200. Before production release:
+```powershell
+node scripts/deploy/provision-cloudbase-runtime.mjs
+node scripts/deploy/cloudbase-worker-function.mjs
+node scripts/deploy/cloudbase-combined.mjs
+```
 
-- replace embedded PostgreSQL with a durable directly connectable database or migrate the data layer to CloudBase PostgreSQL REST/RPC;
-- move media from container-local storage to CloudBase storage;
-- download the WeChat Pay public key PEM and public-key ID from the merchant platform and configure both values;
-- complete an authenticated DevTools or real-device flow using a WeChat developer account authorized for AppID `wx106e5dcda1d1baeb`.
+Runtime API keys and provider/payment secrets are stored under `D:\lyh\secrets\aivoice\` or CloudBase environment variables. They are never committed.
+
+## Verified evidence
+
+- REST + storage smoke: `docs/auto-execute/results/cloudbase-runtime-smoke.json`.
+- Concurrent/idempotent payment RPC: `docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`.
+- Real source upload, voice enrollment, preview, exact speech, AI chat, point debit and provider/storage deletion: `docs/auto-execute/results/cloudbase-full-flow.json`.
+- The public `/v1/health` endpoint returns 200 on the current deployment.
+
+## Remaining external launch gates
+
+- Download the merchant's current WeChat Pay public key and configure `WECHAT_PAY_PUBLIC_KEY` plus `WECHAT_PAY_PUBLIC_KEY_ID`.
+- Complete one real mini-program login with a fresh `wx.login` code.
+- Complete one real ¥0.01/¥9.90 merchant payment and replay its callback.
+- Add the API/storage domains to the mini-program request/upload/download allowlists.
+- Complete real-device and WeChat review acceptance.

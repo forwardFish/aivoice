@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-08-23T00:35:00+08:00",
+  "status": "PASS_WITH_EXTERNAL_PAYMENT_GATE",
+  "databaseEnvironment": "aivoice-d1g94bgoh67c6b974",
+  "runEnvironment": "aivoice-run-d9gu3ee7n56f21869",
+  "api": {
+    "service": "aivoice-api",
+    "deployId": "011",
+    "runId": "multi_tenant_1wxwoon6Ym0YTm",
+    "status": "normal",
+    "trafficPercent": 100,
+    "cpu": 0.25,
+    "memoryGb": 0.5,
+    "minInstances": 1,
+    "maxInstances": 2,
+    "health": "PASS",
+    "origin": "https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com",
+    "databaseBackend": "cloudbase",
+    "forbiddenRuntimeVariablesAbsent": [
+      "DATABASE_URL",
+      "USE_EMBEDDED_POSTGRES",
+      "MEDIA_LOCAL_ROOT"
+    ]
+  },
+  "worker": {
+    "function": "aivoice-worker",
+    "status": "Active",
+    "runtime": "Nodejs20.19",
+    "timeoutSeconds": 900,
+    "memoryMb": 2048,
+    "ffmpegDelivery": "bundled-linux-x64-copied-to-tmp",
+    "timerRecovery": "aivoice-worker-recovery",
+    "backgroundDispatcher": true
+  },
+  "storageBuckets": [
+    "aivoice-source",
+    "aivoice-audio",
+    "aivoice-jobs"
+  ],
+  "evidence": [
+    "docs/auto-execute/results/cloudbase-runtime-smoke.json",
+    "docs/auto-execute/results/cloudbase-payment-rpc-smoke.json",
+    "docs/auto-execute/results/cloudbase-full-flow.json"
+  ],
+  "externalGates": [
+    "WECHAT_PAY_PUBLIC_KEY_ID",
+    "WECHAT_PAY_PUBLIC_KEY",
+    "real mini-program payment",
+    "real-device WeChat login and review"
+  ]
+}

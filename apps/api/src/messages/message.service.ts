@@ -3,9 +3,63 @@ import { BadRequestException, ConflictException, HttpException, Inject, Injectab
 import { evaluateContentSafety } from '@aivoice/contracts';
 import { and, desc, eq, gt, inArray } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
+import { invokeWorkerAsync } from '../db/cloudbase-worker-invoker.js';
 import { conversations, mediaAssets, messages } from '../db/schema.js';
 import { MediaService } from '../media/media.service.js';
 import { loadPointsConfig } from '../quota/points.config.js';
+
+type MessageMode = 'CHAT' | 'EXACT_SPEECH';
+type MessageStatus = typeof messages.status.enumValues[number];
+
+interface CloudMessageRow {
+  id: string;
+  conversationId: string;
+  userId: string;
+  voiceProfileId: string;
+  mode: MessageMode;
+  status: MessageStatus;
+  inputText: string;
+  outputText: string;
+  errorCode: string;
+  errorMessage: string;
+  createdAt: string | Date;
+  readyAt: string | Date | null;
+}
+
+interface CloudConversationRow {
+  id: string;
+  voiceProfileId: string;
+  clearedAt: string | Date | null;
+}
+
+interface CloudMediaRow {
+  id: string;
+  messageId: string | null;
+  durationMs: number | null;
+}
+
+interface MessageCreateRpcResult {
+  messageId: string;
+  status: MessageStatus;
+  jobId?: string;
+  idempotent?: boolean;
+  errorCode?: string;
+  availablePoints?: number;
+}
+
+function firstRpcRow<T>(value: T | T[]): T {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function errorText(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const body = 'body' in error ? (error as Error & { body?: unknown }).body : undefined;
+  if (body && typeof body === 'object') {
+    const record = body as Record<string, unknown>;
+    return [record.code, record.message, record.details, record.hint].filter(Boolean).join(' ');
+  }
+  return error.message;
+}
 
 @Injectable()
 export class MessageService {
@@ -16,12 +70,49 @@ export class MessageService {
     private readonly media: MediaService,
   ) {}
 
+  private async rethrowCloud(error: unknown, userId?: string): Promise<never> {
+    const message = errorText(error);
+    if (/MESSAGE_NOT_FOUND|message not found/i.test(message)) throw new NotFoundException('message not found');
+    if (/VOICE_NOT_FOUND|voice not found/i.test(message)) throw new NotFoundException('voice not found');
+    if (/POINT_ACCOUNT_NOT_FOUND|point account not found/i.test(message)) throw new NotFoundException('point account not found');
+    if (/POINTS_EXHAUSTED/i.test(message)) {
+      const account = userId
+        ? await this.database.requireCloud().selectOne<{ balance: number }>('point_accounts', {
+          filters: { userId },
+          select: 'balance',
+        })
+        : null;
+      const config = loadPointsConfig();
+      throw new HttpException({
+        code: 'POINTS_EXHAUSTED',
+        availablePoints: Number(account?.balance || 0),
+        generationCost: config.generationCost,
+        purchaseOption: config.product,
+      }, 402);
+    }
+    const conflictAliases: Array<[string, string]> = [
+      ['VOICE_NOT_READY', 'VOICE_NOT_READY'],
+      ['GENERATION_IN_PROGRESS', 'GENERATION_IN_PROGRESS'],
+      ['IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key is required'],
+      ['INVALID_MESSAGE_TEXT', 'message text is invalid'],
+      ['INVALID_GENERATION_COST', 'invalid generation cost'],
+    ];
+    const knownConflict = conflictAliases.find(([code]) => message.includes(code));
+    if (knownConflict) throw new ConflictException(knownConflict[1]);
+    throw error;
+  }
+
+  private async triggerJob(jobId: string | undefined) {
+    if (!jobId) return;
+    await invokeWorkerAsync({ jobId, type: 'GENERATE_MESSAGE' });
+  }
+
   async create(input: {
     userId: string;
     voiceId: string;
     idempotencyKey: string;
     text: string;
-    mode: 'CHAT' | 'EXACT_SPEECH';
+    mode: MessageMode;
   }) {
     const text = input.text.trim();
     if (!text) throw new ConflictException('text is required');
@@ -35,6 +126,45 @@ export class MessageService {
       throw new HttpException({ code: 'CONTENT_BLOCKED', reason: safety.reason }, 422);
     }
     if (!input.idempotencyKey.trim()) throw new ConflictException('Idempotency-Key is required');
+    if (this.database.isCloudBase) {
+      try {
+        const raw = await this.database.requireCloud().rpc<
+          MessageCreateRpcResult | MessageCreateRpcResult[]
+        >('rpc_message_create', {
+          pUserId: input.userId,
+          pVoiceId: input.voiceId,
+          pIdempotencyKey: input.idempotencyKey,
+          pMode: input.mode,
+          pInputText: text,
+          pGenerationCost: loadPointsConfig().generationCost,
+        });
+        const result = firstRpcRow(raw);
+        if (!result) throw new Error('CloudBase did not return the created message');
+        if (result.errorCode === 'POINTS_EXHAUSTED') {
+          const config = loadPointsConfig();
+          throw new HttpException({
+            code: 'POINTS_EXHAUSTED',
+            availablePoints: Number(result.availablePoints || 0),
+            generationCost: config.generationCost,
+            purchaseOption: config.product,
+          }, 402);
+        }
+        let jobId = result.jobId;
+        if (!jobId && result.status === 'PROCESSING') {
+          const job = await this.database.requireCloud().selectOne<{ id: string }>('jobs', {
+            select: 'id',
+            filters: { messageId: result.messageId, type: 'GENERATE_MESSAGE', status: { in: ['QUEUED', 'PROCESSING'] } },
+            order: [{ column: 'createdAt', ascending: false }],
+          });
+          jobId = job?.id;
+        }
+        await this.triggerJob(jobId);
+        return { messageId: result.messageId, status: result.status };
+      } catch (error) {
+        if (error instanceof HttpException) throw error;
+        return this.rethrowCloud(error, input.userId);
+      }
+    }
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
@@ -114,6 +244,33 @@ export class MessageService {
   }
 
   async get(userId: string, messageId: string) {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const message = await cloud.selectOne<CloudMessageRow>('messages', {
+        filters: { id: messageId, userId },
+      });
+      if (!message) throw new NotFoundException('message not found');
+      const audio = await cloud.selectOne<CloudMediaRow>('media_assets', {
+        filters: { messageId, kind: 'GENERATED_AUDIO', status: 'READY', deletedAt: null },
+        order: [{ column: 'createdAt', ascending: false }],
+      });
+      return {
+        id: message.id,
+        mode: message.mode,
+        status: message.status,
+        inputText: message.inputText,
+        outputText: message.outputText,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+        audio: audio ? {
+          mediaId: audio.id,
+          url: await this.media.signedUrl(audio.id, userId),
+          durationMs: audio.durationMs,
+        } : null,
+        createdAt: message.createdAt,
+        readyAt: message.readyAt,
+      };
+    }
     const message = await this.database.db.query.messages.findFirst({
       where: and(eq(messages.id, messageId), eq(messages.userId, userId)),
     });
@@ -140,6 +297,69 @@ export class MessageService {
   }
 
   async conversation(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const owned = await cloud.selectOne<{ id: string }>('voice_profiles', {
+        select: 'id',
+        filters: { id: voiceId, userId, deletedAt: null },
+      });
+      if (!owned) throw new NotFoundException('voice not found');
+      const conversation = await cloud.selectOne<CloudConversationRow>('conversations', {
+        filters: { voiceProfileId: voiceId },
+      });
+      if (!conversation) return { messages: [] };
+      const rows = await cloud.select<CloudMessageRow>('messages', {
+        filters: {
+          conversationId: conversation.id,
+          userId,
+          ...(conversation.clearedAt ? { createdAt: { gt: conversation.clearedAt } } : {}),
+        },
+        order: [{ column: 'createdAt', ascending: false }],
+        limit: 10,
+      });
+      rows.reverse();
+      const messageIds = rows.map((row) => row.id);
+      const audioRows = messageIds.length
+        ? await cloud.select<CloudMediaRow>('media_assets', {
+          filters: {
+            messageId: { in: messageIds },
+            kind: 'GENERATED_AUDIO',
+            status: 'READY',
+            deletedAt: null,
+          },
+        })
+        : [];
+      const audioByMessage = new Map(audioRows.map((audio) => [audio.messageId, audio]));
+      return {
+        conversationId: conversation.id,
+        messages: (await Promise.all(rows.map(async (row) => {
+          const audio = audioByMessage.get(row.id);
+          const userMessage = {
+            id: `${row.id}-user`,
+            role: 'USER' as const,
+            mode: row.mode,
+            status: 'READY' as const,
+            text: row.inputText,
+            createdAt: row.createdAt,
+          };
+          const assistantMessage = {
+            id: row.id,
+            role: 'ASSISTANT' as const,
+            mode: row.mode,
+            status: row.status,
+            text: row.outputText,
+            audio: audio ? {
+              mediaId: audio.id,
+              url: await this.media.signedUrl(audio.id, userId),
+              durationMs: audio.durationMs,
+            } : null,
+            failureCode: row.errorCode,
+            createdAt: row.createdAt,
+          };
+          return row.mode === 'CHAT' ? [userMessage, assistantMessage] : [assistantMessage];
+        }))).flat(),
+      };
+    }
     const owned = await this.database.pool.query(
       'SELECT id FROM voice_profiles WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL',
       [voiceId, userId],
@@ -202,6 +422,23 @@ export class MessageService {
   }
 
   async clearConversation(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      const cloud = this.database.requireCloud();
+      const conversation = await cloud.selectOne<CloudConversationRow>('conversations', {
+        filters: { voiceProfileId: voiceId },
+      });
+      if (!conversation) return { cleared: true };
+      const owned = await cloud.selectOne<{ id: string }>('voice_profiles', {
+        select: 'id',
+        filters: { id: voiceId, userId, deletedAt: null },
+      });
+      if (!owned) throw new NotFoundException('voice not found');
+      await cloud.update('conversations', {
+        clearedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }, { filters: { id: conversation.id } });
+      return { cleared: true };
+    }
     const conversation = await this.database.db.query.conversations.findFirst({
       where: eq(conversations.voiceProfileId, voiceId),
     });

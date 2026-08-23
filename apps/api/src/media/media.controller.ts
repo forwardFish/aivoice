@@ -20,8 +20,12 @@ export class MediaController {
 
   @Post('voices/:voiceId/upload-policy')
   @UseGuards(AuthGuard)
-  policy(@CurrentUser() user: AuthenticatedUser, @Param('voiceId') voiceId: string) {
-    return this.media.uploadPolicy(user.id, voiceId);
+  policy(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('voiceId') voiceId: string,
+    @Body() body: { fileName?: string; mimeType?: string; sizeBytes?: number },
+  ) {
+    return this.media.uploadPolicy(user.id, voiceId, body || {});
   }
 
   @Post('voices/:voiceId/media-upload')
@@ -49,9 +53,16 @@ export class MediaController {
   confirm(
     @CurrentUser() user: AuthenticatedUser,
     @Param('voiceId') voiceId: string,
-    @Body() body: { mediaId?: string },
+    @Body() body: {
+      objectKey?: string;
+      mediaId?: string;
+      fileName?: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      durationMs?: number;
+    },
   ) {
-    return this.media.confirmSourceMedia(user.id, voiceId, body.mediaId || '');
+    return this.media.confirmSourceMedia(user.id, voiceId, body || {});
   }
 
   @Get('media/:mediaId/play')
@@ -63,6 +74,13 @@ export class MediaController {
     @Res() response: Response,
   ): Promise<void> {
     const asset = await this.media.resolveSigned(mediaId, userId, Number(exp), sig);
+    if ('redirectUrl' in asset && asset.redirectUrl) {
+      response.setHeader('Cache-Control', 'private, no-store');
+      response.setHeader('Referrer-Policy', 'no-referrer');
+      response.redirect(302, asset.redirectUrl);
+      return;
+    }
+    if (!('filePath' in asset) || !asset.filePath) throw new Error('local media path is missing');
     response.type(asset.mimeType);
     response.setHeader('Content-Length', String(asset.bytes));
     response.setHeader('Cache-Control', 'private, no-store');

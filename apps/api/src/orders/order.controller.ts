@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/current-user.decorator.js';
@@ -39,8 +39,12 @@ export class OrderController {
 
   @Post()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  async create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateOrderDto) {
-    const order = await this.orderService.createOrder(user.id, body);
+  async create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: CreateOrderDto,
+    @Headers('idempotency-key') idempotencyKey = '',
+  ) {
+    const order = await this.orderService.createOrder(user.id, body, idempotencyKey);
     const prepay = await this.wechatPay.createPrepay(order, user.openid);
     return { order, paymentProvider: 'wechat', ...prepay };
   }
