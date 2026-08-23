@@ -1,58 +1,37 @@
 {
-  "checkedAt": "2026-08-23T00:25:02.152Z",
+  "checkedAt": "2026-08-23T13:20:12.591Z",
   "envId": "aivoice-d1g94bgoh67c6b974",
-  "userId": "612b6ec0-78af-40e7-b6c1-61696ed92f7f",
-  "voiceId": "fe9db8e2-cf63-4598-aaa4-407f9cdddf74",
+  "source": {
+    "path": "D:\\lyh\\agent\\agent-frame\\aivoice\\.aivoice-tmp\\cloudbase-e2e-source-small.mp4",
+    "bytes": 487052,
+    "durationMs": 25000
+  },
+  "userId": "f24d883e-83a9-4899-8b2d-9742644b9a7b",
+  "voiceId": "52df34fb-b14f-47da-a4ee-aa14a0d4e411",
+  "processJobId": "a1cdf702-e79f-4222-9103-de49309eb3cb",
   "processStatus": "READY",
-  "preview": {
-    "mediaId": "f6675726-bb89-433f-8819-25a0a871f7bb",
-    "bytes": 225164,
-    "output": "D:\\lyh\\agent\\agent-frame\\aivoice\\outputs\\cloudbase-e2e-preview.wav"
-  },
-  "exact": {
-    "messageId": "7e4924a9-c91c-4ae8-90ea-e630d76ad6f7",
-    "status": "READY",
-    "jobStatus": "SUCCEEDED",
-    "balance": 9,
-    "output": "D:\\lyh\\agent\\agent-frame\\aivoice\\outputs\\cloudbase-e2e-exact.wav",
-    "bytes": 156282,
-    "fallback": {
-      "requestId": "998be449-eb6a-42bf-8772-db0558d5413b",
-      "invokeResult": 200,
-      "retMsg": "{\"jobId\":\"0792ac35-4c79-47e9-aba3-f9488af1ab82\",\"status\":\"SUCCEEDED\"}",
-      "errMsg": ""
+  "previewMediaId": "1e240d05-13c4-425f-a845-39fd326a933f",
+  "previewOutput": "D:\\lyh\\agent\\agent-frame\\aivoice\\outputs\\cloudbase-e2e-preview.wav",
+  "deleteJobId": "4f87149a-b371-4865-8b0b-b91687d5f9d4",
+  "deleteStatus": "SUCCEEDED",
+  "cleanup": "HARD_DELETED_AFTER_FINALIZATION",
+  "status": "PASS",
+  "observations": [
+    {
+      "processInvokeRequestId": "950d27e3-3086-4be6-a83a-83c37d1553c6"
+    },
+    {
+      "deleteInvokeRequestId": "95f53224-580e-4a5b-8e51-81b5557e2705"
+    },
+    {
+      "modelStatuses": [
+        "DELETED"
+      ],
+      "assetStatuses": [
+        "DELETED",
+        "DELETED",
+        "DELETED"
+      ]
     }
-  },
-  "chat": {
-    "messageId": "dadbd59a-efac-4a68-baa4-75e4272af8b4",
-    "status": "READY",
-    "outputText": "记得休息哦，我随时在提醒你呢～",
-    "jobStatus": "SUCCEEDED",
-    "balance": 8,
-    "output": "D:\\lyh\\agent\\agent-frame\\aivoice\\outputs\\cloudbase-e2e-chat.wav",
-    "bytes": 148602,
-    "fallback": {
-      "requestId": "432df1b4-19b8-4362-a25d-0172a9099e4c",
-      "invokeResult": 200,
-      "retMsg": "{\"jobId\":\"b069eb8d-c05b-470e-bc6d-b80211f59e6e\",\"status\":\"SUCCEEDED\"}",
-      "errMsg": ""
-    }
-  },
-  "delete": {
-    "jobId": "a8a07a93-0367-4bfa-a0ee-72aeefcfece2",
-    "jobStatus": "SUCCEEDED",
-    "modelStatuses": [
-      "DELETED"
-    ],
-    "assetStatuses": [
-      "DELETED",
-      "DELETED",
-      "DELETED",
-      "DELETED",
-      "DELETED"
-    ],
-    "fallback": null
-  },
-  "cleanup": "HARD_DELETED_AFTER_PROVIDER_AND_STORAGE_FINALIZATION",
-  "status": "PASS"
+  ]
 }

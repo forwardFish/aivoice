@@ -69,6 +69,33 @@ const invoke = async (jobId, type) => {
   return result.RequestId;
 };
 
+const uploadDirect = async (bucket, objectKey, filePath, contentType) => {
+  const body = await fsp.readFile(filePath);
+  let lastError = '';
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const signed = await client.signUpload(bucket, objectKey, false);
+    const uploadUrl = new URL(signed.uploadUrl);
+    uploadUrl.searchParams.set('token', signed.token);
+    try {
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType,
+          'Content-Length': String(body.length),
+        },
+        body,
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (response.ok) return;
+      lastError = `HTTP ${response.status}: ${(await response.text()).slice(0, 500)}`;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_500 * (attempt + 1)));
+  }
+  throw new Error(`direct source upload failed after retries: ${lastError}`);
+};
+
 const poll = async (read, done, timeoutMs = 8 * 60_000) => {
   const started = Date.now();
   let value;
@@ -93,7 +120,7 @@ try {
   const [voice] = await client.insert('voice_profiles', { userId: evidence.userId, name: '' });
   evidence.voiceId = voice.id;
   const objectKey = `source/${evidence.userId}/${evidence.voiceId}/${suffix}.mp4`;
-  await client.uploadFile('aivoice-source', objectKey, videoPath, 'video/mp4');
+  await uploadDirect('aivoice-source', objectKey, videoPath, 'video/mp4');
   await client.rpc('rpc_voice_confirm_source_upload', {
     pUserId: evidence.userId,
     pVoiceId: evidence.voiceId,

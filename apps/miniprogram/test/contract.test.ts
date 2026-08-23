@@ -56,6 +56,17 @@ test('normalizes shaped conversation rows and exact speech mode', () => {
   assert.equal(result.messages[2].text, '生日快乐。')
 })
 
+test('normalizes speaker quality failures into actionable Chinese guidance', () => {
+  const voice = normalizeVoice({
+    id: 'voice-speakers',
+    status: 'FAILED',
+    failureCode: 'MULTIPLE_SPEAKERS',
+    failureMessage: 'MULTIPLE_SPEAKERS'
+  })
+  assert.equal(voice.error?.code, 'MULTIPLE_SPEAKERS')
+  assert.match(String(voice.error?.message), /多个人声/)
+})
+
 test('frontend source uses current server authority endpoints and no hardcoded consent version', () => {
   const appRoot = path.resolve(process.cwd(), 'apps/miniprogram')
   const apiSource = fs.readFileSync(path.join(appRoot, 'services/api.ts'), 'utf8')

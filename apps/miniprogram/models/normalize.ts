@@ -38,6 +38,16 @@ function stringOr(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : value == null ? fallback : String(value)
 }
 
+function voiceFailureMessage(code: string, message: string): string {
+  const messages: Record<string, string> = {
+    MULTIPLE_SPEAKERS: '检测到片段中有多个人声，请重新选择只有目标人物单独说话的片段。',
+    OVERLAPPING_SPEECH: '检测到多人重叠说话，无法安全提取目标声音，请重新选择片段。',
+    SPEAKER_UNCERTAIN: '暂时无法确认片段中是否只有一个人说话，请试听后重新选择更清晰的片段。'
+  }
+  if (message && message !== code) return message
+  return messages[code] || message || code
+}
+
 export function normalizeQuota(input: unknown): QuotaResponse {
   const outer = record(input)
   const raw = record(outer.points || outer.quota || input)
@@ -76,6 +86,8 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     message: raw.failureMessage ?? raw.failure_message,
     recoverable: true
   }
+  const errorCode = stringOr(errorRaw.code)
+  const errorText = stringOr(errorRaw.message)
   const acceptedAt = stringOr(raw.acceptedAt ?? raw.accepted_at) || undefined
   const rawStatus = normalizeVoiceStatus(raw.status)
   const status: VoiceStatus = rawStatus === 'READY' && !acceptedAt ? 'PREVIEW_READY' : rawStatus
@@ -103,8 +115,8 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     points,
     quota: points,
     error: (errorRaw.code || errorRaw.message) ? {
-      code: stringOr(errorRaw.code) || undefined,
-      message: stringOr(errorRaw.message) || undefined,
+      code: errorCode || undefined,
+      message: voiceFailureMessage(errorCode, errorText) || undefined,
       recoverable: errorRaw.recoverable !== false
     } : undefined,
     acceptedAt,

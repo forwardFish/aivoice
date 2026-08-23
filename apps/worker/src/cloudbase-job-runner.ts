@@ -13,8 +13,12 @@ import {
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
 import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
-import { inspectReferenceQuality, ReferenceQualityError } from './media/quality.js';
+import { inspectReferenceQuality, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
 import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
+import {
+  AliyunSpeakerDiarizationProvider,
+  type SpeakerDiarizationReport,
+} from './providers/aliyun-speaker-diarization.js';
 import { DashscopeChatProvider } from './providers/dashscope-chat.js';
 
 type JobType = 'PROCESS_VOICE' | 'GENERATE_MESSAGE' | 'DELETE_VOICE' | 'DELETE_ACCOUNT';
@@ -41,10 +45,15 @@ interface ChatProviderPort {
   reply(history: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
 }
 
+interface SpeakerDiarizationPort {
+  inspect(fileUrl: string): Promise<SpeakerDiarizationReport>;
+}
+
 export interface CloudBaseWorkerDependencies {
   runtime?: CloudBaseRuntimeClient;
   voiceProvider?: VoiceProviderPort;
   chatProvider?: ChatProviderPort;
+  speakerDetector?: SpeakerDiarizationPort;
   temporaryRoot?: string;
 }
 
@@ -79,6 +88,7 @@ export class CloudBaseJobRunner {
   private readonly runtime: CloudBaseRuntimeClient;
   private readonly voiceProvider: VoiceProviderPort;
   private readonly chatProvider: ChatProviderPort;
+  private readonly speakerDetector: SpeakerDiarizationPort;
   private readonly temporaryRoot: string;
   private readonly sourceBucket = process.env.CLOUDBASE_SOURCE_BUCKET || 'aivoice-source';
   private readonly audioBucket = process.env.CLOUDBASE_AUDIO_BUCKET || 'aivoice-audio';
@@ -89,6 +99,7 @@ export class CloudBaseJobRunner {
     this.runtime = dependencies.runtime || cloudBaseRuntimeFromEnv();
     this.voiceProvider = dependencies.voiceProvider || new AliyunCosyVoiceProvider();
     this.chatProvider = dependencies.chatProvider || new DashscopeChatProvider();
+    this.speakerDetector = dependencies.speakerDetector || new AliyunSpeakerDiarizationProvider();
     this.temporaryRoot = path.resolve(dependencies.temporaryRoot || process.env.WORKER_TEMP_ROOT || '/tmp/aivoice');
   }
 
@@ -163,6 +174,23 @@ export class CloudBaseJobRunner {
     });
     const quality = await inspectReferenceQuality(referencePath);
     if (!quality.acceptable && quality.failureCode) throw new ReferenceQualityError(quality.failureCode, quality);
+    let qualityReport: ReferenceQualityReport = quality;
+    if (process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED !== 'false') {
+      const qualityObjectKey = `quality/${input.userId}/${job.voiceProfileId}/${job.id}.wav`;
+      await this.runtime.uploadFile(this.audioBucket, qualityObjectKey, referencePath, 'audio/wav');
+      try {
+        const qualityUrl = await this.runtime.signDownload(this.audioBucket, qualityObjectKey, 600);
+        const speakerDiarization = await this.speakerDetector.inspect(qualityUrl);
+        qualityReport = { ...quality, speakerDiarization };
+        if (!speakerDiarization.acceptable && speakerDiarization.failureCode) {
+          throw new ReferenceQualityError(speakerDiarization.failureCode, qualityReport);
+        }
+      } finally {
+        await this.deleteObject(this.audioBucket, qualityObjectKey).catch((error) => {
+          console.error('speaker diarization temporary object cleanup failed', error);
+        });
+      }
+    }
     const existingProviderVoiceId = input.existingProviderVoiceIdEncrypted
       ? decryptProviderId(input.existingProviderVoiceIdEncrypted)
       : '';
@@ -202,7 +230,7 @@ export class CloudBaseJobRunner {
         pProvider: 'aliyun-cosyvoice',
         pTargetModel: this.voiceProvider.targetModel,
         pProviderVoiceIdEncrypted: encryptProviderId(providerVoiceId),
-        pQualityReport: quality,
+        pQualityReport: qualityReport,
       });
       finalized = true;
       await this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId });

@@ -5,7 +5,10 @@ export type ReferenceQualityFailureCode =
   | 'NO_VALID_SPEECH'
   | 'LOW_VOLUME'
   | 'TOO_MUCH_SILENCE'
-  | 'VOICE_REJECTED';
+  | 'VOICE_REJECTED'
+  | 'MULTIPLE_SPEAKERS'
+  | 'OVERLAPPING_SPEECH'
+  | 'SPEAKER_UNCERTAIN';
 
 export interface ReferenceQualityReport {
   durationSeconds: number;
@@ -17,6 +20,17 @@ export interface ReferenceQualityReport {
   activeSeconds: number;
   acceptable: boolean;
   warnings: string[];
+  speakerDiarization?: {
+    model: string;
+    speakerCount: number;
+    segmentCount: number;
+    speechMs: number;
+    overlapMs: number;
+    overlapRatio: number;
+    acceptable: boolean;
+    segments: Array<{ speakerId: string; beginMs: number; endMs: number }>;
+    failureCode?: ReferenceQualityFailureCode;
+  };
   failureCode?: ReferenceQualityFailureCode;
 }
 
