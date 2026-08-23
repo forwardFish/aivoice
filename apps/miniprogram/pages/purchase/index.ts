@@ -34,6 +34,10 @@ function isLocalTestPaymentPackage(pkg = ''): boolean {
 }
 
 function backToWorkbench(voiceId: string, mode: 'chat' | 'exact'): void {
+  if (!voiceId) {
+    wx.switchTab({ url: '/pages/account/index' })
+    return
+  }
   const pages = getCurrentPages()
   const hasWorkbenchUnderneath = pages.slice(0, -1).some((page: any) => page && page.route === 'pages/voice/workbench')
   if (pages.length > 1 && hasWorkbenchUnderneath) {
@@ -46,6 +50,7 @@ function backToWorkbench(voiceId: string, mode: 'chat' | 'exact'): void {
 Page({
   data: {
     voiceId: '',
+    purchaseScopeId: 'account',
     mode: 'exact' as 'chat' | 'exact',
     state: 'loading',
     errorMessage: '',
@@ -67,13 +72,9 @@ Page({
     this.destroyed = false
     if (!ensureAuthenticated()) return
     const voiceId = String(options.voiceId || '')
-    if (!voiceId) {
-      this.setData({ state: 'error', errorMessage: '缺少声音信息。' })
-      return
-    }
     const mode = options.mode === 'chat' ? 'chat' : 'exact'
     const productCode = String(options.productCode || '')
-    this.setData({ voiceId, mode, requestedProductCode: productCode })
+    this.setData({ voiceId, purchaseScopeId: voiceId || 'account', mode, requestedProductCode: productCode })
     this.loadData()
   },
   onShow() {
@@ -88,7 +89,7 @@ Page({
     if (showLoading) this.setData({ state: 'loading', errorMessage: '' })
     try {
       const [voice, points, productsResult] = await Promise.all([
-        getVoice(this.data.voiceId),
+        this.data.voiceId ? getVoice(this.data.voiceId) : Promise.resolve(null),
         getPoints(),
         listProducts()
       ])
@@ -101,14 +102,14 @@ Page({
       this.setData({
         state: 'success',
         errorMessage: '',
-        voiceName: voice.name,
-        voiceInitial: voiceInitial(voice.name),
+        voiceName: voice?.name || '账户积分',
+        voiceInitial: voice ? voiceInitial(voice.name) : '分',
         points,
         pointsText: pointsLabel(points),
         priceText: formatPrice(purchaseOption.amountFen),
         purchaseOption
       })
-      const pendingOrderId = getPendingOrderId(this.data.voiceId)
+      const pendingOrderId = getPendingOrderId(this.data.purchaseScopeId)
       if (pendingOrderId && !this.data.paying && !this.data.pending) {
         await this.resumePendingOrder(pendingOrderId)
       }
@@ -122,7 +123,7 @@ Page({
   },
   async submitPurchase() {
     if (this.data.paying || this.data.pending) return
-    const pendingOrderId = getPendingOrderId(this.data.voiceId)
+    const pendingOrderId = getPendingOrderId(this.data.purchaseScopeId)
     if (pendingOrderId) {
       await this.resumePendingOrder(pendingOrderId)
       return
@@ -131,18 +132,18 @@ Page({
     let paymentCompleted = false
     try {
       if (!this.data.purchaseOption) throw new Error('服务端暂未返回可购买积分商品。')
-      const result = await createOrder(this.data.purchaseOption.productCode, this.data.voiceId)
+      const result = await createOrder(this.data.purchaseOption.productCode, this.data.voiceId || undefined)
       if (!result.order.id) throw new Error('服务端未返回订单 ID。')
       this.assertProductOrder(result.order)
       if (!validPaymentParams(result.payment as any)) throw new Error('微信支付参数不完整。')
-      setPendingOrderId(this.data.voiceId, result.order.id)
+      setPendingOrderId(this.data.purchaseScopeId, result.order.id)
       this.setData({ orderId: result.order.id })
       await requestPayment(result.payment)
       paymentCompleted = true
       if (isLocalTestPaymentPackage(result.payment.package)) {
         await confirmLocalTestPayment(result.order.id)
       }
-      markPendingOrderPaymentCompleted(this.data.voiceId, result.order.id)
+      markPendingOrderPaymentCompleted(this.data.purchaseScopeId, result.order.id)
       this.setData({
         paying: false,
         pending: true,
@@ -152,13 +153,13 @@ Page({
     } catch (error: any) {
       this.setData({ paying: false })
       if (error.isPaymentCancel || error.code === 'PAYMENT_CANCELLED') {
-        clearPendingOrderId(this.data.voiceId)
+        clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({ pending: false, purchaseMessage: '', orderId: '' })
         toast('已取消支付，原输入内容已保留')
         backToWorkbench(this.data.voiceId, this.data.mode)
         return
       }
-      if (!paymentCompleted) clearPendingOrderId(this.data.voiceId)
+      if (!paymentCompleted) clearPendingOrderId(this.data.purchaseScopeId)
       this.setData({
         pending: false,
         purchaseMessage: '',
@@ -177,20 +178,20 @@ Page({
         order = await getOrder(orderId)
       }
       if (order.status === 'CLOSED' || order.status === 'REFUNDED') {
-        clearPendingOrderId(this.data.voiceId)
+        clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({ pending: false, purchaseMessage: '', orderId: '' })
         return
       }
-      const clientPaymentCompleted = pendingOrderPaymentCompleted(this.data.voiceId, orderId)
+      const clientPaymentCompleted = pendingOrderPaymentCompleted(this.data.purchaseScopeId, orderId)
       if ((order.status === 'CREATED' || order.status === 'PENDING') && !order.quotaGranted && !order.quotaGrantedAt && !clientPaymentCompleted) {
-        clearPendingOrderId(this.data.voiceId)
+        clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({ pending: false, purchaseMessage: '', orderId: '' })
         return
       }
       this.assertProductOrder(order)
       await this.pollOrderUntilGranted(orderId)
     } catch (error: any) {
-      clearPendingOrderId(this.data.voiceId)
+      clearPendingOrderId(this.data.purchaseScopeId)
       this.setData({
         pending: false,
         purchaseMessage: '',
@@ -222,7 +223,7 @@ Page({
       const points = await getPoints()
       const serverConfirmedGrant = Boolean(order.pointsGranted || order.pointsGrantedAt || order.quotaGranted || order.quotaGrantedAt)
       if (points.availablePoints > 0 && order.status === 'PAID' && serverConfirmedGrant) {
-        clearPendingOrderId(this.data.voiceId)
+        clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({
           pending: false,
           purchaseMessage: '',
@@ -235,7 +236,7 @@ Page({
         return
       }
       if (order.status === 'CLOSED' || order.status === 'REFUNDED') {
-        clearPendingOrderId(this.data.voiceId)
+        clearPendingOrderId(this.data.purchaseScopeId)
         throw new Error('订单已关闭或退款，未增加积分。')
       }
       await delay(POLL_INTERVAL_MS)

@@ -149,6 +149,9 @@ Page({
   goVoices() {
     wx.switchTab({ url: '/pages/voices/index' })
   },
+  openPurchase() {
+    wx.navigateTo({ url: '/pages/purchase/index?source=account' })
+  },
   toggleOrders() {
     this.setData({ orderExpanded: !this.data.orderExpanded })
   },

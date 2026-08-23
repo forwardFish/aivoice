@@ -1,5 +1,19 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import test from 'node:test'
+
+test('account points card opens a voice-independent purchase flow', () => {
+  const accountMarkup = fs.readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
+  const accountLogic = fs.readFileSync(new URL('../pages/account/index.ts', import.meta.url), 'utf8')
+  const purchaseLogic = fs.readFileSync(new URL('../pages/purchase/index.ts', import.meta.url), 'utf8')
+  const apiLogic = fs.readFileSync(new URL('../services/api.ts', import.meta.url), 'utf8')
+
+  assert.match(accountMarkup, /bindtap="openPurchase"/)
+  assert.match(accountLogic, /openPurchase\(\)/)
+  assert.match(purchaseLogic, /purchaseScopeId:\s*'account'/)
+  assert.doesNotMatch(purchaseLogic, /缺少声音信息/)
+  assert.match(apiLogic, /createOrder\(productCode:\s*string,\s*voiceId\?:\s*string\)/)
+})
 
 test('purchase page validates product mismatch before opening payment', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])

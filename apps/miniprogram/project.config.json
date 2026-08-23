@@ -19,5 +19,17 @@
     "checkInvalidKey": true,
     "urlCheck": false
   },
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "test"
+      },
+      {
+        "type": "suffix",
+        "value": ".tmp.png"
+      }
+    ]
+  },
   "condition": {}
 }

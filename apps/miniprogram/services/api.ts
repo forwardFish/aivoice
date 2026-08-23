@@ -521,11 +521,11 @@ export async function getMessage(messageId: string): Promise<MessageStatusRespon
   return normalizeMessageStatus(await requestRaw({ path: `/messages/${encodeURIComponent(messageId)}` }))
 }
 
-export async function createOrder(productCode: string, voiceId: string): Promise<CreateOrderResponse> {
+export async function createOrder(productCode: string, voiceId?: string): Promise<CreateOrderResponse> {
   return normalizeCreateOrder(await requestRaw({
     path: '/orders',
     method: 'POST',
-    data: { productCode, voiceId },
+    data: { productCode, ...(voiceId ? { voiceId } : {}) },
     headers: { 'Idempotency-Key': uuidV4() }
   }))
 }

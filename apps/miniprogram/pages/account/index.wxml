@@ -27,9 +27,9 @@
         <text class="summary-value">{{voiceCount}}</text>
         <text class="summary-label">我的声音</text>
       </view>
-      <view class="summary-card soft-card" bindtap="goVoices">
+      <view class="summary-card soft-card" bindtap="openPurchase">
         <text class="summary-value brand">{{availablePoints}}</text>
-        <text class="summary-label">剩余积分</text>
+        <text class="summary-label">剩余积分 · 点击购买</text>
       </view>
     </view>
 
