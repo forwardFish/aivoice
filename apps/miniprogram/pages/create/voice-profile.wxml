@@ -2,16 +2,16 @@
   <app-nav title="填写信息与授权" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view class="profile-content fade-in">
-    <text class="profile-intro">为这个声音填写名称，并确认声音使用授权</text>
+    <text class="profile-intro">信息仅用于生成声音，严格保密</text>
 
-    <view class="name-card soft-card">
-      <view class="field-heading"><text>称呼 TA</text><text>{{name.length || 0}}/20</text></view>
-      <input class="name-input" value="{{name}}" placeholder="例如：妈妈、爷爷、大学时的我" maxlength="20" bindinput="onNameInput" />
+    <view class="name-card">
+      <view class="field-heading"><text>称呼 TA</text></view>
+      <input class="name-input" value="{{name}}" placeholder="如：小雨 · 5岁" maxlength="20" bindinput="onNameInput" />
     </view>
 
     <view class="permission-section">
       <view class="permission-heading">
-        <view><text class="permission-title-main">声音使用权限</text><text class="permission-subtitle">请选择与你实际情况一致的一项</text></view>
+        <text class="permission-title-main">声音使用权限</text><text class="permission-info">ⓘ</text>
       </view>
 
       <view class="permission-list">
