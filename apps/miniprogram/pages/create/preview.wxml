@@ -10,8 +10,7 @@
   </view>
 
   <view wx:else class="preview-content fade-in">
-    <text class="preview-title">TA 的声音已生成</text>
-    <text class="preview-subtitle">完整播放一次后，即可开始使用这个声音</text>
+    <text class="preview-subtitle">TA 的声音已为你生成</text>
 
     <view class="voice-visual">
       <view class="side-wave left-wave">
@@ -36,11 +35,11 @@
 
     <text class="voice-name">{{voiceName}}</text>
 
-    <view class="preview-card soft-card">
-      <text class="preview-copy">{{previewText}}</text>
+    <view class="preview-card">
       <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
-      <text class="preview-status {{playCompleted ? 'is-complete' : ''}}">{{playCompleted ? '试听已完整播放，可以继续使用这个声音' : '请完整播放一次后再继续'}}</text>
     </view>
+    <text class="preview-copy">{{previewText}}</text>
+    <text class="preview-status {{playCompleted ? 'is-complete' : ''}}">{{playCompleted ? '试听已完整播放，可以继续使用这个声音' : '请完整播放一次后再继续'}}</text>
 
     <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
 

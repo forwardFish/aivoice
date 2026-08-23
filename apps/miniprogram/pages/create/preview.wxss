@@ -1,44 +1,43 @@
 .preview-screen { min-height: 100vh; padding-bottom: calc(38rpx + env(safe-area-inset-bottom)); }
 .state-wrap { margin: 32rpx; overflow: hidden; border-radius: 34rpx; }
 .preview-content { padding: 18rpx 40rpx 0; display: flex; flex-direction: column; align-items: center; }
-.preview-title { display: block; margin-top: 18rpx; color: #151b32; font-size: 40rpx; line-height: 1.25; font-weight: 760; text-align: center; }
-.preview-subtitle { margin-top: 10rpx; color: #8c92a7; font-size: 20rpx; line-height: 1.5; text-align: center; }
+.preview-subtitle { margin-top: 10rpx; color: #8c92a7; font-size: 24rpx; line-height: 1.5; text-align: center; }
 
-.voice-visual { width: 100%; height: 210rpx; margin-top: 30rpx; position: relative; display: flex; align-items: center; justify-content: center; }
-.side-wave { width: 112rpx; height: 68rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; opacity: .9; }
+.voice-visual { width: 100%; height: 320rpx; margin-top: 28rpx; position: relative; display: flex; align-items: center; justify-content: center; }
+.side-wave { width: 140rpx; height: 90rpx; display: flex; align-items: center; justify-content: center; gap: 9rpx; opacity: .9; }
 .left-wave { margin-right: 22rpx; }
 .right-wave { margin-left: 22rpx; }
 .wave-bar { width: 8rpx; border-radius: 999rpx; background: linear-gradient(180deg,#b59af9,#7760ef); box-shadow: 0 0 18rpx rgba(123,102,235,.16); }
 .wave-tall { height: 52rpx; }
 .wave-mid { height: 36rpx; }
 .wave-short { height: 22rpx; }
-.avatar-core { width: 156rpx; height: 156rpx; position: relative; z-index: 3; border-radius: 50%; border: 6rpx solid rgba(255,255,255,.9); box-shadow: 0 18rpx 42rpx rgba(101,82,245,.18); background: #e8e4ff; }
+.avatar-core { width: 260rpx; height: 260rpx; position: relative; z-index: 3; border-radius: 50%; border: 6rpx solid rgba(255,255,255,.9); box-shadow: 0 18rpx 42rpx rgba(101,82,245,.18); background: #e8e4ff; }
 .neutral-avatar { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 22%,#f9f7ff,#ded8ff 58%,#9a86ee); }
 .neutral-wave-image { width:88rpx; height:48rpx; }
 .visual-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 16rpx rgba(255,224,154,.95); }
 .spark-a { width: 8rpx; height: 8rpx; top: 32rpx; right: 88rpx; }
 .spark-b { width: 6rpx; height: 6rpx; bottom: 38rpx; left: 88rpx; }
-.voice-name { display: block; margin-top: 6rpx; color: #20263d; font-size: 28rpx; font-weight: 720; }
+.voice-name { display: block; margin-top: 10rpx; color: #20263d; font-size: 42rpx; font-weight: 720; }
 
-.preview-card { width: 100%; margin-top: 22rpx; padding: 28rpx 24rpx 24rpx; border-radius: 36rpx; }
-.preview-copy { display: block; color: #545c73; font-size: 20rpx; line-height: 1.6; text-align: center; }
-.preview-player { display: block; margin-top: 18rpx; }
-.preview-status { display: block; margin-top: 14rpx; color: #8f95a7; font-size: 17rpx; line-height: 1.45; text-align: center; }
+.preview-card { width: 100%; margin-top: 50rpx; }
+.preview-copy { display: block; margin-top: 18rpx; color: #7d849a; font-size: 21rpx; line-height: 1.6; text-align: center; }
+.preview-player { display: block; margin-top: 0; }
+.preview-status { display: block; margin-top: 8rpx; color: #8f95a7; font-size: 16rpx; line-height: 1.45; text-align: center; }
 .preview-status.is-complete { color: #56a471; }
 
 .inline-error { width: 100%; margin-top: 14rpx; padding: 13rpx 16rpx; border-radius: 17rpx; color: #d85b63; background: #fff0f1; font-size: 18rpx; line-height: 1.5; }
-.use-button { margin-top: 24rpx; min-height: 84rpx; }
+.use-button { margin-top: 90rpx; min-height: 84rpx; }
 .retry-button { margin-top: 12rpx; min-height: 74rpx; }
 .points-note { max-width: 580rpx; margin-top: 15rpx; color: #81879b; font-size: 16rpx; line-height: 1.55; text-align: center; }
 
 @media (max-height: 740px) {
   .preview-content { padding-top: 8rpx; }
-  .preview-title { margin-top: 12rpx; font-size: 36rpx; }
+  .preview-subtitle { margin-top: 7rpx; }
   .voice-visual { height: 176rpx; margin-top: 18rpx; }
   .avatar-core { width: 128rpx; height: 128rpx; }
   .side-wave { width: 96rpx; }
-  .preview-card { margin-top: 16rpx; padding-top: 21rpx; padding-bottom: 18rpx; }
-  .preview-player { margin-top: 12rpx; }
+  .preview-card { margin-top: 16rpx; }
+  .preview-player { margin-top: 0; }
   .use-button { margin-top: 16rpx; min-height: 76rpx; }
   .retry-button { min-height: 66rpx; }
   .points-note { margin-top: 10rpx; }
