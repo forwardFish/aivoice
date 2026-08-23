@@ -1,23 +1,22 @@
 .purchase-screen { min-height: 100vh; padding-bottom: calc(188rpx + env(safe-area-inset-bottom)); }
 .state-wrap { margin: 32rpx; overflow: hidden; border-radius: 34rpx; }
 .purchase-content { padding: 18rpx 34rpx 0; }
-.purchase-heading { padding: 3rpx 3rpx 22rpx; text-align: center; }
-.purchase-heading .page-title { font-size: 42rpx; }
-.purchase-heading .page-subtitle { margin-top: 10rpx; font-size: 22rpx; }
+.purchase-heading { padding: 3rpx 3rpx 24rpx; text-align: center; }
+.purchase-heading .page-subtitle { margin-top: 0; font-size: 22rpx; }
 
-.product-card { padding: 36rpx 30rpx 30rpx; border-radius: 42rpx; overflow: hidden; text-align: center; }
-.compact-bag { width: 224rpx; height: 224rpx; display:block; margin: 0 auto; }
+.product-card { padding: 31rpx 30rpx 28rpx; border-radius: 42rpx; overflow: hidden; text-align: center; }
+.compact-bag { width: 120rpx; height: 120rpx; display:block; margin: 0 auto; }
 
-.product-tags { margin-top: 10rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; }
+.product-tags { margin-top: 5rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; }
 .product-tags text:first-child { color: #6552f5; font-size: 18rpx; font-weight: 710; }
 .product-tags text:last-child { padding: 4rpx 8rpx; border-radius: 999rpx; color: #8b6c5b; background: #fff2e9; font-size: 12rpx; }
 .point-line { margin-top: 18rpx; display: flex; align-items: baseline; justify-content: center; gap: 8rpx; }
-.point-number { color: #151b32; font-size: 60rpx; line-height: 1; font-weight: 800; letter-spacing: -1rpx; }
-.point-unit { color: #4f566d; font-size: 22rpx; font-weight: 680; }
-.product-price { display: block; margin-top: 14rpx; color: #ef684d; font-size: 52rpx; font-weight: 790; line-height: 1; }
+.point-number { color: #151b32; font-size: 112rpx; line-height: 1; font-weight: 800; letter-spacing: -2rpx; }
+.point-unit { color: #4f566d; font-size: 28rpx; font-weight: 680; }
+.product-price { display: block; margin-top: 16rpx; color: #ef684d; font-size: 64rpx; font-weight: 790; line-height: 1; }
 .product-description { display: block; margin-top: 12rpx; color: #858ba0; font-size: 18rpx; line-height: 1.6; }
 
-.account-strip { min-height: 94rpx; margin-top: 28rpx; padding: 0 20rpx; border-radius: 28rpx; display: flex; align-items: center; justify-content: space-between; gap: 18rpx; background: rgba(247,247,252,.84); border: 1rpx solid #ebebf3; text-align: left; }
+.account-strip { min-height: 76rpx; margin-top: 22rpx; padding: 0 20rpx; border-radius: 24rpx; display: flex; align-items: center; justify-content: space-between; gap: 18rpx; background: rgba(247,247,252,.84); border: 1rpx solid #ebebf3; text-align: left; }
 .account-label { color: #9297a9; font-size: 17rpx; }
 .account-value { color: #343a50; font-size: 22rpx; font-weight: 690; }
 
@@ -40,7 +39,7 @@
 @media (max-height: 740px) {
   .purchase-heading { padding-bottom: 14rpx; }
   .product-card { padding-top: 18rpx; padding-bottom: 18rpx; }
-  .compact-bag { width: 152rpx; height: 152rpx; }
+  .compact-bag { width: 96rpx; height: 96rpx; }
   .point-number { font-size: 48rpx; }
   .account-strip { margin-top: 13rpx; }
   .product-benefits { margin-top: 13rpx; padding-top: 13rpx; }

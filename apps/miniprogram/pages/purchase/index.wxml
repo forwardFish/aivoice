@@ -12,8 +12,7 @@
   <block wx:else>
     <view class="purchase-content fade-in">
       <view class="purchase-heading">
-        <text class="page-title">补充账号积分</text>
-        <text class="page-subtitle">一次购买，账号内所有私有声音共享使用</text>
+        <text class="page-subtitle">继续使用高品质 AI 声音进行对话或生成语音</text>
       </view>
 
       <view class="product-card luminous-card">
