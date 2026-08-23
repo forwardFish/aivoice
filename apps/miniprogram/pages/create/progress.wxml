@@ -22,7 +22,7 @@
   </view>
 
   <view wx:else class="processing-content fade-in">
-    <text class="processing-title">正在创建“{{voiceName}}”</text>
+    <text class="processing-title">创建中…</text>
     <text class="processing-subtitle">{{statusText}}</text>
 
     <view class="process-visual">
@@ -46,7 +46,7 @@
       </view>
     </view>
 
-    <text class="time-note">通常需要 1–3 分钟。离开页面不会中断任务，可在“我的声音”继续查看。</text>
+    <text class="time-note">预计需要 1–3 分钟，请耐心等待</text>
     <text wx:if="{{errorMessage}}" class="recover-note">{{errorMessage}}</text>
     <button class="leave-button" bindtap="goVoices">离开并稍后查看</button>
   </view>
