@@ -5,7 +5,7 @@ Component({
     option: {
       type: Object,
       value: null,
-      observer(value: any) {
+      observer(value) {
         const option = value || {}
         const amountFen = Number(option.amountFen)
         const points = Number(option.points ?? option.quota)

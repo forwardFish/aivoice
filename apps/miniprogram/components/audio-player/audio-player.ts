@@ -3,7 +3,7 @@ Component({
     src: {
       type: String,
       value: '',
-      observer(newValue: string) {
+      observer(newValue) {
         if (this.audio) {
           this.audio.stop()
           this.audio.src = newValue || ''
@@ -45,7 +45,7 @@ Component({
         this.setData({ playing: false, progress: 100 })
         this.triggerEvent('ended')
       })
-      audio.onError((error: any) => {
+      audio.onError((error) => {
         this.setData({ playing: false })
         this.triggerEvent('error', error)
       })
@@ -60,7 +60,7 @@ Component({
     }
   },
   methods: {
-    formatSeconds(value: number): string {
+    formatSeconds(value) {
       const total = Math.max(0, Math.floor(value || 0))
       const minute = Math.floor(total / 60)
       const second = total % 60
