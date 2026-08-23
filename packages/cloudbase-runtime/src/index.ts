@@ -42,7 +42,10 @@ function encodeFilter(value: unknown): string {
   if (value === null) return 'is.null';
   if (typeof value === 'boolean') return `eq.${value}`;
   if (typeof value === 'number') return `eq.${value}`;
-  return `eq.${encodeURIComponent(String(value))}`;
+  // URLSearchParams performs the query-string escaping. Pre-encoding here
+  // double-encodes values such as ISO timestamps, so PostgreSQL receives
+  // literal "%3A" fragments instead of colons.
+  return `eq.${String(value)}`;
 }
 
 function appendFilters(params: URLSearchParams, filters: Record<string, FilterValue> = {}): void {
@@ -56,11 +59,11 @@ function appendFilters(params: URLSearchParams, filters: Record<string, FilterVa
     for (const [operator, value] of Object.entries(operators)) {
       if (value === undefined) continue;
       if (operator === 'in') {
-        params.set(name, `in.(${(value as unknown[]).map((item) => encodeURIComponent(String(item))).join(',')})`);
+        params.set(name, `in.(${(value as unknown[]).map((item) => String(item)).join(',')})`);
       } else if (operator === 'is') {
         params.set(name, `is.${value === null ? 'null' : value}`);
       } else {
-        params.set(name, `${operator}.${encodeURIComponent(String(value))}`);
+        params.set(name, `${operator}.${String(value)}`);
       }
     }
   }
