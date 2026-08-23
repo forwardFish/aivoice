@@ -63,6 +63,7 @@ test('P0 screens keep their primary actions and navigation visible on compact vi
   assert.match(accountView, /class="account-hero luminous-card"/)
   assert.match(accountView, /data-type="contact"/)
   assert.match(read('custom-tab-bar/index.wxss'), /\.custom-tab-shell\s*\{[^}]*position:\s*fixed/s)
+  assert.match(read('custom-tab-bar/index.wxml'), /class="custom-tab-icon voices-active-icon"/)
 })
 
 test('P1 screens use simplified hierarchy while retaining real business actions', () => {

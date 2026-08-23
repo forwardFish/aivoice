@@ -1,4 +1,5 @@
 .custom-tab-shell {
+  box-sizing: border-box;
   position: fixed;
   z-index: 999;
   left: 0;
@@ -9,6 +10,7 @@
 }
 
 .custom-tab-panel {
+  width: 100%;
   height: 136rpx;
   padding: 0 22rpx;
   border: 2rpx solid rgba(255,255,255,.9);
@@ -23,6 +25,7 @@
 
 .custom-tab-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,11 +36,14 @@
 
 .custom-tab-item.selected { color: #6552f5; }
 .custom-tab-icon { width: 48rpx; height: 48rpx; }
+.voices-active-icon { border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg,#765ff7,#563ff0); box-shadow: 0 8rpx 20rpx rgba(91,68,225,.22); }
+.voices-active-play { width: 0; height: 0; margin-left: 4rpx; border-top: 10rpx solid transparent; border-bottom: 10rpx solid transparent; border-left: 15rpx solid #fff; }
 .custom-tab-label { font-size: 20rpx; line-height: 1; }
 
 @media (max-height: 740px) {
   .custom-tab-shell { padding-bottom: calc(12rpx + env(safe-area-inset-bottom)); }
   .custom-tab-panel { height: 112rpx; border-radius: 30rpx; }
   .custom-tab-icon { width: 40rpx; height: 40rpx; }
+  .voices-active-play { margin-left: 3rpx; border-top-width: 8rpx; border-bottom-width: 8rpx; border-left-width: 12rpx; }
   .custom-tab-label { font-size: 18rpx; }
 }

@@ -1,5 +1,4 @@
 <view class="voices-screen screen-shell">
-  <app-nav transparent="{{true}}"></app-nav>
   <text class="voices-page-title fade-in">我的声音</text>
 
   <view wx:if="{{state === 'loading'}}" class="voices-state">
