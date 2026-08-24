@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "envId": "aivoice-d1g94bgoh67c6b974",
+  "cloudPath": "risk-first/authorized/869fccf3-4cda-44eb-a2aa-3acd243b36a7.mp4",
+  "startedAt": "2026-08-24T00:12:33.950Z",
+  "inputBytes": 29537549,
+  "uploadMs": 3317,
+  "fileIdScheme": "cloud",
+  "info": {
+    "size": 29537549,
+    "contentType": "video/mp4",
+    "name": "869fccf3-4cda-44eb-a2aa-3acd243b36a7.mp4"
+  },
+  "firstPlaybackAccessMs": 392,
+  "playbackHttpStatus": 206,
+  "downloadMs": 5911,
+  "hashMatches": true,
+  "deleted": true,
+  "totalMs": 11184,
+  "finishedAt": "2026-08-24T00:12:45.136Z"
+}

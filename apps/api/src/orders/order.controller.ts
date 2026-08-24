@@ -4,6 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { AuthenticatedUser } from '../auth/auth.types.js';
 import { WechatPayService } from '../payments/wechat-pay.service.js';
+import { VirtualPayService } from '../payments/virtual-pay.service.js';
 import { CreateOrderDto } from './order.dto.js';
 import { OrderService } from './order.service.js';
 import { loadPointsConfig } from '../quota/points.config.js';
@@ -35,6 +36,8 @@ export class OrderController {
     private readonly orderService: OrderService,
     @Inject(WechatPayService)
     private readonly wechatPay: WechatPayService,
+    @Inject(VirtualPayService)
+    private readonly virtualPay: VirtualPayService,
   ) {}
 
   @Post()
@@ -45,6 +48,10 @@ export class OrderController {
     @Headers('idempotency-key') idempotencyKey = '',
   ) {
     const order = await this.orderService.createOrder(user.id, body, idempotencyKey);
+    if (this.virtualPay.enabled()) {
+      const virtual = await this.virtualPay.createPayment(order, user.openid, body.wxLoginCode || '');
+      return { order, paymentProvider: 'wechat-virtual', ...virtual };
+    }
     const prepay = await this.wechatPay.createPrepay(order, user.openid);
     return { order, paymentProvider: 'wechat', ...prepay };
   }
@@ -61,7 +68,9 @@ export class OrderController {
 
   @Post(':orderId/refresh')
   refresh(@CurrentUser() user: AuthenticatedUser, @Param('orderId') orderId: string) {
-    return this.wechatPay.refreshOrder(user.id, orderId);
+    return this.virtualPay.enabled()
+      ? this.virtualPay.refreshOrder(user.id, orderId)
+      : this.wechatPay.refreshOrder(user.id, orderId);
   }
 
   @Post(':orderId/mock-paid')

@@ -1,90 +1,17 @@
 {
-  "mode": "native-subagents",
+  "mode": "serial-fallback",
   "runtime_surface": "codex-app",
   "orchestrator": "/root",
   "agents": [
     {
-      "id": "/root/ui_reference_audit",
-      "role": "Designer",
-      "assigned_tasks": ["AV-011 UI reference audit"],
-      "allowed_paths": [],
-      "evidence": ["designer final report"]
-    },
-    {
-      "id": "/root/functional_gap_audit",
-      "role": "Analyst",
-      "assigned_tasks": ["AV-012 functional acceptance audit"],
-      "allowed_paths": [],
-      "evidence": ["analyst final report"]
-    },
-    {
-      "id": "/root/purchase_page",
-      "role": "Frontend Builder",
-      "assigned_tasks": ["AV-011 purchase page implementation"],
-      "allowed_paths": [
-        "apps/miniprogram/pages/purchase/",
-        "apps/miniprogram/app.json",
-        "apps/miniprogram/pages/voice/workbench.ts",
-        "apps/miniprogram/pages/voice/workbench.wxml",
-        "apps/miniprogram/components/quota-purchase-dialog/",
-        "apps/miniprogram/test/purchase-page.test.ts"
-      ],
-      "evidence": ["miniprogram typecheck/tests"]
-    },
-    {
-      "id": "/root/legal_compliance_research",
-      "role": "Legal/Platform Researcher",
-      "assigned_tasks": ["AV-024 official compliance source research"],
-      "allowed_paths": [],
-      "evidence": ["researcher final report with official source links"]
-    },
-    {
-      "id": "/root/ui_functional_acceptance",
-      "role": "UI Test Engineer",
-      "assigned_tasks": ["AV-020 consent UI", "AV-022 management UI"],
-      "allowed_paths": ["scripts/acceptance/", "apps/miniprogram/test/", "docs/auto-execute/screenshots/functional-closure/"],
-      "evidence": ["DevTools automation script, page data, console/exception log, screenshots"]
-    },
-    {
-      "id": "/root/deletion_acceptance_review",
-      "role": "Deletion Verifier",
-      "assigned_tasks": ["AV-023 deletion lifecycle review"],
-      "allowed_paths": [],
-      "evidence": ["verifier final report with provider/DB/filesystem acceptance conditions"]
-    },
-    {
-      "id": "/root/cloudbase_architecture",
-      "role": "CloudBase Architect",
-      "assigned_tasks": ["CB-ARCH-001 REST/RPC, storage, worker and payment architecture contract"],
-      "allowed_paths": ["docs/auto-execute/CLOUDBASE_REST_RPC_ARCHITECTURE.md"],
-      "evidence": ["docs/auto-execute/CLOUDBASE_REST_RPC_ARCHITECTURE.md"]
-    },
-    {
-      "id": "/root/cloudbase_test_plan",
-      "role": "CloudBase Test Engineer",
-      "assigned_tasks": ["CB-TEST-001 hard verification matrix"],
-      "allowed_paths": ["docs/auto-execute/CLOUDBASE_REFACTOR_TEST_PLAN.md"],
-      "evidence": ["docs/auto-execute/CLOUDBASE_REFACTOR_TEST_PLAN.md"]
-    },
-    {
-      "id": "/root/direct_db_map",
-      "role": "Repository Explorer",
-      "assigned_tasks": ["CB-MAP-001 direct database and local media dependency map"],
-      "allowed_paths": [],
-      "evidence": ["explorer final report"]
+      "id": "/root",
+      "role": "Orchestrator and serial implementer",
+      "assigned_tasks": ["PC-RISK-001", "PC-RISK-002", "PC-RISK-003", "PC-RISK-004", "PC-RISK-005", "PC-RISK-006"],
+      "allowed_paths": ["apps/", "packages/", "cloudfunctions/", "scripts/", "docs/auto-execute/"],
+      "evidence": ["docs/auto-execute/verification-results.md"]
     }
   ],
-  "external_collaboration": {
-    "worker": "ChatGPT Pro",
-    "lane": "frontend",
-    "conversation": "https://chatgpt.com/g/g-p-6a87b626cf9481918348d8bd97f502b5-aiqin-qing-xiao-cheng-xu/c/6a87c880-dc1c-83e8-a4b4-80aa439e672b",
-    "deliverable": "native mini-program ZIP",
-    "status": "delivered_and_integrated",
-    "dispatched_at": "2026-08-21T16:03:39+08:00",
-    "delivered_at": "2026-08-21T17:27:00+08:00",
-    "delivery_sha256": "F5038CA338FA3495857D860C245B9B6A25642A6A56E179439A47761DD3131B52"
-  },
-  "handoff_paths": ["docs/frontend-handoff/FRONTEND_IMPLEMENTATION_BRIEF.md", "docs/auto-execute/latest/HANDOFF.md"],
+  "handoff_paths": ["docs/auto-execute/latest/HANDOFF.md"],
   "verification_paths": ["docs/auto-execute/verification-results.md"],
-  "fallback_reason": null
+  "fallback_reason": "The user requested risk-prioritized execution, not delegation. The task is bounded to four integration risks and is executed serially to avoid overlapping product edits."
 }

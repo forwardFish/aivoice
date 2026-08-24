@@ -7,13 +7,20 @@ import { parse as parseDotEnv } from 'dotenv';
 import CloudBase from '@cloudbase/manager-node';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const envId = process.env.CLOUDBASE_TARGET_ENV_ID || 'aivoice-d1g94bgoh67c6b974';
+const databaseEnvId = process.env.CLOUDBASE_TARGET_ENV_ID || 'aivoice-d1g94bgoh67c6b974';
+const functionEnvId = process.env.CLOUDBASE_RESOURCE_ENV_ID || 'aiassistant-0517-d6en8tw82f2f7fc';
 const functionName = process.env.CLOUDBASE_WORKER_FUNCTION_NAME || 'aivoice-worker';
+const preferredCredentialFile = 'D:/lyh/secrets/aivoice/tencentcloud-deploy.env';
 const credentialFile = process.env.CLOUDBASE_CREDENTIALS_FILE
-  || 'D:/lyh/agent/agent-frame/printersheet/ai-exam-miniapp/server/.env';
+  || (fs.existsSync(preferredCredentialFile)
+    ? preferredCredentialFile
+    : 'D:/lyh/agent/agent-frame/printersheet/ai-exam-miniapp/server/.env');
 const credentials = fs.existsSync(credentialFile) ? parseDotEnv(fs.readFileSync(credentialFile)) : {};
-const localEnvPath = path.join(projectRoot, '.env.local');
-const localEnv = fs.existsSync(localEnvPath) ? parseDotEnv(fs.readFileSync(localEnvPath)) : {};
+const localEnvPath = process.env.AIVOICE_RUNTIME_ENV_FILE || path.join(projectRoot, '.env.local');
+const baseLocalEnv = fs.existsSync(localEnvPath) ? parseDotEnv(fs.readFileSync(localEnvPath)) : {};
+const aliyunEnvPath = process.env.AIVOICE_ALIYUN_ENV_FILE || 'D:/lyh/secrets/aivoice/aliyun.env';
+const aliyunEnv = fs.existsSync(aliyunEnvPath) ? parseDotEnv(fs.readFileSync(aliyunEnvPath)) : {};
+const localEnv = { ...baseLocalEnv, ...aliyunEnv };
 const secretId = process.env.TENCENTCLOUD_SECRETID || credentials.TENCENTCLOUD_SECRETID;
 const secretKey = process.env.TENCENTCLOUD_SECRETKEY || credentials.TENCENTCLOUD_SECRETKEY;
 if (!secretId || !secretKey) throw new Error('Tencent Cloud deployment credentials are missing');
@@ -84,8 +91,11 @@ const layers = ffmpegLayerName && Number.isSafeInteger(ffmpegLayerVersion) && ff
 const envVariables = {
   NODE_ENV: 'production',
   DATABASE_BACKEND: 'cloudbase',
-  CLOUDBASE_ENV_ID: envId,
+  CLOUDBASE_ENV_ID: databaseEnvId,
   CLOUDBASE_API_KEY: state.runtimeApiKey,
+  CLOUDBASE_APIKEY: state.runtimeApiKey,
+  CLOUDBASE_STORAGE_MODE: process.env.CLOUDBASE_STORAGE_MODE || 'native',
+  CLOUDBASE_STORAGE_ENV_ID: functionEnvId,
   CLOUDBASE_SOURCE_BUCKET: 'aivoice-source',
   CLOUDBASE_AUDIO_BUCKET: 'aivoice-audio',
   CLOUDBASE_JOBS_BUCKET: 'aivoice-jobs',
@@ -111,6 +121,9 @@ if (process.env.CLOUDBASE_DEPLOY_DRY_RUN === 'true') {
   console.log(JSON.stringify({
     success: true,
     dryRun: true,
+    databaseEnvId,
+    functionEnvId,
+    storageEnvId: functionEnvId,
     functionName,
     stagedEntrypoint: path.join(stagingRoot, 'index.mjs'),
     asyncExecution: true,
@@ -121,7 +134,7 @@ if (process.env.CLOUDBASE_DEPLOY_DRY_RUN === 'true') {
   process.exit(0);
 }
 
-const app = new CloudBase({ envId, region: 'ap-shanghai', secretId, secretKey });
+const app = new CloudBase({ envId: functionEnvId, region: 'ap-shanghai', secretId, secretKey });
 const functions = await app.functions.listFunctions();
 const exists = functions.some((item) => String(item.FunctionName || item.name) === functionName);
 const common = {
@@ -158,6 +171,7 @@ if (!exists) {
 }
 
 state.workerFunctionName = functionName;
+state.workerFunctionEnvId = functionEnvId;
 state.workerFunctionTimeoutSeconds = 900;
 state.workerFunctionMemoryMb = 2048;
 state.workerFunctionAsync = true;
@@ -168,7 +182,8 @@ await fsp.writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`, { mode: 0o
 
 console.log(JSON.stringify({
   success: true,
-  envId,
+  databaseEnvId,
+  functionEnvId,
   functionName,
   asyncExecution: true,
   timeoutSeconds: 900,

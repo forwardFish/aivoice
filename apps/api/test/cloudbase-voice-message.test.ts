@@ -46,6 +46,12 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
       if (name === 'rpc_voice_retry_preview') {
         return { voiceId: voice.id, status: 'QUEUED' };
       }
+      if (name === 'rpc_voice_mark_preview_started') {
+        return { previewPlaybackStartedAt: '2026-08-22T00:00:00.000Z' };
+      }
+      if (name === 'rpc_voice_mark_preview_played') {
+        return { previewPlayedAt: '2026-08-22T00:00:20.000Z' };
+      }
       if (name === 'rpc_voice_delete_request') {
         return { voiceId: voice.id, status: 'DELETING' };
       }
@@ -65,11 +71,15 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
 
   const processed = await service.process('user-id', 'voice-id');
   assert.equal(processed.id, 'voice-id');
+  await service.markPreviewStarted('user-id', 'voice-id');
+  await service.markPreviewPlayed('user-id', 'voice-id');
   await service.retryPreview('user-id', 'voice-id');
   assert.deepEqual(await service.deleteVoice('user-id', 'voice-id'), { status: 'DELETING' });
 
   assert.deepEqual(calls.map((call) => call.name), [
     'rpc_voice_queue_processing',
+    'rpc_voice_mark_preview_started',
+    'rpc_voice_mark_preview_played',
     'rpc_voice_retry_preview',
     'rpc_voice_delete_request',
   ]);

@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import cloudbaseSdk, { type CloudBase as NativeCloudBase } from '@cloudbase/node-sdk';
 
 export type FilterValue =
   | string
@@ -21,6 +22,37 @@ export interface MutationOptions {
   onConflict?: string[];
   mergeDuplicates?: boolean;
   single?: boolean;
+}
+
+export type CloudBaseStorageMode = 'pg' | 'native';
+
+export interface NativeCloudStoragePort {
+  uploadFile(input: { cloudPath: string; fileContent: Buffer }): Promise<{ fileID: string }>;
+  downloadFile(input: { fileID: string }): Promise<{ fileContent?: string | Buffer }>;
+  deleteFile(input: { fileList: string[] }): Promise<{ fileList: Array<{ code: string; fileID: string }> }>;
+  getTempFileURL(input: { fileList: Array<string | { fileID: string; maxAge?: number }> }): Promise<{
+    fileList: Array<{ code: string; fileID: string; tempFileURL: string }>;
+  }>;
+  getFileInfo(input: { fileList: string[] }): Promise<{
+    fileList: Array<{
+      code: string;
+      fileID: string;
+      tempFileURL: string;
+      fileName?: string;
+      contentType?: string;
+      mime?: string;
+      size?: number;
+    }>;
+  }>;
+}
+
+export interface CloudBaseRuntimeOptions {
+  storageMode?: CloudBaseStorageMode;
+  nativeStorageEnvId?: string;
+  accessKey?: string;
+  secretId?: string;
+  secretKey?: string;
+  nativeStorage?: NativeCloudStoragePort;
 }
 
 function snake(value: string): string {
@@ -84,13 +116,38 @@ export class CloudBaseRuntimeClient {
   readonly gatewayBase: string;
   readonly databaseBase: string;
   readonly storageBase: string;
+  readonly storageMode: CloudBaseStorageMode;
+  readonly nativeStorageEnvId: string;
+  readonly #nativeStorage?: NativeCloudStoragePort;
 
-  constructor(readonly envId: string, apiKey: string) {
+  constructor(readonly envId: string, apiKey: string, options: CloudBaseRuntimeOptions = {}) {
     if (!envId || !apiKey) throw new Error('CLOUDBASE_ENV_ID and CLOUDBASE_API_KEY are required');
     this.#apiKey = apiKey;
     this.gatewayBase = `https://${envId}.api.tcloudbasegateway.com`;
     this.databaseBase = `${this.gatewayBase}/v1/rdb/rest`;
     this.storageBase = `${this.gatewayBase}/v1/storages`;
+    this.storageMode = options.storageMode || 'pg';
+    this.nativeStorageEnvId = options.nativeStorageEnvId || envId;
+    if (this.storageMode === 'native') {
+      const nativeCredentials = options.secretId && options.secretKey
+        ? { secretId: options.secretId, secretKey: options.secretKey }
+        : options.accessKey
+          ? { accessKey: options.accessKey }
+          : {};
+      this.#nativeStorage = options.nativeStorage || cloudbaseSdk.init({
+        env: this.nativeStorageEnvId,
+        ...nativeCredentials,
+      }) as NativeCloudBase as NativeCloudStoragePort;
+    }
+  }
+
+  private nativeStorage(): NativeCloudStoragePort {
+    if (!this.#nativeStorage) throw new Error('Native CloudBase storage is not configured');
+    return this.#nativeStorage;
+  }
+
+  private isNativeFileId(objectKey: string): boolean {
+    return objectKey.startsWith('cloud://');
   }
 
   private async request<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -179,6 +236,9 @@ export class CloudBaseRuntimeClient {
   }
 
   async signUpload(bucket: string, objectKey: string, upsert = false): Promise<{ uploadUrl: string; token: string }> {
+    if (this.storageMode === 'native' && this.isNativeFileId(objectKey)) {
+      throw new Error('Native CloudBase uploads must use wx.cloud.uploadFile or uploadFile()');
+    }
     const payload = await this.request<{ url: string; token: string }>(
       `${this.storageBase}/object/upload/sign/${this.objectPath(bucket, objectKey)}`,
       { method: 'POST', headers: upsert ? { 'x-upsert': 'true' } : {} },
@@ -190,6 +250,16 @@ export class CloudBaseRuntimeClient {
   }
 
   async signDownload(bucket: string, objectKey: string, expiresIn = 600): Promise<string> {
+    if (this.storageMode === 'native' && this.isNativeFileId(objectKey)) {
+      const result = await this.nativeStorage().getTempFileURL({
+        fileList: [{ fileID: objectKey, maxAge: expiresIn }],
+      });
+      const item = result.fileList?.[0];
+      if (!item || item.code !== 'SUCCESS' || !item.tempFileURL) {
+        throw new Error(`Native CloudBase signed download URL is missing for ${objectKey}`);
+      }
+      return item.tempFileURL;
+    }
     const payload = await this.request<{ signedURL?: string; signedUrl?: string }>(
       `${this.storageBase}/object/sign/${this.objectPath(bucket, objectKey)}`,
       { method: 'POST', body: JSON.stringify({ expiresIn }) },
@@ -199,12 +269,17 @@ export class CloudBaseRuntimeClient {
     return value.startsWith('http') ? value : `${this.gatewayBase}${value}`;
   }
 
-  async uploadFile(bucket: string, objectKey: string, filePath: string, contentType: string): Promise<void> {
+  async uploadFile(bucket: string, objectKey: string, filePath: string, contentType: string): Promise<string> {
     const body = await fs.readFile(filePath);
-    await this.uploadBuffer(bucket, objectKey, body, contentType);
+    return this.uploadBuffer(bucket, objectKey, body, contentType);
   }
 
-  async uploadBuffer(bucket: string, objectKey: string, body: Buffer, contentType: string): Promise<void> {
+  async uploadBuffer(bucket: string, objectKey: string, body: Buffer, contentType: string): Promise<string> {
+    if (this.storageMode === 'native') {
+      const result = await this.nativeStorage().uploadFile({ cloudPath: objectKey, fileContent: body });
+      if (!result.fileID) throw new Error(`Native CloudBase upload returned no file ID for ${objectKey}`);
+      return result.fileID;
+    }
     const response = await fetch(`${this.storageBase}/object/${this.objectPath(bucket, objectKey)}`, {
       method: 'POST',
       headers: {
@@ -217,9 +292,10 @@ export class CloudBaseRuntimeClient {
       signal: AbortSignal.timeout(120_000),
     });
     if (!response.ok) throw new CloudBaseHttpError(response.status, await response.text());
+    return objectKey;
   }
 
-  uploadJson(bucket: string, objectKey: string, value: unknown): Promise<void> {
+  uploadJson(bucket: string, objectKey: string, value: unknown): Promise<string> {
     return this.uploadBuffer(bucket, objectKey, Buffer.from(JSON.stringify(value)), 'application/json');
   }
 
@@ -231,10 +307,29 @@ export class CloudBaseRuntimeClient {
     etag?: string;
     metadata?: Record<string, unknown>;
   }> {
+    if (this.storageMode === 'native' && this.isNativeFileId(objectKey)) {
+      const result = await this.nativeStorage().getFileInfo({ fileList: [objectKey] });
+      const item = result.fileList?.[0];
+      if (!item || item.code !== 'SUCCESS') throw new CloudBaseHttpError(404, { code: item?.code || 'STORAGE_FILE_NONEXIST' });
+      return {
+        id: item.fileID,
+        name: item.fileName || objectKey,
+        size: Number(item.size || 0),
+        contentType: item.contentType || item.mime || 'application/octet-stream',
+      };
+    }
     return this.request(`${this.storageBase}/object/info/authenticated/${this.objectPath(bucket, objectKey)}`);
   }
 
   async downloadFile(bucket: string, objectKey: string, targetPath: string): Promise<void> {
+    if (this.storageMode === 'native' && this.isNativeFileId(objectKey)) {
+      const result = await this.nativeStorage().downloadFile({ fileID: objectKey });
+      if (result.fileContent === undefined) throw new CloudBaseHttpError(404, { code: 'STORAGE_FILE_NONEXIST' });
+      await fs.writeFile(targetPath, typeof result.fileContent === 'string'
+        ? Buffer.from(result.fileContent)
+        : result.fileContent);
+      return;
+    }
     const response = await fetch(`${this.storageBase}/object/authenticated/${this.objectPath(bucket, objectKey)}`, {
       headers: { Authorization: `Bearer ${this.#apiKey}` },
       signal: AbortSignal.timeout(120_000),
@@ -244,6 +339,14 @@ export class CloudBaseRuntimeClient {
   }
 
   async deleteObject(bucket: string, objectKey: string): Promise<void> {
+    if (this.storageMode === 'native' && this.isNativeFileId(objectKey)) {
+      const result = await this.nativeStorage().deleteFile({ fileList: [objectKey] });
+      const item = result.fileList?.[0];
+      if (!item || (item.code !== 'SUCCESS' && item.code !== 'STORAGE_FILE_NONEXIST')) {
+        throw new Error(`Native CloudBase delete failed for ${objectKey}: ${item?.code || 'UNKNOWN'}`);
+      }
+      return;
+    }
     await this.request(`${this.storageBase}/object/${this.objectPath(bucket, objectKey)}`, { method: 'DELETE' });
   }
 }
@@ -252,5 +355,12 @@ export function cloudBaseRuntimeFromEnv(): CloudBaseRuntimeClient {
   return new CloudBaseRuntimeClient(
     process.env.CLOUDBASE_ENV_ID || process.env.CLOUDBASE_TARGET_ENV_ID || '',
     process.env.CLOUDBASE_API_KEY || '',
+    {
+      storageMode: process.env.CLOUDBASE_STORAGE_MODE === 'native' ? 'native' : 'pg',
+      nativeStorageEnvId: process.env.CLOUDBASE_STORAGE_ENV_ID || process.env.CLOUDBASE_ENV_ID || '',
+      accessKey: process.env.CLOUDBASE_NATIVE_STORAGE_APIKEY || '',
+      secretId: process.env.CLOUDBASE_NATIVE_STORAGE_SECRET_ID || process.env.CLOUDBASE_SCF_SECRET_ID || process.env.TENCENTCLOUD_SECRETID || '',
+      secretKey: process.env.CLOUDBASE_NATIVE_STORAGE_SECRET_KEY || process.env.CLOUDBASE_SCF_SECRET_KEY || process.env.TENCENTCLOUD_SECRETKEY || '',
+    },
   );
 }

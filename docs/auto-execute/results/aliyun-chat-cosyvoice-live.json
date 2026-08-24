@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-08-24T09:47:44.022Z",
+  "status": "PASS",
+  "chatModel": "qwen-flash",
+  "voiceModel": "cosyvoice-v3.5-flash",
+  "calls": [
+    {
+      "index": 1,
+      "prompt": "请用一句温暖的话问候我。",
+      "reply": "愿你今天被温柔以待，心里有光，眼里有笑。",
+      "messageId": "68c9dad6-9a3b-4b16-a4bb-eb7607a09173",
+      "status": "READY",
+      "bytes": 240762,
+      "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-chat-1.wav"
+    },
+    {
+      "index": 2,
+      "prompt": "如果很久没见，你会对我说什么？",
+      "reply": "好久不见，愿你一切都好，归来仍有笑意。",
+      "messageId": "3f6d38f0-becc-4064-8442-f767480d621a",
+      "status": "READY",
+      "bytes": 213882,
+      "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-chat-2.wav"
+    }
+  ],
+  "testTopup": 2,
+  "pointsBefore": 2,
+  "pointsAfter": 0,
+  "totalPointCost": 2
+}

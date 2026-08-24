@@ -24,6 +24,12 @@ export class OrderService {
       : product.amountFen;
   }
 
+  private paymentMerchantId(): string | null {
+    return String(process.env.WECHAT_PAYMENT_MODE || '').toLowerCase() === 'virtual'
+      ? process.env.WECHAT_VIRTUAL_PAY_MCH_ID?.trim() || process.env.WECHAT_VIRTUAL_PAY_OFFER_ID?.trim() || null
+      : process.env.WECHAT_PAY_MCH_ID?.trim() || null;
+  }
+
   async createOrder(userId: string, input: { voiceId?: string; productCode: string }, idempotencyKey = '') {
     const requestKey = idempotencyKey.trim();
     if (!requestKey) throw new BadRequestException('Idempotency-Key is required');
@@ -48,7 +54,7 @@ export class OrderService {
         pOrderNo: orderNo,
         pIdempotencyKey: requestKey,
         pAppid: process.env.WECHAT_APP_ID || null,
-        pMchid: process.env.WECHAT_PAY_MCH_ID || null,
+        pMchid: this.paymentMerchantId(),
         pPayerOpenid: user.openid,
       });
     }

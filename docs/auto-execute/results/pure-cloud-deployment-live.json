@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-08-24T09:18:00.000Z",
+  "status": "PASS_PENDING_ANDROID_SANDBOX_PAYMENT",
+  "targetAppId": "wx106e5dcda1d1baeb",
+  "resourceAppId": "wx1e662dd78e2fb22e",
+  "resourceEnvironment": "aiassistant-0517-d6en8tw82f2f7fc",
+  "databaseEnvironment": "aivoice-d1g94bgoh67c6b974",
+  "functions": [
+    "aivoice-api-event",
+    "aivoice-worker",
+    "aivoice-xpay-events"
+  ],
+  "databaseMigrations": [
+    "0007_cloudbase_runtime_rpc.sql",
+    "0008_virtual_payment_rpc.sql",
+    "0009_signup_bonus_topup.sql"
+  ],
+  "authentication": {
+    "status": "PASS",
+    "registrationGrant": 10,
+    "duplicateGrantPrevented": true
+  },
+  "mainFlow": {
+    "status": "PASS",
+    "videoUpload": true,
+    "voiceClone": true,
+    "previewPlayback": true,
+    "exactSpeech": true,
+    "pointCost": 1
+  },
+  "aliyunModels": {
+    "cosyvoiceV35FlashSequentialCalls": 3,
+    "qwenFlashChatCalls": 2,
+    "chatToCosyVoiceCalls": 2,
+    "status": "PASS"
+  },
+  "payment": {
+    "callbackSignature": "PASS",
+    "callbackAesGet": "PASS",
+    "callbackAesPost": "PASS",
+    "sandboxOrderCreation": "PASS",
+    "productCode": "POINTS_50",
+    "amountFen": 990,
+    "points": 50,
+    "androidSandboxPurchase": "MANUAL_REVIEW_REQUIRED",
+    "iosRealPurchase": "DEFERRED_UNTIL_ANDROID_PASS"
+  },
+  "security": {
+    "newCredentialsVerified": true,
+    "oldCloudBaseTencentAndBailianKeysRevocation": "PENDING_FINAL_CONFIRMATION",
+    "externalSecretMatchesInRepository": 0
+  },
+  "manualBlocker": {
+    "wechatDevToolsPreviewUpload": "FAILED_TO_FETCH",
+    "impact": "Blocks generation of a fresh Android preview QR only; deployed API, Worker, storage, database and payment callback remain healthy"
+  }
+}

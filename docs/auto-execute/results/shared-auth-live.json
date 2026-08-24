@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-08-24T09:07:07.029Z",
+  "status": "PASS",
+  "targetAppId": "wx106e5dcda1d1baeb",
+  "resourceAppId": "wx1e662dd78e2fb22e",
+  "resourceEnv": "aiassistant-0517-d6en8tw82f2f7fc",
+  "firstStatus": 201,
+  "tokenPresent": true,
+  "meStatus": 200,
+  "ledgersStatus": 200,
+  "registrationGrant": 10,
+  "secondStatus": 201,
+  "sameUser": true,
+  "firstPoints": 5,
+  "secondPoints": 5,
+  "duplicateSignupGrantPrevented": true
+}

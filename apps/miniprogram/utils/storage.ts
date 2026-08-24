@@ -109,6 +109,7 @@ const PENDING_ORDER_PREFIX = 'nashide_ta_pending_order:'
 interface PendingOrderState {
   orderId: string
   paymentCompleted: boolean
+  paymentKind: 'JSAPI' | 'VIRTUAL'
   updatedAt: number
 }
 
@@ -121,12 +122,13 @@ function getPendingOrderState(voiceId: string): PendingOrderState | null {
   const value = wx.getStorageSync(pendingOrderKey(voiceId))
   if (!value) return null
   if (typeof value === 'string') {
-    return { orderId: value, paymentCompleted: false, updatedAt: 0 }
+    return { orderId: value, paymentCompleted: false, paymentKind: 'JSAPI', updatedAt: 0 }
   }
   if (typeof value === 'object' && value.orderId) {
     return {
       orderId: String(value.orderId),
       paymentCompleted: Boolean(value.paymentCompleted),
+      paymentKind: value.paymentKind === 'VIRTUAL' ? 'VIRTUAL' : 'JSAPI',
       updatedAt: Number(value.updatedAt || 0)
     }
   }
@@ -138,21 +140,24 @@ export function getPendingOrderId(voiceId: string): string {
   return state ? state.orderId : ''
 }
 
-export function setPendingOrderId(voiceId: string, orderId: string): void {
+export function setPendingOrderId(voiceId: string, orderId: string, paymentKind: 'JSAPI' | 'VIRTUAL' = 'JSAPI'): void {
   if (!voiceId || !orderId) return
   const current = getPendingOrderState(voiceId)
   wx.setStorageSync(pendingOrderKey(voiceId), {
     orderId,
     paymentCompleted: current && current.orderId === orderId ? current.paymentCompleted : false,
+    paymentKind,
     updatedAt: Date.now()
   } as PendingOrderState)
 }
 
 export function markPendingOrderPaymentCompleted(voiceId: string, orderId: string): void {
   if (!voiceId || !orderId) return
+  const current = getPendingOrderState(voiceId)
   wx.setStorageSync(pendingOrderKey(voiceId), {
     orderId,
     paymentCompleted: true,
+    paymentKind: current && current.orderId === orderId ? current.paymentKind : 'JSAPI',
     updatedAt: Date.now()
   } as PendingOrderState)
 }
@@ -160,6 +165,11 @@ export function markPendingOrderPaymentCompleted(voiceId: string, orderId: strin
 export function pendingOrderPaymentCompleted(voiceId: string, orderId: string): boolean {
   const state = getPendingOrderState(voiceId)
   return Boolean(state && state.orderId === orderId && state.paymentCompleted)
+}
+
+export function pendingOrderPaymentKind(voiceId: string, orderId: string): 'JSAPI' | 'VIRTUAL' {
+  const state = getPendingOrderState(voiceId)
+  return state && state.orderId === orderId ? state.paymentKind : 'JSAPI'
 }
 
 export function clearPendingOrderId(voiceId: string): void {

@@ -10,3 +10,7 @@ export interface WechatSessionResult {
   openid: string;
   unionid?: string;
 }
+
+export interface WechatServerSessionResult extends WechatSessionResult {
+  sessionKey: string;
+}

@@ -1,7 +1,13 @@
 import {
   API_BASE_URL,
   API_PREFIX,
+  CLOUDBASE_API_TRANSPORT,
+  CLOUDBASE_ENV_ID,
+  CLOUDBASE_HTTP_FUNCTION_NAME,
+  CLOUDBASE_RUN_ENV_ID,
+  CLOUDBASE_RUN_SERVICE_NAME,
   LOCAL_DEV_MODE,
+  PURE_CLOUD_MODE,
   REQUEST_TIMEOUT_MS,
   UPLOAD_TIMEOUT_MS
 } from '../config'
@@ -18,6 +24,7 @@ import {
   OrderDetail,
   OrdersResponse,
   PermissionType,
+  PaymentParams,
   PointsBalanceResponse,
   PointsLedgersResponse,
   ProductListResponse,
@@ -28,7 +35,6 @@ import {
   UserProfile,
   VoiceDetail,
   VoicesResponse,
-  WechatPaymentParams
 } from '../models/api'
 import {
   normalizeAcceptPreview,
@@ -50,6 +56,7 @@ import {
 } from '../models/normalize'
 import { clearAuth, getToken, setPostLoginRoute } from '../utils/storage'
 import { uuidV4 } from '../utils/uuid'
+import { cloudEnvConfig, getCloudClient } from './cloud-client'
 
 export class ApiError extends Error {
   statusCode: number
@@ -157,8 +164,7 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
   if (useAuth && token) headers.Authorization = `Bearer ${token}`
 
   return new Promise((resolve, reject) => {
-    wx.request({
-      url: apiUrl(options.path),
+    const requestOptions: Record<string, any> = {
       method: options.method || 'GET',
       data: options.data,
       header: headers,
@@ -187,11 +193,86 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
           data: bodyRecord(error)
         }))
       }
-    })
+    }
+    if (PURE_CLOUD_MODE) {
+      const normalized = options.path.startsWith('/') ? options.path : `/${options.path}`
+      const targetEnv = CLOUDBASE_API_TRANSPORT === 'container' ? CLOUDBASE_RUN_ENV_ID : CLOUDBASE_ENV_ID
+      void getCloudClient(targetEnv).then((binding) => {
+        const cloud = binding.client
+        if (CLOUDBASE_API_TRANSPORT === 'container') {
+          if (typeof cloud.callContainer !== 'function') {
+            reject(new ApiError('当前微信基础库不支持云托管私有调用，请升级微信后重试。', {
+              code: 'CLOUD_CONTAINER_UNAVAILABLE'
+            }))
+            return
+          }
+          cloud.callContainer({
+            ...requestOptions,
+            ...cloudEnvConfig(binding),
+            path: `${API_PREFIX}${normalized}`,
+            header: {
+              ...headers,
+              'X-WX-SERVICE': CLOUDBASE_RUN_SERVICE_NAME
+            }
+          })
+          return
+        }
+        if (typeof cloud.callFunction !== 'function') {
+          reject(new ApiError('当前微信基础库不支持云函数调用，请升级微信后重试。', {
+            code: 'CLOUD_FUNCTION_UNAVAILABLE'
+          }))
+          return
+        }
+        cloud.callFunction({
+          ...cloudEnvConfig(binding),
+          name: CLOUDBASE_HTTP_FUNCTION_NAME,
+          data: {
+            path: `${API_PREFIX}${normalized}`,
+            method: requestOptions.method,
+            data: requestOptions.data,
+            headers,
+          },
+          success(result: any) {
+            requestOptions.success(result.result || {})
+          },
+          fail: requestOptions.fail,
+        })
+      }).catch((error: any) => {
+        reject(new ApiError(error?.message || '共享云环境初始化失败，请稍后重试。', {
+          code: 'CLOUD_FUNCTION_UNAVAILABLE'
+        }))
+      })
+      return
+    }
+    wx.request({ ...requestOptions, url: apiUrl(options.path) })
   })
 }
 
-export function requestPayment(payment: WechatPaymentParams): Promise<void> {
+export function requestPayment(payment: PaymentParams): Promise<void> {
+  if (payment.kind === 'VIRTUAL') {
+    return new Promise((resolve, reject) => {
+      if (typeof (wx as any).requestVirtualPayment !== 'function') {
+        reject(new ApiError('当前微信版本不支持小程序虚拟支付，请升级微信后重试。', {
+          code: 'VIRTUAL_PAYMENT_UNAVAILABLE'
+        }))
+        return
+      }
+      ;(wx as any).requestVirtualPayment({
+        signData: payment.signData,
+        paySig: payment.paySig,
+        signature: payment.signature,
+        mode: payment.mode,
+        success: () => resolve(),
+        fail: (error: any) => {
+          const message = error.errMsg || error.message || '支付未完成。'
+          const canceled = Number(error.errCode) === -2 || /cancel/i.test(message)
+          const apiError = new ApiError(message, { code: canceled ? 'PAYMENT_CANCELLED' : 'PAYMENT_FAILED' })
+          apiError.isPaymentCancel = canceled
+          reject(apiError)
+        }
+      })
+    })
+  }
   if (LOCAL_DEV_MODE && /^prepay_id=mock-prepay-/i.test(String(payment.package || ''))) {
     return Promise.resolve()
   }
@@ -215,6 +296,9 @@ export function uploadToPolicy(options: {
   onProgress?: (progress: number) => void
 }): Promise<UploadResult> {
   const { policy, filePath, onProgress } = options
+  if (policy.mode === 'cloud-file') {
+    return uploadToCloudFile(policy, filePath, onProgress)
+  }
   if (!policy.uploadUrl) {
     return Promise.reject(new ApiError('上传凭证缺少上传地址。', { code: 'INVALID_UPLOAD_POLICY' }))
   }
@@ -267,6 +351,49 @@ export function uploadToPolicy(options: {
     if (task && typeof task.onProgressUpdate === 'function' && onProgress) {
       task.onProgressUpdate((event: any) => onProgress(Math.max(0, Math.min(100, Number(event.progress || 0)))))
     }
+  })
+}
+
+function uploadToCloudFile(
+  policy: UploadPolicyResponse,
+  filePath: string,
+  onProgress?: (progress: number) => void
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    void getCloudClient(CLOUDBASE_ENV_ID).then((binding) => {
+      const cloud = binding.client
+      if (!cloud || typeof cloud.uploadFile !== 'function' || !policy.cloudPath) {
+        reject(new ApiError('云存储上传能力不可用。', { code: 'CLOUD_STORAGE_UNAVAILABLE' }))
+        return
+      }
+      const task = cloud.uploadFile({
+        cloudPath: policy.cloudPath,
+        filePath,
+        ...cloudEnvConfig(binding),
+        success(result: any) {
+          const fileID = String(result.fileID || result.fileId || '')
+          if (!fileID.startsWith('cloud://')) {
+            reject(new ApiError('云存储未返回有效文件标识。', { code: 'UPLOAD_FAILED' }))
+            return
+          }
+          onProgress?.(100)
+          resolve({ objectKey: fileID, mediaId: policy.mediaId })
+        },
+        fail(error: any) {
+          reject(new ApiError(error.errMsg || error.message || '视频上传失败，请重试。', {
+            code: 'UPLOAD_FAILED',
+            data: bodyRecord(error)
+          }))
+        }
+      })
+      if (task && typeof task.onProgressUpdate === 'function' && onProgress) {
+        task.onProgressUpdate((event: any) => onProgress(Math.max(0, Math.min(100, Number(event.progress || 0)))))
+      }
+    }).catch((error: any) => {
+      reject(new ApiError(error?.message || '共享云环境初始化失败，请稍后重试。', {
+        code: 'CLOUD_STORAGE_UNAVAILABLE'
+      }))
+    })
   })
 }
 
@@ -456,6 +583,14 @@ export async function markVoicePreviewPlayed(voiceId: string): Promise<void> {
   })
 }
 
+export async function markVoicePreviewStarted(voiceId: string): Promise<void> {
+  await requestRaw({
+    path: `/voices/${encodeURIComponent(voiceId)}/preview-started`,
+    method: 'POST',
+    data: {}
+  })
+}
+
 export async function acceptVoicePreview(voiceId: string): Promise<AcceptPreviewResponse> {
   return normalizeAcceptPreview(await requestRaw({
     path: `/voices/${encodeURIComponent(voiceId)}/accept-preview`,
@@ -525,10 +660,20 @@ export async function getMessage(messageId: string): Promise<MessageStatusRespon
 }
 
 export async function createOrder(productCode: string, voiceId?: string): Promise<CreateOrderResponse> {
+  const wxLoginCode = await new Promise<string>((resolve) => {
+    if (LOCAL_DEV_MODE || typeof wx.login !== 'function') {
+      resolve('')
+      return
+    }
+    wx.login({
+      success: (result: any) => resolve(String(result.code || '')),
+      fail: () => resolve('')
+    })
+  })
   return normalizeCreateOrder(await requestRaw({
     path: '/orders',
     method: 'POST',
-    data: { productCode, ...(voiceId ? { voiceId } : {}) },
+    data: { productCode, ...(voiceId ? { voiceId } : {}), ...(wxLoginCode ? { wxLoginCode } : {}) },
     headers: { 'Idempotency-Key': await uuidV4() }
   }))
 }

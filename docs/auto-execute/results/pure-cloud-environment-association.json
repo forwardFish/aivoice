@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-08-24T00:21:00+08:00",
+  "configuredTencentCloudWxAppId": "wx1e662dd78e2fb22e",
+  "targetMiniProgramAppId": "wx106e5dcda1d1baeb",
+  "wechatCloudRunEnvironments": ["prod-d9grnx8r9563ebf9a"],
+  "sharedResourceEnvironment": "aiassistant-0517-d6en8tw82f2f7fc",
+  "finding": "PostgreSQL and pay-as-you-go Tencent environments cannot be imported into mini-program CloudBase. The existing standard mini-program environment was shared to the target AppID instead. A real target-AppID run initialized the shared environment, uploaded a native cloud file, returned a cloud:// file ID and deleted it successfully.",
+  "evidence": "docs/auto-execute/results/shared-environment-init.json"
+}

@@ -177,16 +177,16 @@ export class CloudBaseJobRunner {
     let qualityReport: ReferenceQualityReport = quality;
     if (process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED !== 'false') {
       const qualityObjectKey = `quality/${input.userId}/${job.voiceProfileId}/${job.id}.wav`;
-      await this.runtime.uploadFile(this.audioBucket, qualityObjectKey, referencePath, 'audio/wav');
+      const qualityStoredKey = await this.runtime.uploadFile(this.audioBucket, qualityObjectKey, referencePath, 'audio/wav');
       try {
-        const qualityUrl = await this.runtime.signDownload(this.audioBucket, qualityObjectKey, 600);
+        const qualityUrl = await this.runtime.signDownload(this.audioBucket, qualityStoredKey, 600);
         const speakerDiarization = await this.speakerDetector.inspect(qualityUrl);
         qualityReport = { ...quality, speakerDiarization };
         if (!speakerDiarization.acceptable && speakerDiarization.failureCode) {
           throw new ReferenceQualityError(speakerDiarization.failureCode, qualityReport);
         }
       } finally {
-        await this.deleteObject(this.audioBucket, qualityObjectKey).catch((error) => {
+        await this.deleteObject(this.audioBucket, qualityStoredKey).catch((error) => {
           console.error('speaker diarization temporary object cleanup failed', error);
         });
       }
@@ -210,20 +210,20 @@ export class CloudBaseJobRunner {
       ]);
       const referenceKey = `reference/${input.userId}/${job.voiceProfileId}.wav`;
       const previewKey = `preview/${input.userId}/${job.voiceProfileId}.wav`;
-      await this.runtime.uploadFile(this.audioBucket, referenceKey, referencePath, 'audio/wav');
-      uploaded.push({ bucket: this.audioBucket, key: referenceKey });
-      await this.runtime.uploadFile(this.audioBucket, previewKey, previewPath, 'audio/wav');
-      uploaded.push({ bucket: this.audioBucket, key: previewKey });
+      const referenceStoredKey = await this.runtime.uploadFile(this.audioBucket, referenceKey, referencePath, 'audio/wav');
+      uploaded.push({ bucket: this.audioBucket, key: referenceStoredKey });
+      const previewStoredKey = await this.runtime.uploadFile(this.audioBucket, previewKey, previewPath, 'audio/wav');
+      uploaded.push({ bucket: this.audioBucket, key: previewStoredKey });
       await this.runtime.rpc('rpc_voice_processing_finalize', {
         pJobId: job.id,
         pWorkerId: this.workerId,
         pUserId: input.userId,
         pVoiceId: job.voiceProfileId,
-        pReferenceObjectKey: referenceKey,
+        pReferenceObjectKey: referenceStoredKey,
         pReferenceBytes: referenceProbe.bytes,
         pReferenceDurationMs: referenceProbe.durationMs,
         pReferenceSha256: referenceHash,
-        pPreviewObjectKey: previewKey,
+        pPreviewObjectKey: previewStoredKey,
         pPreviewBytes: previewProbe.bytes,
         pPreviewDurationMs: previewProbe.durationMs,
         pPreviewSha256: previewHash,
@@ -280,7 +280,7 @@ export class CloudBaseJobRunner {
     await embedAigcMetadata(audioPath, job.messageId);
     const [probe, hash] = await Promise.all([probeWav(audioPath), sha256(audioPath)]);
     const objectKey = `generated/${job.userId}/${job.voiceProfileId}/${job.messageId}.wav`;
-    await this.runtime.uploadFile(this.audioBucket, objectKey, audioPath, 'audio/wav');
+    const storedObjectKey = await this.runtime.uploadFile(this.audioBucket, objectKey, audioPath, 'audio/wav');
     let completed = false;
     try {
       await this.runtime.rpc('rpc_message_complete_success', {
@@ -289,7 +289,7 @@ export class CloudBaseJobRunner {
         pMessageId: job.messageId,
         pOutputText: outputText,
         pGenerationCost: this.generationPointCost,
-        pObjectKey: objectKey,
+        pObjectKey: storedObjectKey,
         pMimeType: 'audio/wav',
         pBytes: probe.bytes,
         pDurationMs: probe.durationMs,
@@ -298,7 +298,7 @@ export class CloudBaseJobRunner {
       completed = true;
       await this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId });
     } catch (error) {
-      if (!completed) await this.deleteObject(this.audioBucket, objectKey).catch(() => undefined);
+      if (!completed) await this.deleteObject(this.audioBucket, storedObjectKey).catch(() => undefined);
       throw error;
     }
   }

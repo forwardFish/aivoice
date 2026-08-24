@@ -22,7 +22,7 @@
     <text class="voice-name">{{voiceName}}</text>
 
     <view class="preview-audio glass-card">
-      <audio-player src="{{audioUrl}}" durationMs="{{durationMs}}" label="{{previewText}}" tag="AI生成" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
+      <audio-player src="{{audioUrl}}" durationMs="{{durationMs}}" label="{{previewText}}" tag="AI生成" bindplay="onPreviewPlay" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
     </view>
 
     <view wx:if="{{!playCompleted}}" class="play-tip">

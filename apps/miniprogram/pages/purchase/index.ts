@@ -15,6 +15,7 @@ import {
   clearPendingOrderId,
   getPendingOrderId,
   markPendingOrderPaymentCompleted,
+  pendingOrderPaymentKind,
   pendingOrderPaymentCompleted,
   setPendingOrderId
 } from '../../utils/storage'
@@ -26,6 +27,7 @@ function pointsLabel(points: PointsBalanceResponse): string {
 }
 
 function validPaymentParams(payment: Record<string, any>): boolean {
+  if (payment.kind === 'VIRTUAL') return Boolean(payment.signData && payment.paySig && payment.signature && payment.mode)
   return Boolean(payment.timeStamp && payment.nonceStr && payment.package && payment.paySign)
 }
 
@@ -136,11 +138,11 @@ Page({
       if (!result.order.id) throw new Error('服务端未返回订单 ID。')
       this.assertProductOrder(result.order)
       if (!validPaymentParams(result.payment as any)) throw new Error('微信支付参数不完整。')
-      setPendingOrderId(this.data.purchaseScopeId, result.order.id)
+      setPendingOrderId(this.data.purchaseScopeId, result.order.id, result.payment.kind === 'VIRTUAL' ? 'VIRTUAL' : 'JSAPI')
       this.setData({ orderId: result.order.id })
       await requestPayment(result.payment)
       paymentCompleted = true
-      if (isLocalTestPaymentPackage(result.payment.package)) {
+      if (isLocalTestPaymentPackage((result.payment as any).package)) {
         await confirmLocalTestPayment(result.order.id)
       }
       markPendingOrderPaymentCompleted(this.data.purchaseScopeId, result.order.id)
@@ -183,7 +185,8 @@ Page({
         return
       }
       const clientPaymentCompleted = pendingOrderPaymentCompleted(this.data.purchaseScopeId, orderId)
-      if ((order.status === 'CREATED' || order.status === 'PENDING') && !order.quotaGranted && !order.quotaGrantedAt && !clientPaymentCompleted) {
+      const paymentKind = pendingOrderPaymentKind(this.data.purchaseScopeId, orderId)
+      if ((order.status === 'CREATED' || order.status === 'PENDING') && !order.quotaGranted && !order.quotaGrantedAt && !clientPaymentCompleted && paymentKind !== 'VIRTUAL') {
         clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({ pending: false, purchaseMessage: '', orderId: '' })
         return
@@ -191,7 +194,8 @@ Page({
       this.assertProductOrder(order)
       await this.pollOrderUntilGranted(orderId)
     } catch (error: any) {
-      clearPendingOrderId(this.data.purchaseScopeId)
+      const paymentKind = pendingOrderPaymentKind(this.data.purchaseScopeId, orderId)
+      if (paymentKind !== 'VIRTUAL') clearPendingOrderId(this.data.purchaseScopeId)
       this.setData({
         pending: false,
         purchaseMessage: '',

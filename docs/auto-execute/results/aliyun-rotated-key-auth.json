@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-08-24T07:32:03.088Z",
+  "status": "PASS",
+  "keyConfigured": true,
+  "keyPrefixValid": true,
+  "voiceEnrollmentUploadPolicyAuthorized": true,
+  "endpointHost": "ws-li7qtsqv451qidpj.cn-beijing.maas.aliyuncs.com",
+  "attempts": [
+    {
+      "host": "ws-li7qtsqv451qidpj.cn-beijing.maas.aliyuncs.com",
+      "status": 200,
+      "valid": true
+    }
+  ],
+  "modelInferencePerformed": false
+}

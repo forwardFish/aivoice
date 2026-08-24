@@ -10,6 +10,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test test/**/*.test.ts"
   },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.3"
+  },
   "devDependencies": {
     "@types/node": "^24.3.0",
     "tsx": "^4.20.5",

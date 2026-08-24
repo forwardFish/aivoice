@@ -1,26 +1,25 @@
 {
   "goal": {
-    "id": "AIVOICE-CLOUDBASE-002",
-    "statement": "Migrate the complete aivoice product to CloudBase Run, CloudBase PostgreSQL REST/RPC, PG cloud storage and event Cloud Functions while preserving every existing flow and real WeChat Pay semantics.",
-    "source": "user_goal_mode",
-    "project_root": "D:\\lyh\\agent\\agent-frame\\aivoice",
+    "id": "AIVOICE-PURE-CLOUD-RISK-001",
+    "statement": "Prove the high-risk no-ICP architecture paths before migrating the remaining aivoice product: private HTTP Function identity, native media, stateless job recovery, and CloudBase-managed WeChat Pay callback.",
+    "source": "user_prompt",
+    "project_root": "D:\\lyh\\agent\\agent-frame\\aivoice-pure-cloud-risk-first",
     "status": "active",
     "success_criteria": [
-      "Native WeChat mini-program implements P0-P9 and exact PRD flows",
-      "NestJS API and CloudBase PostgreSQL REST/RPC are authoritative for auth, voices, payments, points and jobs",
-      "Aliyun CosyVoice enrollment and synthesis are integrated behind VoiceProvider",
-      "WeChat login and Pay v3 are migrated and hardened",
-      "Trial and paid quotas are idempotent, transactional and success-only",
-      "CloudBase PG storage replaces production local media and supports signed 100MB direct upload",
-      "Event Cloud Function Worker executes FFmpeg, CosyVoice, generation and deletion asynchronously",
-      "WeChat callback and active refresh converge through one atomic grant-once payment RPC",
-      "Frontend/backend/full-flow/security/final gates produce evidence"
+      "Mini-program invokes the NestJS HTTP Function through wx.cloud.callHTTPFunction and backend receives platform identity",
+      "Authorized video and generated audio use native CloudBase file IDs with no custom domain",
+      "Immediate and timer Worker dispatch work without a resident API dispatcher",
+      "CloudBase-managed WeChat Pay callback applies the existing atomic +50 grant once"
     ],
-    "out_of_scope": ["invitation rewards", "visual operations admin", "realtime calls", "public voice marketplace"],
-    "final_verdict": "PASS_WITH_LIMITATION"
+    "out_of_scope": [
+      "migration of deterministic non-risk API calls and pages",
+      "invitation rewards",
+      "visual operations admin"
+    ],
+    "final_verdict": null
   },
   "total_task": {
-    "id": "TOTAL-AIVOICE-CLOUDBASE-002",
+    "id": "TOTAL-AIVOICE-PURE-CLOUD-RISK-001",
     "decomposition_path": "docs/auto-execute/02-task-decomposition.md",
     "state_path": "docs/auto-execute/state.json",
     "orchestration_path": "docs/auto-execute/agent-orchestration.json",

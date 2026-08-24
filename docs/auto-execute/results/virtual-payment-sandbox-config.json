@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-08-24",
+  "status": "PASS",
+  "appId": "wx106e5dcda1d1baeb",
+  "offerIdConfigured": true,
+  "sandboxAppKeyConfigured": true,
+  "platformPathEnabled": false,
+  "appleIapEnabled": false,
+  "developmentGood": {
+    "productId": "POINTS_50",
+    "name": "50积分包",
+    "priceCny": 9.9,
+    "note": "50积分充值包",
+    "publishStatus": "未发布",
+    "sandboxReady": true
+  },
+  "productionGoodPublished": false,
+  "note": "Development goods are available to the sandbox before production publication."
+}

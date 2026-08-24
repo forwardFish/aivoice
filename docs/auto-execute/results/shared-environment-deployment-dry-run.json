@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-08-24",
+  "status": "PASS",
+  "databaseEnvId": "aivoice-d1g94bgoh67c6b974",
+  "resourceEnvId": "aiassistant-0517-d6en8tw82f2f7fc",
+  "runEnvId": "aiassistant-0517-d6en8tw82f2f7fc",
+  "apiService": "aivoice-api",
+  "workerFunction": "aivoice-worker",
+  "paymentEventsFunction": "aivoice-xpay-events",
+  "databaseTransport": "CloudBase PostgreSQL REST/RPC",
+  "clientTransport": "shared wx.cloud.Cloud + callContainer",
+  "storageTransport": "shared native CloudBase storage",
+  "workerStaging": "PASS",
+  "paymentEventsStaging": "PASS",
+  "cloudStateChanged": false
+}

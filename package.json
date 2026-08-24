@@ -28,7 +28,8 @@
   "devDependencies": {
     "@cloudbase/manager-node": "^5.4.0",
     "deepmerge-ts": "8.0.0",
-    "miniprogram-automator": "^0.12.1"
+    "miniprogram-automator": "^0.12.1",
+    "wx-server-sdk": "^4.0.2"
   },
   "optionalDependencies": {
     "@esbuild/win32-x64": "^0.28.2"

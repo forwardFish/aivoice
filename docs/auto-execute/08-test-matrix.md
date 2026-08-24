@@ -1,5 +1,14 @@
 # Test Matrix
 
+## 2026-08-24 risk-first additions
+
+| Risk | Automated gate | Live gate | Required result |
+|---|---|---|---|
+| Private gateway/OpenID | HTTP transport/auth contract tests; staged HTTP Function boot | Real mini-program call with injected `x-wx-openid` | Same user/session response contract, no request domain |
+| Native media | storage adapter tests; metadata/ownership/delete tests; audio resolver tests | Authorized video upload and audible preview/result | No public upload/playback domain; <=100MB supported |
+| Stateless jobs | immediate invoke/recovery/dedupe tests | Clone/generate with resident dispatcher disabled | Job starts and recovers; success debit exactly once |
+| Payment | order/callback/refresh concurrency tests | Real small charge plus callback replay | Correct amount/openid; one order transition and one +50 ledger |
+
 | Lane | Required evidence |
 |---|---|
 | Frontend | TypeScript/static checks, page inventory, DevTools compile, screenshots, key user flows |

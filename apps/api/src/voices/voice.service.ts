@@ -480,6 +480,32 @@ export class VoiceService {
     return { previewPlayedAt: updated.previewPlayedAt };
   }
 
+  async markPreviewStarted(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<
+          { previewPlaybackStartedAt: string | Date } | Array<{ previewPlaybackStartedAt: string | Date }>
+        >('rpc_voice_mark_preview_started', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+        });
+        const updated = firstRpcRow(result);
+        return { previewPlaybackStartedAt: updated.previewPlaybackStartedAt };
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
+    const voice = await this.ownedVoice(userId, voiceId);
+    if (voice.status !== 'READY') throw new ConflictException('VOICE_NOT_READY');
+    const preview = await this.mediaService.latestAsset(voiceId, 'PREVIEW_AUDIO');
+    if (!preview) throw new NotFoundException('preview not found');
+    const [updated] = await this.database.db.update(voiceProfiles).set({
+      previewPlaybackStartedAt: voice.previewPlaybackStartedAt ? new Date(voice.previewPlaybackStartedAt) : new Date(),
+      updatedAt: new Date(),
+    }).where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId))).returning();
+    return { previewPlaybackStartedAt: updated.previewPlaybackStartedAt };
+  }
+
   async retryPreview(userId: string, voiceId: string) {
     if (this.database.isCloudBase) {
       try {

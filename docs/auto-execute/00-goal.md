@@ -1,5 +1,13 @@
 # Goal
 
+## 2026-08-24 pure WeChat Cloud risk-first migration (current authority)
+
+- Preserve the complete CloudBase Run baseline at `67f92ac` on local `main` and `codex/aivoice-pre-pure-cloud-20260824`.
+- Before changing the remaining product surface, prove the four architecture risks that could make a no-ICP deployment unusable: private HTTP Function invocation and OpenID identity, domainless media upload/playback, stateless job dispatch/recovery, and WeChat Pay callback/grant idempotency.
+- Reuse CloudBase PostgreSQL REST/RPC, existing points/order transactions, the event Worker, Aliyun CosyVoice and multi-speaker detection.
+- Do not migrate the other client API calls until these four risk gates have executable evidence.
+- Do not claim production PASS until a real mini-program invocation, authorized video upload/audio playback, and real small-amount payment callback have run in the live WeChat environment.
+
 ## 2026-08-22 CloudBase production refactor (current authority)
 
 - Preserve the complete pre-refactor baseline at commit `423ab2a` on `main` and `codex/aivoice-pre-cloudbase-rpc-20260822`.

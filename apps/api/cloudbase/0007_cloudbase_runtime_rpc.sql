@@ -10,6 +10,7 @@
 -- rpc_voice_update_profile(p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type)
 -- rpc_voice_confirm_consent(p_user_id uuid,p_voice_id uuid,p_permission_type permission_type,p_consent_version text,p_consent_text_hash text,p_confirmed_at timestamptz)
 -- rpc_voice_queue_processing(p_user_id uuid,p_voice_id uuid,p_consent_version text,p_consent_text_hash text)
+-- rpc_voice_mark_preview_started(p_user_id uuid,p_voice_id uuid)
 -- rpc_voice_mark_preview_played(p_user_id uuid,p_voice_id uuid,p_min_elapsed_ms int)
 -- rpc_voice_accept_preview(p_user_id uuid,p_voice_id uuid)
 -- rpc_voice_retry_preview(p_user_id uuid,p_voice_id uuid)
@@ -283,6 +284,21 @@ BEGIN
   WHERE jobs.status IN ('FAILED','SUCCEEDED','CANCELLED') RETURNING id INTO v_job_id;
   IF v_job_id IS NULL THEN SELECT id INTO v_job_id FROM jobs WHERE dedupe_key='process-voice:'||p_voice_id::text; END IF;
   RETURN jsonb_build_object('voiceId',p_voice_id,'status','QUEUED','jobId',v_job_id,'idempotent',false);
+END; $$;
+
+CREATE OR REPLACE FUNCTION rpc_voice_mark_preview_started(p_user_id uuid,p_voice_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE v_voice voice_profiles%ROWTYPE;
+BEGIN
+  PERFORM _rpc_assert_caller(ARRAY['api_rpc_role']);
+  SELECT * INTO v_voice FROM voice_profiles WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
+  IF v_voice.status<>'READY' THEN RAISE EXCEPTION 'VOICE_NOT_READY'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM media_assets WHERE voice_profile_id=p_voice_id AND kind='PREVIEW_AUDIO' AND status='READY')
+    THEN RAISE EXCEPTION 'PREVIEW_NOT_FOUND'; END IF;
+  UPDATE voice_profiles SET preview_playback_started_at=COALESCE(preview_playback_started_at,now()),updated_at=now()
+  WHERE id=p_voice_id RETURNING * INTO v_voice;
+  RETURN jsonb_build_object('previewPlaybackStartedAt',v_voice.preview_playback_started_at);
 END; $$;
 
 CREATE OR REPLACE FUNCTION rpc_voice_mark_preview_played(p_user_id uuid,p_voice_id uuid,p_min_elapsed_ms integer DEFAULT 0)

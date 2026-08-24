@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.mjs",
   "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.3",
     "@ffmpeg-installer/linux-x64": "4.1.0"
   }
 }
