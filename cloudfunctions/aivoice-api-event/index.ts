@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core'
 import request from 'supertest'
 import cloud from 'wx-server-sdk'
 import { AppModule } from '../../apps/api/src/app.module.js'
+import { safeHeaders } from './headers.js'
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -19,17 +20,6 @@ async function server(): Promise<any> {
     })
   }
   return serverPromise
-}
-
-function safeHeaders(value: unknown): Record<string, string> {
-  if (!value || typeof value !== 'object') return {}
-  const source = value as Record<string, unknown>
-  const headers: Record<string, string> = {}
-  for (const name of ['authorization', 'idempotency-key', 'content-type']) {
-    const item = source[name] ?? source[name.toUpperCase()]
-    if (typeof item === 'string' && item) headers[name] = item
-  }
-  return headers
 }
 
 export async function main(event: Record<string, any> = {}): Promise<Record<string, any>> {
