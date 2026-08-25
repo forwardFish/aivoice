@@ -83,12 +83,8 @@
       <text class="profile-privacy">头像和昵称仅用于你的账号展示</text>
 
       <view class="ui-form-actions">
-        <view class="ui-form-action">
-          <app-button label="取消" variant="secondary" size="medium" disabled="{{loading}}" bindaction="closeProfileSheet"></app-button>
-        </view>
-        <view class="ui-form-action">
-          <app-button label="确认登录" variant="primary" size="medium" loading="{{loading}}" bindaction="confirmProfileLogin"></app-button>
-        </view>
+        <button class="ui-form-action secondary-button" disabled="{{loading}}" bindtap="closeProfileSheet">取消</button>
+        <button class="ui-form-action primary-button" disabled="{{loading}}" bindtap="confirmProfileLogin">{{loading ? '登录中…' : '确认登录'}}</button>
       </view>
     </view>
   </bottom-sheet>

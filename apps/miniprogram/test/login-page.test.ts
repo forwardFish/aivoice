@@ -2,18 +2,21 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 
-test('login profile actions use compact centered widths with explicit parent spacing', () => {
+test('login profile actions use compact native buttons with visible sibling spacing', () => {
   const wxml = readFileSync(new URL('../pages/login/index.wxml', import.meta.url), 'utf8')
   const wxss = readFileSync(new URL('../pages/login/index.wxss', import.meta.url), 'utf8')
   const pageJson = readFileSync(new URL('../pages/login/index.json', import.meta.url), 'utf8')
 
-  assert.equal((wxml.match(/<app-button\b/g) || []).length, 2)
-  assert.match(pageJson, /"app-button"\s*:\s*"\/components\/app-button\/app-button"/)
+  assert.match(wxml, /<button[^>]*class="ui-form-action secondary-button"[^>]*bindtap="closeProfileSheet"[^>]*>取消<\/button>/)
+  assert.match(wxml, /<button[^>]*class="ui-form-action primary-button"[^>]*bindtap="confirmProfileLogin"/)
+  assert.doesNotMatch(wxml, /<app-button\b/)
+  assert.doesNotMatch(pageJson, /"app-button"\s*:/)
   assert.match(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*flex/s)
   assert.doesNotMatch(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*grid/s)
-  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*justify-content:\s*center[^}]*gap:\s*20rpx[^}]*padding:\s*0;/s)
-  assert.match(wxss, /\.ui-form-action\s*\{[^}]*flex:\s*0\s+0\s+230rpx[^}]*width:\s*230rpx/s)
-  assert.match(wxss, /\.ui-form-action\s*\+\s*\.ui-form-action\s*\{[^}]*margin-left:\s*0/s)
+  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*justify-content:\s*center[^}]*padding:\s*0;/s)
+  assert.doesNotMatch(wxss, /\.ui-form-actions\s*\{[^}]*\bgap:/s)
+  assert.match(wxss, /\.ui-form-action\s*\{[^}]*flex:\s*0\s+0\s+230rpx[^}]*width:\s*230rpx[^}]*margin:\s*0;/s)
+  assert.match(wxss, /\.ui-form-action\s*\+\s*\.ui-form-action\s*\{[^}]*margin-left:\s*24rpx/s)
 })
 
 test('login waits for avatar and nickname before using real wx.login code', async () => {

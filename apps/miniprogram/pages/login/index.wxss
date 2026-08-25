@@ -157,7 +157,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20rpx;
   padding: 0;
   box-sizing: border-box;
 }
@@ -166,10 +165,17 @@
   flex: 0 0 230rpx;
   width: 230rpx;
   min-width: 230rpx;
+  min-height: 78rpx;
+  margin: 0;
+  padding: 0 24rpx;
+  border-radius: 25rpx;
+  font-size: 26rpx;
+  font-weight: 650;
+  box-sizing: border-box;
 }
 
 .ui-form-action + .ui-form-action {
-  margin-left: 0;
+  margin-left: 24rpx;
 }
 
 @media (max-height: 740px) {
