@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 
-test('login profile actions use standard buttons with explicit parent spacing', () => {
+test('login profile actions use compact centered widths with explicit parent spacing', () => {
   const wxml = readFileSync(new URL('../pages/login/index.wxml', import.meta.url), 'utf8')
   const wxss = readFileSync(new URL('../pages/login/index.wxss', import.meta.url), 'utf8')
   const pageJson = readFileSync(new URL('../pages/login/index.json', import.meta.url), 'utf8')
@@ -11,7 +11,8 @@ test('login profile actions use standard buttons with explicit parent spacing', 
   assert.match(pageJson, /"app-button"\s*:\s*"\/components\/app-button\/app-button"/)
   assert.match(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*flex/s)
   assert.doesNotMatch(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*grid/s)
-  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*gap:\s*28rpx[^}]*padding:\s*0\s+20rpx/s)
+  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*justify-content:\s*center[^}]*gap:\s*20rpx[^}]*padding:\s*0;/s)
+  assert.match(wxss, /\.ui-form-action\s*\{[^}]*flex:\s*0\s+0\s+230rpx[^}]*width:\s*230rpx/s)
   assert.match(wxss, /\.ui-form-action\s*\+\s*\.ui-form-action\s*\{[^}]*margin-left:\s*0/s)
 })
 

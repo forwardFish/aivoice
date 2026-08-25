@@ -155,15 +155,17 @@
   margin-top: 28rpx;
   width: 100%;
   display: flex;
-  align-items: stretch;
-  gap: 28rpx;
-  padding: 0 20rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .ui-form-action {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 230rpx;
+  width: 230rpx;
+  min-width: 230rpx;
 }
 
 .ui-form-action + .ui-form-action {
