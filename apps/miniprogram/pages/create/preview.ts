@@ -6,6 +6,7 @@ import {
   retryVoicePreview
 } from '../../services/api'
 import { TrialEligibility } from '../../models/api'
+import { resolveVoiceAvatar } from '../../utils/default-avatar'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { clearCreationSession } from '../../utils/storage'
 import { voiceInitial } from '../../utils/format'
@@ -20,6 +21,7 @@ Page({
     state: 'loading',
     voiceName: '这个声音',
     voiceInitial: '声',
+    avatarUrl: '',
     audioUrl: '',
     previewText: '',
     durationMs: 0,
@@ -61,6 +63,7 @@ Page({
         state: 'success',
         voiceName: voice.name || '这个声音',
         voiceInitial: voiceInitial(voice.name),
+        avatarUrl: resolveVoiceAvatar(voice),
         audioUrl: preview.audioUrl,
         previewText: preview.text,
         durationMs: preview.durationMs || 0,

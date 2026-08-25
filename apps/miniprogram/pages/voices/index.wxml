@@ -1,5 +1,5 @@
 <view class="voices-screen">
-  <app-nav title="我的声音" rightText="新建" bindrighttap="createVoice"></app-nav>
+  <app-nav title="我的声音"></app-nav>
 
   <scroll-view class="filter-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
     <view class="filter-row">
@@ -22,7 +22,7 @@
   <view wx:else class="voice-list fade-in">
     <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card">
       <view class="card-top">
-        <image wx:if="{{item.avatarUrl}}" class="voice-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
         <view wx:else class="voice-avatar fallback">{{item.initial}}</view>
         <view class="voice-copy">
           <view class="name-row">
@@ -32,7 +32,7 @@
           <text wx:if="{{item.stageLabel}}" class="stage-label">{{item.stageLabel}}</text>
           <text class="voice-meta">{{item.metaText}}</text>
         </view>
-        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings">···</button>
+        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings"><image src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image></button>
       </view>
 
       <view wx:if="{{item.showProgress}}" class="progress-wrap">

@@ -1,49 +1,60 @@
-<view class="screen profile-screen">
-  <app-nav title="填写信息与授权" back="{{true}}"></app-nav>
+<view class="profile-screen screen-shell">
+  <app-nav title="填写信息与授权" back="{{true}}" transparent="{{true}}"></app-nav>
 
   <view class="profile-content fade-in">
-    <view class="intro-block">
-      <text class="page-title">给这个声音起个名字</text>
-      <text class="page-subtitle">只收集创建声音所需的最少信息；声音和生成内容不会公开展示。</text>
+    <text class="profile-intro">信息仅用于生成声音，严格保密</text>
+
+    <view class="name-card soft-card">
+      <view class="field-heading"><text>称呼 TA</text><text>{{name.length || 0}}/20</text></view>
+      <input class="name-input" value="{{name}}" placeholder="例如：妈妈、爷爷、大学时的我" maxlength="20" bindinput="onNameInput" />
     </view>
 
-    <view class="form-card glass-card">
-      <view class="field-block">
-        <text class="field-label">称呼 TA</text>
-        <input class="field-input" value="{{name}}" placeholder="例如：妈妈、小雨 · 5岁、大学时的我" maxlength="20" bindinput="onNameInput" />
+    <view class="permission-section">
+      <view class="permission-heading">
+        <view><text class="permission-title-main">声音使用权限</text><text class="permission-subtitle">请选择与你实际情况一致的一项</text></view>
+        <button class="rules-link" bindtap="showRules">查看规则</button>
       </view>
 
-      <view class="field-block permission-block">
-        <view class="permission-heading">
-          <text class="field-label">声音使用权限</text>
-          <text class="permission-help" bindtap="showRules">为什么需要授权？</text>
-        </view>
-        <view class="permission-list">
-          <view wx:for="{{options}}" wx:key="key" class="permission-card {{permissionType === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectPermission">
-            <view class="radio-dot"><view wx:if="{{permissionType === item.key}}" class="radio-inner"></view></view>
-            <view class="permission-copy">
-              <text class="permission-title">{{item.title}}</text>
-              <text class="permission-description">{{item.description}}</text>
+      <view class="permission-list">
+        <view wx:for="{{options}}" wx:key="key" class="permission-card {{permissionType === item.key ? 'is-selected' : ''}}" data-key="{{item.key}}" bindtap="selectPermission">
+          <view class="permission-icon {{item.key === 'SELF' ? 'self-icon' : item.key === 'MINOR' ? 'minor-icon' : 'other-icon'}}">
+            <view class="permission-symbol">
+              <view class="symbol-head"></view>
+              <view class="symbol-body"></view>
             </view>
-            <view wx:if="{{permissionType === item.key}}" class="selected-check">✓</view>
           </view>
+
+          <view class="permission-copy">
+            <text class="permission-name">{{item.title}}</text>
+            <text class="permission-description">{{item.description}}</text>
+          </view>
+
+          <view class="radio-ring"><view wx:if="{{permissionType === item.key}}" class="radio-core"></view></view>
         </view>
       </view>
-
-      <view wx:if="{{permissionType}}" class="consent-box" bindtap="toggleConfirmed">
-        <view class="check-box {{confirmed ? 'checked' : ''}}"><text wx:if="{{confirmed}}">✓</text></view>
-        <view class="consent-copy">
-          <text class="consent-label">声音使用确认</text>
-          <text class="consent-text">{{consentText}}</text>
-        </view>
-      </view>
-
-      <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
-
-      <button class="primary-button {{submitting ? 'button-disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
-        {{submitting ? '正在提交…' : '开始创建免费试听'}}
-      </button>
-      <text class="ai-note">AI 生成内容会显示“AI生成”或“AI回复”标识。</text>
     </view>
+
+    <view wx:if="{{permissionType}}" class="consent-card {{confirmed ? 'is-confirmed' : ''}}" bindtap="toggleConfirmed">
+      <view class="consent-check"><text wx:if="{{confirmed}}">✓</text></view>
+      <view class="consent-copy">
+        <text class="consent-title">声音使用确认</text>
+        <text class="consent-text">{{consentText}}</text>
+      </view>
+    </view>
+
+    <view class="privacy-card">
+      <view class="privacy-lock"></view>
+      <view><text>私有保存</text><text>声音样本与生成内容不会公开展示，可在设置中删除。</text></view>
+    </view>
+
+    <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+    <view class="profile-spacer"></view>
+  </view>
+
+  <view class="profile-footer safe-bottom">
+    <button class="primary-button submit-button {{submitting ? 'button-disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '正在提交并启动创建…' : '下一步'}}
+    </button>
+    <text class="ai-note">提交即按所选权限保存授权记录；生成内容会标注为 AI 生成。</text>
   </view>
 </view>

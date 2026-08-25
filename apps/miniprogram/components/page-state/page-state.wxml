@@ -5,7 +5,7 @@
   </view>
   <view wx:elif="{{mode === 'error'}}" class="state-visual error-visual">!</view>
   <view wx:elif="{{mode === 'empty'}}" class="state-visual empty-visual">
-    <view class="empty-wave"><text></text><text></text><text></text><text></text><text></text></view>
+    <image class="empty-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
   </view>
   <view wx:else class="state-visual success-visual">✓</view>
   <text class="state-title">{{title}}</text>

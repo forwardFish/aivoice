@@ -1,35 +1,23 @@
-<view wx:if="{{visible}}" class="dialog-overlay" catchtouchmove="noop" bindtap="cancel">
-  <view class="dialog-card fade-in" catchtap="noop">
+<view wx:if="{{visible}}" class="dialog-mask fade-in" catchtouchmove="noop" bindtap="cancel">
+  <view class="dialog-card float-in" catchtap="noop">
+    <button class="dialog-close" bindtap="cancel" aria-label="关闭">×</button>
     <view class="dialog-visual">
-      <view class="bag-handle"></view>
-      <view class="bag-body"><text>♡</text></view>
+      <image class="points-bag-image" src="/assets/ui/points-bag.png" mode="aspectFit"></image>
     </view>
-    <text class="dialog-title">继续使用“{{voiceName || '这个声音'}}”</text>
-    <text class="dialog-subtitle">当前积分不足</text>
-
-    <view class="product-card">
-      <view>
-        <text class="product-quota">{{pointsText}}积分</text>
-        <text class="product-copy">成功生成可用</text>
+    <text class="dialog-title">积分已用完</text>
+    <text class="dialog-description">继续使用“{{voiceName}}”生成新的声音内容，需要补充账户积分。</text>
+    <view class="package-card">
+      <view class="package-left">
+        <text class="package-eyebrow">一次性积分包</text>
+        <view class="package-points"><text class="points-number">{{pointsText}}</text><text class="points-unit">账户积分</text></view>
+        <text class="package-code">每次成功生成消耗 1 积分</text>
       </view>
-      <text class="product-price">{{priceText}}</text>
+      <view class="package-right"><text class="package-price">{{priceText}}</text><text class="package-renew">不自动续费</text></view>
     </view>
-
-    <view class="benefits">
-      <text>· 对话和“说一句”共用</text>
-      <text>· 仅成功生成后扣积分</text>
-      <text>· 失败不扣积分</text>
-      <text>· 不自动续费</text>
-    </view>
-
-    <view wx:if="{{pending}}" class="pending-box">
-      <view class="mini-spinner"></view>
-      <text>{{message || '正在确认支付结果和积分入账…'}}</text>
-    </view>
-
-    <button class="buy-button {{paying || pending ? 'is-disabled' : ''}}" bindtap="buy" disabled="{{paying || pending}}">
-      {{paying ? '正在打开微信支付…' : pending ? '正在确认入账…' : '去购买页支付'}}
-    </button>
-    <button class="cancel-button" bindtap="cancel" disabled="{{paying || pending}}">暂不购买</button>
+    <view class="benefit-row"><view><text class="benefit-check">✓</text><text>支付成功后自动确认入账</text></view><view><text class="benefit-check">✓</text><text>所有声音共享</text></view></view>
+    <text wx:if="{{message}}" class="dialog-message">{{message}}</text>
+    <button class="dialog-primary" disabled="{{paying || pending}}" bindtap="buy">{{paying ? '正在调起支付…' : pending ? '正在确认到账…' : '购买 ' + pointsText + ' 积分 · ' + priceText}}</button>
+    <button class="dialog-secondary" disabled="{{paying || pending}}" bindtap="cancel">稍后再说</button>
+    <text class="dialog-note">未完成支付不会扣款；支付成功后积分将自动同步。</text>
   </view>
 </view>

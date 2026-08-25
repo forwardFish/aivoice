@@ -1,11 +1,11 @@
-<view class="audio-shell {{compact ? 'audio-compact' : ''}}" bindtap="toggle">
+<view class="audio-player {{compact ? 'is-compact' : ''}} {{disabled ? 'is-disabled' : ''}}" bindtap="toggle">
   <view class="play-button {{playing ? 'is-playing' : ''}}">
-    <view wx:if="{{!playing}}" class="play-triangle"></view>
-    <view wx:else class="pause-bars"><text></text><text></text></view>
+    <image wx:if="{{!playing}}" class="play-image" src="/assets/ui/play-line.png" mode="aspectFit"></image>
+    <view wx:else class="pause-icon"><text></text><text></text></view>
   </view>
   <view class="audio-main">
-    <view wx:if="{{label || tag}}" class="audio-meta">
-      <text class="audio-label">{{label}}</text>
+    <view wx:if="{{label || tag}}" class="audio-topline">
+      <text class="audio-label">{{label || '试听声音'}}</text>
       <text wx:if="{{tag}}" class="audio-tag">{{tag}}</text>
     </view>
     <view class="wave-row">
@@ -16,4 +16,8 @@
       <text class="audio-time">{{currentText}}</text>
     </view>
   </view>
+  <button wx:if="{{downloadable && src}}" class="download-button" catchtap="download" disabled="{{downloading}}" aria-label="下载音频">
+    <view class="download-arrow"></view>
+    <view class="download-tray"></view>
+  </button>
 </view>

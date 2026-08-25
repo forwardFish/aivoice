@@ -12,7 +12,7 @@
   <view wx:else class="account-content fade-in">
     <view class="profile-card glass-card">
       <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="profile-avatar fallback">{{userInitial}}</view>
+      <view wx:else class="profile-avatar fallback"><image class="profile-avatar-icon" src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
       <view class="profile-copy">
         <text class="profile-name">{{user.nickname || '微信用户'}}</text>
         <text class="profile-caption">{{voiceCount}} 个声音 · 共剩余 {{availablePoints}} 积分</text>

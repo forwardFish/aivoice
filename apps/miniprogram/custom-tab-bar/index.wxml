@@ -1,0 +1,19 @@
+<view class="custom-tab-shell">
+  <view class="custom-tab-panel">
+    <view
+      wx:for="{{items}}"
+      wx:key="route"
+      class="custom-tab-item {{selected === index ? 'selected' : ''}}"
+      data-index="{{index}}"
+      data-route="{{item.route}}"
+      bindtap="switchTab"
+    >
+      <image
+        class="custom-tab-icon"
+        src="{{selected === index ? item.selectedIcon : item.icon}}"
+        mode="aspectFit"
+      ></image>
+      <text class="custom-tab-label">{{item.text}}</text>
+    </view>
+  </view>
+</view>

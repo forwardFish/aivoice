@@ -1,61 +1,85 @@
-<view class="screen clip-screen">
-  <app-nav title="标记声音片段" back="{{true}}"></app-nav>
+<view class="clip-screen screen-shell">
+  <app-nav title="标记声音片段" back="{{true}}" transparent="{{true}}"></app-nav>
 
-  <view wx:if="{{state === 'loading'}}">
-    <page-state mode="loading" title="正在读取视频" description="请稍候…"></page-state>
+  <view wx:if="{{state === 'loading'}}" class="page-state-wrap">
+    <page-state mode="loading" title="正在读取视频" description="正在恢复刚才选择的视频…"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'error'}}" class="soft-card error-card">
+  <view wx:elif="{{state === 'error'}}" class="page-state-wrap glass-card">
     <page-state mode="error" title="无法继续标记" description="{{errorMessage}}" actionText="重新选择视频" bindaction="retryFromAlbum"></page-state>
   </view>
 
-  <view wx:else class="clip-content fade-in">
-    <video id="clipVideo" class="clip-video" src="{{tempFilePath}}" controls="{{true}}" object-fit="cover" bindtimeupdate="onTimeUpdate"></video>
+  <block wx:else>
+    <view class="clip-content fade-in">
+      <view class="compact-heading">
+        <text class="page-title">请标记 TA 说话的片段</text>
+        <text class="page-subtitle">建议选择清晰朗读、安静的 10–30 秒片段</text>
+      </view>
 
-    <view class="instruction">
-      <text class="section-title">标记 TA 清楚说话的片段</text>
-      <text class="section-caption">推荐选择安静、清晰、没有其他人重叠说话的 10–30 秒片段。</text>
+      <view class="video-stage luminous-card">
+        <video id="clipVideo" class="clip-video" src="{{tempFilePath}}" controls="{{true}}" object-fit="cover" bindtimeupdate="onTimeUpdate"></video>
+        <view class="video-meta-overlay">
+          <text>当前 {{currentText}}</text>
+          <text>总时长 {{durationSec}} 秒</text>
+        </view>
+      </view>
+
+      <view class="trim-card glass-card">
+        <view class="trim-heading">
+          <view>
+            <text class="trim-title">声音片段</text>
+            <text class="trim-copy">{{startText}} — {{endText}}</text>
+          </view>
+          <view class="duration-pill"><text>{{selectedText}}</text><text>已选择</text></view>
+        </view>
+
+        <view class="wave-shell">
+          <view class="wave-selection" style="left: {{startPercent}}%; width: {{selectionPercent}}%;"></view>
+          <view class="wave-bars">
+            <text style="height:18rpx"></text><text style="height:34rpx"></text><text style="height:48rpx"></text><text style="height:28rpx"></text><text style="height:58rpx"></text><text style="height:42rpx"></text><text style="height:66rpx"></text><text style="height:38rpx"></text><text style="height:54rpx"></text><text style="height:30rpx"></text><text style="height:64rpx"></text><text style="height:45rpx"></text><text style="height:57rpx"></text><text style="height:26rpx"></text><text style="height:49rpx"></text><text style="height:62rpx"></text><text style="height:35rpx"></text><text style="height:53rpx"></text><text style="height:24rpx"></text><text style="height:44rpx"></text><text style="height:60rpx"></text><text style="height:32rpx"></text><text style="height:51rpx"></text><text style="height:22rpx"></text>
+          </view>
+          <view class="marker marker-start" style="left: {{startPercent}}%;"><view class="marker-handle"></view></view>
+          <view class="marker marker-end" style="left: {{endPercent}}%;"><view class="marker-handle"></view></view>
+        </view>
+        <view class="time-labels"><text>{{startText}}</text><text>{{endText}}</text></view>
+
+        <view class="position-actions">
+          <button bindtap="setStartFromCurrent"><text class="action-dot start-dot"></text><text>当前设为开始</text></button>
+          <button bindtap="setEndFromCurrent"><text class="action-dot end-dot"></text><text>当前设为结束</text></button>
+        </view>
+
+        <view class="fine-tune">
+          <view class="slider-line">
+            <text class="slider-name">开始</text>
+            <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{startSec}}" activeColor="#6654F4" backgroundColor="#E5E3F3" block-color="#6654F4" block-size="20" bindchanging="onStartSlider" bindchange="onStartSlider" />
+          </view>
+          <view class="slider-line">
+            <text class="slider-name">结束</text>
+            <slider class="range-slider" min="0" max="{{durationSec}}" step="1" value="{{endSec}}" activeColor="#9470F5" backgroundColor="#E5E3F3" block-color="#9470F5" block-size="20" bindchanging="onEndSlider" bindchange="onEndSlider" />
+          </view>
+        </view>
+
+        <button class="preview-button {{!valid ? 'is-disabled' : ''}}" bindtap="previewSelection" disabled="{{!valid}}">
+          <view class="preview-play ui-sprite sprite-play-line"><image class="ui-sprite-sheet" src="/assets/ui/play-line.png" mode="aspectFit"></image></view>
+          <text>{{previewing ? '正在播放所选片段' : '试听所选片段'}}</text>
+        </button>
+      </view>
+
+      <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
+      <view class="clip-content-spacer"></view>
     </view>
 
-    <view class="current-row soft-card">
-      <view><text class="mini-label">当前播放位置</text><text class="current-value">{{currentText}}</text></view>
-      <view class="position-actions">
-        <button class="position-button" bindtap="setStartFromCurrent">设为开始</button>
-        <button class="position-button" bindtap="setEndFromCurrent">设为结束</button>
+    <view class="clip-footer safe-bottom">
+      <view class="footer-consent {{confirmed ? 'is-confirmed' : ''}}" bindtap="toggleConfirmed">
+        <view class="check-box"><text wx:if="{{confirmed}}">✓</text></view>
+        <view class="footer-consent-copy">
+          <text>我确认主要是目标人物清楚、单独说话</text>
+          <text>多人或杂音明显时，请重新选择</text>
+        </view>
       </view>
-    </view>
-
-    <view class="range-card glass-card">
-      <view class="range-top">
-        <view><text class="range-label">开始</text><text class="range-time">{{startText}}</text></view>
-        <view class="selected-duration"><text>{{selectedText}}</text><text>已选择时长</text></view>
-        <view class="range-right"><text class="range-label">结束</text><text class="range-time">{{endText}}</text></view>
-      </view>
-
-      <view class="slider-block">
-        <text class="slider-label">开始位置</text>
-        <slider min="0" max="{{durationSec}}" step="1" value="{{startSec}}" activeColor="#6552F5" backgroundColor="#E7E7F2" block-color="#6552F5" block-size="22" bindchange="onStartSlider" />
-      </view>
-      <view class="slider-block">
-        <text class="slider-label">结束位置</text>
-        <slider min="0" max="{{durationSec}}" step="1" value="{{endSec}}" activeColor="#8A70F6" backgroundColor="#E7E7F2" block-color="#8A70F6" block-size="22" bindchange="onEndSlider" />
-      </view>
-
-      <button class="preview-button {{valid ? '' : 'disabled'}}" bindtap="previewSelection" disabled="{{!valid}}">
-        {{previewing ? '正在试听所选片段' : '▶ 试听所选片段'}}
+      <button class="primary-button footer-next {{!valid || !confirmed || saving ? 'button-disabled' : ''}}" bindtap="saveAndContinue" disabled="{{!valid || !confirmed || saving}}">
+        {{saving ? '正在保存片段…' : '下一步'}}
       </button>
     </view>
-
-    <view class="consent-row" bindtap="toggleConfirmed">
-      <view class="check-box {{confirmed ? 'checked' : ''}}"><text wx:if="{{confirmed}}">✓</text></view>
-      <text>我确认这段主要是目标人物清楚、单独说话。</text>
-    </view>
-
-    <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
-
-    <button class="primary-button {{!valid || !confirmed || saving ? 'button-disabled' : ''}}" bindtap="saveAndContinue" disabled="{{!valid || !confirmed || saving}}">
-      {{saving ? '保存中…' : '下一步'}}
-    </button>
-    <text class="bottom-tip">有多人同时讲话时，请换一个片段。</text>
-  </view>
+  </block>
 </view>

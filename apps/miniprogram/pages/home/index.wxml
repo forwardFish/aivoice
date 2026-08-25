@@ -1,81 +1,77 @@
-<view class="home-screen">
+<view class="home-screen screen-shell">
   <app-nav transparent="{{true}}"></app-nav>
 
-  <view class="home-header fade-in">
-    <view>
-      <text class="brand-title">那时的 TA</text>
-      <text class="brand-subtitle">用声音，找回记忆里的 TA</text>
+  <view class="hero fade-in">
+    <view class="hero-copy">
+      <text class="brand-title">那时的TA</text>
+      <text class="brand-subtitle">把记忆里的声音，轻轻留住</text>
     </view>
-    <view class="header-orb">
-      <view class="mini-wave"><text></text><text></text><text></text><text></text><text></text></view>
-    </view>
+    <image class="hero-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
+    <view class="hero-glow"></view>
+    <view class="hero-spark hero-spark-a"></view>
+    <view class="hero-spark hero-spark-b"></view>
   </view>
 
-  <view class="create-card glass-card fade-in" bindtap="createVoice">
-    <view class="create-icon">+</view>
+  <view class="create-card luminous-card float-in" bindtap="createVoice">
+    <image class="create-icon" src="/assets/ui/icon-add.png" mode="aspectFit"></image>
     <view class="create-copy">
       <text class="create-title">创建新声音</text>
-      <text class="create-subtitle">从相册视频中提取 TA 的声音</text>
+      <text class="create-subtitle">从旧视频中提取 TA 的声音</text>
     </view>
-    <view class="create-arrow">›</view>
+    <image class="create-arrow" src="/assets/ui/icon-arrow.png" mode="aspectFit"></image>
   </view>
 
-  <view wx:if="{{state === 'loading'}}" class="home-state">
+  <view wx:if="{{state === 'loading'}}" class="home-state glass-card fade-in">
     <page-state mode="loading" compact="{{true}}" title="正在加载声音" description="正在获取最近可用的私有声音…"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'error'}}" class="home-state soft-card">
+  <view wx:elif="{{state === 'error'}}" class="home-state glass-card fade-in">
     <page-state mode="error" compact="{{true}}" title="首页暂时无法加载" description="{{errorMessage}}" actionText="重新加载" bindaction="loadHome"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'empty'}}" class="new-user fade-in">
-    <view class="section-row">
-      <text class="section-title">只需三步</text>
-    </view>
-    <view class="steps-card soft-card">
-      <view class="step-item">
-        <text class="step-index">1</text>
-        <text class="step-title">选视频</text>
-        <text class="step-copy">12–60 秒</text>
+  <view wx:elif="{{state === 'empty'}}" class="empty-section fade-in">
+    <view class="section-row"><text class="section-title">最近的声音</text></view>
+    <view class="empty-card soft-card">
+      <image class="empty-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+      <text class="empty-title">还没有留下声音</text>
+      <text class="empty-copy">选一段 12–60 秒的旧视频，完成试听后，声音会出现在这里。</text>
+      <view class="empty-steps">
+        <view><text>1</text><text>选视频</text></view>
+        <view class="step-line"></view>
+        <view><text>2</text><text>截声音</text></view>
+        <view class="step-line"></view>
+        <view><text>3</text><text>开始体验</text></view>
       </view>
-      <view class="step-line"></view>
-      <view class="step-item">
-        <text class="step-index">2</text>
-        <text class="step-title">截声音</text>
-        <text class="step-copy">10–30 秒</text>
-      </view>
-      <view class="step-line"></view>
-      <view class="step-item">
-        <text class="step-index">3</text>
-        <text class="step-title">开始体验</text>
-        <text class="step-copy">试听后使用</text>
-      </view>
-    </view>
-    <view class="empty-tip">
-      <view class="lock-mark"></view>
-      <text>私有声音，仅自己可用，可随时删除</text>
+      <button class="empty-action" bindtap="createVoice">创建第一个声音</button>
     </view>
   </view>
 
   <view wx:else class="recent-section fade-in">
     <view class="section-row">
       <text class="section-title">最近的声音</text>
-      <text class="section-link" bindtap="createVoice">新建声音</text>
+      <navigator class="section-link" url="/pages/voices/index" open-type="switchTab">全部 ›</navigator>
     </view>
+
     <view class="voice-list">
       <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card" data-id="{{item.id}}" bindtap="openVoice">
-        <image wx:if="{{item.avatarUrl}}" class="voice-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback">{{item.initial}}</view>
+        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="voice-avatar fallback"><image class="fallback-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
+
         <view class="voice-info">
           <text class="voice-name">{{item.name}}</text>
-          <text class="voice-meta">{{item.lastUsedText}} · {{item.pointsText}}</text>
+          <view class="voice-meta-row">
+            <text class="voice-meta">{{item.metaText}}</text>
+          </view>
         </view>
-        <button class="continue-button" data-id="{{item.id}}" catchtap="openVoice">继续对话</button>
+
+        <image class="voice-wave" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+        <text wx:if="{{item.durationText}}" class="voice-duration">{{item.durationText}}</text>
+        <image class="voice-play" src="/assets/ui/icon-play-glass.png" mode="aspectFit"></image>
+        <image class="voice-more" src="/assets/ui/icon-more-vertical.png" mode="aspectFit"></image>
       </view>
     </view>
-    <view class="trust-note">
-      <view class="trust-check">✓</view>
-      <text>首页只展示已可用的声音；处理任务请在“我的声音”查看。</text>
-    </view>
+
   </view>
+
+  <view class="tabbar-safe-space"></view>
 </view>

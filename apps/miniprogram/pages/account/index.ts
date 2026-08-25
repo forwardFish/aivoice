@@ -10,6 +10,7 @@ import { OrderDetail, PointsLedgerItem, UserProfile } from '../../models/api'
 import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { clearLocalProjectData, setUser } from '../../utils/storage'
+import { syncTabBarSelection } from '../../utils/tab-bar'
 import { confirm, toast } from '../../utils/ui'
 
 function orderStatusLabel(status: string): string {
@@ -71,6 +72,7 @@ Page({
     deletingAccount: false
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/account/index')
     if (!ensureAuthenticated()) return
     this.loadAccount()
   },

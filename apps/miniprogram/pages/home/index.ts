@@ -1,6 +1,27 @@
-import { getHome, getPoints } from '../../services/api'
-import { formatDateTime, voiceInitial } from '../../utils/format'
+import { getHome } from '../../services/api'
+import { syncTabBarSelection } from '../../utils/tab-bar'
+import { resolveVoiceAvatar } from '../../utils/default-avatar'
+import { formatDateTime, formatDurationMs, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated, openWorkbench } from '../../utils/navigation'
+
+function realClipDurationMs(voice: any): number {
+  const startMs = Number(voice && voice.clipStartMs)
+  const endMs = Number(voice && voice.clipEndMs)
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return 0
+  return endMs - startMs
+}
+
+function voiceMetadata(voice: any): { metaText: string; durationText: string } {
+  const timestamp = voice.lastUsedAt || voice.updatedAt || voice.createdAt || ''
+  const metaText = timestamp
+    ? `${voice.lastUsedAt ? '最近使用' : '创建于'} ${formatDateTime(timestamp)}`
+    : '暂无使用记录'
+  const durationMs = realClipDurationMs(voice)
+  return {
+    metaText,
+    durationText: durationMs > 0 ? formatDurationMs(durationMs) : ''
+  }
+}
 
 Page({
   data: {
@@ -9,6 +30,7 @@ Page({
     voices: [] as any[]
   },
   onShow() {
+    syncTabBarSelection(this, 'pages/home/index')
     if (!ensureAuthenticated()) return
     this.loadHome()
   },
@@ -18,15 +40,15 @@ Page({
   async loadHome(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
     try {
-      const [response, points] = await Promise.all([getHome(), getPoints()])
+      const response = await getHome()
       const voices = response.recentVoices
         .filter(voice => voice.status === 'READY')
         .slice(0, 3)
         .map(voice => ({
           ...voice,
           initial: voiceInitial(voice.name),
-          pointsText: points.availablePoints > 0 ? `剩余 ${points.availablePoints} 积分` : '剩余 0 积分',
-          lastUsedText: formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)
+          displayAvatarUrl: resolveVoiceAvatar(voice),
+          ...voiceMetadata(voice)
         }))
       this.setData({ state: voices.length ? 'success' : 'empty', voices })
     } catch (error: any) {

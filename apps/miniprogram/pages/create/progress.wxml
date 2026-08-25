@@ -1,48 +1,53 @@
-<view class="screen progress-screen">
-  <app-nav title="创建中" back="{{true}}"></app-nav>
+<view class="progress-screen screen-shell">
+  <app-nav title="创建中" back="{{true}}" transparent="{{true}}"></app-nav>
 
-  <view wx:if="{{state === 'loading'}}">
-    <page-state mode="loading" title="正在恢复创建任务" description="请稍候…"></page-state>
+  <view wx:if="{{state === 'loading'}}" class="state-wrap">
+    <page-state mode="loading" title="正在恢复创建任务" description="正在从服务端同步真实处理进度…"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'error'}}" class="failure-wrap fade-in">
+  <view wx:elif="{{state === 'error'}}" class="state-wrap glass-card">
     <page-state mode="error" title="暂时无法获取进度" description="{{errorMessage}}" actionText="重新加载" bindaction="begin"></page-state>
-    <button class="secondary-button" bindtap="goVoices">返回我的声音</button>
+    <button class="secondary-button state-secondary" bindtap="goVoices">返回我的声音</button>
   </view>
 
-  <view wx:elif="{{state === 'failed'}}" class="failure-wrap fade-in">
-    <page-state mode="error" title="创建没有完成" description="{{errorMessage}}"></page-state>
+  <view wx:elif="{{state === 'failed'}}" class="state-wrap glass-card">
+    <page-state mode="error" title="这次没有创建成功" description="{{errorMessage}}"></page-state>
     <button class="primary-button" bindtap="retry">重新选择片段</button>
-    <button class="secondary-button" bindtap="goVoices">返回我的声音</button>
+    <button class="secondary-button state-secondary" bindtap="goVoices">返回我的声音</button>
   </view>
 
-  <view wx:elif="{{state === 'deleting'}}" class="failure-wrap fade-in">
-    <page-state mode="loading" title="正在删除声音" description="删除完成后，该声音和相关生成记录将无法恢复。"></page-state>
-    <button class="secondary-button" bindtap="goVoices">返回我的声音</button>
+  <view wx:elif="{{state === 'deleting'}}" class="state-wrap glass-card">
+    <page-state mode="loading" title="正在删除声音" description="删除完成后，声音和相关生成记录将无法恢复。"></page-state>
+    <button class="secondary-button state-secondary" bindtap="goVoices">返回我的声音</button>
   </view>
 
   <view wx:else class="processing-content fade-in">
     <text class="processing-title">正在创建“{{voiceName}}”</text>
     <text class="processing-subtitle">{{statusText}}</text>
 
-    <view class="sound-orb">
-      <view class="orb-ring"></view>
-      <view class="sound-wave"><text></text><text></text><text></text><text></text><text></text><text></text><text></text></view>
+    <view class="process-visual">
+      <view class="orbit orbit-outer"></view>
+      <view class="orbit orbit-middle"></view>
+      <view class="spark spark-a"></view><view class="spark spark-b"></view>
+      <view class="sound-orb">
+        <image class="sound-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+      </view>
+      <view class="progress-badge"><text class="progress-number">{{progress}}</text><text class="progress-unit">%</text></view>
     </view>
-    <text class="progress-number">{{progress}}%</text>
 
-    <view class="stages-card glass-card">
-      <view wx:for="{{stages}}" wx:key="label" class="stage-row">
-        <view class="stage-icon {{item.done ? 'done' : item.active ? 'active' : ''}}">
+    <view class="simple-stages">
+      <view wx:for="{{stages}}" wx:key="label" class="stage-row {{item.done ? 'is-done' : item.active ? 'is-active' : ''}}">
+        <view class="stage-icon">
           <text wx:if="{{item.done}}">✓</text>
-          <view wx:elif="{{item.active}}" class="stage-spinner"></view>
+          <view wx:elif="{{item.active}}" class="stage-dot"></view>
         </view>
-        <text class="stage-label {{item.done || item.active ? 'highlight' : ''}}">{{item.label}}</text>
+        <text class="stage-label">{{item.label}}</text>
+        <text class="stage-state">{{item.done ? '已完成' : item.active ? '处理中' : '等待中'}}</text>
       </view>
     </view>
 
+    <text class="time-note">通常需要 1–3 分钟。离开页面不会中断任务，可在“我的声音”继续查看。</text>
     <text wx:if="{{errorMessage}}" class="recover-note">{{errorMessage}}</text>
-    <text class="time-note">预计需要 1–3 分钟。离开后可在“我的声音”查看进度。</text>
-    <button class="secondary-button leave-button" bindtap="goVoices">离开并在我的声音中查看</button>
+    <button class="leave-button" bindtap="goVoices">离开并稍后查看</button>
   </view>
 </view>

@@ -17,6 +17,7 @@ import {
   MESSAGE_POLL_ATTEMPTS,
   POLL_INTERVAL_MS
 } from '../../config'
+import { resolveVoiceAvatar } from '../../utils/default-avatar'
 import { ensureAuthenticated } from '../../utils/navigation'
 import {
   clearWorkbenchDraft,
@@ -50,6 +51,7 @@ Page({
     errorMessage: '',
     voiceName: '这个声音',
     voiceInitial: '声',
+    avatarUrl: '',
     points: {
       availablePoints: 0
     } as PointsBalanceResponse,
@@ -139,6 +141,7 @@ Page({
         errorMessage: '',
         voiceName: voice.name,
         voiceInitial: initial,
+        avatarUrl: resolveVoiceAvatar(voice),
         points,
         pointsText: pointsLabel(points),
         purchaseOption: products.products[0] || this.data.purchaseOption,
