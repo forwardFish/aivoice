@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "SUCCESS",
+  "ai_generated": true,
+  "authorization_confirmed": true,
+  "generated_at": "2026-08-25T09:34:27.509232+00:00",
+  "source": {
+    "file_name": "12岁-1.mp4",
+    "sha256": "9917385383d79611bb4df684091c347d4564dcb99353f98aecdb45711cbf0a40",
+    "duration_seconds": 27.095
+  },
+  "clip": {
+    "start_seconds": 3.55,
+    "duration_seconds": 20.0,
+    "enhanced": true
+  },
+  "text": {
+    "language": "zh",
+    "character_count": 36,
+    "sha256": "46bbe11387dae61fb570b65ea6e271c7a23b4e48e42a58477a219dd97f37350f",
+    "plaintext_stored": false
+  },
+  "reference_quality": {
+    "duration_seconds": 19.999,
+    "sample_rate": 24000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "average_dbfs": -21.564,
+    "silent_ratio": 0.0675,
+    "clipping_ratio": 0.0,
+    "active_seconds": 18.649,
+    "acceptable": true,
+    "warnings": []
+  },
+  "provider": {
+    "provider": "aliyun-cosyvoice",
+    "model": "cosyvoice-v3.5-flash",
+    "device": "cloud",
+    "sample_rate": 24000,
+    "output_path": "12岁-1_复刻生成.wav",
+    "settings": {
+      "preprocess": 1.0
+    }
+  },
+  "output": {
+    "file_name": "12岁-1_复刻生成.wav",
+    "sha256": "a509595466222cbf9630484c34feb799862b8258302a8659a7cf258fd32f48d3",
+    "bytes": 363404
+  },
+  "temporary_reference_deleted": false
+}

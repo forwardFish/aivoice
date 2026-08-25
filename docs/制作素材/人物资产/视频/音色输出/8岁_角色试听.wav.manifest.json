@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "SUCCESS",
+  "ai_generated": true,
+  "authorization_confirmed": true,
+  "generated_at": "2026-08-25T09:05:59.024374+00:00",
+  "source": {
+    "file_name": "8岁.mp4",
+    "sha256": "bcd845f9b4174a268cebf024ce958655884a601eb92139ea230cc6e41f005843",
+    "duration_seconds": 26.933
+  },
+  "clip": {
+    "start_seconds": 3.48,
+    "duration_seconds": 20.0,
+    "enhanced": true
+  },
+  "text": {
+    "language": "zh",
+    "character_count": 36,
+    "sha256": "5fc01e9d8bebe6c526102f4c52b1bb7c3ff7da72b451408b0b07ef2a86d39255",
+    "plaintext_stored": false
+  },
+  "reference_quality": {
+    "duration_seconds": 19.999,
+    "sample_rate": 24000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "average_dbfs": -19.914,
+    "silent_ratio": 0.1,
+    "clipping_ratio": 0.0,
+    "active_seconds": 17.999,
+    "acceptable": true,
+    "warnings": []
+  },
+  "provider": {
+    "provider": "aliyun-cosyvoice",
+    "model": "cosyvoice-v3.5-flash",
+    "device": "cloud",
+    "sample_rate": 24000,
+    "output_path": "8岁_角色试听.wav",
+    "settings": {
+      "preprocess": 1.0
+    }
+  },
+  "output": {
+    "file_name": "8岁_角色试听.wav",
+    "sha256": "221e12533a82fa2cd6e08d7f6d69fbb2a9577c2f35d91576f770730012210c6b",
+    "bytes": 305804
+  },
+  "temporary_reference_deleted": true
+}

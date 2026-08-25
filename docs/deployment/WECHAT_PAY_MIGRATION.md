@@ -10,7 +10,7 @@ Updated: 2026-08-23
 - Private key/certificate match: verified by RSA sign/verify and public-key comparison.
 - Merchant certificate validity: verified as currently valid.
 - APIv3 key: migrated without printing it; length verified as 32 characters.
-- Payment description: changed to `那时的TA-50积分包`.
+- Payment description: changed to `那年的TA-50积分包`.
 - New mini-program AppID: configured.
 
 ## Deliberately not copied
@@ -37,7 +37,7 @@ The API is live at the CloudBase HTTPS origin. Callback and active query-order p
 ```dotenv
 WECHAT_MOCK_LOGIN=false
 WECHAT_PAY_TEST_MODE=false
-WECHAT_PAY_DESCRIPTION=那时的TA-50积分包
+WECHAT_PAY_DESCRIPTION=那年的TA-50积分包
 ```
 
 Secrets, private keys and APIv3 keys must not be committed or pasted into chat.

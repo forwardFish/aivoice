@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "assetSetId": "xiaoyu-growth-voice-v1-20260825",
+  "character": "小雨",
+  "status": "USER_SELECTED_FOR_REUSE",
+  "provider": "aliyun-bailian",
+  "model": "cosyvoice-v3.5-flash",
+  "createdAt": "2026-08-25",
+  "authorization": {
+    "status": "USER_CONFIRMED",
+    "scope": "AI音色复刻和短视频使用",
+    "minorGuardianConsent": true
+  },
+  "providerRegistry": {
+    "path": "private/provider-voice-registry.dpapi.json",
+    "protection": "Windows-DPAPI-CurrentUser",
+    "plaintextStoredInManifest": false
+  },
+  "assets": [
+    {
+      "age": "3岁",
+      "sourceVideo": {
+        "path": "../../../视频/3岁.mp4",
+        "bytes": 3377029,
+        "durationSeconds": 20.867,
+        "sha256": "ebe94aa12e6e86b1b8b893205e41ed153587f2d48d7ea6311b8392a9fc4b83c5"
+      },
+      "reference": {
+        "path": "3岁/reference.wav",
+        "bytes": 958916,
+        "durationSeconds": 19.976,
+        "sha256": "62bd8ea8699d01a665a4d8bb3dbc570f9f752e250f65b83ea53b1803f73372ed",
+        "sensitive": true
+      },
+      "preview": {
+        "path": "3岁/preview.wav",
+        "text": "妈妈你看，小兔子跳得好高呀！我也想和它一起玩。",
+        "bytes": 298124,
+        "durationSeconds": 6.21,
+        "sha256": "84955450b8a8724f9b0f23f6fd55a3ebe41c4909ed5e25c2b9201304d7edbb91"
+      },
+      "comparison": {
+        "path": "3岁/direct-compare.mp3",
+        "bytes": 545325,
+        "durationSeconds": 27.186,
+        "sha256": "85c30e3792081df9af58850b95cc1965a82997fa39149b422a4233eaa28a8ab6"
+      }
+    },
+    {
+      "age": "8岁",
+      "sourceVideo": {
+        "path": "../../../视频/8岁.mp4",
+        "bytes": 3463670,
+        "durationSeconds": 26.933,
+        "sha256": "bcd845f9b4174a268cebf024ce958655884a601eb92139ea230cc6e41f005843"
+      },
+      "reference": {
+        "path": "8岁/reference.wav",
+        "bytes": 960026,
+        "durationSeconds": 19.999,
+        "sha256": "70c37a18acd21dd50853e5fca8a3e48c9b7320e59c85b2fb00d5988523ca51b2",
+        "sensitive": true
+      },
+      "preview": {
+        "path": "8岁/preview.wav",
+        "text": "妈妈，我把今天发生的事情写进日记了。等我长大以后，我们再一起看，好不好？",
+        "bytes": 305804,
+        "durationSeconds": 6.37,
+        "sha256": "221e12533a82fa2cd6e08d7f6d69fbb2a9577c2f35d91576f770730012210c6b"
+      },
+      "comparison": {
+        "path": "8岁/direct-compare.mp3",
+        "bytes": 549165,
+        "durationSeconds": 27.369,
+        "sha256": "9770877042f6102aaf960fb00470e706997d58b2fab748ed50aea2ed7dfb4ceb"
+      }
+    },
+    {
+      "age": "12岁",
+      "sourceVideo": {
+        "path": "../../../视频/12岁-1.mp4",
+        "bytes": 3789961,
+        "durationSeconds": 27.095,
+        "sha256": "9917385383d79611bb4df684091c347d4564dcb99353f98aecdb45711cbf0a40"
+      },
+      "reference": {
+        "path": "12岁/reference.wav",
+        "bytes": 960026,
+        "durationSeconds": 19.999,
+        "sha256": "dec06ea89fdb5cceb7e12ef8348daf5be9bad2374610e04b8525a6aa2cc023e8",
+        "sensitive": true
+      },
+      "preview": {
+        "path": "12岁/preview.wav",
+        "text": "以前觉得很普通的一天，后来回头再看，才发现那已经变成了一段很珍贵的记忆。",
+        "bytes": 363404,
+        "durationSeconds": 7.57,
+        "sha256": "a509595466222cbf9630484c34feb799862b8258302a8659a7cf258fd32f48d3"
+      },
+      "comparison": {
+        "path": "12岁/direct-compare.mp3",
+        "bytes": 573165,
+        "durationSeconds": 28.569,
+        "sha256": "bc1885f23871b9c2fc1ad3cf5ac1b1ceda5e676d6f314b97e23966f08672552f"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "project": "那时的 TA",
+  "project": "那年的TA",
   "platform": "WeChat Native Mini Program",
   "sourceRoot": "apps/miniprogram/",
   "apiBasePath": "/v1",
