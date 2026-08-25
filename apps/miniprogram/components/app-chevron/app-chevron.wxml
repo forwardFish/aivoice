@@ -1,0 +1,1 @@
+<view class="app-chevron direction-{{direction}} tone-{{tone}}" style="width:{{size}}rpx;height:{{size}}rpx;"></view>

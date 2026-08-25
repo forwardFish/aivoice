@@ -3,20 +3,31 @@ import { formatDateTime } from '../../utils/format'
 import { ensureAuthenticated, openWorkbench } from '../../utils/navigation'
 import { resolveVoiceAvatar, resolveVoiceDurationLabel } from '../../utils/avatar'
 import { syncTabBarSelection } from '../../utils/tab-bar'
+import { getToken } from '../../utils/storage'
 
 Page({
   data: {
-    state: 'loading',
+    state: 'guest',
+    authenticated: false,
     errorMessage: '',
     voices: [] as any[]
   },
   onShow() {
     syncTabBarSelection(this, 'pages/home/index')
-    if (!ensureAuthenticated()) return
+    const authenticated = Boolean(getToken())
+    this.setData({ authenticated })
+    if (!authenticated) {
+      this.setData({ state: 'guest', voices: [], errorMessage: '' })
+      return
+    }
     this.loadHome()
   },
   onPullDownRefresh() {
-    this.loadHome(true)
+    if (this.data.authenticated) {
+      this.loadHome(true)
+      return
+    }
+    wx.stopPullDownRefresh()
   },
   async loadHome(fromPullDown = false) {
     this.setData({ state: 'loading', errorMessage: '' })
@@ -39,6 +50,7 @@ Page({
     }
   },
   createVoice() {
+    if (!ensureAuthenticated('/pages/create/select-video')) return
     wx.navigateTo({ url: '/pages/create/select-video' })
   },
   openVoice(event: any) {
@@ -50,6 +62,7 @@ Page({
     if (voiceId) wx.navigateTo({ url: `/pages/voice/settings?voiceId=${encodeURIComponent(voiceId)}` })
   },
   openAllVoices() {
+    if (!ensureAuthenticated('/pages/voices/index')) return
     wx.switchTab({ url: '/pages/voices/index' })
   },
   onShareAppMessage() {

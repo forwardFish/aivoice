@@ -1,0 +1,6 @@
+<view wx:if="{{visible}}" class="bottom-sheet-mask" catchtap="requestClose">
+  <view class="bottom-sheet-panel sheet-class" catchtap="stopPropagation">
+    <view class="bottom-sheet-grabber"></view>
+    <slot></slot>
+  </view>
+</view>

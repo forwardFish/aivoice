@@ -9,6 +9,7 @@ import { invokeWorkerAsync } from '../db/cloudbase-worker-invoker.js';
 import { CONSENT_TEXT, CONSENT_VERSION } from './consent-text.js';
 
 type Permission = 'SELF' | 'OTHER' | 'MINOR';
+type Relationship = typeof voiceProfiles.relationshipType.enumValues[number];
 type VoiceStatus = typeof voiceProfiles.status.enumValues[number];
 
 interface VoiceRow {
@@ -16,6 +17,9 @@ interface VoiceRow {
   userId: string;
   name: string;
   permissionType: Permission | null;
+  relationshipType: Relationship | null;
+  relationshipLabel: string;
+  userAddress: string;
   status: VoiceStatus;
   clipStartMs: number | null;
   clipEndMs: number | null;
@@ -71,7 +75,7 @@ export class VoiceService {
     if (/PREVIEW_NOT_FOUND|preview not found/i.test(message)) throw new NotFoundException('preview not found');
     if (/SOURCE_MEDIA_NOT_FOUND|source media not found/i.test(message)) throw new NotFoundException('source media not found');
     const conflictAliases: Array<[string, string]> = [
-      ['INVALID_CLIP', 'clip must be 10-30 seconds'],
+      ['INVALID_CLIP', 'clip must be 8-20 seconds'],
       ['VOICE_NAME_REQUIRED', 'voice name is required'],
       ['VOICE_OR_PERMISSION_NOT_FOUND', 'voice not found'],
       ['INVALID_CONSENT', 'consent confirmation does not match current version'],
@@ -90,7 +94,7 @@ export class VoiceService {
       'PREVIEW_RETRY_EXHAUSTED',
       'source video is required',
       'voice profile and clip are incomplete',
-      'clip must be 10-30 seconds',
+      'clip must be 8-20 seconds',
       'voice name is required',
       'permission type is required',
       'consent confirmation does not match current version',
@@ -128,6 +132,9 @@ export class VoiceService {
       id: voice.id,
       name: voice.name,
       permissionType: voice.permissionType,
+      relationshipType: voice.relationshipType,
+      relationshipLabel: voice.relationshipLabel,
+      userAddress: voice.userAddress,
       status: voice.status,
       clipStartMs: voice.clipStartMs,
       clipEndMs: voice.clipEndMs,
@@ -247,7 +254,7 @@ export class VoiceService {
 
   async updateClip(userId: string, voiceId: string, startMs: number, endMs: number) {
     const duration = endMs - startMs;
-    if (duration < 10_000 || duration > 30_000) throw new ConflictException('clip must be 10-30 seconds');
+    if (duration < 8_000 || duration > 20_000) throw new ConflictException('clip must be 8-20 seconds');
     if (this.database.isCloudBase) {
       try {
         const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_clip', {
@@ -274,20 +281,35 @@ export class VoiceService {
     return this.publicVoice(voice);
   }
 
-  async updateProfile(userId: string, voiceId: string, name: string, permission: Permission) {
-    const cleanName = name.trim().slice(0, 40);
+  async updateProfile(userId: string, voiceId: string, input: {
+    name: string;
+    permissionType: Permission;
+    relationshipType?: Relationship;
+    relationshipLabel?: string;
+    userAddress?: string;
+  }) {
+    const cleanName = input.name.trim().slice(0, 40);
     if (!cleanName) throw new ConflictException('voice name is required');
+    const relationshipType = input.permissionType === 'SELF' ? 'SELF' : input.relationshipType ?? null;
+    const relationshipLabel = relationshipType === 'OTHER' ? String(input.relationshipLabel || '').trim().slice(0, 10) : '';
+    const userAddress = String(input.userAddress || '').trim().slice(0, 10);
+    if (relationshipType === 'OTHER' && input.relationshipType && !relationshipLabel) {
+      throw new ConflictException('custom relationship label is required');
+    }
     if (this.database.isCloudBase) {
       try {
-        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile', {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v3', {
           pUserId: userId,
           pVoiceId: voiceId,
           pName: cleanName,
-          pPermissionType: permission,
+          pPermissionType: input.permissionType,
+          pRelationshipType: relationshipType,
+          pRelationshipLabel: relationshipLabel,
+          pUserAddress: userAddress,
         });
         if (!firstRpcRow(result)) throw new NotFoundException('voice not found');
         const voice = await this.ownedVoice(userId, voiceId);
-        return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[permission] };
+        return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[input.permissionType] };
       } catch (error) {
         this.rethrowCloud(error);
       }
@@ -295,10 +317,13 @@ export class VoiceService {
     await this.ownedVoice(userId, voiceId);
     const [voice] = await this.database.db.update(voiceProfiles).set({
       name: cleanName,
-      permissionType: permission,
+      permissionType: input.permissionType,
+      relationshipType,
+      relationshipLabel,
+      userAddress,
       updatedAt: new Date(),
     }).where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId))).returning();
-    return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[permission] };
+    return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[input.permissionType] };
   }
 
   async confirmConsent(userId: string, voiceId: string, input: { version: string; text: string; confirmed: boolean }) {

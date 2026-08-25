@@ -24,7 +24,21 @@
     <image class="create-arrow" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
   </view>
 
-  <view wx:if="{{state === 'loading'}}" class="home-state">
+  <view wx:if="{{state === 'guest'}}" class="guest-section fade-in">
+    <view class="section-row">
+      <text class="section-title">你的声音</text>
+    </view>
+    <view class="guest-card glass-card" bindtap="openAllVoices">
+      <image class="guest-illustration" src="/assets/ui/waveform.png" mode="aspectFit"></image>
+      <view class="guest-copy">
+        <text class="guest-title">登录后查看你的声音</text>
+        <text class="guest-description">首页可以直接浏览，开始创建或查看私有内容时再登录。</text>
+      </view>
+      <image class="guest-arrow" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <view wx:elif="{{state === 'loading'}}" class="home-state">
     <page-state mode="loading" compact="{{true}}" title="正在加载声音" description="正在获取最近可用的私有声音…"></page-state>
   </view>
 
@@ -37,7 +51,6 @@
       <image class="empty-illustration" src="/assets/ui/shopping-bag.png" mode="aspectFit"></image>
       <text class="empty-title">还没有创建好的声音</text>
       <text class="empty-copy">先从相册里选择一段视频，我们会帮你把记忆里的声音轻轻留住。</text>
-      <button class="primary-button empty-action" bindtap="createVoice">开始创建</button>
     </view>
   </view>
 

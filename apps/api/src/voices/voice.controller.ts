@@ -51,7 +51,13 @@ export class VoiceController {
     @Param('voiceId') voiceId: string,
     @Body() body: UpdateVoiceProfileDto,
   ) {
-    return this.voices.updateProfile(user.id, voiceId, body.name, body.permissionType);
+    return this.voices.updateProfile(user.id, voiceId, {
+      name: body.name,
+      permissionType: body.permissionType,
+      relationshipType: body.relationshipType,
+      relationshipLabel: body.relationshipLabel,
+      userAddress: body.userAddress,
+    });
   }
 
   @Post('voices/:voiceId/consents')

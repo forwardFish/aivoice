@@ -3,8 +3,14 @@ import { formatDurationSeconds } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { getCreationSession, patchCreationSession } from '../../utils/storage'
 
-const MIN_CLIP_SECONDS = 10
-const MAX_CLIP_SECONDS = 30
+const MIN_CLIP_SECONDS = 8
+const MAX_CLIP_SECONDS = 20
+
+function toPercent(valueSec: number, durationSec: number): number {
+  if (!Number.isFinite(durationSec) || durationSec <= 0) return 0
+  const value = Math.max(0, Math.min(100, valueSec / durationSec * 100))
+  return Math.round(value * 10000) / 10000
+}
 
 Page({
   data: {
@@ -19,10 +25,14 @@ Page({
     startText: '00:00',
     endText: '00:00',
     selectedText: '00:00',
+    startPercent: 0,
+    endPercent: 0,
+    selectionPercent: 0,
     valid: false,
     confirmed: false,
     saving: false,
     previewing: false,
+    showAdvanced: false,
     errorMessage: ''
   },
   onLoad(options: Record<string, string>) {
@@ -37,7 +47,7 @@ Page({
       })
       return
     }
-    const durationSec = Math.max(12, Math.round(session.durationMs / 1000))
+    const durationSec = Math.max(8, Math.round(session.durationMs / 1000))
     const startSec = Math.max(0, Math.round((session.clipStartMs || 0) / 1000))
     const savedEnd = Math.round((session.clipEndMs || 0) / 1000)
     const endSec = savedEnd > startSec ? Math.min(durationSec, savedEnd) : Math.min(durationSec, startSec + Math.min(20, durationSec))
@@ -83,9 +93,12 @@ Page({
     this.updateRange(this.data.startSec, Math.max(value, minEnd))
   },
   updateRange(startSec: number, endSec: number) {
-    const normalizedStart = Math.max(0, Math.min(startSec, this.data.durationSec))
-    const normalizedEnd = Math.max(normalizedStart, Math.min(endSec, this.data.durationSec))
+    const normalizedDuration = Math.max(0, Number(this.data.durationSec || 0))
+    const normalizedStart = Math.max(0, Math.min(startSec, normalizedDuration))
+    const normalizedEnd = Math.max(normalizedStart, Math.min(endSec, normalizedDuration))
     const selected = normalizedEnd - normalizedStart
+    const startPercent = toPercent(normalizedStart, normalizedDuration)
+    const endPercent = toPercent(normalizedEnd, normalizedDuration)
     const valid = selected >= MIN_CLIP_SECONDS && selected <= MAX_CLIP_SECONDS
     this.setData({
       startSec: normalizedStart,
@@ -93,8 +106,11 @@ Page({
       startText: formatDurationSeconds(normalizedStart),
       endText: formatDurationSeconds(normalizedEnd),
       selectedText: formatDurationSeconds(selected),
+      startPercent,
+      endPercent,
+      selectionPercent: Math.max(0, Math.round((endPercent - startPercent) * 10000) / 10000),
       valid,
-      errorMessage: valid ? '' : selected < MIN_CLIP_SECONDS ? '片段至少需要 10 秒。' : '片段最长为 30 秒。'
+      errorMessage: valid ? '' : selected < MIN_CLIP_SECONDS ? '片段至少需要 8 秒。' : '片段最长为 20 秒。'
     })
   },
   previewSelection() {
@@ -103,6 +119,9 @@ Page({
     video.seek(this.data.startSec)
     setTimeout(() => video.play(), 120)
     this.setData({ previewing: true })
+  },
+  toggleAdvanced() {
+    this.setData({ showAdvanced: !this.data.showAdvanced })
   },
   toggleConfirmed() {
     this.setData({ confirmed: !this.data.confirmed })

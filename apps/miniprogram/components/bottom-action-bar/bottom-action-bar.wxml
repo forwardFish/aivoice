@@ -1,0 +1,10 @@
+<view class="bottom-action-bar {{compact ? 'is-compact' : ''}} custom-class" style="{{minHeight ? 'min-height:' + minHeight + 'rpx;' : ''}}">
+  <view wx:if="{{layout === 'row'}}" class="bottom-action-content is-row">
+    <view class="bottom-action-leading"><slot name="leading"></slot></view>
+    <view
+      class="bottom-action-trailing"
+      style="{{actionWidth ? 'flex-basis:' + actionWidth + 'rpx;width:' + actionWidth + 'rpx;' : ''}}"
+    ><slot name="action"></slot></view>
+  </view>
+  <view wx:else class="bottom-action-content is-stack"><slot></slot></view>
+</view>

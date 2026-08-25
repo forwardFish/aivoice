@@ -5,10 +5,13 @@ const USER_KEY = 'nashide_ta_user'
 const CREATION_SESSION_KEY = 'nashide_ta_creation_session'
 const POST_LOGIN_ROUTE_KEY = 'nashide_ta_post_login_route'
 const WORKBENCH_DRAFT_PREFIX = 'nashide_ta_workbench_draft:'
+const REPLY_FEEDBACK_PREFIX = 'nashide_ta_reply_feedback:'
 
 export interface CreationSession {
   voiceId: string
   tempFilePath?: string
+  thumbTempFilePath?: string
+  selectedTileIndex?: number
   fileName?: string
   mimeType?: string
   sizeBytes?: number
@@ -23,6 +26,12 @@ export interface WorkbenchDraft {
   chatText?: string
   exactText?: string
   mode?: 'chat' | 'exact'
+  updatedAt: number
+}
+
+export interface ReplyFeedback {
+  verdict: 'LIKE' | 'DISLIKE'
+  reason?: string
   updatedAt: number
 }
 
@@ -104,6 +113,25 @@ export function clearWorkbenchDraft(voiceId: string): void {
   wx.removeStorageSync(draftKey(voiceId))
 }
 
+function replyFeedbackKey(voiceId: string): string {
+  return `${REPLY_FEEDBACK_PREFIX}${voiceId}`
+}
+
+export function getReplyFeedback(voiceId: string): Record<string, ReplyFeedback> {
+  if (!voiceId) return {}
+  const value = wx.getStorageSync(replyFeedbackKey(voiceId))
+  return value && typeof value === 'object' ? value : {}
+}
+
+export function setReplyFeedback(voiceId: string, messageId: string, feedback: Omit<ReplyFeedback, 'updatedAt'>): void {
+  if (!voiceId || !messageId) return
+  const current = getReplyFeedback(voiceId)
+  wx.setStorageSync(replyFeedbackKey(voiceId), {
+    ...current,
+    [messageId]: { ...feedback, updatedAt: Date.now() }
+  })
+}
+
 const PENDING_ORDER_PREFIX = 'nashide_ta_pending_order:'
 
 interface PendingOrderState {
@@ -172,7 +200,7 @@ export function clearLocalProjectData(): void {
     const info = wx.getStorageInfoSync()
     const keys = Array.isArray(info && info.keys) ? info.keys : []
     keys.forEach((key: string) => {
-      if (key === TOKEN_KEY || key === USER_KEY || key === CREATION_SESSION_KEY || key === POST_LOGIN_ROUTE_KEY || key.startsWith(WORKBENCH_DRAFT_PREFIX) || key.startsWith(PENDING_ORDER_PREFIX)) {
+      if (key === TOKEN_KEY || key === USER_KEY || key === CREATION_SESSION_KEY || key === POST_LOGIN_ROUTE_KEY || key.startsWith(WORKBENCH_DRAFT_PREFIX) || key.startsWith(REPLY_FEEDBACK_PREFIX) || key.startsWith(PENDING_ORDER_PREFIX)) {
         wx.removeStorageSync(key)
       }
     })

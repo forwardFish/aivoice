@@ -8,6 +8,7 @@ import {
   OrderDetail,
   OrdersResponse,
   PermissionType,
+  RelationshipType,
   PointsBalanceResponse,
   PointsLedgersResponse,
   ProductListResponse,
@@ -68,6 +69,14 @@ function normalizePermission(value: unknown): PermissionType | undefined {
   return undefined
 }
 
+function normalizeRelationship(value: unknown): RelationshipType | undefined {
+  const text = stringOr(value).toUpperCase()
+  const allowed: RelationshipType[] = [
+    'SELF', 'MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'CHILD', 'PARTNER', 'FRIEND', 'OTHER'
+  ]
+  return allowed.indexOf(text as RelationshipType) >= 0 ? text as RelationshipType : undefined
+}
+
 function normalizeVoiceStatus(value: unknown): VoiceStatus {
   const text = stringOr(value, 'DRAFT').toUpperCase()
   const allowed: VoiceStatus[] = [
@@ -99,6 +108,9 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     name: stringOr(raw.name ?? raw.displayName ?? raw.display_name, '未命名声音'),
     status,
     permissionType: normalizePermission(raw.permissionType ?? raw.permission_type),
+    relationshipType: normalizeRelationship(raw.relationshipType ?? raw.relationship_type),
+    relationshipLabel: stringOr(raw.relationshipLabel ?? raw.relationship_label) || undefined,
+    userAddress: stringOr(raw.userAddress ?? raw.user_address) || undefined,
     avatarUrl: stringOr(raw.avatarUrl ?? raw.avatar_url) || undefined,
     stageLabel: stringOr(raw.stageLabel ?? raw.stage_label) || undefined,
     conversationStyle: raw.conversationStyle ?? raw.conversation_style,

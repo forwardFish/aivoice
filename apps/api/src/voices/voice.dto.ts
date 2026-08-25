@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateVoiceDto {
   @IsString()
@@ -23,6 +23,20 @@ export class UpdateVoiceProfileDto {
 
   @IsIn(['SELF', 'OTHER', 'MINOR'])
   permissionType!: 'SELF' | 'OTHER' | 'MINOR';
+
+  @IsOptional()
+  @IsIn(['SELF', 'MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'CHILD', 'PARTNER', 'FRIEND', 'OTHER'])
+  relationshipType?: 'SELF' | 'MOTHER' | 'FATHER' | 'GRANDMOTHER' | 'GRANDFATHER' | 'CHILD' | 'PARTNER' | 'FRIEND' | 'OTHER';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  relationshipLabel = '';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  userAddress = '';
 }
 
 export class ConfirmConsentDto {

@@ -1,0 +1,7 @@
+<button
+  class="app-icon-button {{disabled ? 'is-disabled' : ''}} custom-class"
+  style="width:{{size}}rpx;height:{{size}}rpx;min-width:{{size}}rpx;"
+  disabled="{{disabled}}"
+  aria-label="{{label}}"
+  bindtap="handleTap"
+><slot></slot></button>

@@ -1,0 +1,9 @@
+<view class="menu-row tone-{{tone}} {{divider ? 'has-divider' : ''}} {{padded ? '' : 'is-unpadded'}} {{large ? 'is-large' : ''}} custom-class" bindtap="handleTap">
+  <view wx:if="{{icon}}" class="menu-icon-shell"><image class="menu-icon-image" src="{{icon}}" mode="aspectFit"></image></view>
+  <view class="menu-copy">
+    <text class="menu-title">{{title}}</text>
+    <text wx:if="{{description}}" class="menu-description">{{description}}</text>
+  </view>
+  <text wx:if="{{chevron && chevron !== '›' && chevron !== '⌃'}}" class="menu-trailing">{{chevron}}</text>
+  <app-chevron wx:elif="{{chevron}}" direction="{{chevron === '⌃' ? 'up' : 'right'}}" size="18"></app-chevron>
+</view>

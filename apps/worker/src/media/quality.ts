@@ -121,7 +121,7 @@ export async function inspectReferenceQuality(filePath: string): Promise<Referen
   if (clippingRatio >= 0.01) warnings.push('clipping exceeds the recommended 1%');
 
   let failureCode: ReferenceQualityFailureCode | undefined;
-  if (durationSeconds < 9.9 || durationSeconds > 30.1) failureCode = 'AUDIO_DECODE_FAILED';
+  if (durationSeconds < 7.9 || durationSeconds > 20.1) failureCode = 'AUDIO_DECODE_FAILED';
   else if (activeSeconds < 6) failureCode = 'NO_VALID_SPEECH';
   else if (silentRatio > 0.6) failureCode = 'TOO_MUCH_SILENCE';
   else if (averageDbfs < -40) failureCode = 'LOW_VOLUME';

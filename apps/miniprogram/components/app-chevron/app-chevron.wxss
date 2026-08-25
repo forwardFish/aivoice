@@ -1,0 +1,9 @@
+:host { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; }
+.app-chevron { border-right: 4rpx solid currentColor; border-bottom: 4rpx solid currentColor; border-radius: 2rpx; box-sizing: border-box; }
+.direction-right { transform: rotate(-45deg); }
+.direction-left { transform: rotate(135deg); }
+.direction-up { transform: rotate(-135deg); }
+.direction-down { transform: rotate(45deg); }
+.tone-muted { color: #929ab0; }
+.tone-brand { color: #6552f5; }
+.tone-dark { color: #26304a; }

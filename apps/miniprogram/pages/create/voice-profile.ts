@@ -3,8 +3,13 @@ import {
   saveVoiceProfile,
   startVoiceProcess
 } from '../../services/api'
-import { PermissionType } from '../../models/api'
+import { PermissionType, RelationshipType } from '../../models/api'
 import { ensureAuthenticated } from '../../utils/navigation'
+
+type RelationshipOption = {
+  key: RelationshipType
+  title: string
+}
 
 const CONSENT_TEXTS: Record<PermissionType, string> = {
   SELF: '我同意使用我的声音样本创建私有 AI 声音。',
@@ -12,11 +17,34 @@ const CONSENT_TEXTS: Record<PermissionType, string> = {
   MINOR: '我是该未成年人的监护人，或已取得其监护人的明确授权。'
 }
 
+const RELATIONSHIP_OPTIONS: Record<PermissionType, RelationshipOption[]> = {
+  SELF: [
+    { key: 'SELF', title: '自己' }
+  ],
+  OTHER: [
+    { key: 'MOTHER', title: '妈妈' },
+    { key: 'FATHER', title: '爸爸' },
+    { key: 'GRANDMOTHER', title: '奶奶' },
+    { key: 'GRANDFATHER', title: '爷爷' },
+    { key: 'PARTNER', title: '伴侣' },
+    { key: 'FRIEND', title: '朋友' },
+    { key: 'OTHER', title: '其他' }
+  ],
+  MINOR: [
+    { key: 'CHILD', title: '孩子' },
+    { key: 'OTHER', title: '其他' }
+  ]
+}
+
 Page({
   data: {
     voiceId: '',
     name: '',
     permissionType: '' as PermissionType | '',
+    relationshipType: '' as RelationshipType | '',
+    relationshipOther: '',
+    userAddress: '',
+    relationshipOptions: [] as RelationshipOption[],
     consentText: '',
     confirmed: false,
     submitting: false,
@@ -44,8 +72,32 @@ Page({
     if (!CONSENT_TEXTS[permissionType]) return
     this.setData({
       permissionType,
+      relationshipType: permissionType === 'SELF' ? 'SELF' : '',
+      relationshipOther: '',
+      relationshipOptions: RELATIONSHIP_OPTIONS[permissionType],
       consentText: CONSENT_TEXTS[permissionType],
       confirmed: false,
+      errorMessage: ''
+    })
+  },
+  selectRelationship(event: any) {
+    const relationshipType = String(event.currentTarget.dataset.key || '') as RelationshipType
+    if (!this.data.relationshipOptions.some((item) => item.key === relationshipType)) return
+    this.setData({
+      relationshipType,
+      relationshipOther: relationshipType === 'OTHER' ? this.data.relationshipOther : '',
+      errorMessage: ''
+    })
+  },
+  onRelationshipOtherInput(event: any) {
+    this.setData({
+      relationshipOther: String(event.detail.value || '').slice(0, 10),
+      errorMessage: ''
+    })
+  },
+  onUserAddressInput(event: any) {
+    this.setData({
+      userAddress: Array.from(String(event.detail.value || '')).slice(0, 10).join(''),
       errorMessage: ''
     })
   },
@@ -75,6 +127,15 @@ Page({
       this.setData({ errorMessage: '请选择声音使用权限。' })
       return
     }
+    if (!this.data.relationshipType) {
+      this.setData({ errorMessage: '请选择 TA 是你的谁。' })
+      return
+    }
+    const relationshipLabel = String(this.data.relationshipOther || '').trim()
+    if (this.data.relationshipType === 'OTHER' && !relationshipLabel) {
+      this.setData({ errorMessage: '请填写你与 TA 的关系。' })
+      return
+    }
     if (!this.data.confirmed) {
       this.setData({ errorMessage: '请确认与当前权限类型对应的授权文案。' })
       return
@@ -83,7 +144,10 @@ Page({
     try {
       const savedProfile = await saveVoiceProfile(this.data.voiceId, {
         name,
-        permissionType: this.data.permissionType
+        permissionType: this.data.permissionType,
+        relationshipType: this.data.relationshipType,
+        relationshipLabel: this.data.relationshipType === 'OTHER' ? relationshipLabel : '',
+        userAddress: String(this.data.userAddress || '').trim()
       })
       if (!savedProfile.consentVersion || !savedProfile.consentText) {
         throw new Error('服务端未返回当前授权文本，请稍后重试。')

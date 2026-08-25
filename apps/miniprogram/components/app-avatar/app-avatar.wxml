@@ -1,0 +1,5 @@
+<view class="app-avatar {{src ? 'has-image' : 'is-fallback'}} {{elevated ? 'is-elevated' : ''}} custom-class" style="width:{{size}}rpx;height:{{size}}rpx;">
+  <image wx:if="{{src}}" class="avatar-image" src="{{src}}" mode="aspectFill"></image>
+  <image wx:elif="{{fallback === 'user'}}" class="fallback-user" src="/assets/ui/user-outline.png" mode="aspectFit"></image>
+  <view wx:else class="fallback-wave"><text class="avatar-wave-bar"></text><text class="avatar-wave-bar"></text><text class="avatar-wave-bar"></text></view>
+</view>

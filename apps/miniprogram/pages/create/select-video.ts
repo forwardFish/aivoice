@@ -5,10 +5,11 @@ import {
   uploadToPolicy
 } from '../../services/api'
 import { formatDurationMs } from '../../utils/format'
+import { DEFAULT_MEDIA_TILE_INDEX, normalizeMediaTileIndex } from '../../utils/media-selection'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { getCreationSession, setCreationSession } from '../../utils/storage'
 
-const MIN_DURATION_MS = 12000
+const MIN_DURATION_MS = 8000
 const MAX_DURATION_MS = 60000
 const MAX_SIZE_BYTES = 100 * 1024 * 1024
 
@@ -21,20 +22,30 @@ Page({
   data: {
     state: 'idle',
     selected: null as any,
+    selectedIndex: -1,
     uploadProgress: 0,
     errorMessage: '',
-    existingVoiceId: ''
+    existingVoiceId: '',
+    mediaTiles: [
+      { id: 'memory-1', scene: 'sunset' }, { id: 'memory-2', scene: 'window' }, { id: 'memory-3', scene: 'sea' },
+      { id: 'memory-4', scene: 'garden' }, { id: 'memory-5', scene: 'lamp' }, { id: 'memory-6', scene: 'mountain' },
+      { id: 'memory-7', scene: 'cloud' }, { id: 'memory-8', scene: 'table' }, { id: 'memory-9', scene: 'night' }
+    ]
   },
   onLoad(options: Record<string, string>) {
     if (!ensureAuthenticated()) return
     const existingVoiceId = String(options.voiceId || '')
     const session = getCreationSession()
     if (existingVoiceId && session && session.voiceId === existingVoiceId && session.tempFilePath) {
+      const selectedIndex = normalizeMediaTileIndex(session.selectedTileIndex)
       this.setData({
         existingVoiceId,
         state: 'selected',
+        selectedIndex,
         selected: {
           tempFilePath: session.tempFilePath,
+          thumbTempFilePath: session.thumbTempFilePath || '',
+          tileIndex: selectedIndex,
           fileName: session.fileName,
           mimeType: session.mimeType,
           sizeBytes: session.sizeBytes,
@@ -45,10 +56,18 @@ Page({
       })
       return
     }
-    this.setData({ existingVoiceId })
+    this.setData({ existingVoiceId, selectedIndex: -1 })
   },
-  async chooseVideo() {
+  openAlbumTab() {
+    this.chooseVideo()
+  },
+  async chooseVideo(event?: any) {
     if (this.data.state === 'uploading') return
+    const requestedIndex = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.index
+      : undefined
+    const fallbackIndex = this.data.selectedIndex >= 0 ? this.data.selectedIndex : DEFAULT_MEDIA_TILE_INDEX
+    const selectedIndex = normalizeMediaTileIndex(requestedIndex, fallbackIndex)
     this.setData({ errorMessage: '' })
     try {
       const result = await new Promise<any>((resolve, reject) => {
@@ -69,15 +88,18 @@ Page({
       })
       const durationMs = Math.round(Number(info.duration || file.duration || 0) * 1000)
       const sizeBytes = Number(file.size || 0)
-      if (durationMs < MIN_DURATION_MS) throw new Error('视频至少需要 12 秒，请重新选择。')
+      if (durationMs < MIN_DURATION_MS) throw new Error('视频至少需要 8 秒，请重新选择。')
       if (durationMs > MAX_DURATION_MS) throw new Error('视频不能超过 60 秒，请先在相册中裁短。')
       if (sizeBytes > MAX_SIZE_BYTES) throw new Error('视频超过 100MB，请裁短或压缩后重试。')
       const fileName = fileNameFromPath(file.tempFilePath)
       const mimeType = info.type ? `video/${String(info.type).replace(/^video\//, '')}` : 'video/mp4'
       this.setData({
         state: 'selected',
+        selectedIndex,
         selected: {
           tempFilePath: file.tempFilePath,
+          thumbTempFilePath: String(file.thumbTempFilePath || ''),
+          tileIndex: selectedIndex,
           fileName,
           mimeType,
           sizeBytes,
@@ -93,7 +115,7 @@ Page({
   },
   resetSelection() {
     if (this.data.state === 'uploading') return
-    this.setData({ state: 'idle', selected: null, uploadProgress: 0, errorMessage: '' })
+    this.setData({ state: 'idle', selected: null, selectedIndex: -1, uploadProgress: 0, errorMessage: '' })
   },
   async uploadAndContinue() {
     if (this.data.state === 'uploading' || !this.data.selected) return
@@ -125,6 +147,8 @@ Page({
       setCreationSession({
         voiceId: voice.id,
         tempFilePath: selected.tempFilePath,
+        thumbTempFilePath: selected.thumbTempFilePath || '',
+        selectedTileIndex: this.data.selectedIndex,
         fileName: selected.fileName,
         mimeType: selected.mimeType,
         sizeBytes: selected.sizeBytes,

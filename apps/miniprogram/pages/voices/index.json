@@ -3,6 +3,8 @@
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "app-nav": "/components/app-nav/app-nav",
-    "page-state": "/components/page-state/page-state"
+    "page-state": "/components/page-state/page-state",
+    "app-avatar": "/components/app-avatar/app-avatar",
+    "app-button": "/components/app-button/app-button"
   }
 }

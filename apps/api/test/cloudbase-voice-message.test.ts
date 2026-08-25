@@ -8,6 +8,9 @@ const voice = {
   userId: 'user-id',
   name: '妈妈',
   permissionType: 'SELF' as const,
+  relationshipType: 'SELF' as const,
+  relationshipLabel: '',
+  userAddress: '',
   status: 'READY' as const,
   clipStartMs: 1_000,
   clipEndMs: 16_000,
@@ -33,6 +36,44 @@ function cloudDatabase(cloud: Record<string, unknown>) {
     get pool(): never { throw new Error('pg must not be used'); },
   };
 }
+
+test('CloudBase voice profile stores the server-authoritative relationship context', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const relatedVoice = { ...voice, permissionType: 'OTHER' as const, relationshipType: 'MOTHER' as const };
+  const cloud = {
+    selectOne: async (table: string) => table === 'voice_profiles' ? relatedVoice : null,
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      if (name === 'rpc_voice_update_profile_v3') return { ...relatedVoice, userAddress: '小林' };
+      throw new Error(`unexpected rpc ${name}`);
+    },
+  };
+  const service = new VoiceService(
+    cloudDatabase(cloud) as any,
+    { getQuota: async () => ({}) } as any,
+    { latestAsset: async () => null } as any,
+  );
+
+  const result = await service.updateProfile('user-id', 'voice-id', {
+    name: '妈妈',
+    permissionType: 'OTHER',
+    relationshipType: 'MOTHER',
+    relationshipLabel: '',
+    userAddress: '小林',
+  });
+
+  assert.equal(result.relationshipType, 'MOTHER');
+  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v3');
+  assert.deepEqual(calls[0]?.args, {
+    pUserId: 'user-id',
+    pVoiceId: 'voice-id',
+    pName: '妈妈',
+    pPermissionType: 'OTHER',
+    pRelationshipType: 'MOTHER',
+    pRelationshipLabel: '',
+    pUserAddress: '小林',
+  });
+});
 
 test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
   const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
@@ -75,6 +116,28 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
   ]);
   assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.4');
   assert.match(String(calls[0].args.pConsentTextHash), /^[a-f0-9]{64}$/);
+});
+
+test('voice clip accepts 8-20 seconds and rejects values outside that range', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    selectOne: async (table: string) => table === 'voice_profiles' ? voice : null,
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      return { voiceId: voice.id, clipStartMs: args.pStartMs, clipEndMs: args.pEndMs, status: 'DRAFT' };
+    },
+  };
+  const service = new VoiceService(
+    cloudDatabase(cloud) as any,
+    { getQuota: async () => ({}) } as any,
+    { latestAsset: async () => null } as any,
+  );
+
+  await service.updateClip('user-id', 'voice-id', 0, 8_000);
+  await service.updateClip('user-id', 'voice-id', 5_000, 25_000);
+  await assert.rejects(service.updateClip('user-id', 'voice-id', 0, 7_999), /clip must be 8-20 seconds/);
+  await assert.rejects(service.updateClip('user-id', 'voice-id', 0, 20_001), /clip must be 8-20 seconds/);
+  assert.equal(calls.filter((call) => call.name === 'rpc_voice_update_clip').length, 2);
 });
 
 test('CloudBase message creation is atomic through RPC without pg or Drizzle', async () => {

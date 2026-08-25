@@ -34,10 +34,11 @@ const manager = new CloudBase({
 const videoPath = path.resolve(process.env.AIVOICE_AUTHORIZED_VIDEO || '.aivoice-tmp/cloudbase-e2e-source.mp4');
 const videoDurationMs = Number(process.env.AIVOICE_VIDEO_DURATION_MS || 25_000);
 if (!fs.existsSync(videoPath)) throw new Error(`authorized test video is missing: ${videoPath}`);
-if (videoDurationMs < 12_000 || videoDurationMs > 60_000) throw new Error('test video must be 12-60 seconds');
+if (videoDurationMs < 8_000 || videoDurationMs > 60_000) throw new Error('test video must be 8-60 seconds');
 const suffix = `${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
 const openid = `cb-full-flow-${suffix}`;
-const consentText = '我同意使用我的声音样本创建私有 AI 声音。';
+const permissionType = 'OTHER';
+const consentText = '我已告知声音本人，并取得其对声音克隆和 AI 合成使用的明确同意。';
 const consentVersion = 'voice-consent-v0.4';
 const consentHash = crypto.createHash('sha256').update(consentText).digest('hex');
 const sourceHash = crypto.createHash('sha256').update(fs.readFileSync(videoPath)).digest('hex');
@@ -51,6 +52,9 @@ const evidence = {
   processStatus: 'PENDING',
   previewMediaId: '',
   previewOutput: '',
+  relationshipType: '',
+  userAddress: '',
+  chat: [],
   deleteJobId: '',
   deleteStatus: 'PENDING',
   cleanup: 'PENDING',
@@ -136,16 +140,21 @@ try {
     pStartMs: 0,
     pEndMs: 20_000,
   });
-  await client.rpc('rpc_voice_update_profile', {
+  await client.rpc('rpc_voice_update_profile_v3', {
     pUserId: evidence.userId,
     pVoiceId: evidence.voiceId,
-    pName: 'CloudBase真实闭环测试音色',
-    pPermissionType: 'SELF',
+    pName: '妈妈',
+    pPermissionType: permissionType,
+    pRelationshipType: 'MOTHER',
+    pRelationshipLabel: '',
+    pUserAddress: '小林',
   });
+  evidence.relationshipType = 'MOTHER';
+  evidence.userAddress = '小林';
   await client.rpc('rpc_voice_confirm_consent', {
     pUserId: evidence.userId,
     pVoiceId: evidence.voiceId,
-    pPermissionType: 'SELF',
+    pPermissionType: permissionType,
     pConsentVersion: consentVersion,
     pConsentTextHash: consentHash,
     pConfirmedAt: new Date().toISOString(),
@@ -174,6 +183,38 @@ try {
   await fsp.mkdir(path.dirname(evidence.previewOutput), { recursive: true });
   await client.downloadFile('aivoice-audio', preview.objectKey, evidence.previewOutput);
 
+  await manager.database.executePGSql({
+    Sql: `UPDATE public.voice_profiles SET preview_playback_started_at=now()-interval '1 minute',preview_played_at=now(),accepted_at=now() WHERE id='${evidence.voiceId}'::uuid`,
+  });
+  const chatTurns = [
+    '妈，我今天跟最好的朋友吵架了。她说以后都不跟我玩了。',
+    '她把我只告诉她的秘密说给别人听，我一生气就骂她了。',
+    '那我明天先跟她道歉，是不是很丢脸？明明是她先做错的。',
+    '可是如果她还是不理我怎么办？',
+  ];
+  for (const [index, text] of chatTurns.entries()) {
+    const created = await client.rpc('rpc_message_create', {
+      pUserId: evidence.userId,
+      pVoiceId: evidence.voiceId,
+      pIdempotencyKey: `relationship-chat-${suffix}-${index + 1}`,
+      pMode: 'CHAT',
+      pInputText: text,
+      pGenerationCost: 1,
+    });
+    evidence.observations.push({ chatInvokeRequestId: await invoke(created.jobId, 'GENERATE_MESSAGE') });
+    const completed = await poll(
+      () => client.selectOne('messages', { filters: { id: created.messageId } }),
+      (row) => ['READY', 'FAILED', 'BLOCKED'].includes(row?.status),
+    );
+    evidence.chat.push({
+      turn: index + 1,
+      inputText: text,
+      outputText: completed.outputText,
+      status: completed.status,
+    });
+    if (completed.status !== 'READY') throw new Error(`relationship chat turn ${index + 1} failed: ${completed.errorCode} ${completed.errorMessage}`);
+  }
+
   const deleting = await client.rpc('rpc_account_delete_request', { pUserId: evidence.userId });
   evidence.deleteJobId = deleting.jobId;
   evidence.observations.push({ deleteInvokeRequestId: await invoke(deleting.jobId, 'DELETE_ACCOUNT') });
@@ -194,7 +235,9 @@ try {
     && models.every((item) => item.status === 'DELETED')
     && assets.every((item) => item.status === 'DELETED');
   evidence.cleanup = safeToHardDelete ? 'PROVIDER_STORAGE_FINALIZED' : 'INCOMPLETE';
-  evidence.status = safeToHardDelete && evidence.processStatus === 'READY' && fs.statSync(evidence.previewOutput).size > 0
+  evidence.status = safeToHardDelete && evidence.processStatus === 'READY'
+    && evidence.chat.length === 4 && evidence.chat.every((item) => item.status === 'READY')
+    && fs.statSync(evidence.previewOutput).size > 0
     ? 'PASS'
     : 'FAIL';
 } catch (error) {

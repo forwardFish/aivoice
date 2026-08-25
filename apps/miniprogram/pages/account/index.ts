@@ -159,7 +159,7 @@ Page({
     this.setData({ ledgerExpanded: !this.data.ledgerExpanded })
   },
   showInfo(event: any) {
-    const type = String(event.currentTarget.dataset.type || '')
+    const type = String(event.detail?.key || event.currentTarget?.dataset?.type || '')
     if (type === 'policy' || type === 'terms' || type === 'ai') {
       const target = type === 'policy' ? 'privacy' : type
       wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(target)}` })
@@ -168,7 +168,7 @@ Page({
     const contentMap: Record<string, { title: string; content: string }> = {
       help: {
         title: '使用帮助',
-        content: '选择 12–60 秒视频，再标记 10–30 秒清晰单人说话片段。试听完整播放后，可使用该声音进行对话或“说一句”。'
+        content: '选择 8–60 秒视频，再标记 8–20 秒清晰单人说话片段。试听完整播放后，可使用该声音进行对话或“说一句”。'
       },
       service: {
         title: '退款与售后',

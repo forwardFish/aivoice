@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/login/index",
     "pages/home/index",
+    "pages/login/index",
     "pages/create/select-video",
     "pages/create/select-clip",
     "pages/create/voice-profile",

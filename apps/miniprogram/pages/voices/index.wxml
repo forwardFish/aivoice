@@ -1,11 +1,5 @@
 <view class="voices-screen">
-  <app-nav title="我的声音" rightText="新建" bindrighttap="createVoice"></app-nav>
-
-  <scroll-view class="filter-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
-    <view class="filter-row">
-      <view wx:for="{{filters}}" wx:key="key" class="filter-chip {{activeFilter === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="selectFilter">{{item.label}}</view>
-    </view>
-  </scroll-view>
+  <text class="voices-page-title fade-in">我的声音</text>
 
   <view wx:if="{{state === 'loading'}}" class="voices-state">
     <page-state mode="loading" title="正在同步声音" description="正在获取已完成、处理中和草稿状态…"></page-state>
@@ -15,29 +9,36 @@
     <page-state mode="error" title="声音列表暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="retryLoad"></page-state>
   </view>
 
-  <view wx:elif="{{state === 'empty'}}" class="voices-empty soft-card">
-    <view class="empty-orb">
-      <view class="empty-wave"><text></text><text></text><text></text><text></text><text></text></view>
-    </view>
-    <text class="empty-title">{{activeFilter === 'ALL' ? '还没有声音' : '当前分类没有声音'}}</text>
-    <text class="empty-copy">{{activeFilter === 'ALL' ? '从相册选择一段视频，创建第一个私有 AI 声音。' : '可以切换到“全部”查看其他声音。'}}</text>
-    <button class="empty-action" bindtap="handleEmptyAction">{{activeFilter === 'ALL' ? '创建新声音' : '查看全部'}}</button>
+  <view wx:elif="{{state === 'empty'}}" class="voices-empty-card soft-card fade-in">
+    <view class="empty-icon-shell"><image class="empty-wave-icon" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
+    <text class="voices-empty-title">还没有声音</text>
+    <text class="voices-empty-copy">从相册选择一段视频，创建第一个私有 AI 声音。</text>
+    <view class="voices-empty-action"><app-button label="创建新声音" bindaction="createVoice"></app-button></view>
   </view>
 
   <view wx:else class="voice-list fade-in">
-    <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card">
+    <view
+      wx:for="{{voices}}"
+      wx:key="id"
+      class="voice-card soft-card {{item.isReady ? 'is-ready' : ''}} {{item.showProgress ? 'is-processing' : ''}} {{item.group === 'DRAFT' ? 'is-draft' : ''}} {{item.group === 'FAILED' ? 'is-failed' : ''}}"
+      data-id="{{item.id}}"
+      data-status="{{item.status}}"
+      bindtap="openPrimary"
+    >
       <view class="card-top">
-        <image class="voice-avatar" src="{{item.displayAvatar}}" mode="aspectFill"></image>
+        <app-avatar size="{{item.isReady ? 154 : 144}}" src="{{item.displayAvatar}}" custom-class="voice-avatar"></app-avatar>
+
         <view class="voice-copy">
-          <view class="name-row">
-            <text class="voice-name">{{item.name}}</text>
-            <text class="status-pill {{item.statusTone}}">{{item.statusLabel}}</text>
-          </view>
-          <text wx:if="{{item.stageLabel}}" class="stage-label">{{item.stageLabel}}</text>
+          <text class="voice-name">{{item.name}}</text>
+          <text class="status-pill {{item.statusTone}}">{{item.statusLabel}}</text>
           <text class="voice-meta">{{item.metaText}}</text>
         </view>
-        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings">
-          <image class="settings-icon" src="/assets/ui/more-plain.png" mode="aspectFit"></image>
+
+        <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings" aria-label="声音设置">
+          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
+        </button>
+        <button wx:else class="settings-button" data-id="{{item.id}}" data-status="{{item.status}}" catchtap="openPrimary" aria-label="查看声音状态">
+          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
         </button>
       </view>
 
@@ -46,15 +47,20 @@
         <text>{{item.progress}}%</text>
       </view>
 
-      <view wx:if="{{item.isReady}}" class="quota-row">
-        <text>{{item.pointsText}}</text>
-        <text>对话和“说一句”共用账户积分</text>
+      <view wx:if="{{item.isReady}}" class="ready-actions">
+        <app-button variant="primary" size="medium" label="继续对话" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="conversation-action">
+          <image slot="icon" class="action-icon" src="/assets/ui/chat-mode.png" mode="aspectFit"></image>
+        </app-button>
+        <app-button variant="secondary" size="medium" label="说一句" data-id="{{item.id}}" bindaction="openExact" custom-class="exact-action">
+          <image slot="icon" class="action-icon" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
+        </app-button>
       </view>
 
-      <view class="card-actions">
-        <button class="primary-action {{item.isDisabled ? 'disabled' : ''}}" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="openPrimary" disabled="{{item.isDisabled}}">{{item.primaryAction}}</button>
-        <button wx:if="{{item.isReady}}" class="secondary-action" data-id="{{item.id}}" bindtap="openExact">说一句</button>
+      <view wx:elif="{{item.group === 'DRAFT' || item.group === 'FAILED'}}" class="resume-action-wrap">
+        <app-button variant="secondary" size="medium" label="{{item.primaryAction}}" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="resume-action"></app-button>
       </view>
     </view>
   </view>
+
+  <view class="tabbar-safe-space"></view>
 </view>

@@ -54,6 +54,24 @@ test('reference quality accepts clear continuous speech-like PCM', async () => {
   });
 });
 
+test('reference quality enforces the 8-20 second cloning contract', async () => {
+  for (const durationSeconds of [8, 20]) {
+    await withWav(pcmWav(durationSeconds, 4_000), async (filePath) => {
+      const report = await inspectReferenceQuality(filePath);
+      assert.equal(report.acceptable, true);
+      assert.equal(report.durationSeconds, durationSeconds);
+    });
+  }
+
+  for (const durationSeconds of [7.8, 20.2]) {
+    await withWav(pcmWav(durationSeconds, 4_000), async (filePath) => {
+      const report = await inspectReferenceQuality(filePath);
+      assert.equal(report.acceptable, false);
+      assert.equal(report.failureCode, 'AUDIO_DECODE_FAILED');
+    });
+  }
+});
+
 test('reference quality reports low volume and insufficient active speech', async () => {
   await withWav(pcmWav(12, 300), async (filePath) => {
     const report = await inspectReferenceQuality(filePath);

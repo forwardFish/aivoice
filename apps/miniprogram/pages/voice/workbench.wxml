@@ -36,7 +36,7 @@
     <view wx:else>
       <view class="workbench-header">
         <view class="quota-pill">{{pointsText}}</view>
-        <button class="change-mode" bindtap="chooseAnotherMode">切换使用方式</button>
+        <button class="text-button change-mode" bindtap="chooseAnotherMode">切换使用方式</button>
       </view>
 
       <view class="segment-control">
@@ -59,20 +59,32 @@
           </view>
 
           <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'user-row' : 'assistant-row'}}">
-            <view wx:if="{{item.isAssistant}}" class="message-avatar">{{item.initial}}</view>
-            <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
-              <text class="message-text">{{item.text}}</text>
-              <audio-player wx:if="{{item.showAudio}}" class="message-audio" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI回复" compact="{{true}}"></audio-player>
-              <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
+            <image wx:if="{{item.isAssistant}}" class="message-avatar" src="{{voiceAvatar}}" mode="aspectFill"></image>
+            <view class="message-stack {{item.isUser ? 'user-stack' : 'assistant-stack'}}">
+              <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
+                <text class="message-text">{{item.text}}</text>
+                <audio-player wx:if="{{item.showAudio}}" class="message-audio" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI回复" compact="{{true}}"></audio-player>
+                <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
+              </view>
+              <view wx:if="{{item.isAssistant && item.status === 'READY'}}" class="reply-feedback" aria-label="这条回答像不像 TA">
+                <view class="reply-feedback-button {{item.feedbackVerdict === 'LIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyLike" role="button" aria-label="像 TA">
+                  <image class="reply-feedback-icon" src="{{item.feedbackVerdict === 'LIKE' ? '/assets/ui/thumb-up-active.svg' : '/assets/ui/thumb-up.svg'}}"></image>
+                </view>
+                <view class="reply-feedback-button {{item.feedbackVerdict === 'DISLIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyDislike" role="button" aria-label="不像 TA">
+                  <image class="reply-feedback-icon" src="{{item.feedbackVerdict === 'DISLIKE' ? '/assets/ui/thumb-down-active.svg' : '/assets/ui/thumb-down.svg'}}"></image>
+                </view>
+              </view>
             </view>
           </view>
 
           <view wx:if="{{sending && pendingMode === 'chat'}}" class="message-row assistant-row pending-row">
-            <view class="message-avatar">{{voiceInitial}}</view>
-            <view class="message-bubble assistant-bubble">
-              <text class="pending-user-copy">你：{{pendingText}}</text>
-              <view class="typing-wave"><text></text><text></text><text></text><text></text></view>
-              <text class="message-tag">{{generationStatusText}}</text>
+            <image class="message-avatar" src="{{voiceAvatar}}" mode="aspectFill"></image>
+            <view class="message-stack assistant-stack">
+              <view class="message-bubble assistant-bubble">
+                <text class="pending-user-copy">你：{{pendingText}}</text>
+                <view class="typing-wave"><text></text><text></text><text></text><text></text></view>
+                <text class="message-tag">{{generationStatusText}}</text>
+              </view>
             </view>
           </view>
           <view class="scroll-spacer"></view>
@@ -80,7 +92,7 @@
 
         <view class="chat-composer">
           <textarea class="composer-input" value="{{chatText}}" placeholder="输入想说的话…" maxlength="200" auto-height="{{true}}" bindinput="onChatInput" disabled="{{sending}}"></textarea>
-          <button class="send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
+          <button class="primary-button send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
         </view>
       </view>
 

@@ -1,37 +1,41 @@
 <view class="login-screen">
   <app-nav transparent="{{true}}"></app-nav>
 
+  <view class="login-aurora aurora-a"></view>
+  <view class="login-aurora aurora-b"></view>
+  <view class="login-clouds"></view>
+  <view class="login-spark spark-a"></view>
+  <view class="login-spark spark-b"></view>
+  <view class="login-spark spark-c"></view>
+  <view class="login-spark spark-d"></view>
+
   <view wx:if="{{success}}" class="login-success">
     <page-state mode="success" title="登录成功" description="正在进入那时的 TA…"></page-state>
   </view>
 
   <view wx:else class="login-content fade-in">
-    <view class="hero-copy">
-      <text class="login-title">那时的TA</text>
-      <text class="login-subtitle">把记忆里的声音，轻轻留住</text>
+    <view class="login-hero">
+      <view class="login-brand-copy">
+        <text class="login-title">那时的TA</text>
+        <text class="login-subtitle">把记忆里的声音，轻轻留住</text>
+      </view>
+      <image class="login-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
     </view>
 
-    <view class="hero-visual">
-      <image class="hero-card" src="/assets/ui/home-hero-card.png" mode="widthFix"></image>
-    </view>
-
-    <view class="welcome-copy">
+    <view class="welcome-block">
       <text class="welcome-title">欢迎来到那时的TA</text>
       <text class="welcome-subtitle">登录后体验完整功能</text>
     </view>
 
     <text wx:if="{{errorMessage}}" class="login-error">{{errorMessage}}</text>
 
-    <button class="login-button" bindtap="submitLogin" disabled="{{loading}}">
-      <view class="wechat-mark">
-        <view class="wechat-bubble large"></view>
-        <view class="wechat-bubble small"></view>
-      </view>
+    <button class="wechat-login-button {{loading ? 'button-disabled' : ''}}" bindtap="submitLogin" disabled="{{loading}}">
+      <image class="wechat-mark" src="/assets/ui/wechat-mark.png" mode="aspectFit"></image>
       <text>{{loading ? '登录中…' : '微信登录'}}</text>
     </button>
 
     <view class="agreement-row" bindtap="toggleAgreement">
-      <view class="agreement-circle {{agreed ? 'checked' : ''}}"></view>
+      <view class="check-box {{agreed ? 'checked' : ''}}"><text wx:if="{{agreed}}">✓</text></view>
       <view class="agreement-copy">
         <text>我已阅读并同意</text>
         <text class="agreement-link" data-type="terms" catchtap="showAgreement">《用户协议》</text>
@@ -39,11 +43,53 @@
         <text class="agreement-link" data-type="privacy" catchtap="showAgreement">《隐私政策》</text>
       </view>
     </view>
-
-    <view class="login-clouds">
-      <view class="cloud cloud-left"></view>
-      <view class="cloud cloud-center"></view>
-      <view class="cloud cloud-right"></view>
-    </view>
   </view>
+
+  <bottom-sheet visible="{{showProfileSheet}}" sheet-class="login-profile-sheet" bindclose="closeProfileSheet">
+    <view class="profile-heading">
+      <text class="profile-title">完善微信资料</text>
+      <text class="profile-description">选择头像和昵称后完成登录</text>
+    </view>
+
+    <view class="profile-form">
+      <button
+        class="avatar-picker"
+        open-type="chooseAvatar"
+        bindchooseavatar="onChooseAvatar"
+        binderror="onAvatarChooseError"
+      >
+        <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <image wx:else class="avatar-placeholder" src="/assets/ui/user-outline.png" mode="aspectFit"></image>
+        <text>{{avatarUrl ? '已选择头像' : '选择微信头像'}}</text>
+      </button>
+
+      <button
+        wx:if="{{avatarFallbackVisible}}"
+        class="secondary-button album-avatar-button"
+        bindtap="chooseAvatarFromAlbum"
+      >从相册或相机选择头像</button>
+
+      <input
+        class="nickname-input"
+        name="nickname"
+        type="nickname"
+        value="{{nickname}}"
+        maxlength="40"
+        placeholder="选择或填写微信昵称"
+        bindinput="onNicknameInput"
+      />
+
+      <text wx:if="{{errorMessage}}" class="profile-error">{{errorMessage}}</text>
+      <text class="profile-privacy">头像和昵称仅用于你的账号展示</text>
+
+      <view class="ui-form-actions">
+        <view class="ui-form-action">
+          <app-button label="取消" variant="secondary" size="medium" disabled="{{loading}}" bindaction="closeProfileSheet"></app-button>
+        </view>
+        <view class="ui-form-action">
+          <app-button label="确认登录" variant="primary" size="medium" loading="{{loading}}" bindaction="confirmProfileLogin"></app-button>
+        </view>
+      </view>
+    </view>
+  </bottom-sheet>
 </view>

@@ -1,0 +1,4 @@
+:host { display: inline-flex; flex: 0 0 auto; }
+.app-icon-button { flex: 0 0 auto; margin: 0 !important; padding: 0 !important; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #858ca2; background: rgba(240, 239, 247, 0.96); border: 1rpx solid rgba(223, 222, 235, 0.96); box-shadow: none; font-size: 28rpx; line-height: 1; box-sizing: border-box; }
+.app-icon-button::after { border: 0; }
+.app-icon-button.is-disabled { opacity: 0.48; }

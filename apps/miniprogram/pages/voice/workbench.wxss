@@ -1,6 +1,9 @@
 .workbench-screen {
   min-height: 100vh;
-  background: #f7f8ff;
+  background:
+    radial-gradient(circle at 12% 3%, rgba(130, 164, 255, 0.13), transparent 30%),
+    radial-gradient(circle at 88% 8%, rgba(165, 127, 255, 0.14), transparent 32%),
+    #f7f8ff;
 }
 
 .workbench-state {
@@ -154,7 +157,7 @@
 }
 
 .workbench-header {
-  padding: 18rpx 30rpx;
+  padding: 16rpx 42rpx 12rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -162,53 +165,54 @@
 
 .quota-pill,
 .change-mode {
-  min-height: 58rpx;
-  padding: 0 20rpx;
+  min-height: 54rpx;
+  padding: 0 22rpx;
   border-radius: 999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 23rpx;
+  font-size: 22rpx;
   font-weight: 600;
 }
 
 .quota-pill {
   color: #6552f5;
-  background: #efedff;
+  background: rgba(239, 237, 255, 0.82);
 }
 
 .change-mode {
   color: #6552f5;
-  background: #ffffff;
-  border: 1rpx solid #e4e2f5;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(218, 214, 247, 0.92);
+  box-shadow: 0 8rpx 22rpx rgba(48, 54, 88, 0.05);
 }
 
 .change-mode::after { border: none; }
 
 .segment-control {
-  margin: 4rpx 30rpx 20rpx;
-  padding: 8rpx;
-  border-radius: 22rpx;
+  margin: 4rpx 42rpx 18rpx;
+  padding: 7rpx;
+  border-radius: 24rpx;
   display: flex;
-  background: #e9eaf3;
+  background: rgba(231, 231, 244, 0.76);
 }
 
 .segment-item {
   flex: 1;
-  height: 68rpx;
-  border-radius: 18rpx;
+  height: 64rpx;
+  border-radius: 19rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #737b94;
-  font-size: 26rpx;
+  font-size: 25rpx;
   font-weight: 600;
 }
 
 .segment-item.active {
   color: #6552f5;
-  background: #ffffff;
-  box-shadow: 0 8rpx 20rpx rgba(47, 53, 88, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8rpx 22rpx rgba(47, 53, 88, 0.07);
 }
 
 .segment-item.active.warm {
@@ -216,18 +220,17 @@
 }
 
 .ai-notice {
-  margin: 0 30rpx 18rpx;
-  padding: 12rpx 18rpx;
-  border-radius: 999rpx;
-  color: #87715a;
-  background: #fff7e8;
+  margin: 0 42rpx 14rpx;
+  padding: 4rpx 10rpx;
+  color: #9298aa;
+  background: transparent;
   text-align: center;
-  font-size: 20rpx;
+  font-size: 19rpx;
 }
 
 .messages-scroll {
-  height: calc(100vh - 450rpx - env(safe-area-inset-bottom));
-  padding: 0 28rpx;
+  height: calc(100vh - 428rpx - env(safe-area-inset-bottom));
+  padding: 6rpx 34rpx 0;
 }
 
 .chat-empty {
@@ -295,58 +298,111 @@
 
 .message-row {
   width: 100%;
-  margin: 24rpx 0;
+  margin: 30rpx 0 38rpx;
   display: flex;
   align-items: flex-start;
-  gap: 14rpx;
+  gap: 16rpx;
 }
 
 .user-row {
   justify-content: flex-end;
 }
 
+.message-stack {
+  max-width: 80%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.assistant-stack {
+  align-items: flex-start;
+}
+
+.user-stack {
+  align-items: flex-end;
+}
+
 .message-avatar {
-  width: 66rpx;
-  height: 66rpx;
-  font-size: 24rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10rpx 28rpx rgba(52, 58, 92, 0.10);
 }
 
 .message-bubble {
-  max-width: 78%;
-  padding: 22rpx 24rpx;
-  border-radius: 26rpx;
-  box-shadow: 0 12rpx 30rpx rgba(48, 54, 88, 0.06);
+  width: fit-content;
+  max-width: 100%;
+  padding: 25rpx 27rpx;
+  border-radius: 30rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16rpx 42rpx rgba(48, 54, 88, 0.07);
 }
 
 .user-bubble {
   color: #4f45d5;
-  background: linear-gradient(135deg, #e9e6ff, #f2f0ff);
-  border-bottom-right-radius: 8rpx;
+  background: linear-gradient(135deg, rgba(235, 232, 255, 0.94), rgba(246, 244, 255, 0.9));
+  border-color: rgba(225, 220, 255, 0.9);
+  border-bottom-right-radius: 10rpx;
 }
 
 .assistant-bubble {
   color: #20263a;
-  background: #ffffff;
-  border-bottom-left-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-left-radius: 10rpx;
 }
 
 .message-text {
   display: block;
-  font-size: 27rpx;
-  line-height: 1.65;
+  font-size: 28rpx;
+  line-height: 1.62;
   word-break: break-all;
 }
 
 .message-audio {
   display: block;
-  margin-top: 16rpx;
+  min-width: 430rpx;
+  margin-top: 18rpx;
 }
 
 .message-tag {
   display: block;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   font-size: 20rpx;
   color: #8a90a5;
+}
+
+.reply-feedback {
+  height: 52rpx;
+  margin-top: 8rpx;
+  padding-left: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.reply-feedback-button {
+  flex: 0 0 52rpx;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.reply-feedback-button.selected {
+  background: rgba(239, 237, 255, 0.94);
+}
+
+.reply-feedback-button:active {
+  background: rgba(239, 237, 255, 0.72);
+}
+
+.reply-feedback-icon {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .pending-user-copy {
@@ -374,31 +430,32 @@
 .typing-wave text:nth-child(4) { height: 42rpx; }
 
 .scroll-spacer {
-  height: 180rpx;
+  height: 210rpx;
 }
 
 .chat-composer {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(16rpx + env(safe-area-inset-bottom));
   z-index: 30;
-  padding: 18rpx 26rpx calc(18rpx + env(safe-area-inset-bottom));
+  padding: 14rpx;
   display: flex;
   align-items: flex-end;
-  gap: 14rpx;
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1rpx solid #e9ebf4;
-  box-shadow: 0 -16rpx 40rpx rgba(47, 53, 88, 0.08);
+  gap: 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.94);
+  border-radius: 34rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18rpx 48rpx rgba(47, 53, 88, 0.12);
 }
 
 .composer-input {
   flex: 1;
-  min-height: 76rpx;
+  min-height: 74rpx;
   max-height: 180rpx;
-  padding: 18rpx 22rpx;
-  border-radius: 26rpx;
-  background: #f4f5fa;
+  padding: 17rpx 22rpx;
+  border-radius: 25rpx;
+  background: rgba(244, 245, 250, 0.92);
   color: #11172d;
   font-size: 26rpx;
   line-height: 1.5;
@@ -406,10 +463,12 @@
 
 .send-button {
   flex: 0 0 auto;
-  min-width: 100rpx;
-  height: 76rpx;
-  padding: 0 20rpx;
-  border-radius: 24rpx;
+  width: auto;
+  min-width: 112rpx;
+  min-height: 74rpx;
+  height: 74rpx;
+  padding: 0 22rpx;
+  border-radius: 25rpx;
   color: #ffffff;
   background: linear-gradient(135deg, #6552f5, #8d68f6);
   font-size: 25rpx;

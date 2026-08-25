@@ -15,12 +15,17 @@ test('normalizes the implemented backend voice lifecycle and permission values',
     name: '奶奶',
     status: 'READY',
     permissionType: 'OTHER',
+    relationshipType: 'GRANDMOTHER',
+    relationshipLabel: '',
+    userAddress: '小林',
     acceptedAt: null,
     previewRetryCount: 0,
     points: { availablePoints: 0, trialEligibility: 'ELIGIBLE' }
   })
   assert.equal(previewReady.status, 'PREVIEW_READY')
   assert.equal(previewReady.permissionType, 'OTHER')
+  assert.equal(previewReady.relationshipType, 'GRANDMOTHER')
+  assert.equal(previewReady.userAddress, '小林')
   assert.equal(previewReady.freeRetryRemaining, 1)
 
   const accepted = normalizeVoice({ ...previewReady, status: 'READY', acceptedAt: new Date().toISOString() })

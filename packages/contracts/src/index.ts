@@ -38,6 +38,16 @@ export const ERROR_CODES = [
 
 export type ApiErrorCode = (typeof ERROR_CODES)[number];
 export type PermissionType = 'SELF' | 'OTHER' | 'MINOR';
+export type RelationshipType =
+  | 'SELF'
+  | 'MOTHER'
+  | 'FATHER'
+  | 'GRANDMOTHER'
+  | 'GRANDFATHER'
+  | 'CHILD'
+  | 'PARTNER'
+  | 'FRIEND'
+  | 'OTHER';
 export type TrialEligibility = 'ELIGIBLE' | 'GRANTED' | 'USED';
 export type VoiceStatus =
   | 'DRAFT'

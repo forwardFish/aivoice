@@ -115,8 +115,8 @@ export class MediaService {
     const data = JSON.parse(stdout) as ProbeResult;
     const durationMs = Math.round(Number(data.format?.duration || 0) * 1000);
     const streamTypes = new Set((data.streams || []).map((stream) => stream.codec_type));
-    if (!streamTypes.has('video') || !streamTypes.has('audio') || durationMs < 12_000 || durationMs > 60_000) {
-      throw new ConflictException('video must contain audio and be 12-60 seconds');
+    if (!streamTypes.has('video') || !streamTypes.has('audio') || durationMs < 8_000 || durationMs > 60_000) {
+      throw new ConflictException('video must contain audio and be 8-60 seconds');
     }
     return { durationMs };
   }
@@ -206,8 +206,8 @@ export class MediaService {
         throw new UnauthorizedException('invalid source object key');
       }
       const durationMs = Number(metadata.durationMs || 0);
-      if (!Number.isInteger(durationMs) || durationMs < 12_000 || durationMs > 60_000) {
-        throw new ConflictException('video must contain audio and be 12-60 seconds');
+      if (!Number.isInteger(durationMs) || durationMs < 8_000 || durationMs > 60_000) {
+        throw new ConflictException('video must contain audio and be 8-60 seconds');
       }
       let object: Awaited<ReturnType<ReturnType<DatabaseService['requireCloud']>['objectInfo']>>;
       try {

@@ -1,0 +1,2 @@
+ALTER TABLE "voice_profiles" ADD COLUMN "user_address" text DEFAULT '' NOT NULL;--> statement-breakpoint
+ALTER TABLE "voice_profiles" ADD CONSTRAINT "voice_profiles_user_address_length" CHECK (char_length("voice_profiles"."user_address") <= 10);

@@ -176,3 +176,46 @@ test('workbench auto-opens purchase recovery when a pending order exists', async
   assert.deepEqual(navigations, ['/pages/purchase/index?voiceId=voice-pending&resume=1'])
   assert.equal(storage.get('nashide_ta_pending_order:voice-pending').orderId, 'order-pending')
 })
+
+test('assistant reply feedback records like and asks for a reason before recording dislike', async () => {
+  const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
+  let pageDefinition: any
+  let actionSheetItems: string[] = []
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: (key: string) => storage.get(key),
+    setStorageSync: (key: string, value: any) => storage.set(key, value),
+    removeStorageSync: (key: string) => storage.delete(key),
+    reLaunch: () => undefined,
+    showToast: () => undefined,
+    showActionSheet: (options: any) => {
+      actionSheetItems = options.itemList
+      options.success({ tapIndex: 3 })
+    }
+  }
+
+  await import('../pages/voice/workbench?case=reply-feedback')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      voiceId: 'voice-feedback',
+      chatMessages: [{ id: 'message-1', feedbackVerdict: '', feedbackReason: '' }]
+    },
+    setData(patch: Record<string, unknown>) {
+      Object.assign(this.data, patch)
+    }
+  }
+
+  instance.markReplyLike({ currentTarget: { dataset: { messageId: 'message-1' } } })
+  assert.equal(instance.data.chatMessages[0].feedbackVerdict, 'LIKE')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].verdict, 'LIKE')
+
+  instance.markReplyDislike({ currentTarget: { dataset: { messageId: 'message-1' } } })
+  assert.equal(actionSheetItems.length, 6)
+  assert.equal(instance.data.chatMessages[0].feedbackVerdict, 'DISLIKE')
+  assert.equal(instance.data.chatMessages[0].feedbackReason, 'LESS_PREACHY')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, 'LESS_PREACHY')
+})

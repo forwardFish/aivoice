@@ -1,3 +1,5 @@
+import { getToken, setPostLoginRoute } from '../utils/storage'
+
 const TAB_LIST = [
   {
     pagePath: '/pages/home/index',
@@ -45,6 +47,11 @@ Component({
       const index = Number(event.currentTarget.dataset.index || 0)
       const item = TAB_LIST[index]
       if (!item) return
+      if (index > 0 && !getToken()) {
+        setPostLoginRoute(item.pagePath)
+        wx.reLaunch({ url: '/pages/login/index' })
+        return
+      }
       this.setData({ selected: index })
       wx.switchTab({ url: item.pagePath })
     }

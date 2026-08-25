@@ -1,16 +1,16 @@
 <view class="screen profile-screen">
-  <app-nav title="填写信息与授权" back="{{true}}"></app-nav>
+  <app-nav title="声音信息与授权" back="{{true}}"></app-nav>
 
   <view class="profile-content fade-in">
     <view class="intro-block">
       <text class="page-title">给这个声音起个名字</text>
-      <text class="page-subtitle">只收集创建声音所需的最少信息；声音和生成内容不会公开展示。</text>
+      <text class="page-subtitle">仅用于创建私有 AI 声音和调整对话关系，不会公开展示。</text>
     </view>
 
     <view class="form-card glass-card">
       <view class="field-block">
-        <text class="field-label">称呼 TA</text>
-        <input class="field-input" value="{{name}}" placeholder="例如：妈妈、小雨 · 5岁、大学时的我" maxlength="20" bindinput="onNameInput" />
+        <text class="field-label">称呼这个声音</text>
+        <input class="field-input" value="{{name}}" placeholder="如：小雨 · 5岁" maxlength="20" bindinput="onNameInput" />
       </view>
 
       <view class="field-block permission-block">
@@ -26,6 +26,50 @@
               <text class="permission-description">{{item.description}}</text>
             </view>
             <view wx:if="{{permissionType === item.key}}" class="selected-check">✓</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{permissionType}}" class="field-block relationship-block">
+        <view class="relationship-heading">
+          <text class="field-label">TA 是你的谁</text>
+          <text class="relationship-note">仅用于调整 AI 对话</text>
+        </view>
+        <view class="relationship-grid">
+          <view
+            wx:for="{{relationshipOptions}}"
+            wx:key="key"
+            class="relationship-chip {{relationshipType === item.key ? 'selected' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="selectRelationship"
+          >
+            <text>{{item.title}}</text>
+          </view>
+        </view>
+        <view wx:if="{{relationshipType === 'OTHER'}}" class="relationship-other-wrap">
+          <input
+            class="relationship-other-input"
+            value="{{relationshipOther}}"
+            placeholder="请输入关系，如：同学、老师、表姐"
+            maxlength="10"
+            bindinput="onRelationshipOtherInput"
+          />
+          <text class="relationship-other-count">{{relationshipOther.length}}/10</text>
+        </view>
+        <view wx:if="{{relationshipType && relationshipType !== 'SELF'}}" class="user-address-block">
+          <view class="user-address-heading">
+            <text class="user-address-label">TA 怎么称呼你</text>
+            <text class="user-address-optional">可选</text>
+          </view>
+          <view class="relationship-other-wrap">
+            <input
+              class="relationship-other-input"
+              value="{{userAddress}}"
+              placeholder="如：小林、小名"
+              maxlength="10"
+              bindinput="onUserAddressInput"
+            />
+            <text class="relationship-other-count">{{userAddress.length}}/10</text>
           </view>
         </view>
       </view>

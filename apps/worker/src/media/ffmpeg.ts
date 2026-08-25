@@ -13,7 +13,7 @@ export async function extractReference(input: {
   endMs: number;
 }): Promise<void> {
   const durationMs = input.endMs - input.startMs;
-  if (durationMs < 10_000 || durationMs > 30_000) throw new Error('reference clip must be 10-30 seconds');
+  if (durationMs < 8_000 || durationMs > 20_000) throw new Error('reference clip must be 8-20 seconds');
   await fs.mkdir(path.dirname(input.outputPath), { recursive: true });
   await execFileAsync(ffmpegPath, [
     '-hide_banner', '-nostdin', '-loglevel', 'error', '-y',

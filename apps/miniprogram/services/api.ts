@@ -92,11 +92,11 @@ function errorMessage(code: string, fallback = ''): string {
   const messages: Record<string, string> = {
     UNAUTHORIZED: '登录状态已失效，请重新登录。',
     INVALID_MEDIA: '视频信息无效，请重新选择。',
-    VIDEO_TOO_SHORT: '视频不足 12 秒，请更换视频。',
+    VIDEO_TOO_SHORT: '视频不足 8 秒，请更换视频。',
     VIDEO_TOO_LONG: '视频超过 60 秒，请先在相册中裁短。',
     VIDEO_TOO_LARGE: '视频文件过大，请裁短或压缩后重试。',
-    CLIP_TOO_SHORT: '声音片段至少需要 10 秒。',
-    CLIP_TOO_LONG: '声音片段最长为 30 秒。',
+    CLIP_TOO_SHORT: '声音片段至少需要 8 秒。',
+    CLIP_TOO_LONG: '声音片段最长为 20 秒。',
     AUDIO_DECODE_FAILED: '无法解码这段声音，请更换视频或片段。',
     NO_VALID_SPEECH: '有效人声不足 8 秒，请选择更清晰的片段。',
     LOW_VOLUME: '片段音量过低，请选择声音更清楚的片段。',
@@ -410,6 +410,9 @@ export async function saveVoiceClip(voiceId: string, startMs: number, endMs: num
 export async function saveVoiceProfile(voiceId: string, input: {
   name: string
   permissionType: PermissionType
+  relationshipType?: import('../models/api').RelationshipType
+  relationshipLabel?: string
+  userAddress?: string
 }): Promise<VoiceDetail> {
   const raw = await requestRaw<any>({
     path: `/voices/${encodeURIComponent(voiceId)}/profile`,

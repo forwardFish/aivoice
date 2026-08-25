@@ -14,6 +14,9 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const permissionType = pgEnum('permission_type', ['SELF', 'OTHER', 'MINOR']);
+export const voiceRelationshipType = pgEnum('voice_relationship_type', [
+  'SELF', 'MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'CHILD', 'PARTNER', 'FRIEND', 'OTHER',
+]);
 export const voiceStatus = pgEnum('voice_status', [
   'DRAFT', 'UPLOADING', 'QUEUED', 'PROCESSING', 'READY', 'FAILED', 'DELETING', 'DELETED',
 ]);
@@ -90,6 +93,9 @@ export const voiceProfiles = pgTable('voice_profiles', {
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull().default(''),
   permissionType: permissionType('permission_type'),
+  relationshipType: voiceRelationshipType('relationship_type'),
+  relationshipLabel: text('relationship_label').notNull().default(''),
+  userAddress: text('user_address').notNull().default(''),
   status: voiceStatus('status').notNull().default('DRAFT'),
   clipStartMs: integer('clip_start_ms'),
   clipEndMs: integer('clip_end_ms'),
@@ -109,6 +115,8 @@ export const voiceProfiles = pgTable('voice_profiles', {
   index('voice_profiles_user_status_idx').on(table.userId, table.status),
   check('voice_profiles_quota_non_negative', sql`${table.trialQuotaRemaining} >= 0 AND ${table.paidQuotaRemaining} >= 0`),
   check('voice_profiles_preview_retry_count_valid', sql`${table.previewRetryCount} >= 0 AND ${table.previewRetryCount} <= 1`),
+  check('voice_profiles_relationship_label_length', sql`char_length(${table.relationshipLabel}) <= 10`),
+  check('voice_profiles_user_address_length', sql`char_length(${table.userAddress}) <= 10`),
 ]);
 
 export const mediaAssets = pgTable('media_assets', {

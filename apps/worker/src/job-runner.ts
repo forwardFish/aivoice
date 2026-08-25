@@ -5,6 +5,11 @@ import path from 'node:path';
 import type { PoolClient } from 'pg';
 import { evaluateContentSafety } from '@aivoice/contracts';
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
+import {
+  compileVoiceChatMessages,
+  type VoiceChatMessage,
+  type VoiceRelationshipType,
+} from './chat/voice-chat-context.js';
 import { WorkerDatabase } from './db.js';
 import { recoverExpiredLeases } from './lease-recovery.js';
 import { embedAigcMetadata } from './media/aigc.js';
@@ -32,7 +37,7 @@ interface VoiceProviderPort {
 }
 
 interface ChatProviderPort {
-  reply(history: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
+  reply(messages: VoiceChatMessage[]): Promise<string>;
 }
 
 interface JobRunnerDependencies {
@@ -373,9 +378,18 @@ export class JobRunner {
       mode: 'CHAT' | 'EXACT_SPEECH';
       conversation_id: string;
       provider_voice_id_encrypted: string;
+      voice_name: string;
+      relationship_type: VoiceRelationshipType | null;
+      relationship_label: string;
+      user_address: string;
+      cleared_at: Date | null;
     }>(
-      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted
-       FROM messages m JOIN voice_models vm ON vm.voice_profile_id=m.voice_profile_id AND vm.status='READY'
+      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,
+              vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,c.cleared_at
+       FROM messages m
+       JOIN conversations c ON c.id=m.conversation_id
+       JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
+       JOIN voice_models vm ON vm.voice_profile_id=m.voice_profile_id AND vm.status='READY'
        WHERE m.id=$1 AND m.user_id=$2`,
       [job.message_id, job.user_id],
     );
@@ -383,17 +397,27 @@ export class JobRunner {
     if (!message) throw new Error('message or ready voice model not found');
     let outputText = message.input_text;
     if (message.mode === 'CHAT') {
-      const historyResult = await this.database.pool.query<{ mode: string; input_text: string; output_text: string }>(
-        `SELECT mode,input_text,output_text FROM messages
-         WHERE conversation_id=$1 AND status='READY' ORDER BY created_at DESC LIMIT 10`,
-        [message.conversation_id],
+      const historyResult = await this.database.pool.query<{ id: string; mode: string; input_text: string; output_text: string }>(
+        `SELECT id,mode,input_text,output_text FROM messages
+         WHERE conversation_id=$1 AND status='READY' AND mode='CHAT'
+           AND ($2::timestamptz IS NULL OR created_at>$2)
+         ORDER BY created_at DESC,id DESC LIMIT 8`,
+        [message.conversation_id, message.cleared_at],
       );
-      const history = historyResult.rows.reverse().flatMap((row) => [
-        { role: 'user' as const, content: row.input_text },
-        ...(row.output_text ? [{ role: 'assistant' as const, content: row.output_text }] : []),
-      ]);
-      history.push({ role: 'user', content: message.input_text });
-      outputText = await this.chatProvider.reply(history);
+      const context = compileVoiceChatMessages({
+        voiceName: message.voice_name,
+        relationshipType: message.relationship_type,
+        relationshipLabel: message.relationship_label,
+        userAddress: message.user_address,
+        history: historyResult.rows.reverse().map((row) => ({
+          messageId: row.id,
+          mode: row.mode,
+          inputText: row.input_text,
+          outputText: row.output_text,
+        })),
+        currentInput: message.input_text,
+      });
+      outputText = await this.chatProvider.reply(context.messages);
     }
     const outputSafety = evaluateContentSafety(outputText);
     if (!outputSafety.safe) throw new ContentBlockedError(outputSafety.reason || 'OUTPUT_CONTENT_BLOCKED');

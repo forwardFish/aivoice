@@ -85,14 +85,14 @@ test('CloudBase media confirmation verifies object metadata then registers it th
     fileName: 'authorized.mp4',
     mimeType: 'video/mp4',
     sizeBytes: 1_024,
-    durationMs: 12_000,
+    durationMs: 8_000,
   });
 
   assert.deepEqual(result, {
     voiceId: '11111111-1111-4111-8111-111111111111',
     mediaId: 'confirmed-media-1',
     status: 'DRAFT',
-    sourceDurationMs: 12_000,
+    sourceDurationMs: 8_000,
     confirmed: true,
   });
   assert.equal(calls.length, 1);
@@ -100,6 +100,28 @@ test('CloudBase media confirmation verifies object metadata then registers it th
   assert.equal(calls[0].args.pObjectKey, objectKey);
   assert.equal(calls[0].args.pBytes, 1_024);
   assert.match(String(calls[0].args.pSha256), /^[0-9a-f]{64}$/);
+});
+
+test('CloudBase media confirmation enforces the 8-60 second source video contract', async () => {
+  process.env.CLOUDBASE_PG_STORAGE_BUCKET = 'aivoice-media';
+  const { database } = cloudDatabase();
+  const service = new MediaService(database);
+  const base = {
+    objectKey: 'source/user-1/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.mp4',
+    mediaId: '22222222-2222-4222-8222-222222222222',
+    fileName: 'authorized.mp4',
+    mimeType: 'video/mp4',
+    sizeBytes: 1_024,
+  };
+
+  await assert.rejects(
+    service.confirmSourceMedia('user-1', '11111111-1111-4111-8111-111111111111', { ...base, durationMs: 7_999 }),
+    /video must contain audio and be 8-60 seconds/,
+  );
+  await assert.rejects(
+    service.confirmSourceMedia('user-1', '11111111-1111-4111-8111-111111111111', { ...base, durationMs: 60_001 }),
+    /video must contain audio and be 8-60 seconds/,
+  );
 });
 
 test('CloudBase playback resolves to a short-lived storage URL without reading local disk', async () => {

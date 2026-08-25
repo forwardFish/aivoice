@@ -8,6 +8,8 @@
 -- rpc_voice_confirm_source_upload(p_user_id uuid,p_voice_id uuid,p_object_key text,p_mime_type text,p_bytes int,p_duration_ms int,p_sha256 text)
 -- rpc_voice_update_clip(p_user_id uuid,p_voice_id uuid,p_start_ms int,p_end_ms int)
 -- rpc_voice_update_profile(p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type)
+-- rpc_voice_update_profile_v2(p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type,p_relationship_type voice_relationship_type,p_relationship_label text)
+-- rpc_voice_update_profile_v3(p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type,p_relationship_type voice_relationship_type,p_relationship_label text,p_user_address text)
 -- rpc_voice_confirm_consent(p_user_id uuid,p_voice_id uuid,p_permission_type permission_type,p_consent_version text,p_consent_text_hash text,p_confirmed_at timestamptz)
 -- rpc_voice_queue_processing(p_user_id uuid,p_voice_id uuid,p_consent_version text,p_consent_text_hash text)
 -- rpc_voice_mark_preview_played(p_user_id uuid,p_voice_id uuid,p_min_elapsed_ms int)
@@ -206,7 +208,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_tem
 DECLARE v_media_id uuid;
 BEGIN
   PERFORM _rpc_assert_caller(ARRAY['api_rpc_role']);
-  IF p_bytes<=0 OR p_bytes>104857600 OR p_duration_ms<12000 OR p_duration_ms>60000 THEN RAISE EXCEPTION 'INVALID_SOURCE_MEDIA'; END IF;
+  IF p_bytes<=0 OR p_bytes>104857600 OR p_duration_ms<8000 OR p_duration_ms>60000 THEN RAISE EXCEPTION 'INVALID_SOURCE_MEDIA'; END IF;
   IF NOT EXISTS(SELECT 1 FROM voice_profiles WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL) THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
   INSERT INTO media_assets(user_id,voice_profile_id,kind,status,object_key,mime_type,bytes,duration_ms,sha256)
   VALUES(p_user_id,p_voice_id,'SOURCE_VIDEO','READY',p_object_key,p_mime_type,p_bytes,p_duration_ms,p_sha256)
@@ -221,7 +223,7 @@ CREATE OR REPLACE FUNCTION rpc_voice_update_clip(p_user_id uuid,p_voice_id uuid,
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
 BEGIN
   PERFORM _rpc_assert_caller(ARRAY['api_rpc_role']);
-  IF p_start_ms<0 OR p_end_ms-p_start_ms<10000 OR p_end_ms-p_start_ms>30000 THEN RAISE EXCEPTION 'INVALID_CLIP'; END IF;
+  IF p_start_ms<0 OR p_end_ms-p_start_ms<8000 OR p_end_ms-p_start_ms>20000 THEN RAISE EXCEPTION 'INVALID_CLIP'; END IF;
   UPDATE voice_profiles SET clip_start_ms=p_start_ms,clip_end_ms=p_end_ms,status='DRAFT',failure_code='',failure_message='',updated_at=now()
   WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL;
   IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
@@ -237,6 +239,47 @@ BEGIN
   WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL;
   IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
   RETURN jsonb_build_object('voiceId',p_voice_id,'name',left(btrim(p_name),40),'permissionType',p_permission_type);
+END; $$;
+
+CREATE OR REPLACE FUNCTION rpc_voice_update_profile_v2(
+  p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type,
+  p_relationship_type voice_relationship_type DEFAULT NULL,p_relationship_label text DEFAULT ''
+)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE v_relationship_type voice_relationship_type; v_relationship_label text;
+BEGIN
+  PERFORM _rpc_assert_caller(ARRAY['api_rpc_role']);
+  IF NULLIF(btrim(p_name),'') IS NULL THEN RAISE EXCEPTION 'VOICE_NAME_REQUIRED'; END IF;
+  v_relationship_type:=CASE WHEN p_permission_type='SELF' THEN 'SELF'::voice_relationship_type ELSE p_relationship_type END;
+  v_relationship_label:=CASE WHEN v_relationship_type='OTHER' THEN left(btrim(COALESCE(p_relationship_label,'')),10) ELSE '' END;
+  IF p_relationship_type='OTHER' AND v_relationship_label='' THEN RAISE EXCEPTION 'RELATIONSHIP_LABEL_REQUIRED'; END IF;
+  UPDATE voice_profiles SET name=left(btrim(p_name),40),permission_type=p_permission_type,
+    relationship_type=v_relationship_type,relationship_label=v_relationship_label,updated_at=now()
+  WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL;
+  IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
+  RETURN jsonb_build_object('voiceId',p_voice_id,'name',left(btrim(p_name),40),'permissionType',p_permission_type,
+    'relationshipType',v_relationship_type,'relationshipLabel',v_relationship_label);
+END; $$;
+
+CREATE OR REPLACE FUNCTION rpc_voice_update_profile_v3(
+  p_user_id uuid,p_voice_id uuid,p_name text,p_permission_type permission_type,
+  p_relationship_type voice_relationship_type DEFAULT NULL,p_relationship_label text DEFAULT '',p_user_address text DEFAULT ''
+)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE v_relationship_type voice_relationship_type; v_relationship_label text; v_user_address text;
+BEGIN
+  PERFORM _rpc_assert_caller(ARRAY['api_rpc_role']);
+  IF NULLIF(btrim(p_name),'') IS NULL THEN RAISE EXCEPTION 'VOICE_NAME_REQUIRED'; END IF;
+  v_relationship_type:=CASE WHEN p_permission_type='SELF' THEN 'SELF'::voice_relationship_type ELSE p_relationship_type END;
+  v_relationship_label:=CASE WHEN v_relationship_type='OTHER' THEN left(btrim(COALESCE(p_relationship_label,'')),10) ELSE '' END;
+  v_user_address:=left(btrim(COALESCE(p_user_address,'')),10);
+  IF p_relationship_type='OTHER' AND v_relationship_label='' THEN RAISE EXCEPTION 'RELATIONSHIP_LABEL_REQUIRED'; END IF;
+  UPDATE voice_profiles SET name=left(btrim(p_name),40),permission_type=p_permission_type,
+    relationship_type=v_relationship_type,relationship_label=v_relationship_label,user_address=v_user_address,updated_at=now()
+  WHERE id=p_voice_id AND user_id=p_user_id AND deleted_at IS NULL;
+  IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_NOT_FOUND'; END IF;
+  RETURN jsonb_build_object('voiceId',p_voice_id,'name',left(btrim(p_name),40),'permissionType',p_permission_type,
+    'relationshipType',v_relationship_type,'relationshipLabel',v_relationship_label,'userAddress',v_user_address);
 END; $$;
 
 CREATE OR REPLACE FUNCTION rpc_voice_confirm_consent(
@@ -648,14 +691,19 @@ BEGIN
   SELECT jsonb_build_object(
     'jobId',j.id,'userId',j.user_id,'voiceId',j.voice_profile_id,'messageId',m.id,
     'conversationId',m.conversation_id,'mode',m.mode,'inputText',m.input_text,
+    'voiceName',vp.name,'relationshipType',vp.relationship_type,'relationshipLabel',vp.relationship_label,'userAddress',vp.user_address,
     'providerVoiceIdEncrypted',vm.provider_voice_id_encrypted,
     'history',COALESCE((
-      SELECT jsonb_agg(jsonb_build_object('mode',h.mode,'inputText',h.input_text,'outputText',h.output_text) ORDER BY h.created_at)
-      FROM (SELECT h.* FROM messages h WHERE h.conversation_id=m.conversation_id AND h.status='READY'
-            ORDER BY h.created_at DESC LIMIT 10) h
+      SELECT jsonb_agg(jsonb_build_object('messageId',h.id,'mode',h.mode,'inputText',h.input_text,'outputText',h.output_text)
+        ORDER BY h.created_at,h.id)
+      FROM (SELECT h.* FROM messages h WHERE h.conversation_id=m.conversation_id AND h.status='READY' AND h.mode='CHAT'
+            AND (c.cleared_at IS NULL OR h.created_at>c.cleared_at)
+            ORDER BY h.created_at DESC,h.id DESC LIMIT 8) h
     ),'[]'::jsonb)
   ) INTO v_result
   FROM jobs j JOIN messages m ON m.id=j.message_id
+  JOIN conversations c ON c.id=m.conversation_id
+  JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
   JOIN voice_models vm ON vm.voice_profile_id=m.voice_profile_id AND vm.status='READY'
   WHERE j.id=p_job_id AND j.type='GENERATE_MESSAGE' AND j.status='PROCESSING' AND j.lease_owner=p_worker_id;
   IF v_result IS NULL THEN RAISE EXCEPTION 'MESSAGE_JOB_INPUT_NOT_FOUND'; END IF;

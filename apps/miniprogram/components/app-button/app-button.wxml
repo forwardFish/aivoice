@@ -1,0 +1,10 @@
+<button
+  class="app-button is-{{variant}} is-{{size}} {{disabled || loading ? 'is-disabled' : ''}} custom-class"
+  disabled="{{disabled || loading}}"
+  bindtap="handleTap"
+>
+  <view wx:if="{{loading}}" class="button-spinner"></view>
+  <slot name="icon"></slot>
+  <text class="button-label">{{label}}</text>
+  <slot></slot>
+</button>

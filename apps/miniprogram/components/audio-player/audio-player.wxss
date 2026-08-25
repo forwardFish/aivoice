@@ -12,9 +12,12 @@
 }
 
 .audio-compact {
-  min-height: 94rpx;
-  padding: 12rpx 16rpx;
-  border-radius: 22rpx;
+  min-height: 86rpx;
+  padding: 10rpx 14rpx;
+  border: 0;
+  border-radius: 999rpx;
+  background: rgba(246, 245, 255, 0.88);
+  box-shadow: none;
 }
 
 .play-button {
@@ -30,8 +33,8 @@
 }
 
 .audio-compact .play-button {
-  width: 62rpx;
-  height: 62rpx;
+  width: 58rpx;
+  height: 58rpx;
 }
 
 .play-triangle {

@@ -11,6 +11,11 @@
   padding: 0 6rpx;
 }
 
+.intro-block .page-title,
+.intro-block .page-subtitle {
+  display: block;
+}
+
 .form-card {
   margin-top: 36rpx;
   padding: 32rpx 28rpx 30rpx;
@@ -102,6 +107,103 @@
   color: #7d849b;
 }
 
+.relationship-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.relationship-heading .field-label {
+  margin-bottom: 0;
+}
+
+.relationship-note {
+  color: #858ca2;
+  font-size: 21rpx;
+  white-space: nowrap;
+}
+
+.relationship-grid {
+  margin-top: 18rpx;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+.relationship-chip {
+  min-height: 68rpx;
+  padding: 0 12rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(209, 212, 226, 0.92);
+  background: rgba(255, 255, 255, 0.78);
+  color: #596078;
+  font-size: 23rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 160ms ease;
+}
+
+.relationship-chip.selected {
+  border-color: rgba(101, 82, 245, 0.46);
+  color: #ffffff;
+  font-weight: 650;
+  background: linear-gradient(135deg, #8f7cff 0%, #6552f5 100%);
+  box-shadow: 0 10rpx 22rpx rgba(101, 82, 245, 0.18);
+}
+
+.relationship-other-wrap {
+  position: relative;
+  margin-top: 16rpx;
+}
+
+.relationship-other-input {
+  width: 100%;
+  height: 78rpx;
+  padding: 0 86rpx 0 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(101, 82, 245, 0.26);
+  background: rgba(249, 248, 255, 0.94);
+  color: #11172d;
+  font-size: 24rpx;
+  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.56);
+}
+
+.relationship-other-count {
+  position: absolute;
+  right: 22rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9a9fb2;
+  font-size: 20rpx;
+}
+
+.user-address-block {
+  margin-top: 22rpx;
+}
+
+.user-address-heading {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.user-address-label {
+  color: #2a3045;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.user-address-optional {
+  padding: 3rpx 10rpx;
+  border-radius: 999rpx;
+  background: #f0effa;
+  color: #858ca2;
+  font-size: 18rpx;
+}
+
 .selected-check {
   flex: 0 0 auto;
   width: 34rpx;
@@ -186,4 +288,10 @@
   text-align: center;
   color: #858ca2;
   font-size: 21rpx;
+}
+
+@media (max-width: 360px) {
+  .relationship-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

@@ -12,9 +12,9 @@ export function currentRouteWithQuery(): string {
   return query ? `${route}?${query}` : route
 }
 
-export function ensureAuthenticated(): boolean {
+export function ensureAuthenticated(returnRoute?: string): boolean {
   if (getToken()) return true
-  const route = currentRouteWithQuery()
+  const route = returnRoute || currentRouteWithQuery()
   if (route !== '/pages/login/index') setPostLoginRoute(route)
   wx.reLaunch({ url: '/pages/login/index' })
   return false

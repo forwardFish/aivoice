@@ -20,25 +20,39 @@ import {
 import { ensureAuthenticated } from '../../utils/navigation'
 import {
   clearWorkbenchDraft,
+  getReplyFeedback,
   getPendingOrderId,
   getWorkbenchDraft,
+  setReplyFeedback,
   setWorkbenchDraft
 } from '../../utils/storage'
 import { delay, confirm, toast } from '../../utils/ui'
 import { uuidV4 } from '../../utils/uuid'
+import { resolveVoiceAvatar } from '../../utils/avatar'
 import { voiceInitial } from '../../utils/format'
 
 function pointsLabel(points: PointsBalanceResponse): string {
   return `剩余 ${points.availablePoints} 积分`
 }
 
-function messageView(message: ConversationMessage, initial: string): any {
+const DISLIKE_REASONS = [
+  { code: 'SHORTER', label: 'TA会说得更简短' },
+  { code: 'MORE_DIRECT', label: 'TA会说得更直接' },
+  { code: 'WARMER', label: 'TA的语气会更温和' },
+  { code: 'LESS_PREACHY', label: 'TA不会讲这么多道理' },
+  { code: 'ASK_FIRST', label: 'TA会先问清楚再说' },
+  { code: 'WRONG_ADDRESS', label: 'TA不会这样称呼我' }
+] as const
+
+function messageView(message: ConversationMessage, initial: string, feedback?: { verdict?: string; reason?: string }): any {
   return {
     ...message,
     isUser: message.role === 'USER',
     isAssistant: message.role === 'ASSISTANT',
     showAudio: message.role === 'ASSISTANT' && message.status === 'READY' && Boolean(message.audioUrl),
     tag: message.mode === 'EXACT_TTS' ? 'AI生成' : 'AI回复',
+    feedbackVerdict: feedback?.verdict || '',
+    feedbackReason: feedback?.reason || '',
     initial
   }
 }
@@ -50,6 +64,7 @@ Page({
     errorMessage: '',
     voiceName: '这个声音',
     voiceInitial: '声',
+    voiceAvatar: '/assets/avatars/woman-01.png',
     points: {
       availablePoints: 0
     } as PointsBalanceResponse,
@@ -130,7 +145,8 @@ Page({
         listProducts().catch(() => ({ products: [] as PurchaseOption[] }))
       ])
       const initial = voiceInitial(voice.name)
-      const messages = conversation.messages.map(item => messageView(item, initial))
+      const replyFeedback = getReplyFeedback(this.data.voiceId)
+      const messages = conversation.messages.map(item => messageView(item, initial, replyFeedback[item.id]))
       const chatMessages = messages.filter(item => item.mode === 'CHAT')
       const exactResults = messages.filter(item => item.mode === 'EXACT_TTS' && item.isAssistant).reverse()
       const scrollTarget = chatMessages.length ? `message-${chatMessages[chatMessages.length - 1].id}` : ''
@@ -139,6 +155,7 @@ Page({
         errorMessage: '',
         voiceName: voice.name,
         voiceInitial: initial,
+        voiceAvatar: resolveVoiceAvatar(voice),
         points,
         pointsText: pointsLabel(points),
         purchaseOption: products.products[0] || this.data.purchaseOption,
@@ -187,6 +204,33 @@ Page({
     const text = String(event.currentTarget.dataset.text || '')
     this.setData({ chatText: text, chatCount: text.length })
     this.persistDraft('chat', { chatText: text })
+  },
+  markReplyLike(event: any) {
+    const messageId = String(event.currentTarget.dataset.messageId || '')
+    if (!messageId) return
+    this.saveReplyFeedback(messageId, 'LIKE')
+    toast('已标记为像 TA')
+  },
+  markReplyDislike(event: any) {
+    const messageId = String(event.currentTarget.dataset.messageId || '')
+    if (!messageId) return
+    wx.showActionSheet({
+      itemList: DISLIKE_REASONS.map(item => item.label),
+      success: (result: { tapIndex: number }) => {
+        const reason = DISLIKE_REASONS[Number(result.tapIndex)]
+        if (!reason) return
+        this.saveReplyFeedback(messageId, 'DISLIKE', reason.code)
+        toast('已记录这次反馈')
+      }
+    })
+  },
+  saveReplyFeedback(messageId: string, verdict: 'LIKE' | 'DISLIKE', reason = '') {
+    setReplyFeedback(this.data.voiceId, messageId, { verdict, ...(reason ? { reason } : {}) })
+    this.setData({
+      chatMessages: this.data.chatMessages.map((message: any) => message.id === messageId
+        ? { ...message, feedbackVerdict: verdict, feedbackReason: reason }
+        : message)
+    })
   },
   persistDraft(mode = this.data.mode, patch: Record<string, string> = {}) {
     setWorkbenchDraft(this.data.voiceId, {

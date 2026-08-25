@@ -1,12 +1,11 @@
 import {
   clearConversation,
   deleteVoice,
-  getPoints,
   getVoice,
   saveVoiceProfile
 } from '../../services/api'
-import { ConversationStyle, PermissionType, VoiceStatus } from '../../models/api'
-import { ensureAuthenticated, openPurchasePage } from '../../utils/navigation'
+import { ConversationStyle, PermissionType, RelationshipType, VoiceStatus } from '../../models/api'
+import { ensureAuthenticated } from '../../utils/navigation'
 import { confirm, toast } from '../../utils/ui'
 import {
   clearCreationSession,
@@ -22,6 +21,23 @@ function permissionLabel(value?: PermissionType): string {
     MINOR: '未成年人的声音'
   }
   return value ? labels[value] || '未设置' : '未设置'
+}
+
+const RELATIONSHIP_OPTIONS: Record<PermissionType, Array<{ key: RelationshipType; title: string }>> = {
+  SELF: [{ key: 'SELF', title: '自己' }],
+  OTHER: [
+    { key: 'MOTHER', title: '妈妈' },
+    { key: 'FATHER', title: '爸爸' },
+    { key: 'GRANDMOTHER', title: '奶奶' },
+    { key: 'GRANDFATHER', title: '爷爷' },
+    { key: 'PARTNER', title: '伴侣' },
+    { key: 'FRIEND', title: '朋友' },
+    { key: 'OTHER', title: '其他' }
+  ],
+  MINOR: [
+    { key: 'CHILD', title: '孩子' },
+    { key: 'OTHER', title: '其他' }
+  ]
 }
 
 function styleLabel(value?: ConversationStyle): string {
@@ -59,12 +75,18 @@ Page({
     voiceName: '',
     nameDraft: '',
     permissionType: '' as PermissionType | '',
+    relationshipType: '' as RelationshipType | '',
+    relationshipOther: '',
+    relationshipOptions: [] as Array<{ key: RelationshipType; title: string }>,
+    userAddress: '',
+    savedRelationshipType: '' as RelationshipType | '',
+    savedRelationshipOther: '',
+    savedUserAddress: '',
     permissionText: '',
     styleText: '',
     stageText: '未设置',
     callerText: '未设置',
     statusText: '',
-    availablePoints: 0,
     saving: false,
     clearing: false,
     deleting: false,
@@ -91,19 +113,24 @@ Page({
         this.setData({ state: 'success', deleted: true, voiceName: voice.name || '这个声音' })
         return
       }
-      const points = await getPoints().catch(() => voice.points || voice.quota)
       this.setData({
         state: 'success',
         deleted: false,
         voiceName: voice.name || '这个声音',
         nameDraft: voice.name || '',
         permissionType: voice.permissionType || '',
+        relationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
+        relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
+        relationshipOptions: voice.permissionType ? RELATIONSHIP_OPTIONS[voice.permissionType] : [],
+        userAddress: voice.userAddress || '',
+        savedRelationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
+        savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
+        savedUserAddress: voice.userAddress || '',
         permissionText: permissionLabel(voice.permissionType),
         styleText: styleLabel(voice.conversationStyle),
         stageText: voice.stageLabel || '未设置',
         callerText: '由声音资料保存',
-        statusText: statusLabel(voice.status),
-        availablePoints: points.availablePoints
+        statusText: statusLabel(voice.status)
       })
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音设置加载失败，请重试。' })
@@ -111,6 +138,30 @@ Page({
   },
   onNameInput(event: any) {
     this.setData({ nameDraft: String(event.detail.value || '').slice(0, 20), errorMessage: '', successMessage: '' })
+  },
+  selectRelationship(event: any) {
+    const relationshipType = String(event.currentTarget.dataset.key || '') as RelationshipType
+    if (!this.data.relationshipOptions.some((item) => item.key === relationshipType)) return
+    this.setData({
+      relationshipType,
+      relationshipOther: relationshipType === 'OTHER' ? this.data.relationshipOther : '',
+      errorMessage: '',
+      successMessage: ''
+    })
+  },
+  onRelationshipOtherInput(event: any) {
+    this.setData({
+      relationshipOther: Array.from(String(event.detail.value || '')).slice(0, 10).join(''),
+      errorMessage: '',
+      successMessage: ''
+    })
+  },
+  onUserAddressInput(event: any) {
+    this.setData({
+      userAddress: Array.from(String(event.detail.value || '')).slice(0, 10).join(''),
+      errorMessage: '',
+      successMessage: ''
+    })
   },
   async saveName() {
     if (this.data.saving) return
@@ -123,23 +174,37 @@ Page({
       this.setData({ errorMessage: '服务端声音资料缺少权限类型，无法安全修改名称。' })
       return
     }
-    if (name === this.data.voiceName) {
-      toast('名称没有变化')
+    const relationshipLabel = String(this.data.relationshipOther || '').trim()
+    if (!this.data.relationshipType) {
+      toast('请选择 TA 是你的谁')
+      return
+    }
+    if (this.data.relationshipType === 'OTHER' && !relationshipLabel) {
+      toast('请填写你与 TA 的关系')
       return
     }
     this.setData({ saving: true, errorMessage: '', successMessage: '' })
     try {
       const voice = await saveVoiceProfile(this.data.voiceId, {
         name,
-        permissionType: this.data.permissionType
+        permissionType: this.data.permissionType,
+        relationshipType: this.data.relationshipType,
+        relationshipLabel: this.data.relationshipType === 'OTHER' ? relationshipLabel : '',
+        userAddress: String(this.data.userAddress || '').trim()
       })
       this.setData({
         saving: false,
         voiceName: voice.name || name,
         nameDraft: voice.name || name,
-        successMessage: '名称已由服务端保存。'
+        relationshipType: voice.relationshipType || this.data.relationshipType,
+        relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
+        userAddress: voice.userAddress || '',
+        savedRelationshipType: voice.relationshipType || this.data.relationshipType,
+        savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
+        savedUserAddress: voice.userAddress || '',
+        successMessage: '声音资料已由服务端保存。'
       })
-      toast('名称已更新', 'success')
+      toast('声音资料已更新', 'success')
     } catch (error: any) {
       this.setData({ saving: false, errorMessage: error.message || '名称保存失败，请重试。' })
     }
@@ -151,12 +216,6 @@ Page({
       showCancel: false,
       confirmText: '知道了'
     })
-  },
-  openAccount() {
-    wx.switchTab({ url: '/pages/account/index' })
-  },
-  openPurchase() {
-    openPurchasePage({ voiceId: this.data.voiceId, source: 'settings' })
   },
   goVoices() {
     wx.switchTab({ url: '/pages/voices/index' })

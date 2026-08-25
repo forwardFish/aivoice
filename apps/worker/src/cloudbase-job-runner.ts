@@ -20,6 +20,11 @@ import {
   type SpeakerDiarizationReport,
 } from './providers/aliyun-speaker-diarization.js';
 import { DashscopeChatProvider } from './providers/dashscope-chat.js';
+import {
+  compileVoiceChatMessages,
+  type VoiceChatMessage,
+  type VoiceRelationshipType,
+} from './chat/voice-chat-context.js';
 
 type JobType = 'PROCESS_VOICE' | 'GENERATE_MESSAGE' | 'DELETE_VOICE' | 'DELETE_ACCOUNT';
 
@@ -42,7 +47,7 @@ interface VoiceProviderPort {
 }
 
 interface ChatProviderPort {
-  reply(history: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
+  reply(messages: VoiceChatMessage[]): Promise<string>;
 }
 
 interface SpeakerDiarizationPort {
@@ -261,17 +266,34 @@ export class CloudBaseJobRunner {
       conversationId: string;
       mode: 'CHAT' | 'EXACT_SPEECH';
       inputText: string;
+      voiceName: string;
+      relationshipType: VoiceRelationshipType | null;
+      relationshipLabel: string;
+      userAddress: string;
       providerVoiceIdEncrypted: string;
-      history: Array<{ mode: string; inputText: string; outputText: string }>;
+      history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string }>;
     } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId }));
     let outputText = message.inputText;
     if (message.mode === 'CHAT') {
-      const history = message.history.flatMap((row) => [
-        { role: 'user' as const, content: row.inputText },
-        ...(row.outputText ? [{ role: 'assistant' as const, content: row.outputText }] : []),
-      ]);
-      history.push({ role: 'user', content: message.inputText });
-      outputText = await this.chatProvider.reply(history);
+      const context = compileVoiceChatMessages({
+        voiceName: message.voiceName,
+        relationshipType: message.relationshipType,
+        relationshipLabel: message.relationshipLabel,
+        userAddress: message.userAddress,
+        history: message.history,
+        currentInput: message.inputText,
+      });
+      console.info('voice chat context compiled', {
+        promptVersion: 'voice-chat-context-v1',
+        modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
+        voiceId: message.voiceId,
+        conversationId: message.conversationId,
+        currentMessageId: message.messageId,
+        relationshipType: message.relationshipType,
+        historyCount: context.includedMessageIds.length,
+        contextHash: context.contextHash,
+      });
+      outputText = await this.chatProvider.reply(context.messages);
     }
     const safety = evaluateContentSafety(outputText);
     if (!safety.safe) throw new ContentBlockedError(safety.reason || 'OUTPUT_CONTENT_BLOCKED');

@@ -50,6 +50,20 @@
       "when": 1787320901746,
       "tag": "0006_amazing_william_stryker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787574742615,
+      "tag": "0007_curly_living_tribunal",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787576353352,
+      "tag": "0008_majestic_mach_iv",
+      "breakpoints": true
     }
   ]
 }

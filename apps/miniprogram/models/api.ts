@@ -1,4 +1,14 @@
 export type PermissionType = 'SELF' | 'OTHER' | 'MINOR'
+export type RelationshipType =
+  | 'SELF'
+  | 'MOTHER'
+  | 'FATHER'
+  | 'GRANDMOTHER'
+  | 'GRANDFATHER'
+  | 'CHILD'
+  | 'PARTNER'
+  | 'FRIEND'
+  | 'OTHER'
 
 export type VoiceStatus =
   | 'DRAFT'
@@ -57,6 +67,9 @@ export interface VoiceSummary {
   name: string
   status: VoiceStatus
   permissionType?: PermissionType
+  relationshipType?: RelationshipType
+  relationshipLabel?: string
+  userAddress?: string
   avatarUrl?: string
   stageLabel?: string
   conversationStyle?: ConversationStyle
