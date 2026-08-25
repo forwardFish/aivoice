@@ -6,3 +6,39 @@
 - Status: PASS
 - Details: Harness initialized
 - Evidence:
+
+## pure-cloud-live-deployment
+- Time: 2026-08-24
+- Status: PASS
+- Details: API Event function, Worker, payment Event function and PostgreSQL REST/RPC migrations are active.
+- Evidence: `../results/pure-cloud-deployment-live.json`
+
+## target-app-authentication
+- Time: 2026-08-24
+- Status: PASS
+- Details: Real target AppID login, server session, `/me`, 10-point registration ledger and duplicate-grant prevention pass.
+- Evidence: `../results/shared-auth-live.json`
+
+## main-product-flow
+- Time: 2026-08-24
+- Status: PASS
+- Details: Authorized video upload, native storage, Worker, speaker checks, Aliyun voice enrollment, preview, exact speech, cloud playback and one-point charge pass.
+- Evidence: `../results/pure-cloud-main-flow-live.json`
+
+## aliyun-model-calls
+- Time: 2026-08-24
+- Status: PASS
+- Details: Three sequential CosyVoice calls plus two Qwen chat-to-CosyVoice calls all reached READY with playable WAV outputs.
+- Evidence: `../results/aliyun-cosyvoice-batch-live.json`, `../results/aliyun-chat-cosyvoice-live.json`
+
+## virtual-payment
+- Time: 2026-08-24
+- Status: PASS
+- Details: A real CNY 9.90 `POINTS_50` purchase returned `requestPayment:ok`; the order reached `PAID`, exactly one `PURCHASE_GRANT +50` ledger was created, and both database and mini-program balance changed from 1 to 51.
+- Evidence: `../results/real-virtual-payment-live.json`, `../results/virtual-payment-sandbox-config.json`, `../results/pure-cloud-deployment-live.json`
+
+## final-automated-regression
+- Time: 2026-08-25
+- Status: PASS
+- Details: After merging the pure-CloudBase deployment branch into `main`, runtime 4/4, mini-program 32/32, API 31/31 plus two environment-gated skips, and Worker 27/27 plus two environment-gated skips pass. Type checking also passes.
+- Evidence: current run console output

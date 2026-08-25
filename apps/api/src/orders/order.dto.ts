@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
@@ -7,4 +7,9 @@ export class CreateOrderDto {
   @IsUUID()
   @IsOptional()
   voiceId?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(128)
+  wxLoginCode?: string;
 }

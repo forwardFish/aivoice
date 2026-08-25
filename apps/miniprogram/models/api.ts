@@ -114,8 +114,9 @@ export interface CreateVoiceResponse {
 }
 
 export interface UploadPolicyResponse {
-  mode?: 'server-upload' | 'signed-put'
-  uploadUrl: string
+  mode?: 'server-upload' | 'signed-put' | 'cloud-file'
+  uploadUrl?: string
+  cloudPath?: string
   uploadMethod?: 'POST' | 'PUT'
   fileField?: string
   objectKey?: string
@@ -195,6 +196,7 @@ export interface PurchaseOption {
 }
 
 export interface WechatPaymentParams {
+  kind?: 'JSAPI'
   timeStamp: string
   nonceStr: string
   package: string
@@ -202,9 +204,19 @@ export interface WechatPaymentParams {
   paySign: string
 }
 
+export interface VirtualPaymentParams {
+  kind: 'VIRTUAL'
+  signData: string
+  paySig: string
+  signature: string
+  mode: 'short_series_goods'
+}
+
+export type PaymentParams = WechatPaymentParams | VirtualPaymentParams
+
 export interface CreateOrderResponse {
   order: OrderDetail
-  payment: WechatPaymentParams
+  payment: PaymentParams
 }
 
 export interface OrderDetail {

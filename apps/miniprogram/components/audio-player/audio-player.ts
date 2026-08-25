@@ -1,3 +1,5 @@
+import { isCloudFileId, resolvePlayableSource } from '../../services/cloud-media'
+
 Component({
   properties: {
     src: {
@@ -6,7 +8,7 @@ Component({
       observer(newValue) {
         if (this.audio) {
           this.audio.stop()
-          this.audio.src = newValue || ''
+          void this.assignSource(newValue || '')
           this.setData({ playing: false, progress: 0, currentText: '00:00' })
         }
       }
@@ -28,7 +30,7 @@ Component({
       const audio = wx.createInnerAudioContext()
       audio.obeyMuteSwitch = false
       audio.autoplay = false
-      if (this.data.src) audio.src = this.data.src
+      if (this.data.src) void this.assignSource(this.data.src)
       audio.onPlay(() => this.setData({ playing: true }))
       audio.onPause(() => this.setData({ playing: false }))
       audio.onStop(() => this.setData({ playing: false, progress: 0, currentText: '00:00' }))
@@ -60,20 +62,46 @@ Component({
     }
   },
   methods: {
+    assignSource(source) {
+      const requested = String(source || '')
+      this.requestedSource = requested
+      const generation = Number(this.sourceGeneration || 0) + 1
+      this.sourceGeneration = generation
+      if (!this.audio) return Promise.resolve('')
+      if (!isCloudFileId(requested)) {
+        this.audio.src = requested
+        return Promise.resolve(requested)
+      }
+      return resolvePlayableSource(requested).then((resolved) => {
+        if (this.audio && this.sourceGeneration === generation && this.requestedSource === requested) {
+          this.audio.src = resolved
+        }
+        return resolved
+      }).catch((error) => {
+        if (this.sourceGeneration === generation) this.triggerEvent('error', error)
+        throw error
+      })
+    },
     formatSeconds(value) {
       const total = Math.max(0, Math.floor(value || 0))
       const minute = Math.floor(total / 60)
       const second = total % 60
       return `${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`
     },
-    toggle() {
+    async toggle() {
       if (this.data.disabled || !this.data.src || !this.audio) {
         this.triggerEvent('unavailable')
         return
       }
       if (this.data.playing) this.audio.pause()
       else {
-        if (this.audio.src !== this.data.src) this.audio.src = this.data.src
+        if (this.requestedSource !== this.data.src || !this.audio.src) {
+          try {
+            await this.assignSource(this.data.src)
+          } catch (_error) {
+            return
+          }
+        }
         this.audio.play()
         this.triggerEvent('play')
       }

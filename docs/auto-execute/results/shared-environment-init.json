@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-08-24T04:22:42.262Z",
+  "status": "PASS",
+  "targetAppId": "wx106e5dcda1d1baeb",
+  "resourceAppId": "wx1e662dd78e2fb22e",
+  "resourceEnv": "aiassistant-0517-d6en8tw82f2f7fc",
+  "cloudReady": true,
+  "storage": {
+    "uploaded": true,
+    "fileIdScheme": "cloud://",
+    "deleted": true
+  }
+}

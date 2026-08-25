@@ -38,15 +38,26 @@ export class AuthService {
     private readonly exchanger: WechatCodeExchanger,
   ) {}
 
-  async login(input: { code: string; profile?: { nickname?: string; avatarUrl?: string } }): Promise<{
+  async login(
+    input: { code?: string; profile?: { nickname?: string; avatarUrl?: string } },
+    platformIdentity: { openid?: string; appid?: string } = {},
+  ): Promise<{
     token: string;
     user: AuthenticatedUser;
     trialEligibility: 'ELIGIBLE' | 'GRANTED' | 'USED';
     points: Awaited<ReturnType<QuotaService['getPoints']>>;
   }> {
-    const code = input.code.trim();
-    if (!code) throw new UnauthorizedException('WeChat login code is required');
-    const wechat = await this.exchanger.exchange(code);
+    const platformOpenid = String(platformIdentity.openid || '').trim();
+    const platformAppid = String(platformIdentity.appid || '').trim();
+    const expectedAppid = String(process.env.WECHAT_APP_ID || '').trim();
+    if (platformOpenid && (!platformAppid || (expectedAppid && platformAppid !== expectedAppid))) {
+      throw new UnauthorizedException('CloudBase platform identity does not match this mini-program');
+    }
+    const code = String(input.code || '').trim();
+    if (!platformOpenid && !code) throw new UnauthorizedException('WeChat login code is required');
+    const wechat = platformOpenid
+      ? { openid: platformOpenid, unionid: '' }
+      : await this.exchanger.exchange(code);
     const now = new Date();
     const nickname = String(input.profile?.nickname || '').trim().slice(0, 40);
     const avatarUrl = String(input.profile?.avatarUrl || '').trim().slice(0, 500);

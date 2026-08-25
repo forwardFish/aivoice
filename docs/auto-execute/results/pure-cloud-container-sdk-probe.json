@@ -1,0 +1,20 @@
+{
+  "status": "PASS_WITH_LIMITATION",
+  "capturedAt": "2026-08-24T00:21:00+08:00",
+  "surface": "CloudBase Node SDK callContainer to existing aivoice-api",
+  "result": {
+    "statusCode": 200,
+    "body": {
+      "ok": true,
+      "service": "aivoice-api"
+    },
+    "sequentialRequests": 20,
+    "latencyMs": {
+      "min": 207,
+      "p50": 226,
+      "p95": 290,
+      "max": 471
+    }
+  },
+  "limitation": "This proves SDK private access to the existing service but not the new mini-program AppID association or real-device WeChat edge latency."
+}

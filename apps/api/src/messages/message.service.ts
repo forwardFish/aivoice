@@ -290,7 +290,7 @@ export class MessageService {
       outputText: message.outputText,
       errorCode: message.errorCode,
       errorMessage: message.errorMessage,
-      audio: audio ? { mediaId: audio.id, url: this.media.signedUrl(audio.id, userId), durationMs: audio.durationMs } : null,
+      audio: audio ? { mediaId: audio.id, url: await this.media.signedUrl(audio.id, userId), durationMs: audio.durationMs } : null,
       createdAt: message.createdAt,
       readyAt: message.readyAt,
     };
@@ -392,7 +392,7 @@ export class MessageService {
     const audioByMessage = new Map(audioRows.map((audio) => [audio.messageId, audio]));
     return {
       conversationId: conversation.id,
-      messages: rows.flatMap((row) => {
+      messages: (await Promise.all(rows.map(async (row) => {
         const audio = audioByMessage.get(row.id);
         const userMessage = {
           id: `${row.id}-user`,
@@ -410,14 +410,14 @@ export class MessageService {
           text: row.outputText,
           audio: audio ? {
             mediaId: audio.id,
-            url: this.media.signedUrl(audio.id, userId),
+            url: await this.media.signedUrl(audio.id, userId),
             durationMs: audio.durationMs,
           } : null,
           failureCode: row.errorCode,
           createdAt: row.createdAt,
         };
         return row.mode === 'CHAT' ? [userMessage, assistantMessage] : [assistantMessage];
-      }),
+      }))).flat(),
     };
   }
 

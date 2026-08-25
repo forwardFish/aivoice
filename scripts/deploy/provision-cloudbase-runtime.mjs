@@ -7,8 +7,11 @@ import CloudBase from '@cloudbase/manager-node';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const envId = process.env.CLOUDBASE_TARGET_ENV_ID || 'aivoice-d1g94bgoh67c6b974';
+const preferredCredentialFile = 'D:/lyh/secrets/aivoice/tencentcloud-deploy.env';
 const credentialFile = process.env.CLOUDBASE_CREDENTIALS_FILE
-  || 'D:/lyh/agent/agent-frame/printersheet/ai-exam-miniapp/server/.env';
+  || (fs.existsSync(preferredCredentialFile)
+    ? preferredCredentialFile
+    : 'D:/lyh/agent/agent-frame/printersheet/ai-exam-miniapp/server/.env');
 const credentials = fs.existsSync(credentialFile) ? parseDotEnv(fs.readFileSync(credentialFile)) : {};
 const secretId = process.env.TENCENTCLOUD_SECRETID || credentials.TENCENTCLOUD_SECRETID;
 const secretKey = process.env.TENCENTCLOUD_SECRETKEY || credentials.TENCENTCLOUD_SECRETKEY;

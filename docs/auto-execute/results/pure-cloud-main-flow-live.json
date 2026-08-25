@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-08-24T09:16:51.567Z",
+  "status": "PASS",
+  "targetAppId": "wx106e5dcda1d1baeb",
+  "resourceEnv": "aiassistant-0517-d6en8tw82f2f7fc",
+  "voiceId": "cef2dd28-e3f5-4dd1-8f8a-590c962510d0",
+  "voiceStatus": "READY",
+  "previewBytes": 232844,
+  "messageId": "336b8ee0-4567-43f9-812c-f8a56cc88e13",
+  "messageStatus": "READY",
+  "generatedBytes": 233082,
+  "pointsBefore": 5,
+  "pointsAfter": 4,
+  "pointCost": 1
+}

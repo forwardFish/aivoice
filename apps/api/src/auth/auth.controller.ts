@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Inject, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthenticatedUser } from './auth.types.js';
 import { AuthService } from './auth.service.js';
@@ -12,8 +12,12 @@ export class AuthController {
 
   @Post('auth/wechat')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  login(@Body() body: WechatLoginDto) {
-    return this.authService.login(body);
+  login(
+    @Body() body: WechatLoginDto,
+    @Headers('x-wx-openid') openid = '',
+    @Headers('x-wx-appid') appid = '',
+  ) {
+    return this.authService.login(body, { openid, appid });
   }
 
   @Get('me')

@@ -100,3 +100,51 @@ test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or 
   assert.equal(calls[0]?.args.pSignupBonusPoints, 10);
   assert.equal(typeof calls[1]?.args.pTokenHash, 'string');
 });
+
+test('CloudBase HTTP Function identity bypasses code2Session and rejects a mismatched AppID', async () => {
+  const previousAppId = process.env.WECHAT_APP_ID;
+  process.env.WECHAT_APP_ID = 'wx-risk-app';
+  let exchangeCalls = 0;
+  const cloud = {
+    async rpc(name: string, args: Record<string, unknown>) {
+      if (name === 'rpc_auth_login_wechat') {
+        assert.equal(args.pOpenid, 'openid-from-cloudbase');
+        return {
+          user: {
+            id: 'user-risk',
+            openid: 'openid-from-cloudbase',
+            unionid: '',
+            nickname: '',
+            avatarUrl: '',
+            trialCustomGenerationGrantedAt: null,
+            trialCustomGenerationConsumedAt: null,
+          },
+        };
+      }
+      return { sessionId: 'session-risk' };
+    },
+    async selectOne() { return { balance: 10 }; },
+  };
+  const database = {
+    isCloudBase: true,
+    requireCloud: () => cloud,
+  } as unknown as DatabaseService;
+  const exchanger = {
+    async exchange() {
+      exchangeCalls += 1;
+      return { openid: 'must-not-be-used', unionid: '' };
+    },
+  } as unknown as WechatCodeExchanger;
+  try {
+    const service = new AuthService(database, exchanger);
+    const result = await service.login({}, { openid: 'openid-from-cloudbase', appid: 'wx-risk-app' });
+    assert.equal(result.user.openid, 'openid-from-cloudbase');
+    assert.equal(exchangeCalls, 0);
+    await assert.rejects(
+      service.login({}, { openid: 'openid-from-cloudbase', appid: 'wx-other-app' }),
+      /does not match/u,
+    );
+  } finally {
+    restoreEnv('WECHAT_APP_ID', previousAppId);
+  }
+});

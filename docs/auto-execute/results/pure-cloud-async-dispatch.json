@@ -1,0 +1,19 @@
+{
+  "status": "PASS_WITH_LIMITATION",
+  "envId": "aivoice-d1g94bgoh67c6b974",
+  "functionName": "aivoice-worker",
+  "invocationType": "Event",
+  "acceptedMs": 299,
+  "invokeRequestId": "f2f1282c-0b41-4361-839b-3a3dd7a770b7",
+  "asyncStatus": "",
+  "asyncStatusCode": -1,
+  "logRetCode": -1,
+  "logInvokeFinished": 0,
+  "executionDurationMs": null,
+  "synchronousProbeStatus": "SKIPPED",
+  "synchronousProbeDurationMs": 229,
+  "synchronousDurationReturned": 0,
+  "synchronousPayloadReturned": "",
+  "startedAt": "2026-08-24T00:19:00.366Z",
+  "finishedAt": "2026-08-24T00:19:06.162Z"
+}

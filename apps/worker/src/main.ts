@@ -6,6 +6,11 @@ import { JobRunner } from './job-runner.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 config({ path: path.join(projectRoot, '.env.local'), quiet: true });
+config({
+  path: process.env.AIVOICE_ALIYUN_ENV_FILE || 'D:/lyh/secrets/aivoice/aliyun.env',
+  quiet: true,
+  override: true,
+});
 
 async function main(): Promise<void> {
   const database = new WorkerDatabase();

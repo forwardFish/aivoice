@@ -2,6 +2,7 @@ import {
   acceptVoicePreview,
   getVoice,
   getVoicePreview,
+  markVoicePreviewStarted,
   markVoicePreviewPlayed,
   retryVoicePreview
 } from '../../services/api'
@@ -69,6 +70,13 @@ Page({
       })
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '试听加载失败，请重试。' })
+    }
+  },
+  async onPreviewPlay() {
+    try {
+      await markVoicePreviewStarted(this.data.voiceId)
+    } catch (error: any) {
+      this.setData({ errorMessage: error.message || '试听状态同步失败，请重新播放。' })
     }
   },
   async onPreviewEnded() {

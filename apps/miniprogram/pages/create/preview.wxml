@@ -36,7 +36,7 @@
     <text class="voice-name">{{voiceName}}</text>
 
     <view class="preview-card">
-      <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
+      <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" tag="AI生成" bindplay="onPreviewPlay" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
     </view>
     <text class="preview-copy">{{previewText}}</text>
     <text class="preview-status {{playCompleted ? 'is-complete' : ''}}">{{playCompleted ? '试听已完整播放，可以继续使用这个声音' : '请完整播放一次后再继续'}}</text>
@@ -50,6 +50,6 @@
       {{retrying ? '正在重新创建…' : freeRetryRemaining > 0 ? '换一段重新创建（剩余 ' + freeRetryRemaining + ' 次）' : '换一段重新创建'}}
     </button>
 
-    <text class="points-note">新账号赠送 5 个账号积分；后续 ¥9.9 购买 50 个账号积分。对话与“说一句”共享使用，不自动续费。</text>
+    <text class="points-note">新账号赠送 10 个账号积分；后续 ¥9.9 购买 50 个账号积分。对话与“说一句”共享使用，不自动续费。</text>
   </view>
 </view>

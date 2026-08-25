@@ -23,7 +23,7 @@ import {
   VoiceStatus,
   VoiceSummary,
   VoicesResponse,
-  WechatPaymentParams
+  PaymentParams
 } from './api'
 
 function record(value: unknown): Record<string, any> {
@@ -173,8 +173,9 @@ export function normalizeUploadPolicy(input: unknown): UploadPolicyResponse {
   const method = stringOr(raw.uploadMethod ?? raw.upload_method ?? raw.method, 'POST').toUpperCase()
   const mode = stringOr(raw.mode, method === 'PUT' ? 'signed-put' : 'server-upload')
   return {
-    mode: mode === 'signed-put' ? 'signed-put' : 'server-upload',
-    uploadUrl: stringOr(raw.uploadUrl ?? raw.upload_url ?? raw.url),
+    mode: mode === 'cloud-file' ? 'cloud-file' : mode === 'signed-put' ? 'signed-put' : 'server-upload',
+    uploadUrl: stringOr(raw.uploadUrl ?? raw.upload_url ?? raw.url) || undefined,
+    cloudPath: stringOr(raw.cloudPath ?? raw.cloud_path) || undefined,
     uploadMethod: method === 'PUT' ? 'PUT' : 'POST',
     fileField: stringOr(raw.fileField ?? raw.file_field ?? raw.fieldName ?? raw.field_name ?? raw.name, 'file'),
     objectKey: stringOr(raw.objectKey ?? raw.object_key ?? raw.key) || undefined,
@@ -299,9 +300,19 @@ export function normalizeOrder(input: unknown): OrderDetail {
   }
 }
 
-function normalizePayment(input: unknown): WechatPaymentParams {
+function normalizePayment(input: unknown): PaymentParams {
   const raw = record(input)
+  if (String(raw.kind || '').toUpperCase() === 'VIRTUAL' || raw.signData || raw.sign_data) {
+    return {
+      kind: 'VIRTUAL',
+      signData: stringOr(raw.signData ?? raw.sign_data),
+      paySig: stringOr(raw.paySig ?? raw.pay_sig),
+      signature: stringOr(raw.signature),
+      mode: 'short_series_goods'
+    }
+  }
   return {
+    kind: 'JSAPI',
     timeStamp: stringOr(raw.timeStamp ?? raw.timestamp),
     nonceStr: stringOr(raw.nonceStr ?? raw.nonce_str),
     package: stringOr(raw.package),

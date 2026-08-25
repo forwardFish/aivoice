@@ -14,8 +14,9 @@ export class ProfileDto {
 }
 
 export class WechatLoginDto {
+  @IsOptional()
   @IsString()
-  code!: string;
+  code?: string;
 
   @IsOptional()
   @ValidateNested()

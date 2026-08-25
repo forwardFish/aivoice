@@ -7,6 +7,6 @@ import { WechatCodeExchanger } from './wechat-code-exchanger.js';
 @Module({
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, WechatCodeExchanger],
-  exports: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard, WechatCodeExchanger],
 })
 export class AuthModule {}

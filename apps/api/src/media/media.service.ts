@@ -2,6 +2,7 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto
 import { createReadStream } from 'node:fs';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { ConflictException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
@@ -33,7 +34,7 @@ interface MediaAssetRow {
   userId: string;
   voiceProfileId: string | null;
   kind: 'SOURCE_VIDEO' | 'REFERENCE_AUDIO' | 'PREVIEW_AUDIO' | 'GENERATED_AUDIO';
-  status: 'PENDING' | 'READY' | 'DELETED';
+  status: 'PENDING' | 'READY' | 'FAILED' | 'DELETE_PENDING' | 'DELETED';
   objectKey: string;
   mimeType: string;
   bytes: number;
@@ -100,6 +101,12 @@ export class MediaService {
     return '.mp4';
   }
 
+  private nativeObjectPath(objectKey: string): string {
+    if (!objectKey.startsWith('cloud://')) return objectKey;
+    const slash = objectKey.indexOf('/', 'cloud://'.length);
+    return slash >= 0 ? objectKey.slice(slash + 1) : '';
+  }
+
   private async probe(filePath: string): Promise<{ durationMs: number }> {
     let stdout: string;
     try {
@@ -127,12 +134,46 @@ export class MediaService {
     return hash.digest('hex');
   }
 
+  private async ensureNativeAsset(asset: MediaAssetRow): Promise<MediaAssetRow> {
+    if (!this.database.isCloudBase || this.database.requireCloud().storageMode !== 'native' || asset.objectKey.startsWith('cloud://')) {
+      return asset;
+    }
+    const runtime = this.database.requireCloud();
+    const bucket = asset.kind === 'SOURCE_VIDEO' ? this.storageBucket() : this.audioBucket();
+    const tempPath = path.join(os.tmpdir(), 'aivoice-native-migration', `${asset.id}${path.extname(asset.objectKey) || '.bin'}`);
+    await fs.mkdir(path.dirname(tempPath), { recursive: true });
+    try {
+      await runtime.downloadFile(bucket, asset.objectKey, tempPath);
+      const fileID = await runtime.uploadFile(bucket, asset.objectKey, tempPath, asset.mimeType);
+      const [updated] = await runtime.update<MediaAssetRow>('media_assets', {
+        objectKey: fileID,
+        updatedAt: new Date().toISOString(),
+      }, { filters: { id: asset.id, objectKey: asset.objectKey } });
+      if (updated) return updated;
+      const current = await runtime.selectOne<MediaAssetRow>('media_assets', { filters: { id: asset.id, userId: asset.userId } });
+      if (current?.objectKey.startsWith('cloud://')) return current;
+      throw new Error('media migration lost its compare-and-set race');
+    } finally {
+      await fs.rm(tempPath, { force: true });
+    }
+  }
+
   async uploadPolicy(userId: string, voiceId: string, input: UploadPolicyInput = {}) {
     await this.ownedVoice(userId, voiceId);
     if (this.database.isCloudBase) {
       const { mimeType } = this.validateVideoMetadata(input);
       const mediaId = randomUUID();
       const objectKey = `source/${userId}/${voiceId}/${mediaId}${this.sourceExtension(input.fileName, mimeType)}`;
+      if (this.database.requireCloud().storageMode === 'native') {
+        return {
+          mode: 'cloud-file',
+          cloudPath: objectKey,
+          objectKey,
+          mediaId,
+          maxBytes: 100 * 1024 * 1024,
+          expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+        };
+      }
       const signed = await this.database.requireCloud().signUpload(this.storageBucket(), objectKey, false);
       const uploadUrl = new URL(signed.uploadUrl);
       uploadUrl.searchParams.set('token', signed.token);
@@ -202,7 +243,8 @@ export class MediaService {
       const { mimeType: declaredMimeType, sizeBytes: declaredBytes } = this.validateVideoMetadata(metadata);
       const objectKey = String(metadata.objectKey || '');
       const expectedPrefix = `source/${userId}/${voiceId}/`;
-      if (!objectKey.startsWith(expectedPrefix) || objectKey.includes('..') || objectKey.length <= expectedPrefix.length) {
+      const nativeObjectPath = this.nativeObjectPath(objectKey);
+      if (!nativeObjectPath.startsWith(expectedPrefix) || nativeObjectPath.includes('..') || nativeObjectPath.length <= expectedPrefix.length) {
         throw new UnauthorizedException('invalid source object key');
       }
       const durationMs = Number(metadata.durationMs || 0);
@@ -272,7 +314,16 @@ export class MediaService {
     });
   }
 
-  signedUrl(mediaId: string, userId: string, ttlSeconds = 600): string {
+  async signedUrl(mediaId: string, userId: string, ttlSeconds = 600): Promise<string> {
+    if (this.database.isCloudBase && this.database.requireCloud().storageMode === 'native') {
+      const found = await this.database.requireCloud().selectOne<MediaAssetRow>('media_assets', {
+        filters: { id: mediaId, userId, status: 'READY' },
+      });
+      if (!found) throw new NotFoundException('media not found');
+      const asset = await this.ensureNativeAsset(found);
+      if (!asset.objectKey.startsWith('cloud://')) throw new NotFoundException('media not found');
+      return asset.objectKey;
+    }
     const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
     const payload = `${mediaId}.${userId}.${exp}`;
     const sig = createHmac('sha256', this.signingSecret()).update(payload).digest('base64url');
@@ -301,26 +352,27 @@ export class MediaService {
       });
     if (!asset) throw new NotFoundException('media not found');
     if (this.database.isCloudBase) {
-      if (asset.kind === 'PREVIEW_AUDIO' && asset.voiceProfileId) {
+      const resolvedAsset = await this.ensureNativeAsset(asset);
+      if (resolvedAsset.kind === 'PREVIEW_AUDIO' && resolvedAsset.voiceProfileId) {
         const voice = await this.database.requireCloud().selectOne<{ previewPlaybackStartedAt: string | null }>('voice_profiles', {
           select: 'preview_playback_started_at',
-          filters: { id: asset.voiceProfileId, userId, status: 'READY', deletedAt: null },
+          filters: { id: resolvedAsset.voiceProfileId, userId, status: 'READY', deletedAt: null },
         });
         if (voice && !voice.previewPlaybackStartedAt) {
           await this.database.requireCloud().update('voice_profiles', {
             previewPlaybackStartedAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          }, { filters: { id: asset.voiceProfileId, userId, status: 'READY', deletedAt: null } });
+          }, { filters: { id: resolvedAsset.voiceProfileId, userId, status: 'READY', deletedAt: null } });
         }
       }
       return {
         redirectUrl: await this.database.requireCloud().signDownload(
-          asset.kind === 'SOURCE_VIDEO' ? this.storageBucket() : this.audioBucket(),
-          asset.objectKey,
+          resolvedAsset.kind === 'SOURCE_VIDEO' ? this.storageBucket() : this.audioBucket(),
+          resolvedAsset.objectKey,
           600,
         ),
-        mimeType: asset.mimeType,
-        bytes: asset.bytes,
+        mimeType: resolvedAsset.mimeType,
+        bytes: resolvedAsset.bytes,
       };
     }
     const filePath = path.resolve(this.root, asset.objectKey);

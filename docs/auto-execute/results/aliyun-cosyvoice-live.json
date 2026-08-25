@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-08-24T09:44:59.193Z",
+  "status": "PASS",
+  "model": "cosyvoice-v3.5-flash",
+  "text": "阿里云声音大模型调用成功。",
+  "messageId": "2bb5d213-0f95-4cc1-a835-5ef7a2f408db",
+  "messageStatus": "READY",
+  "bytes": 156282,
+  "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-direct-success.wav",
+  "pointsBefore": 4,
+  "pointsAfter": 3,
+  "pointCost": 1
+}

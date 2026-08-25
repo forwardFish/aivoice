@@ -1,14 +1,16 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const automator = require('miniprogram-automator')
+const { parse: parseDotEnv } = require('dotenv')
+const CloudBase = require('@cloudbase/manager-node')
 
 const projectRoot = path.resolve(__dirname, '..', '..')
 const cliPath = process.env.WECHAT_DEVTOOLS_CLI || 'D:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat'
 const projectPath = path.join(projectRoot, 'apps', 'miniprogram')
 const evidenceDir = path.join(projectRoot, 'docs', 'auto-execute', 'screenshots', 'real-wechat-login')
 const evidencePath = path.join(evidenceDir, 'real-wechat-login.json')
-const apiBase = 'https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com'
-const automationEndpoint = process.env.WECHAT_AUTOMATION_WS || 'ws://127.0.0.1:9420'
+const apiBase = 'cloud-function:aivoice-api-event'
+const automationEndpoint = process.env.WECHAT_AUTOMATION_WS || 'ws://localhost:9420'
 const sessionSecretPath = process.env.WECHAT_REAL_SESSION_PATH || 'D:/lyh/secrets/aivoice/wechat/real-login-session.json'
 const skipScreenshots = process.env.WECHAT_SKIP_SCREENSHOTS === '1'
 
@@ -123,17 +125,27 @@ async function run() {
     if (!token || typeof token !== 'string') throw new Error('server session token was not stored')
     fs.mkdirSync(path.dirname(sessionSecretPath), { recursive: true })
     fs.writeFileSync(sessionSecretPath, `${JSON.stringify({ token, capturedAt: new Date().toISOString() })}\n`, { mode: 0o600 })
-    const response = await fetch(`${apiBase}/v1/me`, {
-      headers: { authorization: `Bearer ${token}` }
+    const credentials = parseDotEnv(fs.readFileSync('D:/lyh/secrets/aivoice/tencentcloud-deploy.env'))
+    const cloudbase = new CloudBase({
+      envId: 'aiassistant-0517-d6en8tw82f2f7fc',
+      region: 'ap-shanghai',
+      secretId: credentials.TENCENTCLOUD_SECRETID,
+      secretKey: credentials.TENCENTCLOUD_SECRETKEY
     })
-    const body = await response.json()
-    if (!response.ok) throw new Error(`GET /v1/me failed with ${response.status}`)
+    const invoked = await cloudbase.functions.invokeFunction('aivoice-api-event', {
+      path: '/v1/me',
+      method: 'GET',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }
+    })
+    const envelope = JSON.parse(invoked.RetMsg || '{}')
+    const body = envelope.data || {}
+    if (Number(envelope.statusCode) !== 200) throw new Error(`GET /v1/me failed with ${envelope.statusCode}`)
 
     const points = Number(body && (body.points?.balance ?? body.user?.points ?? body.user?.quota))
     evidence.checks.push(
       { name: 'real-wx-login-page-navigation', status: 'PASS', path: page.path },
       { name: 'server-session-issued', status: 'PASS' },
-      { name: 'live-me-response', status: 'PASS', httpStatus: response.status },
+      { name: 'live-me-response', status: 'PASS', httpStatus: envelope.statusCode },
       { name: 'account-points', status: Number.isFinite(points) ? 'PASS' : 'FAIL', points }
     )
     await capture(miniProgram, '02-home-after-login.png')

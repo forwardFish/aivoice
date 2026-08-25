@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-08-24T00:20:00+08:00",
+  "surface": "current public CloudBase Run health endpoint",
+  "service": "aivoice-api",
+  "configuration": {
+    "cpu": 0.25,
+    "memoryGb": 0.5,
+    "minInstances": 1,
+    "maxInstances": 2
+  },
+  "sequentialRequests": 20,
+  "latencyMs": {
+    "min": 34,
+    "p50": 46,
+    "p95": 201,
+    "max": 282
+  },
+  "comparisonPending": "wx.cloud.callContainer must be measured from DevTools and real devices against the same /v1/health route"
+}

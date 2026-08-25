@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-08-24T08:52:58.918Z",
+  "status": "PASS",
+  "targetAppId": "wx106e5dcda1d1baeb",
+  "resourceAppId": "wx1e662dd78e2fb22e",
+  "resourceEnv": "aiassistant-0517-d6en8tw82f2f7fc",
+  "functionName": "aivoice-api-event",
+  "healthStatus": 200,
+  "healthService": "aivoice-api",
+  "healthMs": 446,
+  "productsStatus": 200,
+  "productCode": "POINTS_50",
+  "productPoints": 50
+}

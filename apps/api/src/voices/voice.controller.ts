@@ -89,6 +89,11 @@ export class VoiceController {
     return this.voices.markPreviewPlayed(user.id, voiceId);
   }
 
+  @Post('voices/:voiceId/preview-started')
+  previewStarted(@CurrentUser() user: AuthenticatedUser, @Param('voiceId') voiceId: string) {
+    return this.voices.markPreviewStarted(user.id, voiceId);
+  }
+
   @Post('voices/:voiceId/retry-preview')
   @Throttle({ default: { limit: 3, ttl: 60_000 } })
   retry(@CurrentUser() user: AuthenticatedUser, @Param('voiceId') voiceId: string) {

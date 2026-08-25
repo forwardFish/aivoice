@@ -1,18 +1,19 @@
 ﻿{
     "manualReviewRequired":  [
-
+                                 "Android virtual-payment sandbox purchase",
+                                 "iOS real CNY 9.90 purchase after Android passes"
                              ],
-    "finalVerdict":  "PENDING",
+    "finalVerdict":  "PASS_WITH_MANUAL_REVIEW_REQUIRED",
     "deferred":  [
-
+                     "Revoke preserved old CloudBase, Tencent Cloud and Bailian keys after final confirmation"
                  ],
     "hardFails":  [
 
                   ],
     "schemaVersion":  "2.0",
-    "nextRecommendedAction":  "",
-    "updatedAt":  "2026-08-21T12:24:41",
+    "nextRecommendedAction":  "Retry WeChat DevTools preview upload after its network recovers, complete Android POINTS_50 sandbox payment, verify +50 once, then revoke old keys.",
+    "updatedAt":  "2026-08-24T18:00:00+08:00",
     "documentedBlockers":  [
-
+                               "WeChat DevTools preview/upload currently returns Failed to fetch despite public connectivity and a valid IDE login"
                            ]
 }

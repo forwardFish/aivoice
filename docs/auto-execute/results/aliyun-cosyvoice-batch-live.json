@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-08-24T09:46:40.665Z",
+  "status": "PASS",
+  "model": "cosyvoice-v3.5-flash",
+  "calls": [
+    {
+      "index": 1,
+      "text": "第一次阿里云声音大模型调用成功。",
+      "messageId": "e066b7f6-5b42-4fc7-9d46-e1068fbb816b",
+      "status": "READY",
+      "bytes": 179322,
+      "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-batch-1.wav"
+    },
+    {
+      "index": 2,
+      "text": "第二次阿里云声音大模型调用成功。",
+      "messageId": "05804d2d-9065-44c3-a99b-615b04a37a2d",
+      "status": "READY",
+      "bytes": 187002,
+      "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-batch-2.wav"
+    },
+    {
+      "index": 3,
+      "text": "第三次阿里云声音大模型调用成功。",
+      "messageId": "0222630f-2f95-4de1-a425-3b7c27956a2f",
+      "status": "READY",
+      "bytes": 167802,
+      "outputPath": "D:/lyh/agent/agent-frame/aivoice-pure-cloud-risk-first/.aivoice-tmp/aliyun-batch-3.wav"
+    }
+  ],
+  "pointsBefore": 3,
+  "pointsAfter": 0,
+  "totalPointCost": 3
+}
