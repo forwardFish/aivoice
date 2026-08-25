@@ -95,6 +95,6 @@
     </view>
 
     <button class="danger-button logout-button {{deletingAccount ? 'button-disabled' : ''}}" bindtap="removeAccount" disabled="{{deletingAccount}}">{{deletingAccount ? '正在注销…' : '注销账号'}}</button>
-    <text class="version-note">那时的 TA · 微信原生小程序前端 v0.4</text>
+    <text class="version-note">那年的TA · 微信原生小程序前端 v0.4</text>
   </view>
 </view>

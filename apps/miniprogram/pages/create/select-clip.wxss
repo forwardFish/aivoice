@@ -24,12 +24,12 @@
 .selected-duration-value { color: #11172d; font-size: 58rpx; line-height: 1.1; font-weight: 700; }
 .selected-duration-label { margin-top: 8rpx; color: #888fa5; font-size: 22rpx; }
 
-.advanced-toggle { min-width: 168rpx; height: 54rpx; margin: 28rpx auto 0; padding: 0 18rpx; border-radius: 18rpx; color: #6758df; background: #efedff; font-size: 17rpx; }
+.advanced-toggle { min-width:168rpx; height:54rpx; margin:28rpx auto 0; padding:0 18rpx; border-radius:18rpx; color:var(--action-secondary-text); background:var(--action-secondary-bg); font-size:17rpx; }
 .advanced-toggle::after { border: none; }
 .advanced-tools { margin-top: 28rpx; padding: 18rpx 18rpx 14rpx; border-radius: 26rpx; background: rgba(247,247,252,.72); border: 1rpx solid rgba(233,232,243,.88); }
 .advanced-title { display: block; color: #7c8296; font-size: 17rpx; font-weight: 650; }
 .position-actions { margin-top: 10rpx; display: grid; grid-template-columns: 1fr 1fr; gap: 10rpx; }
-.position-actions button { min-height: 60rpx; padding: 0 8rpx; border-radius: 18rpx; display: flex; align-items: center; justify-content: center; gap: 7rpx; color: #626a82; background: rgba(255,255,255,.84); border: 1rpx solid #e9e8f2; font-size: 18rpx; }
+.position-actions button { min-height:60rpx; padding:0 8rpx; border-radius:18rpx; display:flex; align-items:center; justify-content:center; gap:7rpx; color:var(--action-secondary-text); background:var(--action-secondary-bg); border:1rpx solid var(--action-secondary-border); font-size:18rpx; }
 .action-dot { width: 9rpx; height: 9rpx; border-radius: 50%; }
 .start-dot { background: #6552f5; }
 .end-dot { background: #9872f3; }
@@ -37,7 +37,7 @@
 .slider-line { min-height: 45rpx; display: flex; align-items: center; gap: 9rpx; }
 .slider-name { flex: 0 0 auto; width: 44rpx; color: #7c8296; font-size: 16rpx; }
 .range-slider { flex: 1; margin: 0 -2rpx; }
-.preview-button { width: 100%; height: 68rpx; margin-top: 10rpx; border-radius: 22rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; color: #6655e8; background: linear-gradient(145deg,#efedff,#fff); border: 1rpx solid rgba(211,204,249,.92); font-size: 21rpx; font-weight: 650; }
+.preview-button { width:100%; height:68rpx; margin-top:10rpx; border-radius:22rpx; display:flex; align-items:center; justify-content:center; gap:10rpx; color:var(--action-secondary-text); background:var(--action-secondary-bg); border:1rpx solid var(--action-secondary-border); font-size:21rpx; font-weight:650; }
 .preview-button.is-disabled { opacity: .44; }
 .preview-play { width: 35rpx; height: 35rpx; }
 

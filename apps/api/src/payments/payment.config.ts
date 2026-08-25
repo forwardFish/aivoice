@@ -34,6 +34,6 @@ export function loadWechatPayConfig(): WechatPayConfig {
     publicKeyId: process.env.WECHAT_PAY_PUBLIC_KEY_ID?.trim() || '',
     publicKey: process.env.WECHAT_PAY_PUBLIC_KEY || readSecretFile(process.env.WECHAT_PAY_PUBLIC_KEY_PATH),
     notifyUrl: process.env.WECHAT_PAY_NOTIFY_URL?.trim() || '',
-    description: process.env.WECHAT_PAY_DESCRIPTION?.trim() || '那时的TA-50积分语音生成',
+    description: process.env.WECHAT_PAY_DESCRIPTION?.trim() || '那年的TA-50积分语音生成',
   };
 }

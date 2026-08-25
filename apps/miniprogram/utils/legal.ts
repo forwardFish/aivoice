@@ -23,7 +23,7 @@ const DOCS: Record<LegalDocType, LegalDoc> = {
     subtitle: '说明我们处理哪些数据、为什么处理、保留多久，以及你可以如何删除。',
     version: 'v0.9-draft',
     updatedAt: '2026-08-21',
-    summary: '“那时的 TA”当前为本地验证版。本政策按照当前产品实际数据流编写；公开上线前，仍需由运营主体补齐主体信息、客服方式、处理时限、备案/登记信息并完成正式法律审核。',
+    summary: '“那年的TA”当前为本地验证版。本政策按照当前产品实际数据流编写；公开上线前，仍需由运营主体补齐主体信息、客服方式、处理时限、备案/登记信息并完成正式法律审核。',
     sections: [
       {
         heading: '1. 我们处理的数据',
@@ -88,7 +88,7 @@ const DOCS: Record<LegalDocType, LegalDoc> = {
     subtitle: '说明服务边界、你的使用承诺、积分规则和异常处理原则。',
     version: 'v0.9-draft',
     updatedAt: '2026-08-21',
-    summary: '本协议适用于“那时的 TA”当前 MVP。若未来接入正式微信登录、真实商户支付、云存储或更多 AI 功能，应同步更新协议版本并重新公示。',
+    summary: '本协议适用于“那年的TA”当前 MVP。若未来接入正式微信登录、真实商户支付、云存储或更多 AI 功能，应同步更新协议版本并重新公示。',
     sections: [
       {
         heading: '1. 服务性质',

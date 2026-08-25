@@ -93,6 +93,19 @@ test('voice profile submit posts the server canonical consent text returned by p
   assert.equal(redirectUrl, '/pages/create/progress?voiceId=voice-1')
 })
 
+test('voice relationship fields use native form controls and readable typography', () => {
+  const wxml = readFileSync(new URL('../pages/create/voice-profile.wxml', import.meta.url), 'utf8')
+  const style = readFileSync(new URL('../pages/create/voice-profile.wxss', import.meta.url), 'utf8')
+
+  assert.match(wxml, /<radio-group[^>]*bindchange="onRelationshipRadioChange"/)
+  assert.match(wxml, /<label[\s\S]*<radio[^>]*value="\{\{item\.key\}\}"/)
+  assert.match(wxml, /TA 平时怎么称呼你？/)
+  assert.match(wxml, /例如：小林、妈妈、宝贝/)
+  assert.match(style, /grid-template-columns:\s*repeat\(3,/)
+  assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)
+  assert.doesNotMatch(wxml, /class="relationship-chip/)
+})
+
 test('settings clear chat returns immediately when the confirmation is canceled', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
   let pageDefinition: any

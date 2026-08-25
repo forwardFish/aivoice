@@ -10,20 +10,20 @@
   <view class="login-spark spark-d"></view>
 
   <view wx:if="{{success}}" class="login-success">
-    <page-state mode="success" title="登录成功" description="正在进入那时的 TA…"></page-state>
+    <page-state mode="success" title="登录成功" description="正在进入那年的TA…"></page-state>
   </view>
 
   <view wx:else class="login-content fade-in">
     <view class="login-hero">
       <view class="login-brand-copy">
-        <text class="login-title">那时的TA</text>
+        <text class="login-title">那年的TA</text>
         <text class="login-subtitle">把记忆里的声音，轻轻留住</text>
       </view>
       <image class="login-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
     </view>
 
     <view class="welcome-block">
-      <text class="welcome-title">欢迎来到那时的TA</text>
+      <text class="welcome-title">欢迎来到那年的TA</text>
       <text class="welcome-subtitle">登录后体验完整功能</text>
     </view>
 

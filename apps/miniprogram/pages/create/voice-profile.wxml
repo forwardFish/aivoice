@@ -35,17 +35,16 @@
           <text class="field-label">TA 是你的谁</text>
           <text class="relationship-note">仅用于调整 AI 对话</text>
         </view>
-        <view class="relationship-grid">
-          <view
+        <radio-group class="relationship-grid" bindchange="onRelationshipRadioChange">
+          <label
             wx:for="{{relationshipOptions}}"
             wx:key="key"
-            class="relationship-chip {{relationshipType === item.key ? 'selected' : ''}}"
-            data-key="{{item.key}}"
-            bindtap="selectRelationship"
+            class="relationship-option {{relationshipType === item.key ? 'selected' : ''}}"
           >
+            <radio class="relationship-radio" value="{{item.key}}" checked="{{relationshipType === item.key}}" color="#6552f5" />
             <text>{{item.title}}</text>
-          </view>
-        </view>
+          </label>
+        </radio-group>
         <view wx:if="{{relationshipType === 'OTHER'}}" class="relationship-other-wrap">
           <input
             class="relationship-other-input"
@@ -58,14 +57,15 @@
         </view>
         <view wx:if="{{relationshipType && relationshipType !== 'SELF'}}" class="user-address-block">
           <view class="user-address-heading">
-            <text class="user-address-label">TA 怎么称呼你</text>
+            <text class="user-address-label">TA 平时怎么称呼你？</text>
             <text class="user-address-optional">可选</text>
           </view>
+          <text class="user-address-help">填写后，AI 回复时会自然地使用这个称呼。</text>
           <view class="relationship-other-wrap">
             <input
               class="relationship-other-input"
               value="{{userAddress}}"
-              placeholder="如：小林、小名"
+              placeholder="例如：小林、妈妈、宝贝"
               maxlength="10"
               bindinput="onUserAddressInput"
             />

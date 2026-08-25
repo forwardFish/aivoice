@@ -88,7 +88,7 @@ if (process.env.CLOUDBASE_DEPLOY_DRY_RUN === 'true') {
 const app = new CloudBase({ envId: functionEnvId, region: 'ap-shanghai', secretId, secretKey });
 const common = {
   name: functionName,
-  description: '那时的TA虚拟支付发货退款与投诉事件',
+  description: '那年的TA虚拟支付发货退款与投诉事件',
   type: 'Event',
   handler: 'index.main',
   runtime: 'Nodejs20.19',

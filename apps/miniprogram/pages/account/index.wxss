@@ -24,7 +24,7 @@
 .wechat-profile-row { margin-top: 17rpx; display: flex; align-items: center; gap: 10rpx; color: #7f87a0; font-size: 22rpx; }
 .wechat-profile-row image { width: 29rpx; height: 25rpx; opacity: 0.5; filter: grayscale(1) brightness(0.72); }
 
-.edit-profile-button { width: 170rpx; min-width: 170rpx; min-height: 49rpx; margin: 23rpx 0 0; padding: 0 10rpx; border-radius: 25rpx; display: flex; align-items: center; justify-content: center; gap: 5rpx; color: #6755f5; background: rgba(255, 255, 255, 0.38); border: 2rpx solid #a892ff; font-size: 21rpx; font-weight: 630; white-space: nowrap; box-shadow: none; }
+.edit-profile-button { width:170rpx; min-width:170rpx; min-height:49rpx; margin:23rpx 0 0; padding:0 10rpx; border-radius:25rpx; display:flex; align-items:center; justify-content:center; gap:5rpx; color:var(--action-secondary-text); background:var(--action-secondary-bg); border:2rpx solid var(--action-secondary-border); font-size:21rpx; font-weight:630; white-space:nowrap; box-shadow:none; }
 .edit-profile-button image { flex: 0 0 auto; width: 43rpx; height: 43rpx; margin-left: -4rpx; }
 .identity-visual { width: 250rpx; height: 230rpx; position: absolute; right: -10rpx; top: 2rpx; opacity: 0.94; }
 

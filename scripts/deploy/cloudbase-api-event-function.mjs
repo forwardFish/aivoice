@@ -76,7 +76,7 @@ if (process.env.CLOUDBASE_DEPLOY_DRY_RUN === 'true') {
 const app = new CloudBase({ envId: functionEnvId, region: 'ap-shanghai', secretId, secretKey });
 const result = await app.functions.createFunction({
   func: {
-    name: functionName, description: '那时的TA NestJS 事件 API', type: 'Event', handler: 'index.main', runtime: 'Nodejs20.19',
+    name: functionName, description: '那年的TA NestJS 事件 API', type: 'Event', handler: 'index.main', runtime: 'Nodejs20.19',
     timeout: 30, memorySize: 1024, installDependency: false, envVariables,
   },
   base64Code,

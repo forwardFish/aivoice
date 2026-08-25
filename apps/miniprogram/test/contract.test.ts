@@ -72,6 +72,18 @@ test('normalizes speaker quality failures into actionable Chinese guidance', () 
   assert.match(String(voice.error?.message), /多个人声/)
 })
 
+test('normalizes missing source media into a recoverable Chinese restart instruction', () => {
+  const voice = normalizeVoice({
+    id: 'voice-missing-source',
+    status: 'FAILED',
+    failureCode: 'SOURCE_VIDEO_REQUIRED',
+    failureMessage: 'source video is required'
+  })
+  assert.equal(voice.error?.code, 'SOURCE_VIDEO_REQUIRED')
+  assert.match(String(voice.error?.message), /原视频已经失效.*重新选择视频/)
+  assert.doesNotMatch(String(voice.error?.message), /source video is required/i)
+})
+
 test('frontend source uses current server authority endpoints and no hardcoded consent version', () => {
   const appRoot = path.resolve(process.cwd(), 'apps/miniprogram')
   const apiSource = fs.readFileSync(path.join(appRoot, 'services/api.ts'), 'utf8')

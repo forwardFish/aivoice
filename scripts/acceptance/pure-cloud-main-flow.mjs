@@ -175,7 +175,7 @@ async function main() {
 
   const idempotencyKey = crypto.randomUUID()
   const createdMessage = await invoke(`/v1/voices/${voiceId}/exact-speech`, 'POST', {
-    text: process.env.AIVOICE_ACCEPTANCE_TEXT || '你好，这是那时的TA云端完整流程验证。',
+    text: process.env.AIVOICE_ACCEPTANCE_TEXT || '你好，这是那年的TA云端完整流程验证。',
   }, token, { 'idempotency-key': idempotencyKey })
   const messageId = String(createdMessage.messageId || '')
   if (!messageId) throw new Error('message ID is missing')

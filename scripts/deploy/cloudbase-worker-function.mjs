@@ -139,7 +139,7 @@ const functions = await app.functions.listFunctions();
 const exists = functions.some((item) => String(item.FunctionName || item.name) === functionName);
 const common = {
   name: functionName,
-  description: '那时的TA按任务启动声音处理Worker',
+  description: '那年的TA按任务启动声音处理Worker',
   type: 'Event',
   handler: 'index.main',
   runtime: 'Nodejs20.19',

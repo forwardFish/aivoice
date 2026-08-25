@@ -41,12 +41,17 @@ function stringOr(value: unknown, fallback = ''): string {
 
 function voiceFailureMessage(code: string, message: string): string {
   const messages: Record<string, string> = {
+    SOURCE_VIDEO_REQUIRED: '原视频已经失效，请重新选择视频后继续创建。',
+    INVALID_SOURCE_MEDIA: '原视频不可用，请重新选择一个 8–60 秒的视频。',
     MULTIPLE_SPEAKERS: '检测到片段中有多个人声，请重新选择只有目标人物单独说话的片段。',
     OVERLAPPING_SPEECH: '检测到多人重叠说话，无法安全提取目标声音，请重新选择片段。',
     SPEAKER_UNCERTAIN: '暂时无法确认片段中是否只有一个人说话，请试听后重新选择更清晰的片段。'
   }
+  if (messages[code]) return messages[code]
+  if (/source video is required/i.test(message)) return messages.SOURCE_VIDEO_REQUIRED
+  if (/invalid source media/i.test(message)) return messages.INVALID_SOURCE_MEDIA
   if (message && message !== code) return message
-  return messages[code] || message || code
+  return message || code
 }
 
 export function normalizeQuota(input: unknown): QuotaResponse {

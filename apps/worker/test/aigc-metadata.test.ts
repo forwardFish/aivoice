@@ -42,10 +42,10 @@ test('embeds the required AIGC JSON in a padded RIFF chunk and is idempotent', (
   assert.deepEqual(readAigcChunks(twice), [{
     AIGC: {
       Label: '1',
-      ContentProducer: '那时的TA',
+      ContentProducer: '那年的TA',
       ProduceID: messageId,
       ReservedCode1: '',
-      ContentPropagator: '那时的TA',
+      ContentPropagator: '那年的TA',
       PropagateID: messageId,
       ReservedCode2: '',
     },

@@ -3,10 +3,10 @@ import fs from 'node:fs/promises';
 export interface AigcAudioMetadata {
   AIGC: {
     Label: '1';
-    ContentProducer: '那时的TA';
+    ContentProducer: '那年的TA';
     ProduceID: string;
     ReservedCode1: '';
-    ContentPropagator: '那时的TA';
+    ContentPropagator: '那年的TA';
     PropagateID: string;
     ReservedCode2: '';
   };
@@ -21,10 +21,10 @@ export function createAigcAudioMetadata(messageId: string): AigcAudioMetadata {
   return {
     AIGC: {
       Label: '1',
-      ContentProducer: '那时的TA',
+      ContentProducer: '那年的TA',
       ProduceID: messageId,
       ReservedCode1: '',
-      ContentPropagator: '那时的TA',
+      ContentPropagator: '那年的TA',
       PropagateID: messageId,
       ReservedCode2: '',
     },

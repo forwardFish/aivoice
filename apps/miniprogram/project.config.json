@@ -3,7 +3,7 @@
   "compileType": "miniprogram",
   "miniprogramRoot": "./",
   "projectname": "nashide-ta-miniprogram",
-  "description": "那时的 TA 微信原生小程序前端",
+  "description": "那年的TA 微信原生小程序前端",
   "setting": {
     "useCompilerPlugins": [
       "typescript"
