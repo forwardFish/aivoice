@@ -1,0 +1,71 @@
+{
+  "source": "D:\\lyh\\agent\\agent-frame\\aivoice\\.aivoice-tmp\\12岁-1.mono.wav",
+  "model": "fun-asr",
+  "speakerCount": 1,
+  "dominantSpeakerId": "0",
+  "speakerSpeechMs": {
+    "0": 25880
+  },
+  "segments": [
+    {
+      "speakerId": "0",
+      "beginMs": 240,
+      "endMs": 1440,
+      "durationMs": 1200,
+      "text": "我们真的没有想到的。"
+    },
+    {
+      "speakerId": "0",
+      "beginMs": 1560,
+      "endMs": 7840,
+      "durationMs": 6280,
+      "text": "其实开始我做短视频是有一个月的时间，三十几天前我发了我的第一条视频。"
+    },
+    {
+      "speakerId": "0",
+      "beginMs": 8160,
+      "endMs": 9720,
+      "durationMs": 1560,
+      "text": "您猜怎么着？"
+    },
+    {
+      "speakerId": "0",
+      "beginMs": 10040,
+      "endMs": 14360,
+      "durationMs": 4320,
+      "text": "被大家骂到平台隐藏了评论。"
+    },
+    {
+      "speakerId": "0",
+      "beginMs": 14480,
+      "endMs": 23960,
+      "durationMs": 9480,
+      "text": "我当时的心情其实可以说还是有点难过的，但是其实说实话我没想到，其实我也蛮开心的。"
+    },
+    {
+      "speakerId": "0",
+      "beginMs": 24040,
+      "endMs": 27080,
+      "durationMs": 3040,
+      "text": "就是我看到很多模仿我的人，大家。"
+    }
+  ],
+  "continuousRuns": [
+    {
+      "speakerId": "0",
+      "beginMs": 240,
+      "endMs": 27080,
+      "durationMs": 26840,
+      "text": "我们真的没有想到的。其实开始我做短视频是有一个月的时间，三十几天前我发了我的第一条视频。您猜怎么着？被大家骂到平台隐藏了评论。我当时的心情其实可以说还是有点难过的，但是其实说实话我没想到，其实我也蛮开心的。就是我看到很多模仿我的人，大家。"
+    }
+  ],
+  "candidateDominantRuns": [
+    {
+      "speakerId": "0",
+      "beginMs": 240,
+      "endMs": 27080,
+      "durationMs": 26840,
+      "text": "我们真的没有想到的。其实开始我做短视频是有一个月的时间，三十几天前我发了我的第一条视频。您猜怎么着？被大家骂到平台隐藏了评论。我当时的心情其实可以说还是有点难过的，但是其实说实话我没想到，其实我也蛮开心的。就是我看到很多模仿我的人，大家。"
+    }
+  ]
+}

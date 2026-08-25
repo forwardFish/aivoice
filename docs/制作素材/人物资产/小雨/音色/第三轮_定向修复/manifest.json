@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-25T08:43:04.257974+00:00",
+  "character": "小雨",
+  "round": 3,
+  "strategy": "锁定已认可3岁音色；8岁仅修复语速；12岁废弃并重新设计明确女声候选。",
+  "disclosure": "本目录音频为AI生成的原创虚构音色，不对应任何真实儿童。",
+  "provider": "aliyun-bailian",
+  "model": "cosyvoice-v3.5-flash",
+  "previewText": "妈妈，你看，窗外那朵云像不像一只小兔子？我想把今天记下来，等长大以后再听。",
+  "locked3YearFile": "3岁_已锁定.wav",
+  "repaired8Year": {
+    "file": "8岁_慢速修复.wav",
+    "instruction": "请用八岁女孩的自然口吻，语速放慢，句间稍作停顿，清亮柔和，不要播音腔。",
+    "bytes": 528524,
+    "sha256": "6a1a3db33fe73c62d7c125a5fb7baa3ad543b7988b800e09741e22683a307488"
+  },
+  "twelveYearCandidates": [
+    {
+      "label": "F",
+      "file": "12岁_F_慢速女声.wav",
+      "voiceRef": "private-registry:12:F",
+      "instruction": "请用十二岁女孩的自然口吻，语速适中偏慢，清亮柔和，明确为女声，不要低沉男声或成人播音腔。",
+      "bytes": 467084,
+      "sha256": "5809935f233f3ccc7cf45c0c6c52e7e9c37f6dcb4ed95f923dd71b1b10d1883e"
+    },
+    {
+      "label": "G",
+      "file": "12岁_G_慢速女声.wav",
+      "voiceRef": "private-registry:12:G",
+      "instruction": "请用十二岁女孩的自然口吻，语速适中偏慢，清亮柔和，明确为女声，不要低沉男声或成人播音腔。",
+      "bytes": 447884,
+      "sha256": "b7b062e82c7046529d4a30e1854770c61f0a51cf28bf4ae05266817321dd8771"
+    },
+    {
+      "label": "H",
+      "file": "12岁_H_慢速女声.wav",
+      "voiceRef": "private-registry:12:H",
+      "instruction": "请用十二岁女孩的自然口吻，语速适中偏慢，清亮柔和，明确为女声，不要低沉男声或成人播音腔。",
+      "bytes": 409484,
+      "sha256": "bee04fb27e9bccd8cf0b62555471745263cdce50468c93e296d182486a66e49d"
+    }
+  ]
+}

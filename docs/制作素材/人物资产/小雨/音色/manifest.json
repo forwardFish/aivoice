@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-25T08:30:23.480799+00:00",
+  "character": "小雨",
+  "disclosure": "本目录音频为AI生成的原创虚构音色，不对应任何真实儿童。",
+  "provider": "aliyun-bailian",
+  "model": "cosyvoice-v3.5-flash",
+  "previewText": "妈妈，你看，窗外那朵云像不像一只小兔子？我想把今天记下来，等长大以后再听。",
+  "basePrompt": "原创虚构的八岁中国女孩声音，普通话自然，声线清亮柔软，略带轻微气声，音调偏高但不尖锐，语气亲近、灵动、有好奇心；吐字清楚但没有成人播音腔，适合成长叙事短视频角色，不模仿任何真实人物。",
+  "candidates": [
+    {
+      "label": "A",
+      "voiceRef": "private-registry:A",
+      "files": [
+        {
+          "age": "3岁",
+          "file": "候选A/3岁_试听.wav",
+          "instruction": "保持原声纹，用三岁女孩的自然口吻，轻软稚气、语速稍慢，不要成人播音腔。",
+          "bytes": 520844,
+          "sha256": "106c89a50664517f25c1fc9b8cf36e7c91b916fa9e86f1876279a41a18a2659a"
+        },
+        {
+          "age": "8岁",
+          "file": "候选A/8岁_试听.wav",
+          "instruction": "保持原声纹，用八岁女孩的自然口吻，清亮活泼、语速适中，不要播音腔。",
+          "bytes": 378764,
+          "sha256": "1da9c37b43b5ab3f86ef141bf977fadea3ec7fecb8ac94b84711e716c34dbdd6"
+        },
+        {
+          "age": "12岁",
+          "file": "候选A/12岁_试听.wav",
+          "instruction": "保持原声纹，用十二岁女孩的自然口吻，清亮克制、略显成熟，语速自然，不要播音腔。",
+          "bytes": 390284,
+          "sha256": "4c1da6b387d0c0b03555454cd84aa4ccc6f171312c426df11f2a6a098593ca33"
+        }
+      ]
+    },
+    {
+      "label": "B",
+      "voiceRef": "private-registry:B",
+      "files": [
+        {
+          "age": "3岁",
+          "file": "候选B/3岁_试听.wav",
+          "instruction": "保持原声纹，用三岁女孩的自然口吻，轻软稚气、语速稍慢，不要成人播音腔。",
+          "bytes": 386444,
+          "sha256": "b32d9f931f6fa05458fa0677badb206a742e359d495ad608591a3b7a130a21cb"
+        },
+        {
+          "age": "8岁",
+          "file": "候选B/8岁_试听.wav",
+          "instruction": "保持原声纹，用八岁女孩的自然口吻，清亮活泼、语速适中，不要播音腔。",
+          "bytes": 470924,
+          "sha256": "4a48eb18f8bb55c81537576547cfdbd69d29a18c00cd15fc08339f30e8575a69"
+        },
+        {
+          "age": "12岁",
+          "file": "候选B/12岁_试听.wav",
+          "instruction": "保持原声纹，用十二岁女孩的自然口吻，清亮克制、略显成熟，语速自然，不要播音腔。",
+          "bytes": 551564,
+          "sha256": "91fc269523613a16512408d17bee71ae0e5702e2c35d841634569bf6e441e0d6"
+        }
+      ]
+    },
+    {
+      "label": "C",
+      "voiceRef": "private-registry:C",
+      "files": [
+        {
+          "age": "3岁",
+          "file": "候选C/3岁_试听.wav",
+          "instruction": "保持原声纹，用三岁女孩的自然口吻，轻软稚气、语速稍慢，不要成人播音腔。",
+          "bytes": 417164,
+          "sha256": "95c5b8243a1ed83c7467ab248a70472b8221e97ff82c8f4b361fb121f17e2fb1"
+        },
+        {
+          "age": "8岁",
+          "file": "候选C/8岁_试听.wav",
+          "instruction": "保持原声纹，用八岁女孩的自然口吻，清亮活泼、语速适中，不要播音腔。",
+          "bytes": 421004,
+          "sha256": "5e36cb37de720ef88ac9e6200f7f700c7b9bea5d9bf50217675f3a57a3cbe2b2"
+        },
+        {
+          "age": "12岁",
+          "file": "候选C/12岁_试听.wav",
+          "instruction": "保持原声纹，用十二岁女孩的自然口吻，清亮克制、略显成熟，语速自然，不要播音腔。",
+          "bytes": 417164,
+          "sha256": "f76c0ba4be9400c7ed5bece20fdc69bda1156107bf3bd5c18381447d939f873d"
+        }
+      ]
+    }
+  ]
+}

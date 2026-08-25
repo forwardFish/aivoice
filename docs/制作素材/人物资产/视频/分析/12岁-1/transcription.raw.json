@@ -1,0 +1,487 @@
+{
+  "file_url": "https://dashscope-file-mgr.oss-cn-beijing.aliyuncs.com/dashscope-instant/6629ed2e09355303e7b692314d27478d/2026-08-25/cc9b023c-9b3f-9e57-b233-e4f452c187b5/12%E5%B2%81-1.mono.wav?x-oss-credential=LTAI5tETa3nVJuuzYP57WmzH%2F20260825%2Fcn-beijing%2Foss%2Faliyun_v4_request&x-oss-date=20260825T093052Z&x-oss-expires=172800&x-oss-signature=88fa7a9e39cb7f9d26829cbc52f1b8ce3a982beb90a03c7ed89a129a460fb2fd&x-oss-signature-version=OSS4-HMAC-SHA256",
+  "properties": {
+    "audio_format": "pcm_s16le",
+    "channels": [
+      0
+    ],
+    "original_sampling_rate": 24000,
+    "original_duration_in_milliseconds": 27157
+  },
+  "transcripts": [
+    {
+      "channel_id": 0,
+      "content_duration_in_milliseconds": 25880,
+      "text": "我们真的没有想到的。其实开始我做短视频是有一个月的时间，三十几天前我发了我的第一条视频。您猜怎么着？被大家骂到平台隐藏了评论。我当时的心情其实可以说还是有点难过的，但是其实说实话我没想到，其实我也蛮开心的。就是我看到很多模仿我的人，大家。",
+      "sentences": [
+        {
+          "begin_time": 240,
+          "end_time": 1440,
+          "text": "我们真的没有想到的。",
+          "sentence_id": 1,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 240,
+              "end_time": 440,
+              "text": "我们",
+              "punctuation": "",
+              "confidence": 0.57
+            },
+            {
+              "begin_time": 440,
+              "end_time": 640,
+              "text": "真的",
+              "punctuation": "",
+              "confidence": 0.941
+            },
+            {
+              "begin_time": 640,
+              "end_time": 1320,
+              "text": "没有想到",
+              "punctuation": "",
+              "confidence": 0.939
+            },
+            {
+              "begin_time": 1320,
+              "end_time": 1440,
+              "text": "的",
+              "punctuation": "。",
+              "confidence": 0.915
+            }
+          ]
+        },
+        {
+          "begin_time": 1560,
+          "end_time": 7840,
+          "text": "其实开始我做短视频是有一个月的时间，三十几天前我发了我的第一条视频。",
+          "sentence_id": 2,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 1560,
+              "end_time": 1840,
+              "text": "其实",
+              "punctuation": "",
+              "confidence": 0.841
+            },
+            {
+              "begin_time": 1840,
+              "end_time": 2080,
+              "text": "开始",
+              "punctuation": "",
+              "confidence": 0.983
+            },
+            {
+              "begin_time": 2080,
+              "end_time": 2200,
+              "text": "我",
+              "punctuation": "",
+              "confidence": 0.94
+            },
+            {
+              "begin_time": 2200,
+              "end_time": 2400,
+              "text": "做",
+              "punctuation": "",
+              "confidence": 0.929
+            },
+            {
+              "begin_time": 2400,
+              "end_time": 2880,
+              "text": "短视频",
+              "punctuation": "",
+              "confidence": 0.969
+            },
+            {
+              "begin_time": 2880,
+              "end_time": 3000,
+              "text": "是",
+              "punctuation": "",
+              "confidence": 0.964
+            },
+            {
+              "begin_time": 3000,
+              "end_time": 3360,
+              "text": "有一个",
+              "punctuation": "",
+              "confidence": 0.968
+            },
+            {
+              "begin_time": 3360,
+              "end_time": 3560,
+              "text": "月",
+              "punctuation": "",
+              "confidence": 0.973
+            },
+            {
+              "begin_time": 3560,
+              "end_time": 4080,
+              "text": "的时间",
+              "punctuation": "，",
+              "confidence": 0.986
+            },
+            {
+              "begin_time": 4240,
+              "end_time": 4760,
+              "text": "三十",
+              "punctuation": "",
+              "confidence": 0.64
+            },
+            {
+              "begin_time": 4760,
+              "end_time": 5280,
+              "text": "几天",
+              "punctuation": "",
+              "confidence": 0.958
+            },
+            {
+              "begin_time": 5280,
+              "end_time": 5600,
+              "text": "前",
+              "punctuation": "",
+              "confidence": 0.978
+            },
+            {
+              "begin_time": 5600,
+              "end_time": 6080,
+              "text": "我",
+              "punctuation": "",
+              "confidence": 0.731
+            },
+            {
+              "begin_time": 6080,
+              "end_time": 6360,
+              "text": "发",
+              "punctuation": "",
+              "confidence": 0.218
+            },
+            {
+              "begin_time": 6360,
+              "end_time": 6880,
+              "text": "了我的",
+              "punctuation": "",
+              "confidence": 0.402
+            },
+            {
+              "begin_time": 6880,
+              "end_time": 7520,
+              "text": "第一条",
+              "punctuation": "",
+              "confidence": 0.822
+            },
+            {
+              "begin_time": 7520,
+              "end_time": 7840,
+              "text": "视频",
+              "punctuation": "。",
+              "confidence": 0.852
+            }
+          ]
+        },
+        {
+          "begin_time": 8160,
+          "end_time": 9720,
+          "text": "您猜怎么着？",
+          "sentence_id": 3,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 8160,
+              "end_time": 8480,
+              "text": "您",
+              "punctuation": "",
+              "confidence": 0.962
+            },
+            {
+              "begin_time": 8480,
+              "end_time": 8880,
+              "text": "猜",
+              "punctuation": "",
+              "confidence": 0.999
+            },
+            {
+              "begin_time": 8880,
+              "end_time": 9200,
+              "text": "怎么",
+              "punctuation": "",
+              "confidence": 0.992
+            },
+            {
+              "begin_time": 9200,
+              "end_time": 9720,
+              "text": "着",
+              "punctuation": "？",
+              "confidence": 0.994
+            }
+          ]
+        },
+        {
+          "begin_time": 10040,
+          "end_time": 14360,
+          "text": "被大家骂到平台隐藏了评论。",
+          "sentence_id": 4,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 10040,
+              "end_time": 10360,
+              "text": "被",
+              "punctuation": "",
+              "confidence": 0.984
+            },
+            {
+              "begin_time": 10360,
+              "end_time": 10920,
+              "text": "大家",
+              "punctuation": "",
+              "confidence": 0.997
+            },
+            {
+              "begin_time": 10920,
+              "end_time": 11240,
+              "text": "骂",
+              "punctuation": "",
+              "confidence": 0.994
+            },
+            {
+              "begin_time": 11240,
+              "end_time": 11720,
+              "text": "到",
+              "punctuation": "",
+              "confidence": 0.996
+            },
+            {
+              "begin_time": 11720,
+              "end_time": 12600,
+              "text": "平台",
+              "punctuation": "",
+              "confidence": 0.992
+            },
+            {
+              "begin_time": 12800,
+              "end_time": 13520,
+              "text": "隐藏",
+              "punctuation": "",
+              "confidence": 0.995
+            },
+            {
+              "begin_time": 13520,
+              "end_time": 13800,
+              "text": "了",
+              "punctuation": "",
+              "confidence": 0.987
+            },
+            {
+              "begin_time": 13800,
+              "end_time": 14360,
+              "text": "评论",
+              "punctuation": "。",
+              "confidence": 0.984
+            }
+          ]
+        },
+        {
+          "begin_time": 14480,
+          "end_time": 23960,
+          "text": "我当时的心情其实可以说还是有点难过的，但是其实说实话我没想到，其实我也蛮开心的。",
+          "sentence_id": 5,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 14480,
+              "end_time": 15240,
+              "text": "我当时",
+              "punctuation": "",
+              "confidence": 0.99
+            },
+            {
+              "begin_time": 15240,
+              "end_time": 16360,
+              "text": "的心情",
+              "punctuation": "",
+              "confidence": 0.993
+            },
+            {
+              "begin_time": 16360,
+              "end_time": 16800,
+              "text": "其实",
+              "punctuation": "",
+              "confidence": 0.998
+            },
+            {
+              "begin_time": 16800,
+              "end_time": 17560,
+              "text": "可以说",
+              "punctuation": "",
+              "confidence": 0.992
+            },
+            {
+              "begin_time": 17560,
+              "end_time": 18040,
+              "text": "还是",
+              "punctuation": "",
+              "confidence": 0.992
+            },
+            {
+              "begin_time": 18040,
+              "end_time": 18400,
+              "text": "有点",
+              "punctuation": "",
+              "confidence": 0.998
+            },
+            {
+              "begin_time": 18400,
+              "end_time": 18560,
+              "text": "难",
+              "punctuation": "",
+              "confidence": 0.997
+            },
+            {
+              "begin_time": 18560,
+              "end_time": 19040,
+              "text": "过的",
+              "punctuation": "，",
+              "confidence": 0.977
+            },
+            {
+              "begin_time": 19400,
+              "end_time": 20040,
+              "text": "但是",
+              "punctuation": "",
+              "confidence": 0.993
+            },
+            {
+              "begin_time": 20040,
+              "end_time": 20480,
+              "text": "其实",
+              "punctuation": "",
+              "confidence": 0.985
+            },
+            {
+              "begin_time": 20480,
+              "end_time": 21240,
+              "text": "说实话",
+              "punctuation": "",
+              "confidence": 0.998
+            },
+            {
+              "begin_time": 21240,
+              "end_time": 21440,
+              "text": "我",
+              "punctuation": "",
+              "confidence": 0.996
+            },
+            {
+              "begin_time": 21440,
+              "end_time": 22240,
+              "text": "没想到",
+              "punctuation": "，",
+              "confidence": 0.984
+            },
+            {
+              "begin_time": 22400,
+              "end_time": 22720,
+              "text": "其实",
+              "punctuation": "",
+              "confidence": 0.994
+            },
+            {
+              "begin_time": 22720,
+              "end_time": 23000,
+              "text": "我也",
+              "punctuation": "",
+              "confidence": 0.993
+            },
+            {
+              "begin_time": 23000,
+              "end_time": 23280,
+              "text": "蛮",
+              "punctuation": "",
+              "confidence": 0.989
+            },
+            {
+              "begin_time": 23280,
+              "end_time": 23840,
+              "text": "开心",
+              "punctuation": "",
+              "confidence": 0.986
+            },
+            {
+              "begin_time": 23840,
+              "end_time": 23960,
+              "text": "的",
+              "punctuation": "。",
+              "confidence": 0.987
+            }
+          ]
+        },
+        {
+          "begin_time": 24040,
+          "end_time": 27080,
+          "text": "就是我看到很多模仿我的人，大家。",
+          "sentence_id": 6,
+          "speaker_id": 0,
+          "words": [
+            {
+              "begin_time": 24040,
+              "end_time": 24600,
+              "text": "就是",
+              "punctuation": "",
+              "confidence": 0.986
+            },
+            {
+              "begin_time": 24600,
+              "end_time": 24840,
+              "text": "我",
+              "punctuation": "",
+              "confidence": 0.98
+            },
+            {
+              "begin_time": 24840,
+              "end_time": 25200,
+              "text": "看到",
+              "punctuation": "",
+              "confidence": 0.994
+            },
+            {
+              "begin_time": 25200,
+              "end_time": 25720,
+              "text": "很多",
+              "punctuation": "",
+              "confidence": 0.988
+            },
+            {
+              "begin_time": 25720,
+              "end_time": 26160,
+              "text": "模仿",
+              "punctuation": "",
+              "confidence": 0.998
+            },
+            {
+              "begin_time": 26160,
+              "end_time": 26440,
+              "text": "我的",
+              "punctuation": "",
+              "confidence": 0.989
+            },
+            {
+              "begin_time": 26440,
+              "end_time": 26640,
+              "text": "人",
+              "punctuation": "，",
+              "confidence": 0.996
+            },
+            {
+              "begin_time": 26760,
+              "end_time": 27080,
+              "text": "大家",
+              "punctuation": "。",
+              "confidence": 0.993
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

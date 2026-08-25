@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "SUCCESS",
+  "ai_generated": true,
+  "authorization_confirmed": true,
+  "generated_at": "2026-08-25T09:05:50.732513+00:00",
+  "source": {
+    "file_name": "3岁.mp4",
+    "sha256": "ebe94aa12e6e86b1b8b893205e41ed153587f2d48d7ea6311b8392a9fc4b83c5",
+    "duration_seconds": 20.867
+  },
+  "clip": {
+    "start_seconds": 0.46,
+    "duration_seconds": 20.0,
+    "enhanced": true
+  },
+  "text": {
+    "language": "zh",
+    "character_count": 23,
+    "sha256": "1b241457b98c2a78a93f64db53fc729222ff917527869c651b9b4bf888e2607e",
+    "plaintext_stored": false
+  },
+  "reference_quality": {
+    "duration_seconds": 19.976,
+    "sample_rate": 24000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "average_dbfs": -22.756,
+    "silent_ratio": 0.09,
+    "clipping_ratio": 0.0,
+    "active_seconds": 18.178,
+    "acceptable": true,
+    "warnings": []
+  },
+  "provider": {
+    "provider": "aliyun-cosyvoice",
+    "model": "cosyvoice-v3.5-flash",
+    "device": "cloud",
+    "sample_rate": 24000,
+    "output_path": "3岁_角色试听.wav",
+    "settings": {
+      "preprocess": 1.0
+    }
+  },
+  "output": {
+    "file_name": "3岁_角色试听.wav",
+    "sha256": "84955450b8a8724f9b0f23f6fd55a3ebe41c4909ed5e25c2b9201304d7edbb91",
+    "bytes": 298124
+  },
+  "temporary_reference_deleted": true
+}
