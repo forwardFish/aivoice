@@ -55,10 +55,16 @@
 ## 自动验证
 
 - `npm run typecheck:miniprogram`：PASS
-- `npm run test:miniprogram`：25 PASS / 0 FAIL
+- `npm run test:miniprogram`：40 PASS / 0 FAIL（迁入 `main` 后复验）
 - 小程序 JSON 全量解析：PASS
 - 正式 UI 资产存在性：PASS
 - `git diff --check -- apps/miniprogram`：PASS（仅 CRLF 提示）
+
+可复用的微信开发者工具实机审计脚本：
+
+- `node scripts/acceptance/ui-all-pages-audit.cjs`：按页面顺序采集真实状态与受控状态截图、控制台和异常日志。
+- `node scripts/acceptance/ui-audit-state.cjs <state>`：单独打开并检查指定页面状态。
+- 两个脚本默认连接 `ws://127.0.0.1:9422`，也可通过 `WECHAT_AUTOMATION_WS` 指定开发者工具自动化端点。
 
 ## 尚未通过的门禁
 
