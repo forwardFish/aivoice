@@ -34,7 +34,7 @@ function statusMeta(voice: VoiceSummary): { label: string; tone: string; action:
     UPLOADING: { label: '正在上传', tone: 'processing', action: '查看进度' },
     QUEUED: { label: '等待处理', tone: 'processing', action: '查看进度' },
     PROCESSING: { label: '正在创建', tone: 'processing', action: '查看进度' },
-    FAILED: { label: '创建失败', tone: 'failed', action: '重新处理' },
+    FAILED: { label: '创建失败', tone: 'failed', action: '重新选择视频' },
     DELETING: { label: '正在删除', tone: 'muted', action: '查看状态' },
     DELETED: { label: '已删除', tone: 'muted', action: '不可用' }
   }
@@ -145,7 +145,11 @@ Page({
       openPreview(id)
       return
     }
-    if (status === 'UPLOADING' || status === 'QUEUED' || status === 'PROCESSING' || status === 'FAILED' || status === 'DELETING') {
+    if (status === 'FAILED') {
+      wx.navigateTo({ url: `/pages/create/select-video?voiceId=${encodeURIComponent(id)}` })
+      return
+    }
+    if (status === 'UPLOADING' || status === 'QUEUED' || status === 'PROCESSING' || status === 'DELETING') {
       openVoiceProgress(id)
       return
     }

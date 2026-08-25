@@ -1,0 +1,62 @@
+﻿{
+    "blockers":  [
+                     {
+                         "id":  "GAP-STORY-PAYMENT-003-STATUS",
+                         "severity":  "IN_SCOPE_GAP",
+                         "description":  "P0/P1 story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                         "repairTarget":  "Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-003-001-STATUS",
+                         "severity":  "IN_SCOPE_GAP",
+                         "description":  "Test point TP-STORY-PAYMENT-003-001 for story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                         "repairTarget":  "Run or implement the test point and attach evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE",
+                         "severity":  "HARD_FAIL",
+                         "description":  "Test point TP-STORY-PAYMENT-003-001 for P0/P1 story STORY-PAYMENT-003 has no evidence.",
+                         "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-003-001.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-STORY-PAYMENT-011-STATUS",
+                         "severity":  "IN_SCOPE_GAP",
+                         "description":  "P0/P1 story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                         "repairTarget":  "Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-011-001-STATUS",
+                         "severity":  "IN_SCOPE_GAP",
+                         "description":  "Test point TP-STORY-PAYMENT-011-001 for story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                         "repairTarget":  "Run or implement the test point and attach evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE",
+                         "severity":  "HARD_FAIL",
+                         "description":  "Test point TP-STORY-PAYMENT-011-001 for P0/P1 story STORY-PAYMENT-011 has no evidence.",
+                         "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-011-001.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     }
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-verifier",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\story-target.json",
+                     "docs\\auto-execute\\story-test-matrix.json",
+                     "docs\\auto-execute\\story-status.json",
+                     "docs\\auto-execute\\gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Close story gaps, attach test-point evidence, then rerun run-story-verify.ps1 and final gate."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:19"
+}

@@ -1,0 +1,351 @@
+﻿{
+    "nextActions":  [
+                        "Use this comparison round as the next repair input, update implementation/evidence, then run another comparison round."
+                    ],
+    "round":  1,
+    "gaps":  [
+                 {
+                     "detail":  "Hard pattern found: - \\[ \\]",
+                     "path":  "docs\\auto-execute\\17-final-acceptance-checklist.md",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "finalChecklist"
+                 },
+                 {
+                     "detail":  "P0/P1 PRD section \u002723. 閿欒鐮?\u0027 has no requirement/story coverage.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-section"
+                 },
+                 {
+                     "detail":  "PRD section \u0027銆岄偅鏃剁殑 TA銆嶅井淇″皬绋嬪簭 MVP 闇€姹傛枃妗?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00272. MVP 鏍稿績楠岃瘉\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00274.3 AI 瀵硅瘽杈圭晫\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00275. MVP 鍔熻兘鑼冨洿\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027瀵硅瘽瑙勫垯\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002710.4 瀵硅瘽涓婁笅鏂?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002710.8 鍒嗕韩\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027TypeScript 鍏ㄦ爤锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027涓€涓?API 鏈嶅姟鍜屼竴涓紓姝?Worker锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027PostgreSQL 鎵挎媴涓氬姟鏁版嵁鍜岃交閲忎换鍔￠槦鍒楋紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027瑙嗛鍜岄煶棰戞斁鍦ㄤ腑鍥藉鍐呯鏈夊璞″瓨鍌紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027鍘熻棰戠煭鏈熶繚瀛橈紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027Voice Provider 涓?LLM Provider 鍧囦娇鐢?Adapter锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027涓嶅湪灏忕▼搴忕淇濆瓨瀵嗛挜锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027鏀粯銆佺敓鎴愩€佹墸娆℃暟銆佸垹闄ゅ叏閮ㄥ箓绛夛紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027MVP 涓嶅仛瀹炴椂 WebSocket 璇煶閫氳瘽銆?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002714.2 棰濆害妫€鏌ヤ笌骞跺彂闄愬埗\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002714.6 瀵硅瘽鍘嗗彶\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002720.3 AI 鐢熸垚鏍囪瘑\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002720.4 鎷熶汉鍖栦簰鍔ㄨ竟鐣?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002727. 鍚庣画鐗堟湰杩涘叆鏉′欢\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002729. MVP 鏈€缁堢粨璁?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "Requirement candidates exist but requirement-target.json has no normalized requirements.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "HARD_FAIL",
+                     "kind":  "requirement"
+                 },
+                 {
+                     "detail":  "P0/P1 PRD section SEC-275 has no requirement/story coverage.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement"
+                 },
+                 {
+                     "detail":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "contract"
+                 },
+                 {
+                     "detail":  "UI references exist but ui-target.json has no screens.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "ui"
+                 },
+                 {
+                     "detail":  "PRD section \u0027銆岄偅鏃剁殑 TA銆嶅井淇″皬绋嬪簭 MVP 闇€姹傛枃妗?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00272. MVP 鏍稿績楠岃瘉\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00274.3 AI 瀵硅瘽杈圭晫\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u00275. MVP 鍔熻兘鑼冨洿\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027瀵硅瘽瑙勫垯\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002710.4 瀵硅瘽涓婁笅鏂?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002710.8 鍒嗕韩\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027TypeScript 鍏ㄦ爤锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027涓€涓?API 鏈嶅姟鍜屼竴涓紓姝?Worker锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027PostgreSQL 鎵挎媴涓氬姟鏁版嵁鍜岃交閲忎换鍔￠槦鍒楋紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027瑙嗛鍜岄煶棰戞斁鍦ㄤ腑鍥藉鍐呯鏈夊璞″瓨鍌紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027鍘熻棰戠煭鏈熶繚瀛橈紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027Voice Provider 涓?LLM Provider 鍧囦娇鐢?Adapter锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027涓嶅湪灏忕▼搴忕淇濆瓨瀵嗛挜锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027鏀粯銆佺敓鎴愩€佹墸娆℃暟銆佸垹闄ゅ叏閮ㄥ箓绛夛紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u0027MVP 涓嶅仛瀹炴椂 WebSocket 璇煶閫氳瘽銆?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002714.2 棰濆害妫€鏌ヤ笌骞跺彂闄愬埗\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002714.6 瀵硅瘽鍘嗗彶\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002720.3 AI 鐢熸垚鏍囪瘑\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002720.4 鎷熶汉鍖栦簰鍔ㄨ竟鐣?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "PRD section \u002729. MVP 鏈€缁堢粨璁?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement-coverage"
+                 },
+                 {
+                     "detail":  "Requirement candidates exist but requirement-target.json has no normalized requirements.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "HARD_FAIL",
+                     "kind":  "requirement"
+                 },
+                 {
+                     "detail":  "UI references exist but ui-target.json has no screens.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "ui"
+                 },
+                 {
+                     "detail":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "contract"
+                 },
+                 {
+                     "detail":  "No normalized requirements are listed in requirement-target.json",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "requirement"
+                 },
+                 {
+                     "detail":  "UI references exist but ui-target.json has no screens.",
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "severity":  "IN_SCOPE_GAP",
+                     "kind":  "ui"
+                 }
+             ],
+    "compared":  [
+                     "docs\\auto-execute\\02-requirement-traceability-matrix.md",
+                     "docs\\auto-execute\\03-story-map.md",
+                     "docs\\auto-execute\\04-story-test-matrix.md",
+                     "docs\\auto-execute\\04-visual-acceptance-checklist.md",
+                     "docs\\auto-execute\\03-surface-map.md",
+                     "docs\\auto-execute\\04-contract-map.md",
+                     "docs\\auto-execute\\14-frontend-implementation-plan.md",
+                     "docs\\auto-execute\\15-backend-implementation-plan.md",
+                     "docs\\auto-execute\\16-integrated-verification-plan.md",
+                     "docs\\auto-execute\\17-final-acceptance-checklist.md"
+                 ],
+    "generatedAt":  "2026-08-23T09:01:54",
+    "limitations":  [
+
+                    ],
+    "status":  "HARD_FAIL",
+    "schemaVersion":  "2.0",
+    "lane":  "acceptance-compare"
+}

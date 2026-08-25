@@ -2,15 +2,9 @@
     "screenshots":  [
 
                     ],
-    "finalReports":  [
-
-                     ],
     "testReports":  [
 
                     ],
-    "visualResults":  [
-
-                      ],
     "schemaVersion":  "2.0",
     "apiResults":  [
                        {
@@ -48,8 +42,132 @@
                            "label":  "contract map json",
                            "addedAt":  "2026-08-22T00:04:00",
                            "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-23T08:53:28",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-23T08:53:28",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-23T09:00:10",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-23T09:00:10",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                           "label":  "contract discovery",
+                           "addedAt":  "2026-08-23T09:16:24",
+                           "exists":  true
+                       },
+                       {
+                           "path":  "docs\\auto-execute\\contract-map.json",
+                           "label":  "contract map json",
+                           "addedAt":  "2026-08-23T09:16:24",
+                           "exists":  true
                        }
                    ],
+    "finalReports":  [
+                         {
+                             "path":  "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                             "label":  "final delivery report",
+                             "addedAt":  "2026-08-23T09:00:54",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                             "label":  "final delivery report",
+                             "addedAt":  "2026-08-23T09:17:03",
+                             "exists":  true
+                         }
+                     ],
+    "visualResults":  [
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                              "label":  "default UI capture result",
+                              "addedAt":  "2026-08-23T09:00:36",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\ui-candidates.json",
+                              "label":  "UI candidates",
+                              "addedAt":  "2026-08-23T09:00:36",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-pixel-diff.json",
+                              "label":  "UI pixel diff result",
+                              "addedAt":  "2026-08-23T09:00:42",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                              "label":  "default UI capture result",
+                              "addedAt":  "2026-08-23T09:01:39",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\ui-candidates.json",
+                              "label":  "UI candidates",
+                              "addedAt":  "2026-08-23T09:01:39",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-pixel-diff.json",
+                              "label":  "UI pixel diff result",
+                              "addedAt":  "2026-08-23T09:01:44",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                              "label":  "default UI capture result",
+                              "addedAt":  "2026-08-23T09:16:49",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\ui-candidates.json",
+                              "label":  "UI candidates",
+                              "addedAt":  "2026-08-23T09:16:49",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-pixel-diff.json",
+                              "label":  "UI pixel diff result",
+                              "addedAt":  "2026-08-23T09:16:52",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                              "label":  "default UI capture result",
+                              "addedAt":  "2026-08-23T09:17:22",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\ui-candidates.json",
+                              "label":  "UI candidates",
+                              "addedAt":  "2026-08-23T09:17:22",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "docs\\auto-execute\\results\\ui-pixel-diff.json",
+                              "label":  "UI pixel diff result",
+                              "addedAt":  "2026-08-23T09:17:25",
+                              "exists":  true
+                          }
+                      ],
     "logs":  [
                  {
                      "path":  "docs\\auto-execute\\12-fullstack-delivery-plan.md",
@@ -115,6 +233,996 @@
                      "path":  "docs\\auto-execute\\results\\contract-discovery.json",
                      "label":  "contract",
                      "addedAt":  "2026-08-22T00:04:00",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\report-integrity.md",
+                     "label":  "report-integrity",
+                     "addedAt":  "2026-08-23T08:51:44",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-23T08:53:28",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\06-scope-classification.md",
+                     "label":  "scope-classification",
+                     "addedAt":  "2026-08-23T08:53:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\final-convergence-report.md",
+                     "label":  "final-gate",
+                     "addedAt":  "2026-08-23T08:53:39",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\00-environment-snapshot.md",
+                     "label":  "collect-env",
+                     "addedAt":  "2026-08-23T08:58:20",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T08:58:24",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\git-status.md",
+                     "label":  "collect-git-status",
+                     "addedAt":  "2026-08-23T08:58:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                     "label":  "adapter-detect",
+                     "addedAt":  "2026-08-23T08:58:27",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirements-candidates",
+                     "addedAt":  "2026-08-23T08:58:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirement-extract",
+                     "addedAt":  "2026-08-23T08:58:30",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates.json",
+                     "label":  "story-extract",
+                     "addedAt":  "2026-08-23T08:58:32",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                     "label":  "plan-fullstack-delivery",
+                     "addedAt":  "2026-08-23T08:58:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-23T08:58:35",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                     "label":  "requirement-coverage",
+                     "addedAt":  "2026-08-23T08:58:37",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-target.json",
+                     "label":  "requirement-verifier",
+                     "addedAt":  "2026-08-23T08:58:38",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "label":  "story-curation",
+                     "addedAt":  "2026-08-23T08:58:40",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-target.json",
+                     "label":  "story-normalize",
+                     "addedAt":  "2026-08-23T08:58:42",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-test-matrix.json",
+                     "label":  "story-test-generate",
+                     "addedAt":  "2026-08-23T08:58:43",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-materialized-tests.json",
+                     "label":  "story-test-materialize",
+                     "addedAt":  "2026-08-23T08:58:45",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\generated-route-smoke.log",
+                     "label":  "generated-story:route-smoke",
+                     "addedAt":  "2026-08-23T08:58:52",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\generated-api-smoke.log",
+                     "label":  "generated-story:api-smoke",
+                     "addedAt":  "2026-08-23T08:58:52",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "label":  "generated-story-tests",
+                     "addedAt":  "2026-08-23T08:58:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-quality-gate.json",
+                     "label":  "story-quality-gate",
+                     "addedAt":  "2026-08-23T08:58:54",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-status.json",
+                     "label":  "story-verifier",
+                     "addedAt":  "2026-08-23T08:58:55",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\06-scope-classification.md",
+                     "label":  "scope-classification",
+                     "addedAt":  "2026-08-23T08:58:57",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\architecture-guard.md",
+                     "label":  "architecture-guard",
+                     "addedAt":  "2026-08-23T09:00:06",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-23T09:00:10",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-map",
+                     "addedAt":  "2026-08-23T09:00:11",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\frontend-test.json",
+                     "label":  "frontend-test",
+                     "addedAt":  "2026-08-23T09:00:12",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-build.log",
+                     "label":  "backend:build",
+                     "addedAt":  "2026-08-23T09:00:19",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-build.log",
+                     "label":  "backend:build",
+                     "addedAt":  "2026-08-23T09:00:20",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-test.log",
+                     "label":  "backend:test",
+                     "addedAt":  "2026-08-23T09:00:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-test.log",
+                     "label":  "backend:test",
+                     "addedAt":  "2026-08-23T09:00:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\backend-test.json",
+                     "label":  "backend-test",
+                     "addedAt":  "2026-08-23T09:00:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-verifier",
+                     "addedAt":  "2026-08-23T09:00:31",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:00:36",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-capture.log",
+                     "label":  "default UI capture log",
+                     "addedAt":  "2026-08-23T09:00:36",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\ui-candidates.json",
+                     "label":  "ui-capture",
+                     "addedAt":  "2026-08-23T09:00:37",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:00:41",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "label":  "UI pixel diff log",
+                     "addedAt":  "2026-08-23T09:00:42",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:00:42",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\visual-diff-report.md",
+                     "label":  "ui-verifier",
+                     "addedAt":  "2026-08-23T09:00:43",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                     "label":  "full-flow-smoke",
+                     "addedAt":  "2026-08-23T09:00:49",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                     "label":  "e2e-flow",
+                     "addedAt":  "2026-08-23T09:00:49",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\db-e2e.json",
+                     "label":  "db-e2e",
+                     "addedAt":  "2026-08-23T09:00:51",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\error-summary.md",
+                     "label":  "summarize-errors",
+                     "addedAt":  "2026-08-23T09:00:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\09-code-review.md",
+                     "label":  "code-review",
+                     "addedAt":  "2026-08-23T09:00:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-acceptance-summary.json",
+                     "label":  "story-final-report",
+                     "addedAt":  "2026-08-23T09:00:55",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\report-integrity.md",
+                     "label":  "report-integrity",
+                     "addedAt":  "2026-08-23T09:00:56",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                     "label":  "run-all",
+                     "addedAt":  "2026-08-23T09:00:56",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-23T09:01:22",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                     "label":  "requirement-coverage",
+                     "addedAt":  "2026-08-23T09:01:24",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-target.json",
+                     "label":  "requirement-verifier",
+                     "addedAt":  "2026-08-23T09:01:25",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates.json",
+                     "label":  "story-extract",
+                     "addedAt":  "2026-08-23T09:01:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "label":  "story-curation",
+                     "addedAt":  "2026-08-23T09:01:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-target.json",
+                     "label":  "story-normalize",
+                     "addedAt":  "2026-08-23T09:01:27",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-test-matrix.json",
+                     "label":  "story-test-generate",
+                     "addedAt":  "2026-08-23T09:01:28",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-materialized-tests.json",
+                     "label":  "story-test-materialize",
+                     "addedAt":  "2026-08-23T09:01:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\generated-route-smoke.log",
+                     "label":  "generated-story:route-smoke",
+                     "addedAt":  "2026-08-23T09:01:34",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\generated-api-smoke.log",
+                     "label":  "generated-story:api-smoke",
+                     "addedAt":  "2026-08-23T09:01:34",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "label":  "generated-story-tests",
+                     "addedAt":  "2026-08-23T09:01:35",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-quality-gate.json",
+                     "label":  "story-quality-gate",
+                     "addedAt":  "2026-08-23T09:01:35",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-status.json",
+                     "label":  "story-verifier",
+                     "addedAt":  "2026-08-23T09:01:36",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:01:39",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-capture.log",
+                     "label":  "default UI capture log",
+                     "addedAt":  "2026-08-23T09:01:39",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\ui-candidates.json",
+                     "label":  "ui-capture",
+                     "addedAt":  "2026-08-23T09:01:40",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:01:43",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "label":  "UI pixel diff log",
+                     "addedAt":  "2026-08-23T09:01:44",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:01:45",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\visual-diff-report.md",
+                     "label":  "ui-verifier",
+                     "addedAt":  "2026-08-23T09:01:45",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-verifier",
+                     "addedAt":  "2026-08-23T09:01:46",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                     "label":  "full-flow-smoke",
+                     "addedAt":  "2026-08-23T09:01:51",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                     "label":  "e2e-flow",
+                     "addedAt":  "2026-08-23T09:01:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-requirements",
+                     "addedAt":  "2026-08-23T09:01:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:01:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\comparison\\round-001.json",
+                     "label":  "acceptance-compare",
+                     "addedAt":  "2026-08-23T09:01:54",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-acceptance-summary.json",
+                     "label":  "story-final-report",
+                     "addedAt":  "2026-08-23T09:01:55",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\repair-plan.md",
+                     "label":  "gap-repair",
+                     "addedAt":  "2026-08-23T09:01:57",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\00-environment-snapshot.md",
+                     "label":  "collect-env",
+                     "addedAt":  "2026-08-23T09:09:15",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:09:19",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\git-status.md",
+                     "label":  "collect-git-status",
+                     "addedAt":  "2026-08-23T09:09:20",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                     "label":  "adapter-detect",
+                     "addedAt":  "2026-08-23T09:09:21",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirements-candidates",
+                     "addedAt":  "2026-08-23T09:09:23",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirement-extract",
+                     "addedAt":  "2026-08-23T09:09:23",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates.json",
+                     "label":  "story-extract",
+                     "addedAt":  "2026-08-23T09:09:24",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                     "label":  "plan-fullstack-delivery",
+                     "addedAt":  "2026-08-23T09:09:25",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-23T09:09:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                     "label":  "requirement-coverage",
+                     "addedAt":  "2026-08-23T09:09:28",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-target.json",
+                     "label":  "requirement-verifier",
+                     "addedAt":  "2026-08-23T09:09:29",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "label":  "story-curation",
+                     "addedAt":  "2026-08-23T09:09:30",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-target.json",
+                     "label":  "story-normalize",
+                     "addedAt":  "2026-08-23T09:09:31",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-test-matrix.json",
+                     "label":  "story-test-generate",
+                     "addedAt":  "2026-08-23T09:09:32",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-materialized-tests.json",
+                     "label":  "story-test-materialize",
+                     "addedAt":  "2026-08-23T09:09:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "label":  "generated-story-tests",
+                     "addedAt":  "2026-08-23T09:09:39",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-quality-gate.json",
+                     "label":  "story-quality-gate",
+                     "addedAt":  "2026-08-23T09:09:40",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-status.json",
+                     "label":  "story-verifier",
+                     "addedAt":  "2026-08-23T09:09:41",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\06-scope-classification.md",
+                     "label":  "scope-classification",
+                     "addedAt":  "2026-08-23T09:09:42",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\00-environment-snapshot.md",
+                     "label":  "collect-env",
+                     "addedAt":  "2026-08-23T09:14:44",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:14:48",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\git-status.md",
+                     "label":  "collect-git-status",
+                     "addedAt":  "2026-08-23T09:14:49",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                     "label":  "adapter-detect",
+                     "addedAt":  "2026-08-23T09:14:50",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirements-candidates",
+                     "addedAt":  "2026-08-23T09:14:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-candidates.json",
+                     "label":  "requirement-extract",
+                     "addedAt":  "2026-08-23T09:14:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates.json",
+                     "label":  "story-extract",
+                     "addedAt":  "2026-08-23T09:14:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                     "label":  "plan-fullstack-delivery",
+                     "addedAt":  "2026-08-23T09:14:54",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-23T09:14:56",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                     "label":  "requirement-coverage",
+                     "addedAt":  "2026-08-23T09:14:57",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-target.json",
+                     "label":  "requirement-verifier",
+                     "addedAt":  "2026-08-23T09:14:59",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "label":  "story-curation",
+                     "addedAt":  "2026-08-23T09:15:00",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-target.json",
+                     "label":  "story-normalize",
+                     "addedAt":  "2026-08-23T09:15:01",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-test-matrix.json",
+                     "label":  "story-test-generate",
+                     "addedAt":  "2026-08-23T09:15:02",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-materialized-tests.json",
+                     "label":  "story-test-materialize",
+                     "addedAt":  "2026-08-23T09:15:04",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "label":  "generated-story-tests",
+                     "addedAt":  "2026-08-23T09:15:09",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-quality-gate.json",
+                     "label":  "story-quality-gate",
+                     "addedAt":  "2026-08-23T09:15:11",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-status.json",
+                     "label":  "story-verifier",
+                     "addedAt":  "2026-08-23T09:15:12",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\06-scope-classification.md",
+                     "label":  "scope-classification",
+                     "addedAt":  "2026-08-23T09:15:14",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\architecture-guard.md",
+                     "label":  "architecture-guard",
+                     "addedAt":  "2026-08-23T09:16:20",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\contract-discovery.json",
+                     "label":  "contract",
+                     "addedAt":  "2026-08-23T09:16:24",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-map",
+                     "addedAt":  "2026-08-23T09:16:24",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\frontend-test.json",
+                     "label":  "frontend-test",
+                     "addedAt":  "2026-08-23T09:16:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-build.log",
+                     "label":  "backend:build",
+                     "addedAt":  "2026-08-23T09:16:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-build.log",
+                     "label":  "backend:build",
+                     "addedAt":  "2026-08-23T09:16:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-test.log",
+                     "label":  "backend:test",
+                     "addedAt":  "2026-08-23T09:16:42",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\backend-test.log",
+                     "label":  "backend:test",
+                     "addedAt":  "2026-08-23T09:16:42",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\backend-test.json",
+                     "label":  "backend-test",
+                     "addedAt":  "2026-08-23T09:16:43",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-verifier",
+                     "addedAt":  "2026-08-23T09:16:44",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:16:48",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-capture.log",
+                     "label":  "default UI capture log",
+                     "addedAt":  "2026-08-23T09:16:49",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\ui-candidates.json",
+                     "label":  "ui-capture",
+                     "addedAt":  "2026-08-23T09:16:49",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:16:52",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "label":  "UI pixel diff log",
+                     "addedAt":  "2026-08-23T09:16:52",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:16:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\visual-diff-report.md",
+                     "label":  "ui-verifier",
+                     "addedAt":  "2026-08-23T09:16:53",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                     "label":  "e2e-flow",
+                     "addedAt":  "2026-08-23T09:16:59",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\db-e2e.json",
+                     "label":  "db-e2e",
+                     "addedAt":  "2026-08-23T09:17:00",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\error-summary.md",
+                     "label":  "summarize-errors",
+                     "addedAt":  "2026-08-23T09:17:01",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\09-code-review.md",
+                     "label":  "code-review",
+                     "addedAt":  "2026-08-23T09:17:02",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-acceptance-summary.json",
+                     "label":  "story-final-report",
+                     "addedAt":  "2026-08-23T09:17:04",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\summaries\\report-integrity.md",
+                     "label":  "report-integrity",
+                     "addedAt":  "2026-08-23T09:17:05",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                     "label":  "run-all",
+                     "addedAt":  "2026-08-23T09:17:05",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-section-map.json",
+                     "label":  "requirement-section-map",
+                     "addedAt":  "2026-08-23T09:17:07",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                     "label":  "requirement-coverage",
+                     "addedAt":  "2026-08-23T09:17:08",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\requirement-target.json",
+                     "label":  "requirement-verifier",
+                     "addedAt":  "2026-08-23T09:17:09",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates.json",
+                     "label":  "story-extract",
+                     "addedAt":  "2026-08-23T09:17:09",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "label":  "story-curation",
+                     "addedAt":  "2026-08-23T09:17:10",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-target.json",
+                     "label":  "story-normalize",
+                     "addedAt":  "2026-08-23T09:17:11",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-test-matrix.json",
+                     "label":  "story-test-generate",
+                     "addedAt":  "2026-08-23T09:17:12",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-materialized-tests.json",
+                     "label":  "story-test-materialize",
+                     "addedAt":  "2026-08-23T09:17:12",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "label":  "generated-story-tests",
+                     "addedAt":  "2026-08-23T09:17:18",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-quality-gate.json",
+                     "label":  "story-quality-gate",
+                     "addedAt":  "2026-08-23T09:17:18",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-status.json",
+                     "label":  "story-verifier",
+                     "addedAt":  "2026-08-23T09:17:19",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:17:22",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-capture.log",
+                     "label":  "default UI capture log",
+                     "addedAt":  "2026-08-23T09:17:22",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\ui-candidates.json",
+                     "label":  "ui-capture",
+                     "addedAt":  "2026-08-23T09:17:22",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                     "label":  "verifier-dependencies",
+                     "addedAt":  "2026-08-23T09:17:25",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "label":  "UI pixel diff log",
+                     "addedAt":  "2026-08-23T09:17:25",
+                     "exists":  false
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:17:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\visual-diff-report.md",
+                     "label":  "ui-verifier",
+                     "addedAt":  "2026-08-23T09:17:26",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\contract-map.json",
+                     "label":  "contract-verifier",
+                     "addedAt":  "2026-08-23T09:17:27",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                     "label":  "e2e-flow",
+                     "addedAt":  "2026-08-23T09:17:32",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-requirements",
+                     "addedAt":  "2026-08-23T09:17:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\gap-list.json",
+                     "label":  "compare-ui",
+                     "addedAt":  "2026-08-23T09:17:33",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\comparison\\round-002.json",
+                     "label":  "acceptance-compare",
+                     "addedAt":  "2026-08-23T09:17:34",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\story-acceptance-summary.json",
+                     "label":  "story-final-report",
+                     "addedAt":  "2026-08-23T09:17:34",
+                     "exists":  true
+                 },
+                 {
+                     "path":  "docs\\auto-execute\\repair-plan.md",
+                     "label":  "gap-repair",
+                     "addedAt":  "2026-08-23T09:17:37",
                      "exists":  true
                  }
              ],
@@ -201,6 +1309,1068 @@
                       "path":  "docs\\auto-execute\\results\\secret-guard.json",
                       "label":  "secret-guard result",
                       "addedAt":  "2026-08-22T22:15:21",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-23T08:51:43",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\report-integrity.json",
+                      "label":  "report-integrity result",
+                      "addedAt":  "2026-08-23T08:51:44",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-23T08:53:28",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\scope-classification.json",
+                      "label":  "scope-classification result",
+                      "addedAt":  "2026-08-23T08:53:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\final-gate.json",
+                      "label":  "final-gate result",
+                      "addedAt":  "2026-08-23T08:53:39",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-23T08:56:04",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\environment.json",
+                      "label":  "environment result",
+                      "addedAt":  "2026-08-23T08:58:20",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T08:58:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\git-status.json",
+                      "label":  "git-status result",
+                      "addedAt":  "2026-08-23T08:58:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                      "label":  "adapter-detect result",
+                      "addedAt":  "2026-08-23T08:58:27",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-candidates.json",
+                      "label":  "requirement candidates",
+                      "addedAt":  "2026-08-23T08:58:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-target.json",
+                      "label":  "requirement target",
+                      "addedAt":  "2026-08-23T08:58:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements-candidates.json",
+                      "label":  "requirements-candidates result",
+                      "addedAt":  "2026-08-23T08:58:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-extract.json",
+                      "label":  "requirement-extract result",
+                      "addedAt":  "2026-08-23T08:58:30",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\story-candidates.json",
+                      "label":  "story candidates",
+                      "addedAt":  "2026-08-23T08:58:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-extract.json",
+                      "label":  "story-extract result",
+                      "addedAt":  "2026-08-23T08:58:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements.json",
+                      "label":  "requirements result",
+                      "addedAt":  "2026-08-23T08:58:33",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-23T08:58:35",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                      "label":  "requirement-coverage result",
+                      "addedAt":  "2026-08-23T08:58:37",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-verifier.json",
+                      "label":  "requirement-verifier result",
+                      "addedAt":  "2026-08-23T08:58:38",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-curation.json",
+                      "label":  "story-curation result",
+                      "addedAt":  "2026-08-23T08:58:40",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-normalize.json",
+                      "label":  "story-normalize result",
+                      "addedAt":  "2026-08-23T08:58:42",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-generate.json",
+                      "label":  "story-test-generate result",
+                      "addedAt":  "2026-08-23T08:58:43",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-materialize.json",
+                      "label":  "story-test-materialize result",
+                      "addedAt":  "2026-08-23T08:58:45",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                      "label":  "generated-story-tests result",
+                      "addedAt":  "2026-08-23T08:58:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-quality-gate.json",
+                      "label":  "story-quality-gate result",
+                      "addedAt":  "2026-08-23T08:58:54",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-verifier.json",
+                      "label":  "story-verifier result",
+                      "addedAt":  "2026-08-23T08:58:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\scope-classification.json",
+                      "label":  "scope-classification result",
+                      "addedAt":  "2026-08-23T08:58:57",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\architecture-guard.json",
+                      "label":  "architecture-guard result",
+                      "addedAt":  "2026-08-23T09:00:06",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-23T09:00:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-map.json",
+                      "label":  "contract-map result",
+                      "addedAt":  "2026-08-23T09:00:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\frontend.json",
+                      "label":  "frontend result",
+                      "addedAt":  "2026-08-23T09:00:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\frontend-test.json",
+                      "label":  "frontend-test result",
+                      "addedAt":  "2026-08-23T09:00:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend.json",
+                      "label":  "backend result",
+                      "addedAt":  "2026-08-23T09:00:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend-test.json",
+                      "label":  "backend-test result",
+                      "addedAt":  "2026-08-23T09:00:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-verifier.json",
+                      "label":  "contract-verifier result",
+                      "addedAt":  "2026-08-23T09:00:31",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\api-smoke.json",
+                      "label":  "api-smoke result",
+                      "addedAt":  "2026-08-23T09:00:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:00:36",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                      "label":  "ui-capture result",
+                      "addedAt":  "2026-08-23T09:00:36",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:00:41",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:00:42",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-verifier.json",
+                      "label":  "ui-verifier result",
+                      "addedAt":  "2026-08-23T09:00:43",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\integration.json",
+                      "label":  "integration result",
+                      "addedAt":  "2026-08-23T09:00:49",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                      "label":  "e2e-flow result",
+                      "addedAt":  "2026-08-23T09:00:49",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\db-e2e.json",
+                      "label":  "db-e2e result",
+                      "addedAt":  "2026-08-23T09:00:50",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\repair.json",
+                      "label":  "repair result",
+                      "addedAt":  "2026-08-23T09:00:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\code-review.json",
+                      "label":  "code-review result",
+                      "addedAt":  "2026-08-23T09:00:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-final-report.json",
+                      "label":  "story-final-report result",
+                      "addedAt":  "2026-08-23T09:00:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\report-integrity.json",
+                      "label":  "report-integrity result",
+                      "addedAt":  "2026-08-23T09:00:56",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\run-all.json",
+                      "label":  "run-all result",
+                      "addedAt":  "2026-08-23T09:00:56",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-23T09:01:22",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                      "label":  "requirement-coverage result",
+                      "addedAt":  "2026-08-23T09:01:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-verifier.json",
+                      "label":  "requirement-verifier result",
+                      "addedAt":  "2026-08-23T09:01:25",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\story-candidates.json",
+                      "label":  "story candidates",
+                      "addedAt":  "2026-08-23T09:01:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-extract.json",
+                      "label":  "story-extract result",
+                      "addedAt":  "2026-08-23T09:01:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-curation.json",
+                      "label":  "story-curation result",
+                      "addedAt":  "2026-08-23T09:01:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-normalize.json",
+                      "label":  "story-normalize result",
+                      "addedAt":  "2026-08-23T09:01:27",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-generate.json",
+                      "label":  "story-test-generate result",
+                      "addedAt":  "2026-08-23T09:01:28",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-materialize.json",
+                      "label":  "story-test-materialize result",
+                      "addedAt":  "2026-08-23T09:01:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                      "label":  "generated-story-tests result",
+                      "addedAt":  "2026-08-23T09:01:35",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-quality-gate.json",
+                      "label":  "story-quality-gate result",
+                      "addedAt":  "2026-08-23T09:01:35",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-verifier.json",
+                      "label":  "story-verifier result",
+                      "addedAt":  "2026-08-23T09:01:36",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:01:39",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                      "label":  "ui-capture result",
+                      "addedAt":  "2026-08-23T09:01:40",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:01:43",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:01:45",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-verifier.json",
+                      "label":  "ui-verifier result",
+                      "addedAt":  "2026-08-23T09:01:45",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-verifier.json",
+                      "label":  "contract-verifier result",
+                      "addedAt":  "2026-08-23T09:01:46",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\integration.json",
+                      "label":  "integration result",
+                      "addedAt":  "2026-08-23T09:01:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                      "label":  "e2e-flow result",
+                      "addedAt":  "2026-08-23T09:01:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-requirements.json",
+                      "label":  "compare-requirements result",
+                      "addedAt":  "2026-08-23T09:01:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:01:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\comparison\\round-001.json",
+                      "label":  "acceptance comparison round-001",
+                      "addedAt":  "2026-08-23T09:01:54",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\comparison\\round-001.md",
+                      "label":  "acceptance comparison round-001 report",
+                      "addedAt":  "2026-08-23T09:01:54",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\acceptance-compare.json",
+                      "label":  "acceptance-compare result",
+                      "addedAt":  "2026-08-23T09:01:54",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-final-report.json",
+                      "label":  "story-final-report result",
+                      "addedAt":  "2026-08-23T09:01:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\gap-closure-log.md",
+                      "label":  "gap closure log",
+                      "addedAt":  "2026-08-23T09:01:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                      "label":  "convergence round 1",
+                      "addedAt":  "2026-08-23T09:01:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\gap-repair.json",
+                      "label":  "gap-repair result",
+                      "addedAt":  "2026-08-23T09:01:57",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\todo-export.json",
+                      "label":  "todo-export result",
+                      "addedAt":  "2026-08-23T09:01:59",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-23T09:04:55",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\environment.json",
+                      "label":  "environment result",
+                      "addedAt":  "2026-08-23T09:09:16",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:09:19",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\git-status.json",
+                      "label":  "git-status result",
+                      "addedAt":  "2026-08-23T09:09:20",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                      "label":  "adapter-detect result",
+                      "addedAt":  "2026-08-23T09:09:21",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-candidates.json",
+                      "label":  "requirement candidates",
+                      "addedAt":  "2026-08-23T09:09:22",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-target.json",
+                      "label":  "requirement target",
+                      "addedAt":  "2026-08-23T09:09:22",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements-candidates.json",
+                      "label":  "requirements-candidates result",
+                      "addedAt":  "2026-08-23T09:09:23",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-extract.json",
+                      "label":  "requirement-extract result",
+                      "addedAt":  "2026-08-23T09:09:23",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\story-candidates.json",
+                      "label":  "story candidates",
+                      "addedAt":  "2026-08-23T09:09:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-extract.json",
+                      "label":  "story-extract result",
+                      "addedAt":  "2026-08-23T09:09:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements.json",
+                      "label":  "requirements result",
+                      "addedAt":  "2026-08-23T09:09:25",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-23T09:09:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                      "label":  "requirement-coverage result",
+                      "addedAt":  "2026-08-23T09:09:28",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-verifier.json",
+                      "label":  "requirement-verifier result",
+                      "addedAt":  "2026-08-23T09:09:29",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-curation.json",
+                      "label":  "story-curation result",
+                      "addedAt":  "2026-08-23T09:09:30",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-normalize.json",
+                      "label":  "story-normalize result",
+                      "addedAt":  "2026-08-23T09:09:31",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-generate.json",
+                      "label":  "story-test-generate result",
+                      "addedAt":  "2026-08-23T09:09:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-materialize.json",
+                      "label":  "story-test-materialize result",
+                      "addedAt":  "2026-08-23T09:09:33",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                      "label":  "generated-story-tests result",
+                      "addedAt":  "2026-08-23T09:09:39",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-quality-gate.json",
+                      "label":  "story-quality-gate result",
+                      "addedAt":  "2026-08-23T09:09:40",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-verifier.json",
+                      "label":  "story-verifier result",
+                      "addedAt":  "2026-08-23T09:09:41",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\scope-classification.json",
+                      "label":  "scope-classification result",
+                      "addedAt":  "2026-08-23T09:09:42",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-23T09:12:11",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\environment.json",
+                      "label":  "environment result",
+                      "addedAt":  "2026-08-23T09:14:44",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:14:48",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\git-status.json",
+                      "label":  "git-status result",
+                      "addedAt":  "2026-08-23T09:14:49",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\adapter-detect.json",
+                      "label":  "adapter-detect result",
+                      "addedAt":  "2026-08-23T09:14:50",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-candidates.json",
+                      "label":  "requirement candidates",
+                      "addedAt":  "2026-08-23T09:14:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\requirement-target.json",
+                      "label":  "requirement target",
+                      "addedAt":  "2026-08-23T09:14:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements-candidates.json",
+                      "label":  "requirements-candidates result",
+                      "addedAt":  "2026-08-23T09:14:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-extract.json",
+                      "label":  "requirement-extract result",
+                      "addedAt":  "2026-08-23T09:14:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\story-candidates.json",
+                      "label":  "story candidates",
+                      "addedAt":  "2026-08-23T09:14:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-extract.json",
+                      "label":  "story-extract result",
+                      "addedAt":  "2026-08-23T09:14:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirements.json",
+                      "label":  "requirements result",
+                      "addedAt":  "2026-08-23T09:14:54",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-23T09:14:56",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                      "label":  "requirement-coverage result",
+                      "addedAt":  "2026-08-23T09:14:57",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-verifier.json",
+                      "label":  "requirement-verifier result",
+                      "addedAt":  "2026-08-23T09:14:59",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-curation.json",
+                      "label":  "story-curation result",
+                      "addedAt":  "2026-08-23T09:15:00",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-normalize.json",
+                      "label":  "story-normalize result",
+                      "addedAt":  "2026-08-23T09:15:01",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-generate.json",
+                      "label":  "story-test-generate result",
+                      "addedAt":  "2026-08-23T09:15:02",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-materialize.json",
+                      "label":  "story-test-materialize result",
+                      "addedAt":  "2026-08-23T09:15:04",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                      "label":  "generated-story-tests result",
+                      "addedAt":  "2026-08-23T09:15:09",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-quality-gate.json",
+                      "label":  "story-quality-gate result",
+                      "addedAt":  "2026-08-23T09:15:11",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-verifier.json",
+                      "label":  "story-verifier result",
+                      "addedAt":  "2026-08-23T09:15:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\scope-classification.json",
+                      "label":  "scope-classification result",
+                      "addedAt":  "2026-08-23T09:15:14",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\architecture-guard.json",
+                      "label":  "architecture-guard result",
+                      "addedAt":  "2026-08-23T09:16:20",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract.json",
+                      "label":  "contract result",
+                      "addedAt":  "2026-08-23T09:16:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-map.json",
+                      "label":  "contract-map result",
+                      "addedAt":  "2026-08-23T09:16:24",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\frontend.json",
+                      "label":  "frontend result",
+                      "addedAt":  "2026-08-23T09:16:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\frontend-test.json",
+                      "label":  "frontend-test result",
+                      "addedAt":  "2026-08-23T09:16:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend.json",
+                      "label":  "backend result",
+                      "addedAt":  "2026-08-23T09:16:42",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\backend-test.json",
+                      "label":  "backend-test result",
+                      "addedAt":  "2026-08-23T09:16:42",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-verifier.json",
+                      "label":  "contract-verifier result",
+                      "addedAt":  "2026-08-23T09:16:44",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\api-smoke.json",
+                      "label":  "api-smoke result",
+                      "addedAt":  "2026-08-23T09:16:45",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:16:48",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                      "label":  "ui-capture result",
+                      "addedAt":  "2026-08-23T09:16:49",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:16:52",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:16:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-verifier.json",
+                      "label":  "ui-verifier result",
+                      "addedAt":  "2026-08-23T09:16:53",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                      "label":  "e2e-flow result",
+                      "addedAt":  "2026-08-23T09:16:59",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\db-e2e.json",
+                      "label":  "db-e2e result",
+                      "addedAt":  "2026-08-23T09:17:00",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\repair.json",
+                      "label":  "repair result",
+                      "addedAt":  "2026-08-23T09:17:01",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\code-review.json",
+                      "label":  "code-review result",
+                      "addedAt":  "2026-08-23T09:17:02",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-final-report.json",
+                      "label":  "story-final-report result",
+                      "addedAt":  "2026-08-23T09:17:04",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\report-integrity.json",
+                      "label":  "report-integrity result",
+                      "addedAt":  "2026-08-23T09:17:05",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\run-all.json",
+                      "label":  "run-all result",
+                      "addedAt":  "2026-08-23T09:17:05",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-section-map.json",
+                      "label":  "requirement-section-map result",
+                      "addedAt":  "2026-08-23T09:17:06",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-coverage.json",
+                      "label":  "requirement-coverage result",
+                      "addedAt":  "2026-08-23T09:17:08",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\requirement-verifier.json",
+                      "label":  "requirement-verifier result",
+                      "addedAt":  "2026-08-23T09:17:09",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\story-candidates.json",
+                      "label":  "story candidates",
+                      "addedAt":  "2026-08-23T09:17:09",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-extract.json",
+                      "label":  "story-extract result",
+                      "addedAt":  "2026-08-23T09:17:09",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-curation.json",
+                      "label":  "story-curation result",
+                      "addedAt":  "2026-08-23T09:17:10",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-normalize.json",
+                      "label":  "story-normalize result",
+                      "addedAt":  "2026-08-23T09:17:11",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-generate.json",
+                      "label":  "story-test-generate result",
+                      "addedAt":  "2026-08-23T09:17:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-test-materialize.json",
+                      "label":  "story-test-materialize result",
+                      "addedAt":  "2026-08-23T09:17:12",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\generated-story-tests.json",
+                      "label":  "generated-story-tests result",
+                      "addedAt":  "2026-08-23T09:17:17",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-quality-gate.json",
+                      "label":  "story-quality-gate result",
+                      "addedAt":  "2026-08-23T09:17:18",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-verifier.json",
+                      "label":  "story-verifier result",
+                      "addedAt":  "2026-08-23T09:17:19",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:17:22",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-capture.json",
+                      "label":  "ui-capture result",
+                      "addedAt":  "2026-08-23T09:17:22",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\verifier-dependencies.json",
+                      "label":  "verifier-dependencies result",
+                      "addedAt":  "2026-08-23T09:17:25",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:17:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\ui-verifier.json",
+                      "label":  "ui-verifier result",
+                      "addedAt":  "2026-08-23T09:17:26",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\contract-verifier.json",
+                      "label":  "contract-verifier result",
+                      "addedAt":  "2026-08-23T09:17:27",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\e2e-flow.json",
+                      "label":  "e2e-flow result",
+                      "addedAt":  "2026-08-23T09:17:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-requirements.json",
+                      "label":  "compare-requirements result",
+                      "addedAt":  "2026-08-23T09:17:32",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\compare-ui.json",
+                      "label":  "compare-ui result",
+                      "addedAt":  "2026-08-23T09:17:33",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\comparison\\round-002.json",
+                      "label":  "acceptance comparison round-002",
+                      "addedAt":  "2026-08-23T09:17:34",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\comparison\\round-002.md",
+                      "label":  "acceptance comparison round-002 report",
+                      "addedAt":  "2026-08-23T09:17:34",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\acceptance-compare.json",
+                      "label":  "acceptance-compare result",
+                      "addedAt":  "2026-08-23T09:17:34",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\story-final-report.json",
+                      "label":  "story-final-report result",
+                      "addedAt":  "2026-08-23T09:17:34",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\gap-closure-log.md",
+                      "label":  "gap closure log",
+                      "addedAt":  "2026-08-23T09:17:35",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                      "label":  "convergence round 1",
+                      "addedAt":  "2026-08-23T09:17:35",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\gap-repair.json",
+                      "label":  "gap-repair result",
+                      "addedAt":  "2026-08-23T09:17:37",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\todo-export.json",
+                      "label":  "todo-export result",
+                      "addedAt":  "2026-08-23T09:17:38",
+                      "exists":  true
+                  },
+                  {
+                      "path":  "docs\\auto-execute\\results\\secret-guard.json",
+                      "label":  "secret-guard result",
+                      "addedAt":  "2026-08-23T11:11:28",
                       "exists":  true
                   }
               ]

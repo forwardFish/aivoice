@@ -1,10 +1,11 @@
 ﻿{
-    "note":  "No requirements auto-extracted. Agent must fill from PRD/docs.",
+    "note":  "Coverage candidates are not final requirements. Normalize into requirement-target.json before final PASS.",
     "sourceDocuments":  [
-                            "docs\\technical_voice_clone_spike_scope.md"
+                            "docs\\cloudbase-production-refactor-requirements.md"
                         ],
-    "generatedAt":  "2026-08-21T12:57:10",
+    "generatedAt":  "2026-08-23T09:17:08",
     "ignoredReferences":  [
+                              "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
                               "docs\\auto-execute\\00-environment-snapshot.md",
                               "docs\\auto-execute\\00-goal.md",
                               "docs\\auto-execute\\00-project-intake.md",
@@ -37,6 +38,7 @@
                               "docs\\auto-execute\\08-test-matrix.md",
                               "docs\\auto-execute\\09-code-review.md",
                               "docs\\auto-execute\\10-agent-mistake-log.md",
+                              "docs\\auto-execute\\11-final-acceptance-report.md",
                               "docs\\auto-execute\\11-harness-improvement-log.md",
                               "docs\\auto-execute\\12-fullstack-delivery-plan.md",
                               "docs\\auto-execute\\13-frontend-backend-contract-map.md",
@@ -48,9 +50,16 @@
                               "docs\\auto-execute\\AGENT_READABILITY.md",
                               "docs\\auto-execute\\agent-orchestration.md",
                               "docs\\auto-execute\\blockers.md",
+                              "docs\\auto-execute\\CLOUDBASE_REFACTOR_TEST_PLAN.md",
+                              "docs\\auto-execute\\CLOUDBASE_REST_RPC_ARCHITECTURE.md",
+                              "docs\\auto-execute\\comparison\\round-001.md",
+                              "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                              "docs\\auto-execute\\FINAL_ACCEPTANCE_STATUS.md",
                               "docs\\auto-execute\\final-convergence-report.md",
                               "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\FUNCTIONAL_CLOSURE_ACCEPTANCE.md",
                               "docs\\auto-execute\\gap-closure-log.md",
+                              "docs\\auto-execute\\gap-list.md",
                               "docs\\auto-execute\\GOLDEN_RULES.md",
                               "docs\\auto-execute\\harness-repair-plan.md",
                               "docs\\auto-execute\\harness-self-eval-report.md",
@@ -62,16 +71,533 @@
                               "docs\\auto-execute\\latest\\run-id.txt",
                               "docs\\auto-execute\\latest\\verification-results.md",
                               "docs\\auto-execute\\next-agent-action.md",
+                              "docs\\auto-execute\\POINTS_FLOW_ACCEPTANCE.md",
                               "docs\\auto-execute\\progress.md",
                               "docs\\auto-execute\\QUALITY_GATES.md",
+                              "docs\\auto-execute\\repair-plan.md",
                               "docs\\auto-execute\\STATUS_SEMANTICS.md",
+                              "docs\\auto-execute\\summaries\\api-smoke.md",
+                              "docs\\auto-execute\\summaries\\architecture-guard.md",
+                              "docs\\auto-execute\\summaries\\error-summary.md",
+                              "docs\\auto-execute\\summaries\\git-status.md",
+                              "docs\\auto-execute\\summaries\\report-integrity.md",
+                              "docs\\auto-execute\\summaries\\requirement-coverage.md",
+                              "docs\\auto-execute\\summaries\\secret-guard.md",
                               "docs\\auto-execute\\UI_REFERENCE_INVENTORY.md",
                               "docs\\auto-execute\\verification-results.md",
-                              "docs\\auto-execute\\visual-diff-report.md"
+                              "docs\\auto-execute\\visual-diff-report.md",
+                              "docs\\backup\\past_child_voice_wechat_mvp_prd_v0.2.md"
                           ],
     "schemaVersion":  "2.0",
     "candidates":  [
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-001",
+                           "evidence":  [
 
+                                        ],
+                           "description":  "an on-demand Cloud Function Worker.",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P2"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-002",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "2. Production must not start embedded PostgreSQL",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P0"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-003",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "3. The pre-refactor implementation must remain recoverable from a dedicated local",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P0"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-004",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P2"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-005",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "uploads reference/preview/generated audio.",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P2"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-006",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "4. API or function restart must not lose point",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P0"
+                       },
+                       {
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "normalized":  false,
+                           "id":  "REQ-007",
+                           "evidence":  [
+
+                                        ],
+                           "description":  "## Acceptance evidence",
+                           "surface":  "",
+                           "acceptance":  [
+
+                                          ],
+                           "status":  "CANDIDATE",
+                           "priority":  "P2"
+                       },
+                       {
+                           "id":  "COV-001",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "CloudBase Production Refactor Requirements",
+                           "sourceLine":  1,
+                           "description":  "CloudBase Production Refactor Requirements",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-002",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P0 Architecture",
+                           "sourceLine":  3,
+                           "description":  "P0 Architecture",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-003",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                           "sourceLine":  5,
+                           "description":  "Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-004",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.",
+                           "sourceLine":  6,
+                           "description":  "Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-005",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.",
+                           "sourceLine":  7,
+                           "description":  "The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-006",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P0 Database and points",
+                           "sourceLine":  9,
+                           "description":  "P0 Database and points",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-007",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "New registration grants 10 account points exactly once.",
+                           "sourceLine":  11,
+                           "description":  "New registration grants 10 account points exactly once.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-008",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.",
+                           "sourceLine":  12,
+                           "description":  "Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-009",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Transactional operations use PostgreSQL RPC and roll back atomically.",
+                           "sourceLine":  13,
+                           "description":  "Transactional operations use PostgreSQL RPC and roll back atomically.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-010",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                           "sourceLine":  14,
+                           "description":  "The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-011",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P0 WeChat Pay",
+                           "sourceLine":  16,
+                           "description":  "P0 WeChat Pay",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-012",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                           "sourceLine":  18,
+                           "description":  "JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-013",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                           "sourceLine":  19,
+                           "description":  "The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-014",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Callback and active order refresh converge on one payment RPC.",
+                           "sourceLine":  20,
+                           "description":  "Callback and active order refresh converge on one payment RPC.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-015",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                           "sourceLine":  21,
+                           "description":  "Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-016",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P0 Media and voice",
+                           "sourceLine":  23,
+                           "description":  "P0 Media and voice",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-017",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                           "sourceLine":  25,
+                           "description":  "Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-018",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                           "sourceLine":  26,
+                           "description":  "Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-019",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Private playback requires server authorization and a short-lived signed download URL.",
+                           "sourceLine":  27,
+                           "description":  "Private playback requires server authorization and a short-lived signed download URL.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-020",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Provider voice identifiers are encrypted at rest.",
+                           "sourceLine":  28,
+                           "description":  "Provider voice identifiers are encrypted at rest.",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-021",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P0 Job and deletion lifecycle",
+                           "sourceLine":  30,
+                           "description":  "P0 Job and deletion lifecycle",
+                           "priority":  "P0",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-022",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "API requests return without waiting for FFmpeg or model work.",
+                           "sourceLine":  32,
+                           "description":  "API requests return without waiting for FFmpeg or model work.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-023",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Durable jobs use leases, heartbeat, retry and duplicate-claim protection.",
+                           "sourceLine":  33,
+                           "description":  "Durable jobs use leases, heartbeat, retry and duplicate-claim protection.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-024",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                           "sourceLine":  34,
+                           "description":  "Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-025",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "API or function restart must not lose point, payment or job state.",
+                           "sourceLine":  35,
+                           "description":  "API or function restart must not lose point, payment or job state.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-026",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "P1 Product surfaces",
+                           "sourceLine":  37,
+                           "description":  "P1 Product surfaces",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-027",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.",
+                           "sourceLine":  39,
+                           "description":  "Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-028",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "SELF, OTHER and MINOR authorization types remain supported.",
+                           "sourceLine":  40,
+                           "description":  "SELF, OTHER and MINOR authorization types remain supported.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-029",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Invitation rewards and a visual operations admin remain deferred.",
+                           "sourceLine":  41,
+                           "description":  "Invitation rewards and a visual operations admin remain deferred.",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-030",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "Acceptance evidence",
+                           "sourceLine":  43,
+                           "description":  "Acceptance evidence",
+                           "priority":  "P1",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "id":  "COV-031",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceSection":  "External launch gates",
+                           "sourceLine":  52,
+                           "description":  "External launch gates",
+                           "priority":  "P2",
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       }
                    ],
-    "status":  "MANUAL_REVIEW_REQUIRED"
+    "status":  "CANDIDATE"
 }

@@ -1,0 +1,36 @@
+﻿{
+    "blockers":  [
+                     "Default Playwright capture could not fully automate screenshots. Check docs/auto-execute/results/ui-capture.json."
+                 ],
+    "commands":  [
+                     {
+                         "status":  "PASS_WITH_LIMITATION",
+                         "command":  "node scripts/acceptance/capture-ui.mjs --project-root \"D:\\lyh\\agent\\agent-frame\\aivoice\" --base-url http://127.0.0.1:3000",
+                         "log":  "docs\\auto-execute\\logs\\ui-capture.log"
+                     }
+                 ],
+    "lane":  "ui-capture",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\ui-candidates.json",
+                     "docs\\auto-execute\\ui-target.json",
+                     "docs\\auto-execute\\screenshots"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Map references and actual screenshots into ui-target.json; do not claim UI alignment without actual visual evidence.",
+                        "UI mapping priority: harness.yml uiMapping, UIReferences auto discovery, filename guess, manual review."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:22",
+    "baseUrl":  "http://127.0.0.1:3000",
+    "viewports":  [
+                      "desktop:1536x900",
+                      "mobile:390x844"
+                  ],
+    "screenshots":  [
+
+                    ],
+    "captureBlockers":  [
+                            "Playwright is not installed or not resolvable from this project."
+                        ]
+}

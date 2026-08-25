@@ -1,6 +1,6 @@
 ﻿{
     "blockers":  [
-                     "No requirements auto-extracted"
+                     "Auto-extracted requirements are candidates and must be normalized into requirement-target.json"
                  ],
     "commands":  [
 
@@ -15,5 +15,5 @@
     "nextActions":  [
                         "Normalize requirement-candidates.json into requirement-target.json before final convergence."
                     ],
-    "updatedAt":  "2026-08-21T12:57:10"
+    "updatedAt":  "2026-08-23T09:14:52"
 }

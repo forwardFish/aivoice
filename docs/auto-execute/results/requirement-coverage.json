@@ -1,0 +1,903 @@
+﻿{
+    "gaps":  [
+                 {
+                     "id":  "GAP-REQ-COVERAGE-001",
+                     "section":  {
+                                     "id":  "SEC-001",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  1,
+                                     "title":  "CloudBase Production Refactor Requirements",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027CloudBase Production Refactor Requirements\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-002",
+                     "section":  {
+                                     "id":  "SEC-002",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  3,
+                                     "title":  "P0 Architecture",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P0 Architecture\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-003",
+                     "section":  {
+                                     "id":  "SEC-003",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  5,
+                                     "title":  "Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-004",
+                     "section":  {
+                                     "id":  "SEC-004",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  6,
+                                     "title":  "Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-005",
+                     "section":  {
+                                     "id":  "SEC-005",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  7,
+                                     "title":  "The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-006",
+                     "section":  {
+                                     "id":  "SEC-006",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  9,
+                                     "title":  "P0 Database and points",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P0 Database and points\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-007",
+                     "section":  {
+                                     "id":  "SEC-007",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  11,
+                                     "title":  "New registration grants 10 account points exactly once.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027New registration grants 10 account points exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-008",
+                     "section":  {
+                                     "id":  "SEC-008",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  12,
+                                     "title":  "Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-009",
+                     "section":  {
+                                     "id":  "SEC-009",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  13,
+                                     "title":  "Transactional operations use PostgreSQL RPC and roll back atomically.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Transactional operations use PostgreSQL RPC and roll back atomically.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-010",
+                     "section":  {
+                                     "id":  "SEC-010",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  14,
+                                     "title":  "The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027The 楼9.9/50-point product is server-configurable and order creation is idempotent.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-011",
+                     "section":  {
+                                     "id":  "SEC-011",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  16,
+                                     "title":  "P0 WeChat Pay",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P0 WeChat Pay\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-012",
+                     "section":  {
+                                     "id":  "SEC-012",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  18,
+                                     "title":  "JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-013",
+                     "section":  {
+                                     "id":  "SEC-013",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  19,
+                                     "title":  "The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-014",
+                     "section":  {
+                                     "id":  "SEC-014",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  20,
+                                     "title":  "Callback and active order refresh converge on one payment RPC.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Callback and active order refresh converge on one payment RPC.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-015",
+                     "section":  {
+                                     "id":  "SEC-015",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  21,
+                                     "title":  "Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Duplicate/concurrent payment success grants 50 points and one ledger exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-016",
+                     "section":  {
+                                     "id":  "SEC-016",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  23,
+                                     "title":  "P0 Media and voice",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P0 Media and voice\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-017",
+                     "section":  {
+                                     "id":  "SEC-017",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  25,
+                                     "title":  "Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-018",
+                     "section":  {
+                                     "id":  "SEC-018",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  26,
+                                     "title":  "Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-019",
+                     "section":  {
+                                     "id":  "SEC-019",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  27,
+                                     "title":  "Private playback requires server authorization and a short-lived signed download URL.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Private playback requires server authorization and a short-lived signed download URL.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-020",
+                     "section":  {
+                                     "id":  "SEC-020",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  28,
+                                     "title":  "Provider voice identifiers are encrypted at rest.",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Provider voice identifiers are encrypted at rest.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-021",
+                     "section":  {
+                                     "id":  "SEC-021",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  30,
+                                     "title":  "P0 Job and deletion lifecycle",
+                                     "priority":  "P0",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P0 Job and deletion lifecycle\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-022",
+                     "section":  {
+                                     "id":  "SEC-022",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  32,
+                                     "title":  "API requests return without waiting for FFmpeg or model work.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027API requests return without waiting for FFmpeg or model work.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-023",
+                     "section":  {
+                                     "id":  "SEC-023",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  33,
+                                     "title":  "Durable jobs use leases, heartbeat, retry and duplicate-claim protection.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Durable jobs use leases, heartbeat, retry and duplicate-claim protection.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-024",
+                     "section":  {
+                                     "id":  "SEC-024",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  34,
+                                     "title":  "Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-025",
+                     "section":  {
+                                     "id":  "SEC-025",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  35,
+                                     "title":  "API or function restart must not lose point, payment or job state.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027API or function restart must not lose point, payment or job state.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-026",
+                     "section":  {
+                                     "id":  "SEC-026",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  37,
+                                     "title":  "P1 Product surfaces",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027P1 Product surfaces\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-027",
+                     "section":  {
+                                     "id":  "SEC-027",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  39,
+                                     "title":  "Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-028",
+                     "section":  {
+                                     "id":  "SEC-028",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  40,
+                                     "title":  "SELF, OTHER and MINOR authorization types remain supported.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027SELF, OTHER and MINOR authorization types remain supported.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-029",
+                     "section":  {
+                                     "id":  "SEC-029",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  41,
+                                     "title":  "Invitation rewards and a visual operations admin remain deferred.",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Invitation rewards and a visual operations admin remain deferred.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-030",
+                     "section":  {
+                                     "id":  "SEC-030",
+                                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                                     "line":  43,
+                                     "title":  "Acceptance evidence",
+                                     "priority":  "P1",
+                                     "coveredByCandidate":  true,
+                                     "coveredByTarget":  false,
+                                     "status":  "PASS_WITH_LIMITATION"
+                                 },
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "PRD section \u0027Acceptance evidence\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence."
+                 }
+             ],
+    "nextActions":  [
+                        "Map uncovered P0/P1 PRD sections into requirement-target.json with evidence."
+                    ],
+    "documents":  [
+                      "docs\\cloudbase-production-refactor-requirements.md"
+                  ],
+    "ignoredReferences":  [
+                              "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                              "docs\\auto-execute\\00-environment-snapshot.md",
+                              "docs\\auto-execute\\00-goal.md",
+                              "docs\\auto-execute\\00-project-intake.md",
+                              "docs\\auto-execute\\00-total-task.md",
+                              "docs\\auto-execute\\01-prd-index.md",
+                              "docs\\auto-execute\\01-requirement-coverage.md",
+                              "docs\\auto-execute\\01-requirement-matrix.md",
+                              "docs\\auto-execute\\01-requirements-summary.md",
+                              "docs\\auto-execute\\01-task-decomposition.md",
+                              "docs\\auto-execute\\02-requirement-traceability-matrix.md",
+                              "docs\\auto-execute\\02-task-decomposition.md",
+                              "docs\\auto-execute\\02-ui-acceptance-matrix.md",
+                              "docs\\auto-execute\\03-architecture-plan.md",
+                              "docs\\auto-execute\\03-story-map.md",
+                              "docs\\auto-execute\\03-surface-map.md",
+                              "docs\\auto-execute\\04-contract-map.md",
+                              "docs\\auto-execute\\04-page-flow.md",
+                              "docs\\auto-execute\\04-story-test-matrix.md",
+                              "docs\\auto-execute\\04-visual-acceptance-checklist.md",
+                              "docs\\auto-execute\\05-api-contract.md",
+                              "docs\\auto-execute\\05-known-gaps-and-assumptions.md",
+                              "docs\\auto-execute\\05-test-matrix.md",
+                              "docs\\auto-execute\\06-database-schema.md",
+                              "docs\\auto-execute\\06-scope-classification.md",
+                              "docs\\auto-execute\\06-test-matrix.md",
+                              "docs\\auto-execute\\07-acceptance-checklist.md",
+                              "docs\\auto-execute\\07-acceptance-test-plan.md",
+                              "docs\\auto-execute\\07-decision-log.md",
+                              "docs\\auto-execute\\08-repair-log.md",
+                              "docs\\auto-execute\\08-test-matrix.md",
+                              "docs\\auto-execute\\09-code-review.md",
+                              "docs\\auto-execute\\10-agent-mistake-log.md",
+                              "docs\\auto-execute\\11-final-acceptance-report.md",
+                              "docs\\auto-execute\\11-harness-improvement-log.md",
+                              "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                              "docs\\auto-execute\\13-frontend-backend-contract-map.md",
+                              "docs\\auto-execute\\14-frontend-implementation-plan.md",
+                              "docs\\auto-execute\\15-backend-implementation-plan.md",
+                              "docs\\auto-execute\\16-integrated-verification-plan.md",
+                              "docs\\auto-execute\\17-final-acceptance-checklist.md",
+                              "docs\\auto-execute\\18-acceptance-comparison-loop.md",
+                              "docs\\auto-execute\\AGENT_READABILITY.md",
+                              "docs\\auto-execute\\agent-orchestration.md",
+                              "docs\\auto-execute\\blockers.md",
+                              "docs\\auto-execute\\CLOUDBASE_REFACTOR_TEST_PLAN.md",
+                              "docs\\auto-execute\\CLOUDBASE_REST_RPC_ARCHITECTURE.md",
+                              "docs\\auto-execute\\comparison\\round-001.md",
+                              "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                              "docs\\auto-execute\\FINAL_ACCEPTANCE_STATUS.md",
+                              "docs\\auto-execute\\final-convergence-report.md",
+                              "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\FUNCTIONAL_CLOSURE_ACCEPTANCE.md",
+                              "docs\\auto-execute\\gap-closure-log.md",
+                              "docs\\auto-execute\\gap-list.md",
+                              "docs\\auto-execute\\GOLDEN_RULES.md",
+                              "docs\\auto-execute\\harness-repair-plan.md",
+                              "docs\\auto-execute\\harness-self-eval-report.md",
+                              "docs\\auto-execute\\index.md",
+                              "docs\\auto-execute\\latest\\blockers.md",
+                              "docs\\auto-execute\\latest\\HANDOFF.md",
+                              "docs\\auto-execute\\latest\\next-agent-action.md",
+                              "docs\\auto-execute\\latest\\repair-plan.md",
+                              "docs\\auto-execute\\latest\\run-id.txt",
+                              "docs\\auto-execute\\latest\\verification-results.md",
+                              "docs\\auto-execute\\next-agent-action.md",
+                              "docs\\auto-execute\\POINTS_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\progress.md",
+                              "docs\\auto-execute\\QUALITY_GATES.md",
+                              "docs\\auto-execute\\repair-plan.md",
+                              "docs\\auto-execute\\STATUS_SEMANTICS.md",
+                              "docs\\auto-execute\\summaries\\api-smoke.md",
+                              "docs\\auto-execute\\summaries\\architecture-guard.md",
+                              "docs\\auto-execute\\summaries\\error-summary.md",
+                              "docs\\auto-execute\\summaries\\git-status.md",
+                              "docs\\auto-execute\\summaries\\report-integrity.md",
+                              "docs\\auto-execute\\summaries\\requirement-coverage.md",
+                              "docs\\auto-execute\\summaries\\secret-guard.md",
+                              "docs\\auto-execute\\UI_REFERENCE_INVENTORY.md",
+                              "docs\\auto-execute\\verification-results.md",
+                              "docs\\auto-execute\\visual-diff-report.md",
+                              "docs\\backup\\past_child_voice_wechat_mvp_prd_v0.2.md"
+                          ],
+    "sections":  [
+                     {
+                         "id":  "SEC-001",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  1,
+                         "title":  "CloudBase Production Refactor Requirements",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-002",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  3,
+                         "title":  "P0 Architecture",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-003",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  5,
+                         "title":  "Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-004",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  6,
+                         "title":  "Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-005",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  7,
+                         "title":  "The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-006",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  9,
+                         "title":  "P0 Database and points",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-007",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  11,
+                         "title":  "New registration grants 10 account points exactly once.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-008",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  12,
+                         "title":  "Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-009",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  13,
+                         "title":  "Transactional operations use PostgreSQL RPC and roll back atomically.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-010",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  14,
+                         "title":  "The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-011",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  16,
+                         "title":  "P0 WeChat Pay",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-012",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  18,
+                         "title":  "JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-013",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  19,
+                         "title":  "The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-014",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  20,
+                         "title":  "Callback and active order refresh converge on one payment RPC.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-015",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  21,
+                         "title":  "Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-016",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  23,
+                         "title":  "P0 Media and voice",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-017",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  25,
+                         "title":  "Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-018",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  26,
+                         "title":  "Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-019",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  27,
+                         "title":  "Private playback requires server authorization and a short-lived signed download URL.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-020",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  28,
+                         "title":  "Provider voice identifiers are encrypted at rest.",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-021",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  30,
+                         "title":  "P0 Job and deletion lifecycle",
+                         "priority":  "P0",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-022",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  32,
+                         "title":  "API requests return without waiting for FFmpeg or model work.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-023",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  33,
+                         "title":  "Durable jobs use leases, heartbeat, retry and duplicate-claim protection.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-024",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  34,
+                         "title":  "Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-025",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  35,
+                         "title":  "API or function restart must not lose point, payment or job state.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-026",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  37,
+                         "title":  "P1 Product surfaces",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-027",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  39,
+                         "title":  "Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-028",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  40,
+                         "title":  "SELF, OTHER and MINOR authorization types remain supported.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-029",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  41,
+                         "title":  "Invitation rewards and a visual operations admin remain deferred.",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-030",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  43,
+                         "title":  "Acceptance evidence",
+                         "priority":  "P1",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     },
+                     {
+                         "id":  "SEC-031",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "line":  52,
+                         "title":  "External launch gates",
+                         "priority":  "P2",
+                         "coveredByCandidate":  true,
+                         "coveredByTarget":  false,
+                         "status":  "PASS_WITH_LIMITATION"
+                     }
+                 ],
+    "generatedAt":  "2026-08-23T09:17:08",
+    "limitations":  [
+                        {
+                            "id":  "SEC-031",
+                            "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                            "line":  52,
+                            "title":  "External launch gates",
+                            "priority":  "P2",
+                            "coveredByCandidate":  true,
+                            "coveredByTarget":  false,
+                            "status":  "PASS_WITH_LIMITATION"
+                        }
+                    ],
+    "status":  "HARD_FAIL",
+    "schemaVersion":  "2.0",
+    "lane":  "requirement-coverage",
+    "summary":  "docs\\auto-execute\\summaries\\requirement-coverage.md"
+}

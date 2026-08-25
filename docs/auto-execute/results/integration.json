@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "Project-specific full-flow test required"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "integration",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Implement E2E/smoke flow for P0/P1 requirements."
+                    ],
+    "updatedAt":  "2026-08-23T09:01:51"
+}

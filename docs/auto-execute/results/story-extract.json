@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "Story extraction creates candidates only; story-target.json must be normalized."
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-extract",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\story-candidates.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Run run-story-normalize.ps1, then run-story-test-generate.ps1 and run-story-verify.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:09"
+}

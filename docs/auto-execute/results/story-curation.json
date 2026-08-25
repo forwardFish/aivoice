@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-curation",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\story-candidates-curated.json",
+                     "docs\\auto-execute\\05-known-gaps-and-assumptions.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Normalize only VALID_STORY items; clarify AMBIGUOUS items before pure PASS."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:10"
+}

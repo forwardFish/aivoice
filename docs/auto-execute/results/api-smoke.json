@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "No endpoints found in surface map"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "api-smoke",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\summaries\\api-smoke.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Populate 03-surface-map.md or 04-contract-map.md with API endpoints."
+                    ],
+    "updatedAt":  "2026-08-23T09:16:45"
+}

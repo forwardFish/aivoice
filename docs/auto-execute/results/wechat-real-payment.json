@@ -1,0 +1,7 @@
+{
+  "status": "PAYMENT_CLIENT_FAILED",
+  "checkedAt": "2026-08-23T03:24:42.717Z",
+  "orderId": "214064d5-b522-4683-a5b7-dd0aa83dedb2",
+  "amountFen": 990,
+  "error": "wx.requestPayment timed out after 180000ms"
+}

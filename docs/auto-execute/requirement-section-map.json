@@ -2,11 +2,11 @@
     "sections":  [
                      {
                          "sectionId":  "SEC-001",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "绉佹湁澹伴煶澶嶅埢鎶€鏈棴鐜寖鍥?",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "CloudBase Production Refactor Requirements",
                          "headingLevel":  1,
                          "lineStart":  1,
-                         "lineEnd":  1,
+                         "lineEnd":  2,
                          "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
@@ -25,15 +25,15 @@
                      },
                      {
                          "sectionId":  "SEC-002",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "褰撳墠鐢ㄦ埛鐩爣",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P0 Architecture",
                          "headingLevel":  2,
-                         "lineStart":  2,
+                         "lineStart":  3,
                          "lineEnd":  4,
-                         "textDigest":  "缁欏畾涓€娈靛凡鑾锋巿鏉冪殑瑙嗛鍜屼竴娈典腑鏂囨枃鏈紝绋嬪簭鑳藉浠庤棰戞彁鍙栧弬鑰冧汉澹帮紝骞剁敓鎴愪互璇ュ弬鑰冨０闊虫湕璇绘寚瀹氭枃鏈殑鍙挱鏀鹃煶棰戙€?",
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
-                         "priority":  "P2",
+                         "priority":  "P0",
                          "coveredByRequirementIds":  {
 
                                                      },
@@ -48,22 +48,20 @@
                      },
                      {
                          "sectionId":  "SEC-003",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "鏉ユ簮",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
                          "headingLevel":  2,
                          "lineStart":  5,
-                         "lineEnd":  7,
-                         "textDigest":  "- 鐢ㄦ埛鍦?2026-08-21 鐨勭洿鎺ヨ姹傘€?- `nashide_ta_private_voice_wechat_mvp_prd_v0.4.md` 鐨?11銆?2銆?3銆?4銆?4.2銆?4.5銆?5.1 鍜?M1 绔犺妭銆?",
-                         "sectionType":  "unknown",
-                         "requiresImplementation":  false,
+                         "lineEnd":  5,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
                          "priority":  "P2",
                          "coveredByRequirementIds":  {
 
                                                      },
-                         "coveredByStoryIds":  {
-
-                                               },
-                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "coveredByStoryIds":  "STORY-GENERAL-001",
+                         "coverageStatus":  "PASS",
                          "evidence":  [
                                           "docs/auto-execute/requirement-target.json",
                                           "docs/auto-execute/story-target.json"
@@ -71,11 +69,11 @@
                      },
                      {
                          "sectionId":  "SEC-004",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "P0 楠屾敹瑕佹眰",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.",
                          "headingLevel":  2,
-                         "lineStart":  8,
-                         "lineEnd":  9,
+                         "lineStart":  6,
+                         "lineEnd":  6,
                          "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
@@ -94,15 +92,15 @@
                      },
                      {
                          "sectionId":  "SEC-005",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "TVC-001 瑙嗛杈撳叆涓庡弬鑰冮煶棰?",
-                         "headingLevel":  3,
-                         "lineStart":  10,
-                         "lineEnd":  11,
-                         "textDigest":  "- 鎺ュ彈鏈湴瑙嗛璺緞銆?- 浣跨敤 FFprobe 楠岃瘉濯掍綋鍙В鐮併€?- 浣跨敤 FFmpeg 鎻愬彇鍗曞０閬撱€?4kHz銆?6-bit WAV銆?- 鏀寔閫夋嫨寮€濮嬫椂闂村拰 10鈥?0 绉掔墖娈碉紱榛樿閫夋嫨涓嶈秴杩?20 绉掔殑鐗囨銆?- 杈撳嚭鍩虹璐ㄩ噺鎶ュ憡锛氭椂闀裤€佸钩鍧囬煶閲忋€侀潤闊虫瘮渚嬨€佸墛娉㈡瘮渚嬨€?",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.",
+                         "headingLevel":  2,
+                         "lineStart":  7,
+                         "lineEnd":  8,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
-                         "priority":  "P2",
+                         "priority":  "P0",
                          "coveredByRequirementIds":  {
 
                                                      },
@@ -117,15 +115,15 @@
                      },
                      {
                          "sectionId":  "SEC-006",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "TVC-002 鎺堟潈闂ㄧ",
-                         "headingLevel":  3,
-                         "lineStart":  12,
-                         "lineEnd":  14,
-                         "textDigest":  "- 鏈樉寮忕‘璁ゆ嫢鏈夊０闊冲鍒诲拰鍚堟垚鏉冮檺鏃舵嫆缁濇墽琛屻€?- 缁撴灉娓呭崟鏍囪杈撳嚭涓?AI 鐢熸垚銆?- 榛樿鍒犻櫎涓存椂鍙傝€冮煶棰戙€?",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P0 Database and points",
+                         "headingLevel":  2,
+                         "lineStart":  9,
+                         "lineEnd":  10,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
-                         "priority":  "P2",
+                         "priority":  "P0",
                          "coveredByRequirementIds":  {
 
                                                      },
@@ -140,12 +138,12 @@
                      },
                      {
                          "sectionId":  "SEC-007",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "TVC-003 闆舵牱鏈０闊冲鍒?",
-                         "headingLevel":  3,
-                         "lineStart":  15,
-                         "lineEnd":  16,
-                         "textDigest":  "- 浣跨敤鍙浛鎹㈢殑 `VoiceProvider` 鎺ュ彛銆?- 鏈湴榛樿瀹炵幇涓?Chatterbox Multilingual锛屾敮鎸佷腑鏂囦笌 CPU銆?- 鎸囧畾涓枃鏂囨湰鍚庣敓鎴愰潪绌恒€佸彲瑙ｇ爜鐨?WAV 鏂囦欢銆?",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. New registration grants 10 account points exactly once.",
+                         "headingLevel":  2,
+                         "lineStart":  11,
+                         "lineEnd":  11,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
                          "priority":  "P2",
@@ -163,12 +161,12 @@
                      },
                      {
                          "sectionId":  "SEC-008",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "TVC-004 鍙鐜板叆鍙ｄ笌璇佹嵁",
-                         "headingLevel":  3,
-                         "lineStart":  17,
-                         "lineEnd":  19,
-                         "textDigest":  "- 鎻愪緵鍗曟潯 CLI 鍛戒护鎵ц瀹屾暣閾捐矾銆?- 鐢熸垚涓庨煶棰戝悓鍚嶇殑 JSON 娓呭崟锛屽寘鍚紩鎿庛€佹ā鍨嬨€佺墖娈靛弬鏁般€佽川閲忔姤鍛娿€佸搱甯屽拰鐘舵€侊紝涓嶄繚瀛樿緭鍏ユ枃鏈槑鏂囥€?- 鑷姩鍖栨祴璇曚娇鐢ㄥ亣 Provider 瑕嗙洊瑙嗛鍒拌緭鍑洪煶棰戠殑瀹屾暣鎺у埗娴併€?- 鐪熷疄妯″瀷楠屾敹蹇呴』浣跨敤鐢ㄦ埛鎻愪緵涓斿",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.",
+                         "headingLevel":  2,
+                         "lineStart":  12,
+                         "lineEnd":  12,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
                          "priority":  "P2",
@@ -186,12 +184,12 @@
                      },
                      {
                          "sectionId":  "SEC-009",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "鏈疆鏄庣‘涓嶅仛",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. Transactional operations use PostgreSQL RPC and roll back atomically.",
                          "headingLevel":  2,
-                         "lineStart":  20,
-                         "lineEnd":  22,
-                         "textDigest":  "- 寰俊灏忕▼搴忛〉闈€佺櫥褰曘€佹敮浠樸€侀搴︺€佸璞″瓨鍌ㄥ拰 PostgreSQL銆?- LLM 瀵硅瘽銆佸唴瀹瑰畨鍏ㄤ緵搴斿晢鍜岄暱鏈熻蹇嗐€?- 鍏綉閮ㄧ讲銆佸晢鐢ㄤ笂绾裤€佷緵搴斿晢澶囨涓庣畻娉曟潗鏂欍€?- 澶氳璇濅汉鑷姩鍒嗙銆佽嚜鍔ㄨ浆鍐欍€侀煶鑹叉案涔呮墭绠°€?- 澹伴煶鐩镐技搴︾殑绾嚜鍔ㄧ粨璁猴紱鏈€缁堜富瑙傜浉浼",
+                         "lineStart":  13,
+                         "lineEnd":  13,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
                          "priority":  "P2",
@@ -209,12 +207,209 @@
                      },
                      {
                          "sectionId":  "SEC-010",
-                         "source":  "docs\\technical_voice_clone_spike_scope.md",
-                         "title":  "鏈€缁堝垽瀹?",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                         "headingLevel":  2,
+                         "lineStart":  14,
+                         "lineEnd":  15,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-GENERAL-002",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-011",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P0 WeChat Pay",
+                         "headingLevel":  2,
+                         "lineStart":  16,
+                         "lineEnd":  17,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P0",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  [
+                                                   "STORY-PAYMENT-003",
+                                                   "STORY-PAYMENT-005"
+                                               ],
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-012",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                         "headingLevel":  2,
+                         "lineStart":  18,
+                         "lineEnd":  18,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-PAYMENT-004",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-013",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                         "headingLevel":  2,
+                         "lineStart":  19,
+                         "lineEnd":  19,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  [
+                                                   "STORY-AUTH-017",
+                                                   "STORY-PAYMENT-005"
+                                               ],
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-014",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. Callback and active order refresh converge on one payment RPC.",
+                         "headingLevel":  2,
+                         "lineStart":  20,
+                         "lineEnd":  20,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-PAYMENT-006",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-015",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                         "headingLevel":  2,
+                         "lineStart":  21,
+                         "lineEnd":  22,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-PAYMENT-007",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-016",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P0 Media and voice",
                          "headingLevel":  2,
                          "lineStart":  23,
                          "lineEnd":  24,
-                         "textDigest":  "- 鑷姩鍖栨帶鍒舵祦銆佸獟浣撹川閲忓拰缁撴灉鍙В鐮侀€氳繃锛屼絾缂哄皯鐢ㄦ埛鎺堟潈瑙嗛鎴栫敤鎴峰惉杈細`PASS_WITH_LIMITATION`銆?- 鐢ㄦ埛鎺堟潈瑙嗛鐪熷疄鐢熸垚鎴愬姛锛屼笖鐢ㄦ埛纭澹伴煶鍙帴鍙楋細`PASS`銆?",
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P0",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-017",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                         "headingLevel":  2,
+                         "lineStart":  25,
+                         "lineEnd":  25,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-UPLOAD-008",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-018",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                         "headingLevel":  2,
+                         "lineStart":  26,
+                         "lineEnd":  26,
+                         "textDigest":  "",
+                         "sectionType":  "functional",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-UPLOAD-009",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-019",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. Private playback requires server authorization and a short-lived signed download URL.",
+                         "headingLevel":  2,
+                         "lineStart":  27,
+                         "lineEnd":  27,
+                         "textDigest":  "",
                          "sectionType":  "unknown",
                          "requiresImplementation":  false,
                          "priority":  "P2",
@@ -229,13 +424,285 @@
                                           "docs/auto-execute/requirement-target.json",
                                           "docs/auto-execute/story-target.json"
                                       ]
+                     },
+                     {
+                         "sectionId":  "SEC-020",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "4. Provider voice identifiers are encrypted at rest.",
+                         "headingLevel":  2,
+                         "lineStart":  28,
+                         "lineEnd":  29,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-021",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P0 Job and deletion lifecycle",
+                         "headingLevel":  2,
+                         "lineStart":  30,
+                         "lineEnd":  31,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P0",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-022",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. API requests return without waiting for FFmpeg or model work.",
+                         "headingLevel":  2,
+                         "lineStart":  32,
+                         "lineEnd":  32,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "DEFERRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-023",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. Durable jobs use leases, heartbeat, retry and duplicate-claim protection.",
+                         "headingLevel":  2,
+                         "lineStart":  33,
+                         "lineEnd":  33,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-024",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                         "headingLevel":  2,
+                         "lineStart":  34,
+                         "lineEnd":  34,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-GENERAL-010",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-025",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "4. API or function restart must not lose point, payment or job state.",
+                         "headingLevel":  2,
+                         "lineStart":  35,
+                         "lineEnd":  36,
+                         "textDigest":  "",
+                         "sectionType":  "api",
+                         "requiresImplementation":  true,
+                         "priority":  "P0",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-PAYMENT-011",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-026",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "P1 Product surfaces",
+                         "headingLevel":  2,
+                         "lineStart":  37,
+                         "lineEnd":  38,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P1",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "MANUAL_REVIEW_REQUIRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-027",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "1. Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.",
+                         "headingLevel":  2,
+                         "lineStart":  39,
+                         "lineEnd":  39,
+                         "textDigest":  "",
+                         "sectionType":  "ui",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "DEFERRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-028",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                         "headingLevel":  2,
+                         "lineStart":  40,
+                         "lineEnd":  40,
+                         "textDigest":  "",
+                         "sectionType":  "unknown",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-AUTH-012",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-029",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "3. Invitation rewards and a visual operations admin remain deferred.",
+                         "headingLevel":  2,
+                         "lineStart":  41,
+                         "lineEnd":  42,
+                         "textDigest":  "",
+                         "sectionType":  "out_of_scope",
+                         "requiresImplementation":  false,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  {
+
+                                               },
+                         "coverageStatus":  "DEFERRED",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-030",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "Acceptance evidence",
+                         "headingLevel":  2,
+                         "lineStart":  43,
+                         "lineEnd":  51,
+                         "textDigest":  "- `docs/auto-execute/results/cloudbase-runtime-smoke.json` - `docs/auto-execute/results/cloudbase-payment-rpc-smoke.json` - `docs/auto-execute/results/cloudbase-full-flow.json` - `",
+                         "sectionType":  "functional",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  [
+                                                   "STORY-GENERAL-013",
+                                                   "STORY-GENERAL-015",
+                                                   "STORY-GENERAL-016",
+                                                   "STORY-PAYMENT-014"
+                                               ],
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
+                     },
+                     {
+                         "sectionId":  "SEC-031",
+                         "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                         "title":  "External launch gates",
+                         "headingLevel":  2,
+                         "lineStart":  52,
+                         "lineEnd":  54,
+                         "textDigest":  "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/pl",
+                         "sectionType":  "functional",
+                         "requiresImplementation":  true,
+                         "priority":  "P2",
+                         "coveredByRequirementIds":  {
+
+                                                     },
+                         "coveredByStoryIds":  "STORY-AUTH-017",
+                         "coverageStatus":  "PASS",
+                         "evidence":  [
+                                          "docs/auto-execute/requirement-target.json",
+                                          "docs/auto-execute/story-target.json"
+                                      ]
                      }
                  ],
     "sourceDocuments":  [
-                            "docs\\technical_voice_clone_spike_scope.md"
+                            "docs\\cloudbase-production-refactor-requirements.md"
                         ],
-    "generatedAt":  "2026-08-21T12:57:11",
+    "generatedAt":  "2026-08-23T09:17:06",
     "ignoredReferences":  [
+                              "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
                               "docs\\auto-execute\\00-environment-snapshot.md",
                               "docs\\auto-execute\\00-goal.md",
                               "docs\\auto-execute\\00-project-intake.md",
@@ -268,6 +735,7 @@
                               "docs\\auto-execute\\08-test-matrix.md",
                               "docs\\auto-execute\\09-code-review.md",
                               "docs\\auto-execute\\10-agent-mistake-log.md",
+                              "docs\\auto-execute\\11-final-acceptance-report.md",
                               "docs\\auto-execute\\11-harness-improvement-log.md",
                               "docs\\auto-execute\\12-fullstack-delivery-plan.md",
                               "docs\\auto-execute\\13-frontend-backend-contract-map.md",
@@ -279,9 +747,16 @@
                               "docs\\auto-execute\\AGENT_READABILITY.md",
                               "docs\\auto-execute\\agent-orchestration.md",
                               "docs\\auto-execute\\blockers.md",
+                              "docs\\auto-execute\\CLOUDBASE_REFACTOR_TEST_PLAN.md",
+                              "docs\\auto-execute\\CLOUDBASE_REST_RPC_ARCHITECTURE.md",
+                              "docs\\auto-execute\\comparison\\round-001.md",
+                              "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                              "docs\\auto-execute\\FINAL_ACCEPTANCE_STATUS.md",
                               "docs\\auto-execute\\final-convergence-report.md",
                               "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\FUNCTIONAL_CLOSURE_ACCEPTANCE.md",
                               "docs\\auto-execute\\gap-closure-log.md",
+                              "docs\\auto-execute\\gap-list.md",
                               "docs\\auto-execute\\GOLDEN_RULES.md",
                               "docs\\auto-execute\\harness-repair-plan.md",
                               "docs\\auto-execute\\harness-self-eval-report.md",
@@ -293,21 +768,31 @@
                               "docs\\auto-execute\\latest\\run-id.txt",
                               "docs\\auto-execute\\latest\\verification-results.md",
                               "docs\\auto-execute\\next-agent-action.md",
+                              "docs\\auto-execute\\POINTS_FLOW_ACCEPTANCE.md",
                               "docs\\auto-execute\\progress.md",
                               "docs\\auto-execute\\QUALITY_GATES.md",
+                              "docs\\auto-execute\\repair-plan.md",
                               "docs\\auto-execute\\STATUS_SEMANTICS.md",
+                              "docs\\auto-execute\\summaries\\api-smoke.md",
+                              "docs\\auto-execute\\summaries\\architecture-guard.md",
+                              "docs\\auto-execute\\summaries\\error-summary.md",
+                              "docs\\auto-execute\\summaries\\git-status.md",
+                              "docs\\auto-execute\\summaries\\report-integrity.md",
+                              "docs\\auto-execute\\summaries\\requirement-coverage.md",
+                              "docs\\auto-execute\\summaries\\secret-guard.md",
                               "docs\\auto-execute\\UI_REFERENCE_INVENTORY.md",
                               "docs\\auto-execute\\verification-results.md",
-                              "docs\\auto-execute\\visual-diff-report.md"
+                              "docs\\auto-execute\\visual-diff-report.md",
+                              "docs\\backup\\past_child_voice_wechat_mvp_prd_v0.2.md"
                           ],
     "summary":  {
                     "limitations":  0,
-                    "p0":  1,
+                    "p0":  8,
                     "gaps":  0,
-                    "requiresImplementation":  0,
-                    "total":  10,
-                    "manualReviewRequired":  10,
-                    "p1":  0
+                    "requiresImplementation":  10,
+                    "total":  31,
+                    "manualReviewRequired":  14,
+                    "p1":  1
                 },
     "schemaVersion":  "2.0",
     "status":  "MANUAL_REVIEW_REQUIRED"

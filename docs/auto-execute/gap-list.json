@@ -1,8 +1,853 @@
 ﻿{
-    "generatedAt":  "2026-08-21T12:24:41",
     "schemaVersion":  "2.0",
-    "round":  0,
+    "round":  1,
     "gaps":  [
-
-             ]
+                 {
+                     "id":  "GAP-SEC-025-COVERAGE",
+                     "type":  "requirement-section",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "P0/P1 PRD section \u00274. API or function restart must not lose point, payment or job state.\u0027 has no requirement/story coverage.",
+                     "repairTarget":  "Map this section into requirement-target.json and story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-001",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027CloudBase Production Refactor Requirements\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-002",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Architecture\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-003",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-004",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-005",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-006",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Database and points\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-007",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027New registration grants 10 account points exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-008",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-009",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Transactional operations use PostgreSQL RPC and roll back atomically.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-010",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The 楼9.9/50-point product is server-configurable and order creation is idempotent.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-011",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 WeChat Pay\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-012",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-013",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-014",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Callback and active order refresh converge on one payment RPC.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-015",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Duplicate/concurrent payment success grants 50 points and one ledger exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-016",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Media and voice\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-017",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-018",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-019",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Private playback requires server authorization and a short-lived signed download URL.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-020",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Provider voice identifiers are encrypted at rest.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-021",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Job and deletion lifecycle\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-022",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027API requests return without waiting for FFmpeg or model work.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-023",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Durable jobs use leases, heartbeat, retry and duplicate-claim protection.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-024",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-025",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027API or function restart must not lose point, payment or job state.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-026",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P1 Product surfaces\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-027",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-028",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027SELF, OTHER and MINOR authorization types remain supported.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-029",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Invitation rewards and a visual operations admin remain deferred.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-030",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Acceptance evidence\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-CANDIDATES-NOT-NORMALIZED",
+                     "type":  "requirement",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\requirement-candidates.json",
+                     "description":  "Requirement candidates exist but requirement-target.json has no normalized requirements.",
+                     "repairTarget":  "Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-SEC-025-REQ-STORY-COVERAGE",
+                     "type":  "requirement",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "P0/P1 PRD section SEC-025 has no requirement/story coverage.",
+                     "repairTarget":  "Map section \u00274. API or function restart must not lose point, payment or job state.\u0027 into requirement-target.json and story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-1",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 is missing required field sourceRequirements.",
+                     "repairTarget":  "Populate sourceRequirements in story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-2",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 has neither surfaces nor apis.",
+                     "repairTarget":  "Map the story to at least one UI surface/route or API endpoint.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-3",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 has no route/api/e2e/visual test point.",
+                     "repairTarget":  "Add at least one executable route, api, e2e, or visual test point.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-4",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 is missing required field sourceRequirements.",
+                     "repairTarget":  "Populate sourceRequirements in story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-5",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 has neither surfaces nor apis.",
+                     "repairTarget":  "Map the story to at least one UI surface/route or API endpoint.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-6",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 has no route/api/e2e/visual test point.",
+                     "repairTarget":  "Add at least one executable route, api, e2e, or visual test point.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE",
+                     "type":  "story",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for P0/P1 story STORY-PAYMENT-003 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-003-001.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE",
+                     "type":  "story",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for P0/P1 story STORY-PAYMENT-011 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-011-001.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-CONTRACT-NOT-RECONCILED",
+                     "type":  "contract",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\contract-map.json",
+                     "description":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                     "repairTarget":  "Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-UI-001",
+                     "type":  "ui",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\ui-target.json",
+                     "description":  "UI references exist but ui-target.json has no screens.",
+                     "repairTarget":  "Map UI references to routes/screens in ui-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-001",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027CloudBase Production Refactor Requirements\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-002",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Architecture\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-003",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-004",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-005",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-006",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Database and points\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-007",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027New registration grants 10 account points exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-008",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-009",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Transactional operations use PostgreSQL RPC and roll back atomically.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-010",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The 楼9.9/50-point product is server-configurable and order creation is idempotent.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-011",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 WeChat Pay\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-012",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-013",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-014",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Callback and active order refresh converge on one payment RPC.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-015",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Duplicate/concurrent payment success grants 50 points and one ledger exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-016",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Media and voice\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-017",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-018",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-019",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Private playback requires server authorization and a short-lived signed download URL.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-020",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Provider voice identifiers are encrypted at rest.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-021",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P0 Job and deletion lifecycle\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-022",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027API requests return without waiting for FFmpeg or model work.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-023",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Durable jobs use leases, heartbeat, retry and duplicate-claim protection.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-024",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-025",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027API or function restart must not lose point, payment or job state.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-026",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027P1 Product surfaces\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-027",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-028",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027SELF, OTHER and MINOR authorization types remain supported.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-029",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Invitation rewards and a visual operations admin remain deferred.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-COVERAGE-030",
+                     "type":  "requirement-coverage",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                     "description":  "PRD section \u0027Acceptance evidence\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                     "repairTarget":  "Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-CANDIDATES-NOT-NORMALIZED",
+                     "type":  "requirement",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\requirement-candidates.json",
+                     "description":  "Requirement candidates exist but requirement-target.json has no normalized requirements.",
+                     "repairTarget":  "Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-1",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 is missing required field sourceRequirements.",
+                     "repairTarget":  "Populate sourceRequirements in story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-2",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 has neither surfaces nor apis.",
+                     "repairTarget":  "Map the story to at least one UI surface/route or API endpoint.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STORY-QUALITY-3",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 has no route/api/e2e/visual test point.",
+                     "repairTarget":  "Add at least one executable route, api, e2e, or visual test point.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-4",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 is missing required field sourceRequirements.",
+                     "repairTarget":  "Populate sourceRequirements in story-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-5",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 has neither surfaces nor apis.",
+                     "repairTarget":  "Map the story to at least one UI surface/route or API endpoint.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STORY-QUALITY-6",
+                     "type":  "story-quality",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 has no route/api/e2e/visual test point.",
+                     "repairTarget":  "Add at least one executable route, api, e2e, or visual test point.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE",
+                     "type":  "story",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for P0/P1 story STORY-PAYMENT-003 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-003-001.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-STATUS",
+                     "type":  "story",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE",
+                     "type":  "story",
+                     "severity":  "HARD_FAIL",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for P0/P1 story STORY-PAYMENT-011 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-011-001.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-UI-001",
+                     "type":  "ui",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\ui-target.json",
+                     "description":  "UI references exist but ui-target.json has no screens.",
+                     "repairTarget":  "Map UI references to routes/screens in ui-target.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-CONTRACT-NOT-RECONCILED",
+                     "type":  "contract",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\contract-map.json",
+                     "description":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                     "repairTarget":  "Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-REQ-001",
+                     "type":  "requirement",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\requirement-candidates.json",
+                     "description":  "No normalized requirements are listed in requirement-target.json",
+                     "repairTarget":  "Normalize docs/auto-execute/requirement-candidates.json into requirement-target.json with P0/P1/P2 acceptance criteria, surfaces, and evidence expectations.",
+                     "status":  "OPEN"
+                 },
+                 {
+                     "id":  "GAP-UI-001",
+                     "type":  "ui",
+                     "severity":  "IN_SCOPE_GAP",
+                     "source":  "docs\\auto-execute\\ui-target.json",
+                     "description":  "UI references exist but ui-target.json has no screens.",
+                     "repairTarget":  "Map UI references to routes/screens in ui-target.json.",
+                     "status":  "OPEN"
+                 }
+             ],
+    "generatedAt":  "2026-08-23T09:17:33"
 }

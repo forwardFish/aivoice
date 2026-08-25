@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "2.0",
+  "lane": "ui-pixel-diff",
+  "status": "MANUAL_REVIEW_REQUIRED",
+  "mappingPriority": [
+    "harness.yml uiMapping",
+    "UIReferences auto discovery",
+    "filename route guess",
+    "manual review"
+  ],
+  "threshold": 0.03,
+  "strict": false,
+  "comparisons": [],
+  "blockers": [],
+  "updatedAt": "2026-08-23T01:17:25.613Z"
+}

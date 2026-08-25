@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "repair",
+    "status":  "PASS",
+    "evidence":  [
+                     "docs\\auto-execute\\summaries\\error-summary.md",
+                     "docs\\auto-execute\\repair-attempts.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+
+                    ],
+    "updatedAt":  "2026-08-23T09:17:01"
+}

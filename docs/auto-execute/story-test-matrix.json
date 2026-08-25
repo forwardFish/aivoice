@@ -1,8 +1,194 @@
 ﻿{
     "status":  "PENDING",
     "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41",
+    "generatedAt":  "2026-08-23T09:17:11",
     "testPoints":  [
+                       {
+                           "id":  "TP-STORY-GENERAL-001-001",
+                           "storyId":  "STORY-GENERAL-001",
+                           "type":  "functional",
+                           "target":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
 
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-GENERAL-002-001",
+                           "storyId":  "STORY-GENERAL-002",
+                           "type":  "functional",
+                           "target":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-003-001",
+                           "storyId":  "STORY-PAYMENT-003",
+                           "type":  "functional",
+                           "target":  "## P0 WeChat Pay",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-004-001",
+                           "storyId":  "STORY-PAYMENT-004",
+                           "type":  "functional",
+                           "target":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-005-001",
+                           "storyId":  "STORY-PAYMENT-005",
+                           "type":  "functional",
+                           "target":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-006-001",
+                           "storyId":  "STORY-PAYMENT-006",
+                           "type":  "functional",
+                           "target":  "3. Callback and active order refresh converge on one payment RPC.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-007-001",
+                           "storyId":  "STORY-PAYMENT-007",
+                           "type":  "functional",
+                           "target":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-UPLOAD-008-001",
+                           "storyId":  "STORY-UPLOAD-008",
+                           "type":  "functional",
+                           "target":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-UPLOAD-009-001",
+                           "storyId":  "STORY-UPLOAD-009",
+                           "type":  "functional",
+                           "target":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-GENERAL-010-001",
+                           "storyId":  "STORY-GENERAL-010",
+                           "type":  "functional",
+                           "target":  "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-011-001",
+                           "storyId":  "STORY-PAYMENT-011",
+                           "type":  "functional",
+                           "target":  "4. API or function restart must not lose point, payment or job state.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-AUTH-012-001",
+                           "storyId":  "STORY-AUTH-012",
+                           "type":  "functional",
+                           "target":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-GENERAL-013-001",
+                           "storyId":  "STORY-GENERAL-013",
+                           "type":  "functional",
+                           "target":  "`docs/auto-execute/results/cloudbase-runtime-smoke.json`",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-PAYMENT-014-001",
+                           "storyId":  "STORY-PAYMENT-014",
+                           "type":  "functional",
+                           "target":  "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-GENERAL-015-001",
+                           "storyId":  "STORY-GENERAL-015",
+                           "type":  "functional",
+                           "target":  "`docs/auto-execute/results/cloudbase-full-flow.json`",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-GENERAL-016-001",
+                           "storyId":  "STORY-GENERAL-016",
+                           "type":  "functional",
+                           "target":  "`docs/auto-execute/results/cloudbase-deployment.json`",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       },
+                       {
+                           "id":  "TP-STORY-AUTH-017-001",
+                           "storyId":  "STORY-AUTH-017",
+                           "type":  "functional",
+                           "target":  "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/platform action and prevent a pure launch PASS.",
+                           "expected":  "acceptance criterion is proven by test/log/screenshot/API evidence",
+                           "evidence":  [
+
+                                        ],
+                           "status":  "PENDING"
+                       }
                    ]
 }

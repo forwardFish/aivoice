@@ -120,39 +120,43 @@
 
 .relationship-note {
   color: #858ca2;
-  font-size: 21rpx;
+  font-size: 22rpx;
   white-space: nowrap;
 }
 
 .relationship-grid {
-  margin-top: 18rpx;
+  margin-top: 20rpx;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14rpx;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
 }
 
-.relationship-chip {
-  min-height: 68rpx;
-  padding: 0 12rpx;
-  border-radius: 999rpx;
+.relationship-option {
+  min-height: 78rpx;
+  padding: 0 16rpx;
+  border-radius: 22rpx;
   border: 1rpx solid rgba(209, 212, 226, 0.92);
-  background: rgba(255, 255, 255, 0.78);
-  color: #596078;
-  font-size: 23rpx;
+  background: rgba(255, 255, 255, 0.92);
+  color: #4f5770;
+  font-size: 26rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5rpx;
   text-align: center;
   transition: all 160ms ease;
+  box-sizing: border-box;
 }
 
-.relationship-chip.selected {
-  border-color: rgba(101, 82, 245, 0.46);
-  color: #ffffff;
-  font-weight: 650;
-  background: linear-gradient(135deg, #8f7cff 0%, #6552f5 100%);
-  box-shadow: 0 10rpx 22rpx rgba(101, 82, 245, 0.18);
+.relationship-option.selected {
+  border-color: rgba(101, 82, 245, 0.56);
+  color: #5d4ee0;
+  font-weight: 680;
+  background: linear-gradient(145deg, #f0edff 0%, #faf9ff 100%);
+  box-shadow: 0 10rpx 24rpx rgba(101, 82, 245, 0.12);
 }
+
+.relationship-radio { transform: scale(.78); transform-origin: center; }
 
 .relationship-other-wrap {
   position: relative;
@@ -161,13 +165,13 @@
 
 .relationship-other-input {
   width: 100%;
-  height: 78rpx;
+  height: 88rpx;
   padding: 0 86rpx 0 24rpx;
   border-radius: 20rpx;
   border: 1rpx solid rgba(101, 82, 245, 0.26);
   background: rgba(249, 248, 255, 0.94);
   color: #11172d;
-  font-size: 24rpx;
+  font-size: 26rpx;
   box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.56);
 }
 
@@ -181,7 +185,9 @@
 }
 
 .user-address-block {
-  margin-top: 22rpx;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(229, 230, 240, 0.92);
 }
 
 .user-address-heading {
@@ -192,17 +198,19 @@
 
 .user-address-label {
   color: #2a3045;
-  font-size: 23rpx;
-  font-weight: 600;
+  font-size: 27rpx;
+  font-weight: 680;
 }
 
 .user-address-optional {
-  padding: 3rpx 10rpx;
+  padding: 4rpx 12rpx;
   border-radius: 999rpx;
   background: #f0effa;
   color: #858ca2;
-  font-size: 18rpx;
+  font-size: 20rpx;
 }
+
+.user-address-help { display:block; margin-top:8rpx; color:#858ca2; font-size:21rpx; line-height:1.45; }
 
 .selected-check {
   flex: 0 0 auto;
@@ -288,10 +296,4 @@
   text-align: center;
   color: #858ca2;
   font-size: 21rpx;
-}
-
-@media (max-width: 360px) {
-  .relationship-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }

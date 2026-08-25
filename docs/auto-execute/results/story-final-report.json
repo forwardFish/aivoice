@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-final-report",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\story-acceptance-summary.json",
+                     "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Use Story Acceptance Summary as the story-level delivery index."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:34"
+}

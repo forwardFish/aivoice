@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "1.9.1",
+  "lane": "route-smoke-generated",
+  "status": "HARD_FAIL",
+  "generatedAt": "2026-08-23T01:01:34.537Z",
+  "results": [
+    {
+      "storyId": "STORY-AUTH-036",
+      "testPointId": "TP-STORY-AUTH-036-001",
+      "target": "/v1/auth/wechat",
+      "url": "http://127.0.0.1:3000/v1/auth/wechat",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-037",
+      "testPointId": "TP-STORY-GENERAL-037-001",
+      "target": "/v1/home",
+      "url": "http://127.0.0.1:3000/v1/home",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-038",
+      "testPointId": "TP-STORY-GENERAL-038-001",
+      "target": "/v1/voices",
+      "url": "http://127.0.0.1:3000/v1/voices",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-039",
+      "testPointId": "TP-STORY-GENERAL-039-001",
+      "target": "/v1/voices",
+      "url": "http://127.0.0.1:3000/v1/voices",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-UPLOAD-040",
+      "testPointId": "TP-STORY-UPLOAD-040-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-041",
+      "testPointId": "TP-STORY-GENERAL-041-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-042",
+      "testPointId": "TP-STORY-GENERAL-042-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-043",
+      "testPointId": "TP-STORY-GENERAL-043-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-044",
+      "testPointId": "TP-STORY-GENERAL-044-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-045",
+      "testPointId": "TP-STORY-GENERAL-045-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-046",
+      "testPointId": "TP-STORY-GENERAL-046-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-047",
+      "testPointId": "TP-STORY-GENERAL-047-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-048",
+      "testPointId": "TP-STORY-GENERAL-048-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-049",
+      "testPointId": "TP-STORY-GENERAL-049-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-050",
+      "testPointId": "TP-STORY-GENERAL-050-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-051",
+      "testPointId": "TP-STORY-GENERAL-051-001",
+      "target": "/v1/orders",
+      "url": "http://127.0.0.1:3000/v1/orders",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-052",
+      "testPointId": "TP-STORY-GENERAL-052-001",
+      "target": "/v1/orders/",
+      "url": "http://127.0.0.1:3000/v1/orders/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-PAYMENT-053",
+      "testPointId": "TP-STORY-PAYMENT-053-001",
+      "target": "/v1/payments/wechat/notify",
+      "url": "http://127.0.0.1:3000/v1/payments/wechat/notify",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-054",
+      "testPointId": "TP-STORY-GENERAL-054-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-055",
+      "testPointId": "TP-STORY-GENERAL-055-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-056",
+      "testPointId": "TP-STORY-GENERAL-056-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-057",
+      "testPointId": "TP-STORY-GENERAL-057-001",
+      "target": "/v1/messages/",
+      "url": "http://127.0.0.1:3000/v1/messages/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-058",
+      "testPointId": "TP-STORY-GENERAL-058-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-059",
+      "testPointId": "TP-STORY-GENERAL-059-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-060",
+      "testPointId": "TP-STORY-GENERAL-060-001",
+      "target": "/v1/orders",
+      "url": "http://127.0.0.1:3000/v1/orders",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-061",
+      "testPointId": "TP-STORY-GENERAL-061-001",
+      "target": "/v1/quota-ledgers",
+      "url": "http://127.0.0.1:3000/v1/quota-ledgers",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-062",
+      "testPointId": "TP-STORY-GENERAL-062-001",
+      "target": "/v1/account",
+      "url": "http://127.0.0.1:3000/v1/account",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    },
+    {
+      "storyId": "STORY-GENERAL-063",
+      "testPointId": "TP-STORY-GENERAL-063-001",
+      "target": "/v1/voices/",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    }
+  ]
+}

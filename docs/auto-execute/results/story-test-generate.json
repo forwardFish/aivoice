@@ -1,0 +1,20 @@
+﻿{
+    "blockers":  [
+                     "Story test points are generated but still require executable evidence."
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-test-generate",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\story-test-matrix.json",
+                     "docs\\auto-execute\\04-story-test-matrix.md",
+                     "docs\\auto-execute\\story-target.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Attach route/API/E2E/visual evidence to story test points, then run run-story-verify.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:12"
+}

@@ -1,12 +1,12 @@
 ﻿{
     "blockers":  [
-                     "No requirement candidates were auto-extracted; fill requirement-target.json from PRD/docs."
+                     "Requirement extraction creates candidates only; normalize requirement-target.json before final PASS."
                  ],
     "commands":  [
 
                  ],
     "lane":  "requirement-extract",
-    "status":  "MANUAL_REVIEW_REQUIRED",
+    "status":  "PASS_WITH_LIMITATION",
     "evidence":  [
                      "docs\\auto-execute\\requirement-candidates.json"
                  ],
@@ -14,5 +14,5 @@
     "nextActions":  [
                         "Normalize candidates into docs/auto-execute/requirement-target.json with priority, acceptance, surface/API/UI/test evidence."
                     ],
-    "updatedAt":  "2026-08-21T12:57:11"
+    "updatedAt":  "2026-08-23T09:14:52"
 }

@@ -1,0 +1,70 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+                     {
+                         "status":  "DEFERRED",
+                         "command":  "node scripts/acceptance/generated/route-smoke.generated.mjs --project-root .",
+                         "log":  ""
+                     },
+                     {
+                         "status":  "DEFERRED",
+                         "command":  "node scripts/acceptance/generated/api-smoke.generated.mjs --project-root .",
+                         "log":  ""
+                     }
+                 ],
+    "lane":  "generated-story-tests",
+    "status":  "DEFERRED",
+    "evidence":  [
+                     "docs\\auto-execute\\results\\generated-story-tests.json",
+                     "docs/auto-execute/logs/generated-route-smoke.log",
+                     "docs/auto-execute/logs/generated-api-smoke.log",
+                     "docs/auto-execute/logs/generated-e2e-flow.log"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Generated story tests must execute before generated P0/P1 test points can count as evidence."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:17",
+    "results":  [
+                    {
+                        "name":  "route-smoke",
+                        "status":  "DEFERRED",
+                        "reason":  "No generated route-smoke test points are present.",
+                        "command":  "node scripts/acceptance/generated/route-smoke.generated.mjs --project-root .",
+                        "log":  "",
+                        "points":  [
+
+                                   ]
+                    },
+                    {
+                        "name":  "api-smoke",
+                        "status":  "DEFERRED",
+                        "reason":  "No generated api-smoke test points are present.",
+                        "command":  "node scripts/acceptance/generated/api-smoke.generated.mjs --project-root .",
+                        "log":  "",
+                        "points":  [
+
+                                   ]
+                    },
+                    {
+                        "name":  "e2e-flow",
+                        "status":  "DEFERRED",
+                        "reason":  "No generated e2e/state/flow test points are present.",
+                        "command":  "",
+                        "log":  "",
+                        "points":  [
+
+                                   ]
+                    }
+                ],
+    "e2eEnvironment":  {
+                           "playwrightPackageAvailable":  false,
+                           "npxAvailable":  true,
+                           "browserAvailable":  false,
+                           "baseUrlConfigured":  true,
+                           "serverReachable":  false
+                       },
+    "e2eClassification":  "NOT_APPLICABLE"
+}

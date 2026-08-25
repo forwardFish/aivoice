@@ -1,8 +1,322 @@
 ﻿{
-    "candidates":  [
-
-                   ],
-    "status":  "EMPTY",
+    "note":  "UI mapping priority is harness.yml uiMapping, UIReferences auto discovery, filename route guess, then manual review. Actual screenshots must be captured and mapped in ui-target.json before final PASS; auto-guessed mapping cannot claim pure PASS without screenshot and diff evidence.",
+    "generatedAt":  "2026-08-23T09:17:20",
+    "mappingPriority":  [
+                            "harness.yml uiMapping",
+                            "UIReferences auto discovery",
+                            "filename route guess",
+                            "manual review"
+                        ],
     "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41"
+    "candidates":  [
+                       {
+                           "id":  "UI-001",
+                           "reference":  "docs\\UI\\backup\\ChatGPT Image 2026年8月21日 14_41_13 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-002",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_14 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-003",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_14 (3).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-004",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_15 (4).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-005",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_15 (5).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-006",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_16 (6).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-007",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_17 (7).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-008",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_18 (8).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-009",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_41_19 (9).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-010",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_45_07 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-011",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 14_45_08 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-012",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月21日 21_30_16.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-013",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月22日 16_34_42.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-014",
+                           "reference":  "docs\\UI\\ChatGPT Image 2026年8月23日 08_41_46.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-015",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_41_42 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-016",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_27 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-017",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_28 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-018",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_30 (5).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-019",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_31 (8).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-020",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_32 (10).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-021",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月21日 21_46_32 (9).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-022",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月22日 14_46_30.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-023",
+                           "reference":  "docs\\UI\\icon\\backup\\ChatGPT Image 2026年8月22日 14_54_10 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-024",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_46_29 (3).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-025",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_46_30 (4).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-026",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_46_31 (6).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-027",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_46_31 (7).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-028",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_51_13 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-029",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_51_14 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-030",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月21日 21_51_14 (3).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-031",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 14_35_36.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-032",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 14_41_59.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-033",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_27 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-034",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_27 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-035",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_28 (3).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-036",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_28 (4).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-037",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_28 (5).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-038",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_29 (6).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-039",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_29 (7).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-040",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_02_29 (8).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-041",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_16_16 (1).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-042",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_16_17 (2).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-043",
+                           "reference":  "docs\\UI\\icon\\ChatGPT Image 2026年8月22日 15_16_17 (3).png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       },
+                       {
+                           "id":  "UI-044",
+                           "reference":  "docs\\UI\\logo\\ChatGPT Image 2026年8月22日 10_45_10.png",
+                           "kind":  "png",
+                           "status":  "CANDIDATE",
+                           "mappingSource":  "UIReferences auto discovery"
+                       }
+                   ],
+    "status":  "CANDIDATE"
 }

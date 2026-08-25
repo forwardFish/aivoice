@@ -1,8 +1,30 @@
 ﻿{
-    "generatedAt":  "2026-08-21T12:24:41",
+    "generatedAt":  "2026-08-23T09:17:11",
     "schemaVersion":  "2.0",
     "epics":  [
-
+                  {
+                      "epicId":  "EPIC-CORE",
+                      "stories":  [
+                                      "STORY-GENERAL-001",
+                                      "STORY-GENERAL-002",
+                                      "STORY-PAYMENT-003",
+                                      "STORY-PAYMENT-004",
+                                      "STORY-PAYMENT-005",
+                                      "STORY-PAYMENT-006",
+                                      "STORY-PAYMENT-007",
+                                      "STORY-UPLOAD-008",
+                                      "STORY-UPLOAD-009",
+                                      "STORY-GENERAL-010",
+                                      "STORY-PAYMENT-011",
+                                      "STORY-AUTH-012",
+                                      "STORY-GENERAL-013",
+                                      "STORY-PAYMENT-014",
+                                      "STORY-GENERAL-015",
+                                      "STORY-GENERAL-016",
+                                      "STORY-AUTH-017"
+                                  ],
+                      "priority":  "P0"
+                  }
               ],
-    "status":  "PENDING"
+    "status":  "PASS_WITH_LIMITATION"
 }

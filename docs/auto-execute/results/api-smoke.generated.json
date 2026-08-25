@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.9.1",
+  "lane": "api-smoke-generated",
+  "status": "HARD_FAIL",
+  "generatedAt": "2026-08-23T01:01:34.860Z",
+  "results": [
+    {
+      "storyId": "STORY-GENERAL-063",
+      "testPointId": "TP-STORY-GENERAL-063-002",
+      "target": "POST /v1/voices/",
+      "method": "POST",
+      "url": "http://127.0.0.1:3000/v1/voices/",
+      "pass": false,
+      "error": "connect ECONNREFUSED 127.0.0.1:3000"
+    }
+  ]
+}

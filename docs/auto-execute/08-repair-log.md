@@ -1,2 +1,155 @@
 ﻿# Repair Log
 
+
+## Gap repair planning 2026-08-23 09:01:56
+
+- GAP-SEC-275-COVERAGE: Map this section into requirement-target.json and story-target.json.
+- GAP-REQ-COVERAGE-001: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-026: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-045: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-051: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-138: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-161: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-165: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-169: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-170: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-171: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-172: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-173: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-174: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-175: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-176: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-177: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-216: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-220: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-262: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-263: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-297: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-299: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-CANDIDATES-NOT-NORMALIZED: Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.
+- GAP-SEC-275-REQ-STORY-COVERAGE: Map section '23. 閿欒鐮?' into requirement-target.json and story-target.json.
+- GAP-CONTRACT-NOT-RECONCILED: Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.
+- GAP-REQ-COVERAGE-001: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-026: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-045: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-051: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-138: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-161: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-165: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-169: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-170: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-171: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-172: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-173: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-174: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-175: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-176: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-177: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-216: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-220: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-262: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-263: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-299: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-CANDIDATES-NOT-NORMALIZED: Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.
+- GAP-CONTRACT-NOT-RECONCILED: Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.
+- GAP-REQ-001: Normalize docs/auto-execute/requirement-candidates.json into requirement-target.json with P0/P1/P2 acceptance criteria, surfaces, and evidence expectations.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.
+
+## Gap repair planning 2026-08-23 09:17:35
+
+- GAP-SEC-025-COVERAGE: Map this section into requirement-target.json and story-target.json.
+- GAP-REQ-COVERAGE-001: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-002: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-003: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-004: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-005: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-006: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-007: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-008: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-009: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-010: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-011: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-012: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-013: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-014: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-015: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-016: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-017: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-018: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-019: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-020: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-021: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-022: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-023: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-024: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-025: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-026: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-027: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-028: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-029: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-030: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-CANDIDATES-NOT-NORMALIZED: Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.
+- GAP-SEC-025-REQ-STORY-COVERAGE: Map section '4. API or function restart must not lose point, payment or job state.' into requirement-target.json and story-target.json.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-1: Populate sourceRequirements in story-target.json.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-2: Map the story to at least one UI surface/route or API endpoint.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-3: Add at least one executable route, api, e2e, or visual test point.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-4: Populate sourceRequirements in story-target.json.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-5: Map the story to at least one UI surface/route or API endpoint.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-6: Add at least one executable route, api, e2e, or visual test point.
+- GAP-STORY-PAYMENT-003-STATUS: Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.
+- GAP-TP-STORY-PAYMENT-003-001-STATUS: Run or implement the test point and attach evidence.
+- GAP-TP-STORY-PAYMENT-003-001-EVIDENCE: Attach executable evidence for TP-STORY-PAYMENT-003-001.
+- GAP-STORY-PAYMENT-011-STATUS: Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.
+- GAP-TP-STORY-PAYMENT-011-001-STATUS: Run or implement the test point and attach evidence.
+- GAP-TP-STORY-PAYMENT-011-001-EVIDENCE: Attach executable evidence for TP-STORY-PAYMENT-011-001.
+- GAP-CONTRACT-NOT-RECONCILED: Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.
+- GAP-REQ-COVERAGE-001: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-002: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-003: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-004: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-005: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-006: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-007: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-008: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-009: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-010: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-011: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-012: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-013: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-014: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-015: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-016: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-017: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-018: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-019: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-020: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-021: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-022: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-023: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-024: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-025: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-026: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-027: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-028: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-029: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-COVERAGE-030: Add a normalized requirement for this section to requirement-target.json, then map implementation and evidence.
+- GAP-REQ-CANDIDATES-NOT-NORMALIZED: Normalize requirement-candidates.json into requirement-target.json before implementation or final PASS.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-1: Populate sourceRequirements in story-target.json.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-2: Map the story to at least one UI surface/route or API endpoint.
+- GAP-STORY-PAYMENT-003-STORY-QUALITY-3: Add at least one executable route, api, e2e, or visual test point.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-4: Populate sourceRequirements in story-target.json.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-5: Map the story to at least one UI surface/route or API endpoint.
+- GAP-STORY-PAYMENT-011-STORY-QUALITY-6: Add at least one executable route, api, e2e, or visual test point.
+- GAP-STORY-PAYMENT-003-STATUS: Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.
+- GAP-TP-STORY-PAYMENT-003-001-STATUS: Run or implement the test point and attach evidence.
+- GAP-TP-STORY-PAYMENT-003-001-EVIDENCE: Attach executable evidence for TP-STORY-PAYMENT-003-001.
+- GAP-STORY-PAYMENT-011-STATUS: Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.
+- GAP-TP-STORY-PAYMENT-011-001-STATUS: Run or implement the test point and attach evidence.
+- GAP-TP-STORY-PAYMENT-011-001-EVIDENCE: Attach executable evidence for TP-STORY-PAYMENT-011-001.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.
+- GAP-CONTRACT-NOT-RECONCILED: Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json.
+- GAP-REQ-001: Normalize docs/auto-execute/requirement-candidates.json into requirement-target.json with P0/P1/P2 acceptance criteria, surfaces, and evidence expectations.
+- GAP-UI-001: Map UI references to routes/screens in ui-target.json.

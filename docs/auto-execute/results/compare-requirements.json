@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+                     "1 requirement gap(s)"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "compare-requirements",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\requirement-target.json",
+                     "docs\\auto-execute\\gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Repair requirement gaps, then rerun comparison."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:32"
+}

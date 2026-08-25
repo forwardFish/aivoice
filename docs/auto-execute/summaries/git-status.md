@@ -1,0 +1,188 @@
+﻿# Git Status
+
+Generated: 08/23/2026 09:14:49
+
+
+## Branch
+```text
+main
+```
+
+## Status
+```text
+ M Dockerfile
+ M apps/api/package.json
+ M apps/api/src/account/account.service.ts
+ M apps/api/src/auth/auth.service.ts
+ M apps/api/src/db/database.module.ts
+ M apps/api/src/db/database.service.ts
+ M apps/api/src/media/media.controller.ts
+ M apps/api/src/media/media.service.ts
+ M apps/api/src/messages/message.service.ts
+ M apps/api/src/orders/order.controller.ts
+ M apps/api/src/orders/order.service.ts
+ M apps/api/src/payments/wechat-pay.service.ts
+ M apps/api/src/quota/quota.service.ts
+ M apps/api/src/voices/voice.service.ts
+ M apps/api/test/auth.test.ts
+ M apps/api/test/payment.test.ts
+ M apps/api/test/products.test.ts
+ M apps/api/test/quota.integration.test.ts
+ M apps/miniprogram/models/api.ts
+ M apps/miniprogram/models/normalize.ts
+ M apps/miniprogram/services/api.ts
+ M apps/miniprogram/test/contract.test.ts
+ M apps/miniprogram/test/purchase-page.test.ts
+ M apps/worker/package.json
+ M apps/worker/src/media/ffmpeg.ts
+ M docs/auto-execute/00-environment-snapshot.md
+ M docs/auto-execute/00-goal.md
+ M docs/auto-execute/00-total-task.md
+ M docs/auto-execute/03-story-map.md
+ M docs/auto-execute/04-story-test-matrix.md
+ M docs/auto-execute/06-scope-classification.md
+ M docs/auto-execute/08-repair-log.md
+ M docs/auto-execute/09-code-review.md
+ M docs/auto-execute/12-fullstack-delivery-plan.md
+ M docs/auto-execute/18-acceptance-comparison-loop.md
+ M docs/auto-execute/FULL_FLOW_ACCEPTANCE.md
+ M docs/auto-execute/acceptance-goal.json
+ M docs/auto-execute/agent-orchestration.json
+ M docs/auto-execute/agent-orchestration.md
+ M docs/auto-execute/blockers.md
+ M docs/auto-execute/contract-map.json
+ M docs/auto-execute/convergence-state.json
+ M docs/auto-execute/epic-map.json
+ M docs/auto-execute/evidence-manifest.json
+ M docs/auto-execute/final-convergence-report.md
+ M docs/auto-execute/gap-closure-log.md
+ M docs/auto-execute/gap-list.json
+ M docs/auto-execute/latest/HANDOFF.md
+ M docs/auto-execute/latest/blockers.md
+ M docs/auto-execute/latest/gap-list.json
+ M docs/auto-execute/latest/machine-summary.json
+ M docs/auto-execute/latest/next-agent-action.md
+ M docs/auto-execute/latest/repair-plan.md
+ M docs/auto-execute/latest/verification-results.md
+ M docs/auto-execute/machine-summary.json
+ M docs/auto-execute/next-agent-action.md
+ M docs/auto-execute/repair-attempts.json
+ M docs/auto-execute/requirement-candidates.json
+ M docs/auto-execute/requirement-section-map.json
+ M docs/auto-execute/results/backend-test.json
+ M docs/auto-execute/results/backend.json
+ M docs/auto-execute/results/contract-discovery.json
+ M docs/auto-execute/results/contract.json
+ M docs/auto-execute/results/e2e-flow.json
+ M docs/auto-execute/results/requirement-extract.json
+ M docs/auto-execute/results/requirement-section-map.json
+ M docs/auto-execute/results/requirements-candidates.json
+ M docs/auto-execute/results/requirements.json
+ M docs/auto-execute/results/secret-guard.json
+ M docs/auto-execute/sprint-plan.json
+ M docs/auto-execute/state.json
+ M docs/auto-execute/story-acceptance-summary.json
+ M docs/auto-execute/story-candidates-curated.json
+ M docs/auto-execute/story-candidates.json
+ M docs/auto-execute/story-gap-list.json
+ M docs/auto-execute/story-materialized-tests.json
+ M docs/auto-execute/story-quality-gate.json
+ M docs/auto-execute/story-status.json
+ M docs/auto-execute/story-target.json
+ M docs/auto-execute/story-test-matrix.json
+ M docs/auto-execute/summaries/secret-guard.md
+ M docs/auto-execute/ui-candidates.json
+ M docs/auto-execute/ui-target.json
+ M docs/auto-execute/verification-results.md
+ M docs/auto-execute/visual-diff-report.md
+ M docs/deployment/CLOUDBASE.md
+ M docs/deployment/WECHAT_PAY_MIGRATION.md
+ M harness.yml
+ M package-lock.json
+ M package.json
+ M scripts/acceptance/generated/visual-targets.generated.json
+ M scripts/deploy/cloudbase-combined.mjs
+ M scripts/runtime/start-combined.mjs
+?? TODO.md
+?? apps/api/cloudbase/
+?? apps/api/src/db/cloudbase-worker-dispatcher.service.ts
+?? apps/api/src/db/cloudbase-worker-invoker.ts
+?? apps/api/test/cloudbase-voice-message.test.ts
+?? apps/api/test/cloudbase-worker-invoker.test.ts
+?? apps/api/test/media.cloudbase.test.ts
+?? apps/worker/src/cloud-function.ts
+?? apps/worker/src/cloudbase-job-runner.ts
+?? apps/worker/test/cloud-function.test.ts
+?? cloudfunctions/
+?? docs/AUTO_EXECUTE_DELIVERY_REPORT.md
+?? "docs/UI/ChatGPT Image 2026\345\271\2648\346\234\21023\346\227\245 08_41_46.png"
+?? docs/auto-execute/11-final-acceptance-report.md
+?? docs/auto-execute/CLOUDBASE_REFACTOR_TEST_PLAN.md
+?? docs/auto-execute/CLOUDBASE_REST_RPC_ARCHITECTURE.md
+?? docs/auto-execute/comparison/
+?? docs/auto-execute/convergence-rounds/
+?? docs/auto-execute/gap-list.md
+?? docs/auto-execute/logs/backend-build.log
+?? docs/auto-execute/logs/backend-test.log
+?? docs/auto-execute/repair-plan.md
+?? docs/auto-execute/results/acceptance-compare.json
+?? docs/auto-execute/results/adapter-detect.json
+?? docs/auto-execute/results/api-smoke.generated.json
+?? docs/auto-execute/results/api-smoke.json
+?? docs/auto-execute/results/architecture-guard.json
+?? docs/auto-execute/results/cloudbase-deployment.json
+?? docs/auto-execute/results/cloudbase-full-flow.json
+?? docs/auto-execute/results/cloudbase-payment-rpc-smoke.json
+?? docs/auto-execute/results/cloudbase-public-api-smoke.json
+?? docs/auto-execute/results/cloudbase-runtime-smoke.json
+?? docs/auto-execute/results/code-review.json
+?? docs/auto-execute/results/compare-requirements.json
+?? docs/auto-execute/results/compare-ui.json
+?? docs/auto-execute/results/contract-map.json
+?? docs/auto-execute/results/contract-verifier.json
+?? docs/auto-execute/results/db-e2e.json
+?? docs/auto-execute/results/environment.json
+?? docs/auto-execute/results/final-gate.json
+?? docs/auto-execute/results/frontend-test.json
+?? docs/auto-execute/results/frontend.json
+?? docs/auto-execute/results/gap-repair.json
+?? docs/auto-execute/results/generated-story-tests.json
+?? docs/auto-execute/results/git-status.json
+?? docs/auto-execute/results/integration.json
+?? docs/auto-execute/results/repair.json
+?? docs/auto-execute/results/report-integrity.json
+?? docs/auto-execute/results/requirement-coverage.json
+?? docs/auto-execute/results/requirement-verifier.json
+?? docs/auto-execute/results/route-smoke.generated.json
+?? docs/auto-execute/results/run-all.json
+?? docs/auto-execute/results/scope-classification.json
+?? docs/auto-execute/results/story-curation.json
+?? docs/auto-execute/results/story-extract.json
+?? docs/auto-execute/results/story-final-report.json
+?? docs/auto-execute/results/story-normalize.json
+?? docs/auto-execute/results/story-quality-gate.json
+?? docs/auto-execute/results/story-test-generate.json
+?? docs/auto-execute/results/story-test-materialize.json
+?? docs/auto-execute/results/story-verifier.json
+?? docs/auto-execute/results/todo-export.json
+?? docs/auto-execute/results/ui-capture.json
+?? docs/auto-execute/results/ui-pixel-diff.json
+?? docs/auto-execute/results/ui-verifier.json
+?? docs/auto-execute/results/verifier-dependencies.json
+?? docs/auto-execute/summaries/api-smoke.md
+?? docs/auto-execute/summaries/architecture-guard.md
+?? docs/auto-execute/summaries/error-summary.md
+?? docs/auto-execute/summaries/git-status.md
+?? docs/auto-execute/summaries/report-integrity.md
+?? docs/auto-execute/summaries/requirement-coverage.md
+?? docs/cloudbase-production-refactor-requirements.md
+?? packages/cloudbase-runtime/
+?? scripts/acceptance/cloudbase-claims-probe.mjs
+?? scripts/acceptance/cloudbase-finish-flow.mjs
+?? scripts/acceptance/cloudbase-full-flow.mjs
+?? scripts/acceptance/cloudbase-payment-rpc-smoke.mjs
+?? scripts/acceptance/cloudbase-public-api-smoke.mjs
+?? scripts/acceptance/cloudbase-runtime-smoke.mjs
+?? scripts/deploy/cloudbase-worker-function.mjs
+?? scripts/deploy/provision-cloudbase-runtime.mjs
+```

@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "No frontend detected"
+                 ],
+    "commands":  [
+                     null
+                 ],
+    "lane":  "frontend-test",
+    "status":  "DEFERRED",
+    "evidence":  [
+                     "docs/auto-execute/logs"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Repair frontend lint/typecheck/test/build failures and rerun run-frontend-test.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:16:26"
+}

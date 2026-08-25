@@ -1,0 +1,27 @@
+﻿{
+    "blockers":  [
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\generated-route-smoke.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\generated-api-smoke.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-capture.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\generated-route-smoke.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\generated-api-smoke.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-capture.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-pixel-diff.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-capture.log",
+                     "manifest references missing evidence: docs\\auto-execute\\logs\\ui-pixel-diff.log"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "report-integrity",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\summaries\\report-integrity.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Fix report/manifest integrity before final acceptance."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:05"
+}

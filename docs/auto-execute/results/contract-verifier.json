@@ -1,0 +1,24 @@
+﻿{
+    "blockers":  [
+                     {
+                         "id":  "GAP-CONTRACT-NOT-RECONCILED",
+                         "severity":  "IN_SCOPE_GAP",
+                         "description":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                         "repairTarget":  "Record frontend caller, backend endpoint, method, request body, response shape, auth/session, error/loading/empty states, and evidence in contract-map.json."
+                     }
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "contract-verifier",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\contract-map.json",
+                     "docs\\auto-execute\\gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Repair contract gaps and rerun run-contract-verify.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:27"
+}

@@ -1,3 +1,434 @@
 ﻿{
-
+    "generated-story:route-smoke":  {
+                                        "attempts":  2,
+                                        "lastError":  "Exit code 1",
+                                        "status":  "RETRYING",
+                                        "updatedAt":  "2026-08-23T09:01:34"
+                                    },
+    "generated-story:api-smoke":  {
+                                      "attempts":  2,
+                                      "lastError":  "Exit code 1",
+                                      "status":  "RETRYING",
+                                      "updatedAt":  "2026-08-23T09:01:34"
+                                  },
+    "GAP-SEC-275-COVERAGE":  {
+                                 "attempts":  1,
+                                 "lastError":  "P0/P1 PRD section \u002723. 閿欒鐮?\u0027 has no requirement/story coverage.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-297":  {
+                                 "attempts":  1,
+                                 "lastError":  "PRD section \u002727. 鍚庣画鐗堟湰杩涘叆鏉′欢\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-SEC-275-REQ-STORY-COVERAGE":  {
+                                           "attempts":  1,
+                                           "lastError":  "P0/P1 PRD section SEC-275 has no requirement/story coverage.",
+                                           "status":  "RETRYING",
+                                           "updatedAt":  "2026-08-23T09:01:56"
+                                       },
+    "GAP-REQ-COVERAGE-045":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u00274.3 AI 瀵硅瘽杈圭晫\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-051":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u00275. MVP 鍔熻兘鑼冨洿\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-138":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027瀵硅瘽瑙勫垯\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-161":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002710.4 瀵硅瘽涓婁笅鏂?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-165":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002710.8 鍒嗕韩\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-169":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027TypeScript 鍏ㄦ爤锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-170":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027涓€涓?API 鏈嶅姟鍜屼竴涓紓姝?Worker锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-171":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027PostgreSQL 鎵挎媴涓氬姟鏁版嵁鍜岃交閲忎换鍔￠槦鍒楋紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:56"
+                             },
+    "GAP-REQ-COVERAGE-172":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027瑙嗛鍜岄煶棰戞斁鍦ㄤ腑鍥藉鍐呯鏈夊璞″瓨鍌紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-173":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027鍘熻棰戠煭鏈熶繚瀛橈紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-174":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Voice Provider 涓?LLM Provider 鍧囦娇鐢?Adapter锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-175":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027涓嶅湪灏忕▼搴忕淇濆瓨瀵嗛挜锛?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-176":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027鏀粯銆佺敓鎴愩€佹墸娆℃暟銆佸垹闄ゅ叏閮ㄥ箓绛夛紱\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-177":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027MVP 涓嶅仛瀹炴椂 WebSocket 璇煶閫氳瘽銆?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-216":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002714.2 棰濆害妫€鏌ヤ笌骞跺彂闄愬埗\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-220":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002714.6 瀵硅瘽鍘嗗彶\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-262":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002720.3 AI 鐢熸垚鏍囪瘑\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-263":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002720.4 鎷熶汉鍖栦簰鍔ㄨ竟鐣?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-REQ-COVERAGE-299":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u002729. MVP 鏈€缁堢粨璁?\u0027 in docs\\nashide_ta_private_voice_wechat_mvp_prd_v0.4.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:01:57"
+                             },
+    "GAP-SEC-025-COVERAGE":  {
+                                 "attempts":  1,
+                                 "lastError":  "P0/P1 PRD section \u00274. API or function restart must not lose point, payment or job state.\u0027 has no requirement/story coverage.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:35"
+                             },
+    "GAP-SEC-025-REQ-STORY-COVERAGE":  {
+                                           "attempts":  1,
+                                           "lastError":  "P0/P1 PRD section SEC-025 has no requirement/story coverage.",
+                                           "status":  "RETRYING",
+                                           "updatedAt":  "2026-08-23T09:17:36"
+                                       },
+    "GAP-REQ-COVERAGE-001":  {
+                                 "attempts":  4,
+                                 "lastError":  "PRD section \u0027CloudBase Production Refactor Requirements\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-002":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027P0 Architecture\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-003":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-004":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Production must not start embedded PostgreSQL, a resident media Worker or persistent local media storage.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-005":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027The pre-refactor implementation must remain recoverable from a dedicated local and remote branch.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-006":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027P0 Database and points\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-007":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027New registration grants 10 account points exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-008":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Successful exact-speech or chat generation consumes exactly one point; failures and blocks consume zero.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-009":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Transactional operations use PostgreSQL RPC and roll back atomically.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-010":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027The 楼9.9/50-point product is server-configurable and order creation is idempotent.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-011":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027P0 WeChat Pay\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-012":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-013":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-014":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Callback and active order refresh converge on one payment RPC.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-015":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Duplicate/concurrent payment success grants 50 points and one ledger exactly once.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-016":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027P0 Media and voice\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-017":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-018":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-019":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Private playback requires server authorization and a short-lived signed download URL.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-020":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Provider voice identifiers are encrypted at rest.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-021":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027P0 Job and deletion lifecycle\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-022":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027API requests return without waiting for FFmpeg or model work.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-023":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Durable jobs use leases, heartbeat, retry and duplicate-claim protection.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-024":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-025":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027API or function restart must not lose point, payment or job state.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-026":  {
+                                 "attempts":  4,
+                                 "lastError":  "PRD section \u0027P1 Product surfaces\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-027":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Existing mini-program login, creation, authorization, preview, workbench, purchase, voices, account, settings and legal pages retain their API contracts.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-028":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027SELF, OTHER and MINOR authorization types remain supported.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-029":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Invitation rewards and a visual operations admin remain deferred.\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-COVERAGE-030":  {
+                                 "attempts":  2,
+                                 "lastError":  "PRD section \u0027Acceptance evidence\u0027 in docs\\cloudbase-production-refactor-requirements.md is not mapped into requirement-target.json.",
+                                 "status":  "RETRYING",
+                                 "updatedAt":  "2026-08-23T09:17:36"
+                             },
+    "GAP-REQ-CANDIDATES-NOT-NORMALIZED":  {
+                                              "attempts":  4,
+                                              "lastError":  "Requirement candidates exist but requirement-target.json has no normalized requirements.",
+                                              "status":  "RETRYING",
+                                              "updatedAt":  "2026-08-23T09:17:37"
+                                          },
+    "GAP-STORY-PAYMENT-003-STORY-QUALITY-1":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-003 is missing required field sourceRequirements.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-003-STORY-QUALITY-2":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-003 has neither surfaces nor apis.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-003-STORY-QUALITY-3":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-003 has no route/api/e2e/visual test point.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-011-STORY-QUALITY-4":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-011 is missing required field sourceRequirements.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-011-STORY-QUALITY-5":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-011 has neither surfaces nor apis.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-011-STORY-QUALITY-6":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "P0/P1 story STORY-PAYMENT-011 has no route/api/e2e/visual test point.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-003-STATUS":  {
+                                         "attempts":  2,
+                                         "lastError":  "P0/P1 story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                                         "status":  "RETRYING",
+                                         "updatedAt":  "2026-08-23T09:17:37"
+                                     },
+    "GAP-TP-STORY-PAYMENT-003-001-STATUS":  {
+                                                "attempts":  2,
+                                                "lastError":  "Test point TP-STORY-PAYMENT-003-001 for story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                                                "status":  "RETRYING",
+                                                "updatedAt":  "2026-08-23T09:17:37"
+                                            },
+    "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "Test point TP-STORY-PAYMENT-003-001 for P0/P1 story STORY-PAYMENT-003 has no evidence.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-STORY-PAYMENT-011-STATUS":  {
+                                         "attempts":  2,
+                                         "lastError":  "P0/P1 story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                                         "status":  "RETRYING",
+                                         "updatedAt":  "2026-08-23T09:17:37"
+                                     },
+    "GAP-TP-STORY-PAYMENT-011-001-STATUS":  {
+                                                "attempts":  2,
+                                                "lastError":  "Test point TP-STORY-PAYMENT-011-001 for story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                                                "status":  "RETRYING",
+                                                "updatedAt":  "2026-08-23T09:17:37"
+                                            },
+    "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE":  {
+                                                  "attempts":  2,
+                                                  "lastError":  "Test point TP-STORY-PAYMENT-011-001 for P0/P1 story STORY-PAYMENT-011 has no evidence.",
+                                                  "status":  "RETRYING",
+                                                  "updatedAt":  "2026-08-23T09:17:37"
+                                              },
+    "GAP-CONTRACT-NOT-RECONCILED":  {
+                                        "attempts":  4,
+                                        "lastError":  "Frontend API/data calls were discovered but no reconciled contracts are recorded.",
+                                        "status":  "RETRYING",
+                                        "updatedAt":  "2026-08-23T09:17:37"
+                                    },
+    "GAP-REQ-001":  {
+                        "attempts":  2,
+                        "lastError":  "No normalized requirements are listed in requirement-target.json",
+                        "status":  "RETRYING",
+                        "updatedAt":  "2026-08-23T09:17:37"
+                    },
+    "GAP-UI-001":  {
+                       "attempts":  6,
+                       "lastError":  "UI references exist but ui-target.json has no screens.",
+                       "status":  "RETRYING",
+                       "updatedAt":  "2026-08-23T09:17:37"
+                   }
 }

@@ -1,9 +1,291 @@
 ﻿{
-    "status":  "PENDING",
-    "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41",
-    "note":  "P0/P1 story test points must be generated, bound, manual-review, or deferred.",
+    "sourceMaps":  {
+                       "uiTarget":  "docs\\auto-execute\\ui-target.json",
+                       "contractMap":  "docs\\auto-execute\\contract-map.json",
+                       "storyTarget":  "docs\\auto-execute\\story-target.json",
+                       "storyTestMatrix":  "docs\\auto-execute\\story-test-matrix.json"
+                   },
+    "generatedAt":  "2026-08-23T09:17:12",
     "stories":  [
-
-                ]
+                    {
+                        "storyId":  "STORY-GENERAL-001",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-001-001",
+                                               "type":  "content",
+                                               "target":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-002",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-002-001",
+                                               "type":  "content",
+                                               "target":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-003",
+                        "priority":  "P0",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-003-001",
+                                               "type":  "content",
+                                               "target":  "## P0 WeChat Pay",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-004",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-004-001",
+                                               "type":  "content",
+                                               "target":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-005",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-005-001",
+                                               "type":  "content",
+                                               "target":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-006",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-006-001",
+                                               "type":  "content",
+                                               "target":  "3. Callback and active order refresh converge on one payment RPC.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-007",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-007-001",
+                                               "type":  "content",
+                                               "target":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-UPLOAD-008",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-UPLOAD-008-001",
+                                               "type":  "content",
+                                               "target":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-UPLOAD-009",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-UPLOAD-009-001",
+                                               "type":  "content",
+                                               "target":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-010",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-010-001",
+                                               "type":  "content",
+                                               "target":  "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-011",
+                        "priority":  "P0",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-011-001",
+                                               "type":  "content",
+                                               "target":  "4. API or function restart must not lose point, payment or job state.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-AUTH-012",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-AUTH-012-001",
+                                               "type":  "content",
+                                               "target":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-013",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-013-001",
+                                               "type":  "content",
+                                               "target":  "`docs/auto-execute/results/cloudbase-runtime-smoke.json`",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-014",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-PAYMENT-014-001",
+                                               "type":  "content",
+                                               "target":  "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-015",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-015-001",
+                                               "type":  "content",
+                                               "target":  "`docs/auto-execute/results/cloudbase-full-flow.json`",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-016",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-GENERAL-016-001",
+                                               "type":  "content",
+                                               "target":  "`docs/auto-execute/results/cloudbase-deployment.json`",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    },
+                    {
+                        "storyId":  "STORY-AUTH-017",
+                        "priority":  "P2",
+                        "testPoints":  [
+                                           {
+                                               "testPointId":  "TP-STORY-AUTH-017-001",
+                                               "type":  "content",
+                                               "target":  "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/platform action and prevent a pure launch PASS.",
+                                               "materializationStatus":  "MANUAL_REVIEW_REQUIRED",
+                                               "generatedTest":  "",
+                                               "command":  "",
+                                               "evidenceOutput":  "",
+                                               "reason":  "Content test point has no route/API target to bind automatically."
+                                           }
+                                       ]
+                    }
+                ],
+    "schemaVersion":  "2.0",
+    "status":  "PASS_WITH_LIMITATION",
+    "generated":  {
+                      "visualTargets":  "scripts\\acceptance\\generated\\visual-targets.generated.json",
+                      "routeSmoke":  "scripts\\acceptance\\generated\\route-smoke.generated.mjs",
+                      "apiSmoke":  "scripts\\acceptance\\generated\\api-smoke.generated.mjs",
+                      "e2eFlow":  "scripts\\acceptance\\generated\\e2e-flow.generated.spec.ts"
+                  }
 }

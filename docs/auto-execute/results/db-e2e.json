@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+                     "DATABASE_URL is not configured; DB lane cannot prove PostgreSQL writes/reads.",
+                     "No Python storage bootstrap/query bridge or backend docker-compose.test.yml was found; DB lane cannot prove schema/runtime/API read path."
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "db-e2e",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs/auto-execute/logs"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Configure a safe local Postgres DATABASE_URL, start the local service, prove schema bootstrap, runtime write, and repository/API read checks."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:00"
+}

@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "No frontend detected"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "frontend",
+    "status":  "DEFERRED",
+    "evidence":  [
+
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+
+                    ],
+    "updatedAt":  "2026-08-23T09:16:26"
+}

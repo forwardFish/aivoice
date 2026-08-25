@@ -39,7 +39,7 @@
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
     </view>
 
-    <bottom-action-bar layout="row" minHeight="{{148}}" actionWidth="{{222}}" custom-class="selection-footer">
+    <bottom-action-bar layout="row" minHeight="{{148}}" actionWidth="{{204}}" custom-class="selection-footer">
       <view slot="leading" wx:if="{{selected}}" class="selected-summary">
         <view class="summary-copy"><text class="summary-title">已选择 1 个视频</text></view>
         <app-icon-button label="清除选择" size="52" bindaction="resetSelection" custom-class="summary-clear">×</app-icon-button>

@@ -1,33 +1,77 @@
 {
-  "checkedAt": "2026-08-23T13:20:12.591Z",
+  "checkedAt": "2026-08-24T13:10:40.143Z",
   "envId": "aivoice-d1g94bgoh67c6b974",
   "source": {
-    "path": "D:\\lyh\\agent\\agent-frame\\aivoice\\.aivoice-tmp\\cloudbase-e2e-source-small.mp4",
-    "bytes": 487052,
+    "path": "D:\\lyh\\agent\\agent-frame\\aivoice\\.aivoice-tmp\\cloudbase-e2e-source.mp4",
+    "bytes": 7643857,
     "durationMs": 25000
   },
-  "userId": "f24d883e-83a9-4899-8b2d-9742644b9a7b",
-  "voiceId": "52df34fb-b14f-47da-a4ee-aa14a0d4e411",
-  "processJobId": "a1cdf702-e79f-4222-9103-de49309eb3cb",
+  "userId": "b158324c-458a-4c8e-ac1d-31da981a3b48",
+  "voiceId": "037bf746-25ac-4be3-a279-26d746716a35",
+  "processJobId": "f7cffb3e-6114-4060-af20-50a971e24d47",
   "processStatus": "READY",
-  "previewMediaId": "1e240d05-13c4-425f-a845-39fd326a933f",
+  "previewMediaId": "b5548508-a137-4d35-99a1-3230ed6f63e8",
   "previewOutput": "D:\\lyh\\agent\\agent-frame\\aivoice\\outputs\\cloudbase-e2e-preview.wav",
-  "deleteJobId": "4f87149a-b371-4865-8b0b-b91687d5f9d4",
+  "relationshipType": "MOTHER",
+  "userAddress": "小林",
+  "chat": [
+    {
+      "turn": 1,
+      "inputText": "妈，我今天跟最好的朋友吵架了。她说以后都不跟我玩了。",
+      "outputText": "小林，听到好朋友这么说，心里一定很难受吧。先别急着下定论，等情绪平复些，再想想吵架的原因好吗？",
+      "status": "READY"
+    },
+    {
+      "turn": 2,
+      "inputText": "她把我只告诉她的秘密说给别人听，我一生气就骂她了。",
+      "outputText": "小林，秘密被说出去确实让人伤心。不过骂人也会让对方难过，这两件事我们可以分开来看，你觉得呢？",
+      "status": "READY"
+    },
+    {
+      "turn": 3,
+      "inputText": "那我明天先跟她道歉，是不是很丢脸？明明是她先做错的。",
+      "outputText": "小林，为骂人道歉不是认输，只是对自己说的话负责。她泄露秘密的事，也可以之后再单独谈呀。",
+      "status": "READY"
+    },
+    {
+      "turn": 4,
+      "inputText": "可是如果她还是不理我怎么办？",
+      "outputText": "小林，她可能需要时间消化情绪。道歉是你表达诚意的方式，结果如何我们无法控制，先做好自己能做的部分就好。",
+      "status": "READY"
+    }
+  ],
+  "deleteJobId": "ed801cd0-ced8-4d10-a23a-c439d6565e64",
   "deleteStatus": "SUCCEEDED",
   "cleanup": "HARD_DELETED_AFTER_FINALIZATION",
   "status": "PASS",
   "observations": [
     {
-      "processInvokeRequestId": "950d27e3-3086-4be6-a83a-83c37d1553c6"
+      "processInvokeRequestId": "de5c6dfb-ef2e-4ca0-ac6e-6765496deb69"
     },
     {
-      "deleteInvokeRequestId": "95f53224-580e-4a5b-8e51-81b5557e2705"
+      "chatInvokeRequestId": "887c7ca2-53e6-4691-bc5e-bff9de358017"
+    },
+    {
+      "chatInvokeRequestId": "a135908d-d681-4d60-84c0-7f339abd3cf5"
+    },
+    {
+      "chatInvokeRequestId": "d4a62460-02c4-441b-8dcc-89140141b485"
+    },
+    {
+      "chatInvokeRequestId": "070e90d0-0a60-4482-9a11-127af964df8d"
+    },
+    {
+      "deleteInvokeRequestId": "9e153e63-65fe-4dbc-8a6a-1170c4b201fc"
     },
     {
       "modelStatuses": [
         "DELETED"
       ],
       "assetStatuses": [
+        "DELETED",
+        "DELETED",
+        "DELETED",
+        "DELETED",
         "DELETED",
         "DELETED",
         "DELETED"

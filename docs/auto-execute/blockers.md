@@ -71,3 +71,9 @@
 - Type: MANUAL_REVIEW_REQUIRED
 - Details: No endpoints found in surface map
 
+
+## secret-guard
+- Time: 2026-08-23 11:11:28
+- Type: DOCUMENTED_BLOCKER
+- Details: Secret-like files found; confirm they are safe test fixtures or remove them.
+

@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+                     "Code review requires agent/human review of current diff"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "code-review",
+    "status":  "MANUAL_REVIEW_REQUIRED",
+    "evidence":  [
+                     "docs\\auto-execute\\09-code-review.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Run $code-review on the diff and acceptance pack."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:02"
+}

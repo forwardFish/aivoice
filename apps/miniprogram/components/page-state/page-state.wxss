@@ -96,7 +96,7 @@
   padding: 0 38rpx;
   border-radius: 24rpx;
   color: #ffffff;
-  background: linear-gradient(135deg, #5f52f5, #8d68f6);
+  background: linear-gradient(135deg, var(--action-primary-start, #6552f5), var(--action-primary-end, #8d68f6));
   font-size: 28rpx;
   font-weight: 600;
 }

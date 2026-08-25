@@ -2,17 +2,21 @@
     "manualReviewRequired":  [
 
                              ],
-    "finalVerdict":  "PENDING",
-    "deferred":  [
-
-                 ],
     "hardFails":  [
 
                   ],
-    "schemaVersion":  "2.0",
-    "nextRecommendedAction":  "",
-    "updatedAt":  "2026-08-21T12:24:41",
     "documentedBlockers":  [
 
-                           ]
+                           ],
+    "deferred":  [
+
+                 ],
+    "finalVerdict":  "REPAIR_REQUIRED",
+    "schemaVersion":  "2.0",
+    "repairRequired":  true,
+    "lastGapCount":  94,
+    "repairPlan":  "docs\\auto-execute\\repair-plan.md",
+    "nextAgentAction":  "docs\\auto-execute\\next-agent-action.md",
+    "nextRecommendedAction":  "Read docs/auto-execute/next-agent-action.md and docs/auto-execute/repair-plan.md, fix the listed implementation/test/evidence gaps, then rerun run-convergence.ps1.",
+    "updatedAt":  "2026-08-23T09:17:39"
 }

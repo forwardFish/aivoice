@@ -1,0 +1,19 @@
+﻿{
+    "blockers":  [
+                     "Contract map discovery is not final verification; run run-contract-verify.ps1 after reconciling request/response/auth/error states."
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "contract-map",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\contract-map.json",
+                     "docs\\auto-execute\\04-contract-map.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Complete docs/auto-execute/contract-map.json or 04-contract-map.md, then run run-contract-verify.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:16:24"
+}

@@ -1,8 +1,106 @@
-﻿{
-    "status":  "PENDING",
-    "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:42",
-    "requirements":  [
-
-                     ]
+{
+  "schemaVersion": "2.0",
+  "status": "PASS_WITH_LIMITATION",
+  "generatedAt": "2026-08-23T09:30:00+08:00",
+  "requirements": [
+    {
+      "id": "REQ-CB-ARCH",
+      "priority": "P0",
+      "title": "CloudBase production architecture",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P0 Architecture",
+      "normalized": true,
+      "status": "PASS",
+      "acceptanceCriteria": ["Run API is stateless and production uses CloudBase REST/RPC, private storage and an on-demand Function Worker.", "The pre-refactor SHA remains on local and remote recovery branches."],
+      "apis": ["GET /v1/health", "CloudBase PostgreSQL REST/RPC", "SCF aivoice-worker"],
+      "flows": ["CloudBase deployment smoke"],
+      "tests": ["npm run typecheck", "npm run test:workspace"],
+      "evidence": ["docs/auto-execute/results/cloudbase-deployment.json", "docs/auto-execute/results/cloudbase-runtime-smoke.json"]
+    },
+    {
+      "id": "REQ-CB-POINTS",
+      "priority": "P0",
+      "title": "Transactional points and product configuration",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P0 Database and points",
+      "normalized": true,
+      "status": "PASS",
+      "acceptanceCriteria": ["Registration grants 10 once.", "Successful exact/chat generations consume one each and failures consume zero.", "The 9.9/50 product and order idempotency are server-authoritative."],
+      "apis": ["rpc_auth_login_wechat", "rpc_message_complete_success", "rpc_order_create"],
+      "flows": ["10 to 9 to 8 real CloudBase flow"],
+      "tests": ["API tests", "CloudBase payment RPC smoke"],
+      "evidence": ["docs/auto-execute/results/cloudbase-full-flow.json", "docs/auto-execute/results/cloudbase-payment-rpc-smoke.json"]
+    },
+    {
+      "id": "REQ-CB-PAY",
+      "priority": "P0",
+      "title": "WeChat Pay v3 and atomic grant",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P0 WeChat Pay",
+      "normalized": true,
+      "status": "PASS_WITH_LIMITATION",
+      "limitationReason": "The merchant public key and public-key ID are not configured, so a real charge and signed callback require user login to the merchant platform.",
+      "acceptanceCriteria": ["JSAPI signing, raw-body verification, APIv3 decryption and identity/amount checks remain implemented.", "Callback and active refresh converge on one atomic RPC and duplicate success grants once."],
+      "apis": ["POST /v1/orders", "POST /v1/payments/wechat/notify", "POST /v1/orders/:id/refresh", "rpc_payment_apply_success"],
+      "flows": ["Concurrent payment RPC smoke"],
+      "tests": ["apps/api/test/payment.test.ts", "CloudBase payment RPC smoke"],
+      "evidence": ["docs/auto-execute/results/cloudbase-payment-rpc-smoke.json", "apps/api/test/payment.test.ts"]
+    },
+    {
+      "id": "REQ-CB-MEDIA",
+      "priority": "P0",
+      "title": "Private storage and real voice generation",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P0 Media and voice",
+      "normalized": true,
+      "status": "PASS",
+      "acceptanceCriteria": ["Authorized video uses signed direct upload up to 100MB.", "FFmpeg and Aliyun CosyVoice create private preview, exact and chat audio.", "Playback is short-lived and provider IDs are encrypted."],
+      "apis": ["POST /v1/voices/:id/upload-policy", "POST /v1/voices/:id/media", "GET /v1/media/:id/play"],
+      "flows": ["Real authorized-video CloudBase full flow"],
+      "tests": ["apps/api/test/media.cloudbase.test.ts", "Worker tests"],
+      "evidence": ["docs/auto-execute/results/cloudbase-full-flow.json", "docs/auto-execute/results/cloudbase-runtime-smoke.json"]
+    },
+    {
+      "id": "REQ-CB-JOBS",
+      "priority": "P0",
+      "title": "Durable jobs and deletion lifecycle",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P0 Job and deletion lifecycle",
+      "normalized": true,
+      "status": "PASS",
+      "acceptanceCriteria": ["API calls do not wait for media work.", "Jobs use leases, heartbeats, retries and duplicate-claim protection.", "Account deletion finalizes provider and storage deletion before hard cleanup."],
+      "apis": ["rpc_job_acquire", "rpc_job_heartbeat", "rpc_job_mark_failed_or_retry", "rpc_account_delete_finalize"],
+      "flows": ["Real clone/generate/delete CloudBase flow"],
+      "tests": ["apps/worker/test/cloud-function.test.ts", "apps/worker/test/lease-recovery.test.ts"],
+      "evidence": ["docs/auto-execute/results/cloudbase-full-flow.json", "apps/worker/test/cloud-function.test.ts"]
+    },
+    {
+      "id": "REQ-CB-SURFACES",
+      "priority": "P1",
+      "title": "Existing mini-program surfaces and authorization types",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "P1 Product surfaces",
+      "normalized": true,
+      "status": "PASS_WITH_LIMITATION",
+      "limitationReason": "All mini-program tests pass, but a deployed page-click and iOS/Android real-device run require an authorized WeChat developer login.",
+      "acceptanceCriteria": ["Login, creation, SELF/OTHER/MINOR authorization, preview, workbench, purchase, voices, account, settings and legal routes retain contracts."],
+      "surfaces": ["apps/miniprogram/app.json", "apps/miniprogram/pages"],
+      "apis": ["apps/miniprogram/services/api.ts"],
+      "tests": ["npm run test:miniprogram"],
+      "evidence": ["apps/miniprogram/test/contract.test.ts", "apps/miniprogram/test/management-pages.test.ts", "apps/miniprogram/test/purchase-page.test.ts"]
+    },
+    {
+      "id": "REQ-CB-EXTERNAL",
+      "priority": "P1",
+      "title": "External WeChat launch gates",
+      "source": "docs\\cloudbase-production-refactor-requirements.md",
+      "sourceSection": "External launch gates",
+      "normalized": true,
+      "status": "BLOCKED_BY_ENVIRONMENT",
+      "acceptanceCriteria": ["Configure merchant public key/ID, complete real login/payment, domain allowlists, device testing and WeChat review."],
+      "flows": ["Real WeChat merchant and device acceptance"],
+      "tests": ["Manual real-payment and device acceptance"],
+      "evidence": ["docs/deployment/WECHAT_PAY_MIGRATION.md", "docs/auto-execute/results/cloudbase-deployment.json"]
+    }
+  ]
 }

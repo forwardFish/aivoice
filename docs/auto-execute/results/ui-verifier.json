@@ -1,0 +1,56 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "ui-verifier",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\ui-target.json",
+                     "docs\\auto-execute\\visual-diff-report.md",
+                     "docs\\auto-execute\\gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Capture missing screenshots or visual diffs, repair UI gaps, then rerun run-ui-compare.ps1.",
+                        "UI mapping priority: harness.yml uiMapping, UIReferences auto discovery, filename guess, manual review."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:26",
+    "pixelDiff":  {
+                      "schemaVersion":  "2.0",
+                      "lane":  "ui-pixel-diff",
+                      "status":  "MANUAL_REVIEW_REQUIRED",
+                      "mappingPriority":  [
+                                              "harness.yml uiMapping",
+                                              "UIReferences auto discovery",
+                                              "filename route guess",
+                                              "manual review"
+                                          ],
+                      "threshold":  0.03,
+                      "strict":  false,
+                      "comparisons":  [
+
+                                      ],
+                      "blockers":  [
+
+                                   ],
+                      "updatedAt":  "2026-08-23T01:17:25.613Z"
+                  },
+    "uiLayerSummary":  {
+                           "requiredScreens":  0,
+                           "structureStatus":  "DEFERRED",
+                           "screenshotStatus":  "DEFERRED",
+                           "visualStatus":  "DEFERRED",
+                           "pixelPerfectStatus":  "DEFERRED",
+                           "pixelPerfectClaimAllowed":  false,
+                           "statusMeaning":  "UI verifier has hard gaps or missing required evidence."
+                       },
+    "screens":  [
+
+                ],
+    "canClaimPixelPerfect":  false,
+    "diffThreshold":  "0.03",
+    "strict":  false
+}

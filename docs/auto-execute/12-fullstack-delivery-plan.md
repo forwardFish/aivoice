@@ -1,11 +1,11 @@
 ﻿# Full-Stack Delivery Plan
 
-Generated: 08/21/2026 12:56:47
+Generated: 08/23/2026 09:14:54
 
 ## Inputs
 
 Requirement docs:
-- D:\lyh\agent\agent-frame\aivoice\docs\technical_voice_clone_spike_scope.md
+- auto-detect from docs/ or user prompt
 
 UI references:
 - auto-detect from docs/UI, docs/design/UI, screenshots, or user prompt
@@ -14,7 +14,7 @@ Detected frontend roots:
 - none detected yet; agent must inspect repo
 
 Detected backend roots:
-- none detected yet; agent must inspect repo
+- D:\lyh\agent\agent-frame\aivoice\apps\api
 
 ## Lane Tasks
 

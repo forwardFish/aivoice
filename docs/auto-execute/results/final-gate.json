@@ -1,0 +1,37 @@
+﻿{
+    "blockers":  [
+                     "manual/deferred/documented blocker lanes remain",
+                     "required verifier result missing: requirement-coverage.json",
+                     "requirement-section-map requires manual review",
+                     "required verifier result missing: requirement-verifier.json",
+                     "required verifier result missing: story-curation.json",
+                     "required verifier result missing: story-test-materialize.json",
+                     "required verifier result missing: generated-story-tests.json",
+                     "required verifier result missing: story-quality-gate.json",
+                     "required verifier result missing: story-verifier.json",
+                     "required verifier result missing: story-final-report.json",
+                     "required verifier result missing: ui-capture.json",
+                     "required verifier result missing: ui-verifier.json",
+                     "required verifier result missing: contract-verifier.json",
+                     "required verifier result missing: frontend-test.json",
+                     "backend-test is DEFERRED, so pure PASS is not allowed",
+                     "required verifier result missing: db-e2e.json",
+                     "secret-guard has a documented blocker",
+                     "story-quality-gate status is PENDING"
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "final-gate",
+    "status":  "HARD_FAIL",
+    "evidence":  [
+                     "docs\\auto-execute\\final-convergence-report.md",
+                     "docs\\auto-execute\\gap-list.json",
+                     "docs\\auto-execute\\machine-summary.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+
+                    ],
+    "updatedAt":  "2026-08-23T08:53:39"
+}

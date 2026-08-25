@@ -1,9 +1,60 @@
 ﻿{
-    "generatedAt":  "2026-08-21T12:24:41",
-    "status":  "PENDING",
-    "schemaVersion":  "2.0",
+    "generatedAt":  "2026-08-23T09:17:18",
+    "lane":  "story-quality-gate",
     "failedStories":  [
-
+                          {
+                              "storyId":  "STORY-PAYMENT-003",
+                              "issue":  "P0/P1 story STORY-PAYMENT-003 is missing required field sourceRequirements.",
+                              "requiredFix":  "Populate sourceRequirements in story-target.json.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          },
+                          {
+                              "storyId":  "STORY-PAYMENT-003",
+                              "issue":  "P0/P1 story STORY-PAYMENT-003 has neither surfaces nor apis.",
+                              "requiredFix":  "Map the story to at least one UI surface/route or API endpoint.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          },
+                          {
+                              "storyId":  "STORY-PAYMENT-003",
+                              "issue":  "P0/P1 story STORY-PAYMENT-003 has no route/api/e2e/visual test point.",
+                              "requiredFix":  "Add at least one executable route, api, e2e, or visual test point.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          },
+                          {
+                              "storyId":  "STORY-PAYMENT-011",
+                              "issue":  "P0/P1 story STORY-PAYMENT-011 is missing required field sourceRequirements.",
+                              "requiredFix":  "Populate sourceRequirements in story-target.json.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          },
+                          {
+                              "storyId":  "STORY-PAYMENT-011",
+                              "issue":  "P0/P1 story STORY-PAYMENT-011 has neither surfaces nor apis.",
+                              "requiredFix":  "Map the story to at least one UI surface/route or API endpoint.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          },
+                          {
+                              "storyId":  "STORY-PAYMENT-011",
+                              "issue":  "P0/P1 story STORY-PAYMENT-011 has no route/api/e2e/visual test point.",
+                              "requiredFix":  "Add at least one executable route, api, e2e, or visual test point.",
+                              "severity":  "HARD_FAIL",
+                              "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                          }
                       ],
-    "lane":  "story-quality-gate"
+    "warnings":  [
+                     {
+                         "storyId":  "STORY-PAYMENT-003",
+                         "issue":  "Title matches candidate text; actor/goal are present, but human review may still improve wording."
+                     },
+                     {
+                         "storyId":  "STORY-PAYMENT-011",
+                         "issue":  "Title matches candidate text; actor/goal are present, but human review may still improve wording."
+                     }
+                 ],
+    "schemaVersion":  "2.0",
+    "status":  "HARD_FAIL"
 }

@@ -1,0 +1,21 @@
+﻿{
+    "blockers":  [
+                     "Stories are normalized but not accepted until test points have evidence."
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-normalize",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\story-target.json",
+                     "docs\\auto-execute\\epic-map.json",
+                     "docs\\auto-execute\\sprint-plan.json",
+                     "docs\\auto-execute\\03-story-map.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Run run-story-test-generate.ps1 and run-story-verify.ps1."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:11"
+}

@@ -1,0 +1,36 @@
+﻿{
+    "blockers":  [
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-003-001-MANUAL-MATERIALIZATION",
+                         "severity":  "MANUAL_REVIEW_REQUIRED",
+                         "description":  "Test point TP-STORY-PAYMENT-003-001 could not be automated: Content test point has no route/API target to bind automatically.",
+                         "repairTarget":  "Bind an existing test or record manual review evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     },
+                     {
+                         "id":  "GAP-TP-STORY-PAYMENT-011-001-MANUAL-MATERIALIZATION",
+                         "severity":  "MANUAL_REVIEW_REQUIRED",
+                         "description":  "Test point TP-STORY-PAYMENT-011-001 could not be automated: Content test point has no route/API target to bind automatically.",
+                         "repairTarget":  "Bind an existing test or record manual review evidence.",
+                         "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                     }
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "story-test-materialize",
+    "status":  "PASS_WITH_LIMITATION",
+    "evidence":  [
+                     "docs\\auto-execute\\story-materialized-tests.json",
+                     "scripts\\acceptance\\generated\\route-smoke.generated.mjs",
+                     "scripts\\acceptance\\generated\\api-smoke.generated.mjs",
+                     "scripts\\acceptance\\generated\\e2e-flow.generated.spec.ts",
+                     "scripts\\acceptance\\generated\\visual-targets.generated.json",
+                     "docs\\auto-execute\\story-gap-list.json"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+                        "Run generated or bound commands to produce evidence, then rerun story quality/final gate."
+                    ],
+    "updatedAt":  "2026-08-23T09:17:12"
+}

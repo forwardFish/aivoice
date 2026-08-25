@@ -1,7 +1,22 @@
 ﻿{
+    "status":  "PASS_WITH_LIMITATION",
     "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41",
+    "generatedAt":  "2026-08-23T09:17:12",
     "gaps":  [
-
-             ]
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-MANUAL-MATERIALIZATION",
+                     "severity":  "MANUAL_REVIEW_REQUIRED",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 could not be automated: Content test point has no route/API target to bind automatically.",
+                     "repairTarget":  "Bind an existing test or record manual review evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-MANUAL-MATERIALIZATION",
+                     "severity":  "MANUAL_REVIEW_REQUIRED",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 could not be automated: Content test point has no route/API target to bind automatically.",
+                     "repairTarget":  "Bind an existing test or record manual review evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 }
+             ],
+    "lane":  "story-test-materialize"
 }

@@ -1,9 +1,571 @@
 ﻿{
-    "candidates":  [
-
-                   ],
-    "status":  "EMPTY",
+    "note":  "Auto-extracted stories are candidates only. Normalize into story-target.json and attach test-point evidence before final PASS.",
+    "sourceDocuments":  [
+                            "docs\\cloudbase-production-refactor-requirements.md"
+                        ],
+    "generatedAt":  "2026-08-23T09:17:09",
+    "ignoredReferences":  [
+                              "docs\\AUTO_EXECUTE_DELIVERY_REPORT.md",
+                              "docs\\auto-execute\\00-environment-snapshot.md",
+                              "docs\\auto-execute\\00-goal.md",
+                              "docs\\auto-execute\\00-project-intake.md",
+                              "docs\\auto-execute\\00-total-task.md",
+                              "docs\\auto-execute\\01-prd-index.md",
+                              "docs\\auto-execute\\01-requirement-coverage.md",
+                              "docs\\auto-execute\\01-requirement-matrix.md",
+                              "docs\\auto-execute\\01-requirements-summary.md",
+                              "docs\\auto-execute\\01-task-decomposition.md",
+                              "docs\\auto-execute\\02-requirement-traceability-matrix.md",
+                              "docs\\auto-execute\\02-task-decomposition.md",
+                              "docs\\auto-execute\\02-ui-acceptance-matrix.md",
+                              "docs\\auto-execute\\03-architecture-plan.md",
+                              "docs\\auto-execute\\03-story-map.md",
+                              "docs\\auto-execute\\03-surface-map.md",
+                              "docs\\auto-execute\\04-contract-map.md",
+                              "docs\\auto-execute\\04-page-flow.md",
+                              "docs\\auto-execute\\04-story-test-matrix.md",
+                              "docs\\auto-execute\\04-visual-acceptance-checklist.md",
+                              "docs\\auto-execute\\05-api-contract.md",
+                              "docs\\auto-execute\\05-known-gaps-and-assumptions.md",
+                              "docs\\auto-execute\\05-test-matrix.md",
+                              "docs\\auto-execute\\06-database-schema.md",
+                              "docs\\auto-execute\\06-scope-classification.md",
+                              "docs\\auto-execute\\06-test-matrix.md",
+                              "docs\\auto-execute\\07-acceptance-checklist.md",
+                              "docs\\auto-execute\\07-acceptance-test-plan.md",
+                              "docs\\auto-execute\\07-decision-log.md",
+                              "docs\\auto-execute\\08-repair-log.md",
+                              "docs\\auto-execute\\08-test-matrix.md",
+                              "docs\\auto-execute\\09-code-review.md",
+                              "docs\\auto-execute\\10-agent-mistake-log.md",
+                              "docs\\auto-execute\\11-final-acceptance-report.md",
+                              "docs\\auto-execute\\11-harness-improvement-log.md",
+                              "docs\\auto-execute\\12-fullstack-delivery-plan.md",
+                              "docs\\auto-execute\\13-frontend-backend-contract-map.md",
+                              "docs\\auto-execute\\14-frontend-implementation-plan.md",
+                              "docs\\auto-execute\\15-backend-implementation-plan.md",
+                              "docs\\auto-execute\\16-integrated-verification-plan.md",
+                              "docs\\auto-execute\\17-final-acceptance-checklist.md",
+                              "docs\\auto-execute\\18-acceptance-comparison-loop.md",
+                              "docs\\auto-execute\\AGENT_READABILITY.md",
+                              "docs\\auto-execute\\agent-orchestration.md",
+                              "docs\\auto-execute\\blockers.md",
+                              "docs\\auto-execute\\CLOUDBASE_REFACTOR_TEST_PLAN.md",
+                              "docs\\auto-execute\\CLOUDBASE_REST_RPC_ARCHITECTURE.md",
+                              "docs\\auto-execute\\comparison\\round-001.md",
+                              "docs\\auto-execute\\convergence-rounds\\round-001.md",
+                              "docs\\auto-execute\\FINAL_ACCEPTANCE_STATUS.md",
+                              "docs\\auto-execute\\final-convergence-report.md",
+                              "docs\\auto-execute\\FULL_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\FUNCTIONAL_CLOSURE_ACCEPTANCE.md",
+                              "docs\\auto-execute\\gap-closure-log.md",
+                              "docs\\auto-execute\\gap-list.md",
+                              "docs\\auto-execute\\GOLDEN_RULES.md",
+                              "docs\\auto-execute\\harness-repair-plan.md",
+                              "docs\\auto-execute\\harness-self-eval-report.md",
+                              "docs\\auto-execute\\index.md",
+                              "docs\\auto-execute\\latest\\blockers.md",
+                              "docs\\auto-execute\\latest\\HANDOFF.md",
+                              "docs\\auto-execute\\latest\\next-agent-action.md",
+                              "docs\\auto-execute\\latest\\repair-plan.md",
+                              "docs\\auto-execute\\latest\\run-id.txt",
+                              "docs\\auto-execute\\latest\\verification-results.md",
+                              "docs\\auto-execute\\next-agent-action.md",
+                              "docs\\auto-execute\\POINTS_FLOW_ACCEPTANCE.md",
+                              "docs\\auto-execute\\progress.md",
+                              "docs\\auto-execute\\QUALITY_GATES.md",
+                              "docs\\auto-execute\\repair-plan.md",
+                              "docs\\auto-execute\\STATUS_SEMANTICS.md",
+                              "docs\\auto-execute\\summaries\\api-smoke.md",
+                              "docs\\auto-execute\\summaries\\architecture-guard.md",
+                              "docs\\auto-execute\\summaries\\error-summary.md",
+                              "docs\\auto-execute\\summaries\\git-status.md",
+                              "docs\\auto-execute\\summaries\\report-integrity.md",
+                              "docs\\auto-execute\\summaries\\requirement-coverage.md",
+                              "docs\\auto-execute\\summaries\\secret-guard.md",
+                              "docs\\auto-execute\\UI_REFERENCE_INVENTORY.md",
+                              "docs\\auto-execute\\verification-results.md",
+                              "docs\\auto-execute\\visual-diff-report.md",
+                              "docs\\backup\\past_child_voice_wechat_mvp_prd_v0.2.md"
+                          ],
     "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41",
-    "note":  "Story candidates are not accepted stories. Normalize into story-target.json before final PASS."
+    "candidates":  [
+                       {
+                           "storyId":  "STORY-DOC-001",
+                           "id":  "STORY-DOC-001",
+                           "title":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private Clo",
+                           "description":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  5,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "1. Production uses CloudBase Run API, CloudBase PostgreSQL REST/RPC, private CloudBase Storage and an on-demand Cloud Function Worker."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-002",
+                           "id":  "STORY-DOC-002",
+                           "title":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempo",
+                           "description":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  14,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "4. The 楼9.9/50-point product is server-configurable and order creation is idempotent."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-003",
+                           "id":  "STORY-DOC-003",
+                           "title":  "## P0 WeChat Pay",
+                           "description":  "## P0 WeChat Pay",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  16,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "## P0 WeChat Pay",
+                           "priority":  "P0",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "## P0 WeChat Pay"
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-004",
+                           "id":  "STORY-DOC-004",
+                           "title":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA s",
+                           "description":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  18,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "1. JSAPI order creation and `wx.requestPayment` parameters retain merchant RSA signing."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-005",
+                           "id":  "STORY-DOC-005",
+                           "title":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certif",
+                           "description":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  19,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "2. The callback uses the raw request body, WeChat Pay public-key/platform-certificate verification and APIv3 AES-GCM decryption."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-006",
+                           "id":  "STORY-DOC-006",
+                           "title":  "3. Callback and active order refresh converge on one payment RPC.",
+                           "description":  "3. Callback and active order refresh converge on one payment RPC.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  20,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "3. Callback and active order refresh converge on one payment RPC.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "3. Callback and active order refresh converge on one payment RPC."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-007",
+                           "id":  "STORY-DOC-007",
+                           "title":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly ",
+                           "description":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  21,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "4. Duplicate/concurrent payment success grants 50 points and one ledger exactly once."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-008",
+                           "id":  "STORY-DOC-008",
+                           "title":  "1. Up to 100MB authorized video uploads directly to private storage with a signe",
+                           "description":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  25,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "1. Up to 100MB authorized video uploads directly to private storage with a signed URL and never traverses the Run request body."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-009",
+                           "id":  "STORY-DOC-009",
+                           "title":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliy",
+                           "description":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  26,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "2. Worker downloads source video to temporary storage, runs FFmpeg, enrolls Aliyun CosyVoice and uploads reference/preview/generated audio."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-010",
+                           "id":  "STORY-DOC-010",
+                           "title":  "3. Voice/account deletion removes the Aliyun provider voice and private storage ",
+                           "description":  "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  34,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "3. Voice/account deletion removes the Aliyun provider voice and private storage objects before final database cleanup."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-011",
+                           "id":  "STORY-DOC-011",
+                           "title":  "4. API or function restart must not lose point, payment or job state.",
+                           "description":  "4. API or function restart must not lose point, payment or job state.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  35,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "4. API or function restart must not lose point, payment or job state.",
+                           "priority":  "P0",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "4. API or function restart must not lose point, payment or job state."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-012",
+                           "id":  "STORY-DOC-012",
+                           "title":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                           "description":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  40,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "2. SELF, OTHER and MINOR authorization types remain supported.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "2. SELF, OTHER and MINOR authorization types remain supported."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-013",
+                           "id":  "STORY-DOC-013",
+                           "title":  "`docs/auto-execute/results/cloudbase-runtime-smoke.json`",
+                           "description":  "`docs/auto-execute/results/cloudbase-runtime-smoke.json`",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  45,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "`docs/auto-execute/results/cloudbase-runtime-smoke.json`",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "`docs/auto-execute/results/cloudbase-runtime-smoke.json`"
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-014",
+                           "id":  "STORY-DOC-014",
+                           "title":  "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`",
+                           "description":  "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  46,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "`docs/auto-execute/results/cloudbase-payment-rpc-smoke.json`"
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-015",
+                           "id":  "STORY-DOC-015",
+                           "title":  "`docs/auto-execute/results/cloudbase-full-flow.json`",
+                           "description":  "`docs/auto-execute/results/cloudbase-full-flow.json`",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  47,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "`docs/auto-execute/results/cloudbase-full-flow.json`",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "`docs/auto-execute/results/cloudbase-full-flow.json`"
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-016",
+                           "id":  "STORY-DOC-016",
+                           "title":  "`docs/auto-execute/results/cloudbase-deployment.json`",
+                           "description":  "`docs/auto-execute/results/cloudbase-deployment.json`",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  48,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "`docs/auto-execute/results/cloudbase-deployment.json`",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "`docs/auto-execute/results/cloudbase-deployment.json`"
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       },
+                       {
+                           "storyId":  "STORY-DOC-017",
+                           "id":  "STORY-DOC-017",
+                           "title":  "Real WeChat login, the merchant public key and public-key ID, a real merchant ch",
+                           "description":  "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/platform action and prevent a pure launch PASS.",
+                           "source":  "docs\\cloudbase-production-refactor-requirements.md",
+                           "sourceLine":  54,
+                           "sourceRequirements":  [
+
+                                                  ],
+                           "actor":  "user",
+                           "goal":  "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/platform action and prevent a pure launch PASS.",
+                           "priority":  "P2",
+                           "surfaces":  [
+
+                                        ],
+                           "apis":  [
+
+                                    ],
+                           "acceptanceCriteria":  [
+                                                      "Real WeChat login, the merchant public key and public-key ID, a real merchant charge/callback, mini-program domain allowlists, real-device testing and WeChat review require user/platform action and prevent a pure launch PASS."
+                                                  ],
+                           "status":  "CANDIDATE",
+                           "normalized":  false,
+                           "evidence":  [
+
+                                        ]
+                       }
+                   ],
+    "status":  "CANDIDATE"
 }

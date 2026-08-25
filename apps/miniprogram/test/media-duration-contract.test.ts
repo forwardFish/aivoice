@@ -31,13 +31,20 @@ test('select video footer delegates row spacing and action width to the standard
   const actionBarWxss = read('components/bottom-action-bar/bottom-action-bar.wxss')
   const actionBarTs = read('components/bottom-action-bar/bottom-action-bar.ts')
 
-  assert.match(selectVideoWxml, /<bottom-action-bar[^>]*layout="row"[^>]*actionWidth="\{\{222\}\}"/)
+  assert.match(selectVideoWxml, /<bottom-action-bar[^>]*layout="row"[^>]*actionWidth="\{\{204\}\}"/)
   assert.match(selectVideoWxml, /slot="leading"/)
   assert.match(selectVideoWxml, /<app-button[^>]*slot="action"/)
   assert.doesNotMatch(selectVideoWxss, /\.footer-action/)
   assert.match(actionBarTs, /multipleSlots:\s*true/)
   assert.match(actionBarWxml, /bottom-action-leading[^]*slot name="leading"/)
   assert.match(actionBarWxml, /bottom-action-trailing[^]*slot name="action"/)
-  assert.match(actionBarWxss, /\.bottom-action-trailing\s*\{[^}]*margin-left:\s*22rpx/s)
+  assert.match(actionBarWxss, /\.bottom-action-trailing\s*\{[^}]*margin-left:\s*18rpx[^}]*margin-right:\s*12rpx/s)
   assert.doesNotMatch(actionBarWxss, /\.is-row\s*\{[^}]*gap:/s)
+})
+
+test('standard component hosts keep full width when rendered through bottom bar slots', () => {
+  const appStyle = read('app.wxss')
+  const clipView = read('pages/create/select-clip.wxml')
+  assert.match(appStyle, /app-button,[\s\S]*bottom-action-bar,[\s\S]*display:\s*block;[\s\S]*width:\s*100%/)
+  assert.match(clipView, /<bottom-action-bar[^>]*custom-class="clip-footer"[\s\S]*<app-button/)
 })

@@ -42,3 +42,11 @@ Status: `PASS_WITH_LIMITATION`
 ## Limitation
 
 This proves the live backend/DB/Worker/provider flow, not the native mini-program click flow. Frontend ZIP integration, WeChat DevTools screenshots, console/network evidence, real WeChat login and real payment remain separate required gates.
+
+## 08/23/2026 09:00:49
+Full-flow smoke is project-specific. Populate 03-surface-map.md and implement flow tests where tooling exists.
+
+
+## 08/23/2026 09:01:51
+Full-flow smoke is project-specific. Populate 03-surface-map.md and implement flow tests where tooling exists.
+

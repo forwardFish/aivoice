@@ -12,6 +12,16 @@ page {
   --warm-soft: #fff0ea;
   --success: #4fba73;
   --danger: #d85b63;
+  --action-primary-start: #6552f5;
+  --action-primary-end: #8d68f6;
+  --action-primary-shadow: rgba(101, 82, 245, 0.24);
+  --action-secondary-text: #6552f5;
+  --action-secondary-bg: #f1efff;
+  --action-secondary-border: #d8d2fb;
+  --action-danger-start: #dc6870;
+  --action-danger-end: #c9515b;
+  --action-disabled-start: #bcb7e7;
+  --action-disabled-end: #c8c2eb;
   --line: #e9ebf4;
   --shadow: 0 18rpx 60rpx rgba(51, 58, 94, 0.08);
   min-height: 100%;
@@ -48,6 +58,29 @@ button {
 
 button::after {
   border: none;
+}
+
+/* Custom component hosts must own their layout width. In WeChat, an internal
+   width:100% button can still shrink to its label when the host is slotted. */
+app-button,
+menu-row,
+bottom-action-bar,
+bottom-sheet,
+voice-input-dock {
+  display: block;
+  width: 100%;
+}
+
+app-avatar {
+  display: block;
+  flex: 0 0 auto;
+}
+
+app-chevron {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
 }
 
 .screen {
@@ -118,31 +151,31 @@ button::after {
 
 .primary-button {
   color: #ffffff;
-  background: linear-gradient(135deg, #5f52f5 0%, #8d68f6 100%);
-  box-shadow: 0 18rpx 36rpx rgba(101, 82, 245, 0.24);
+  background: linear-gradient(135deg, var(--action-primary-start) 0%, var(--action-primary-end) 100%);
+  box-shadow: 0 18rpx 36rpx var(--action-primary-shadow);
 }
 
 .primary-button.button-disabled,
 .primary-button[disabled] {
   color: rgba(255, 255, 255, 0.72);
-  background: linear-gradient(135deg, #bcb7e7 0%, #c8c2eb 100%);
+  background: linear-gradient(135deg, var(--action-disabled-start) 0%, var(--action-disabled-end) 100%);
   box-shadow: none;
 }
 
 .secondary-button {
-  color: var(--text-primary);
-  background: #ffffff;
-  border: 1rpx solid var(--line);
+  color: var(--action-secondary-text);
+  background: var(--action-secondary-bg);
+  border: 1rpx solid var(--action-secondary-border);
 }
 
 .ghost-button {
-  color: var(--brand);
-  background: var(--brand-soft);
+  color: var(--action-secondary-text);
+  background: var(--action-secondary-bg);
 }
 
 .danger-button {
   color: #ffffff;
-  background: linear-gradient(135deg, #dc6870, #c9515b);
+  background: linear-gradient(135deg, var(--action-danger-start), var(--action-danger-end));
 }
 
 .text-button {

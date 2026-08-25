@@ -3,7 +3,7 @@
 
   <view class="hero-section fade-in">
     <view class="hero-copy">
-      <text class="brand-title">那时的TA</text>
+      <text class="brand-title">那年的TA</text>
       <text class="brand-subtitle">把记忆里的声音，轻轻留住</text>
     </view>
     <view class="hero-visual">

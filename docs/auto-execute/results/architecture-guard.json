@@ -1,0 +1,18 @@
+﻿{
+    "blockers":  [
+
+                 ],
+    "commands":  [
+
+                 ],
+    "lane":  "architecture-guard",
+    "status":  "PASS",
+    "evidence":  [
+                     "docs\\auto-execute\\summaries\\architecture-guard.md"
+                 ],
+    "schemaVersion":  "2.0",
+    "nextActions":  [
+
+                    ],
+    "updatedAt":  "2026-08-23T09:16:20"
+}

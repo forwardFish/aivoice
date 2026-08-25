@@ -1,8 +1,246 @@
 ﻿{
-    "status":  "PENDING",
-    "schemaVersion":  "2.0",
-    "generatedAt":  "2026-08-21T12:24:41",
-    "stories":  [
+    "gaps":  [
+                 {
+                     "id":  "GAP-STORY-PAYMENT-003-STATUS",
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "P0/P1 story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-003 and attach truthful test-point evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-STATUS",
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for story STORY-PAYMENT-003 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE",
+                     "severity":  "HARD_FAIL",
+                     "description":  "Test point TP-STORY-PAYMENT-003-001 for P0/P1 story STORY-PAYMENT-003 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-003-001.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-STORY-PAYMENT-011-STATUS",
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "P0/P1 story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Implement/repair STORY-PAYMENT-011 and attach truthful test-point evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-STATUS",
+                     "severity":  "IN_SCOPE_GAP",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for story STORY-PAYMENT-011 status is PENDING, not PASS/PASS_WITH_LIMITATION.",
+                     "repairTarget":  "Run or implement the test point and attach evidence.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 },
+                 {
+                     "id":  "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE",
+                     "severity":  "HARD_FAIL",
+                     "description":  "Test point TP-STORY-PAYMENT-011-001 for P0/P1 story STORY-PAYMENT-011 has no evidence.",
+                     "repairTarget":  "Attach executable evidence for TP-STORY-PAYMENT-011-001.",
+                     "source":  "docs\\auto-execute\\story-candidates-curated.json"
+                 }
+             ],
+    "generatedAt":  "2026-08-23T09:17:19",
+    "limitations":  [
 
-                ]
+                    ],
+    "lane":  "story-verifier",
+    "stories":  [
+                    {
+                        "storyId":  "STORY-GENERAL-001",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-002",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-003",
+                        "priority":  "P0",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+                                         "GAP-STORY-PAYMENT-003-STATUS",
+                                         "GAP-TP-STORY-PAYMENT-003-001-STATUS",
+                                         "GAP-TP-STORY-PAYMENT-003-001-EVIDENCE"
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-004",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-005",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-006",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-007",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-UPLOAD-008",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-UPLOAD-009",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-010",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-011",
+                        "priority":  "P0",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+                                         "GAP-STORY-PAYMENT-011-STATUS",
+                                         "GAP-TP-STORY-PAYMENT-011-001-STATUS",
+                                         "GAP-TP-STORY-PAYMENT-011-001-EVIDENCE"
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-AUTH-012",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-013",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-PAYMENT-014",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-015",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-GENERAL-016",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    },
+                    {
+                        "storyId":  "STORY-AUTH-017",
+                        "priority":  "P2",
+                        "status":  "PENDING",
+                        "acceptanceCriteria":  1,
+                        "testPoints":  null,
+                        "evidence":  0,
+                        "openGaps":  [
+
+                                     ]
+                    }
+                ],
+    "schemaVersion":  "2.0",
+    "status":  "HARD_FAIL"
 }
