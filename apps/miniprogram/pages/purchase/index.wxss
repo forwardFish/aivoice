@@ -1,4 +1,4 @@
-.purchase-screen { min-height: 100vh; padding-bottom: calc(188rpx + env(safe-area-inset-bottom)); }
+.purchase-screen { min-height: 100vh; padding-bottom: calc(228rpx + env(safe-area-inset-bottom)); }
 .state-wrap { margin: 32rpx; overflow: hidden; border-radius: 34rpx; }
 .purchase-content { padding: 18rpx 34rpx 0; }
 .purchase-heading { padding: 3rpx 3rpx 24rpx; text-align: center; }
@@ -32,9 +32,9 @@
 .error-message { display: block; margin-top: 15rpx; padding: 14rpx 16rpx; border-radius: 18rpx; color: #d85b63; background: #fff0f1; font-size: 18rpx; line-height: 1.5; }
 .purchase-spacer { height: 30rpx; }
 
-.purchase-footer { position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; padding: 14rpx 34rpx calc(13rpx + env(safe-area-inset-bottom)); background: rgba(250,250,255,.97); border-top: 1rpx solid rgba(226,226,237,.92); box-shadow: 0 -16rpx 38rpx rgba(58,61,94,.08); backdrop-filter: blur(20rpx); }
+.purchase-footer { position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; padding: 16rpx 34rpx calc(28rpx + env(safe-area-inset-bottom)); background: rgba(250,250,255,.97); border-top: 1rpx solid rgba(226,226,237,.92); box-shadow: 0 -16rpx 38rpx rgba(58,61,94,.08); backdrop-filter: blur(20rpx); }
 .buy-button { min-height: 92rpx; }
-.footer-note { display: block; color: #9a9eae; font-size: 15rpx; line-height: 1.4; text-align: center; }
+.footer-note { display: block; margin-top: 10rpx; color: #9a9eae; font-size: 17rpx; line-height: 1.4; text-align: center; }
 
 @media (max-height: 740px) {
   .purchase-heading { padding-bottom: 14rpx; }
