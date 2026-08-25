@@ -33,9 +33,6 @@
 .inline-error { display: block; margin-top: 14rpx; padding: 13rpx 16rpx; border-radius: 17rpx; color: #d85b63; background: #fff0f1; font-size: 18rpx; line-height: 1.5; }
 .profile-spacer { height: 26rpx; }
 
-.profile-footer { position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; padding: 13rpx 66rpx calc(12rpx + env(safe-area-inset-bottom)); background: rgba(250,250,255,.97); border-top: 1rpx solid rgba(226,226,237,.92); box-shadow: 0 -16rpx 38rpx rgba(58,61,94,.08); backdrop-filter: blur(20rpx); }
-.submit-button { min-height: 85rpx; }
-
 @media (max-height: 740px) {
   .profile-intro { margin-bottom:20rpx; font-size:21rpx; }
   .name-card { padding-top: 18rpx; padding-bottom: 18rpx; }

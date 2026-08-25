@@ -8,8 +8,7 @@
 .empty-wave-icon { width: 58rpx; height: 58rpx; }
 .voices-empty-title { margin-top: 38rpx; color: #121830; font-size: 34rpx; font-weight: 750; }
 .voices-empty-copy { max-width: 480rpx; margin-top: 20rpx; color: #8a91a6; font-size: 22rpx; line-height: 1.7; }
-.voices-empty-button { width: 380rpx; height: 88rpx; margin-top: 40rpx; border-radius: 28rpx; color: #fff; background: linear-gradient(135deg,#5f52f5,#8d68f6); box-shadow: 0 20rpx 38rpx rgba(101,82,245,.18); font-size: 27rpx; font-weight: 680; }
-.voices-empty-button::after { border: none; }
+.voices-empty-action { width:380rpx; margin-top:40rpx; }
 
 .voice-list { display: flex; flex-direction: column; gap: 44rpx; }
 .voice-card { min-height: 260rpx; padding: 30rpx 30rpx 28rpx; position: relative; overflow: hidden; border-radius: 38rpx; border: 1rpx solid rgba(255,255,255,.96); box-shadow: 0 18rpx 48rpx rgba(67,71,108,.07), inset 0 1rpx 0 rgba(255,255,255,.98); }
@@ -20,34 +19,27 @@
 .voice-card.is-failed { min-height: 288rpx; }
 
 .card-top { position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 25rpx; }
-.voice-avatar { flex: 0 0 auto; width: 150rpx; height: 150rpx; border-radius: 50%; border: 3rpx solid rgba(255,255,255,.95); box-shadow: 0 12rpx 27rpx rgba(58,62,94,.13); background: #efedff; }
-.voice-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg,#efedff,#dedaf8); }
-.voice-avatar.fallback image { width: 84rpx; height: 48rpx; opacity: .72; }
-.voice-card.is-processing .voice-avatar,
-.voice-card.is-draft .voice-avatar,
-.voice-card.is-failed .voice-avatar { width: 134rpx; height: 134rpx; }
-
-.voice-copy { flex: 1; min-width: 0; padding-top: 10rpx; }
-.voice-name { display: block; max-width: 350rpx; overflow: hidden; color: #102653; font-size: 39rpx; line-height: 1.2; font-weight: 740; text-overflow: ellipsis; white-space: nowrap; }
+.voice-copy { flex: 1 1 auto; width: 0; min-width: 0; padding-top: 10rpx; }
+.voice-name { display: block; width: 100%; overflow: hidden; color: #102653; font-size: 39rpx; line-height: 1.2; font-weight: 740; text-overflow: ellipsis; white-space: nowrap; }
 .status-pill { display: inline-flex; min-height: 39rpx; margin-top: 19rpx; padding: 4rpx 14rpx; border-radius: 10rpx; align-items: center; justify-content: center; font-size: 20rpx; font-weight: 620; }
 .status-pill.ready { color: #139b48; background: #dff7e5; }
 .status-pill.processing { color: #5e4eff; background: #eeebff; }
 .status-pill.draft { color: #ff6b2c; background: #fff0e7; }
 .status-pill.failed { color: #c9515b; background: #fff0f1; }
 .status-pill.muted { color: #7e8498; background: #f0f1f5; }
-.voice-meta { display: block; max-width: 390rpx; margin-top: 18rpx; overflow: hidden; color: #7180a5; font-size: 24rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.voice-meta { display: block; width: 100%; margin-top: 18rpx; overflow: hidden; color: #7180a5; font-size: 24rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 
-.settings-button { flex: 0 0 auto; width: 70rpx; height: 70rpx; margin-top: 7rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent; }
-.settings-button image { width: 70rpx; height: 70rpx; }
+.settings-button { flex: 0 0 82rpx !important; width: 82rpx !important; min-width: 82rpx !important; height: 82rpx; margin: 2rpx 0 0 !important; padding: 0 !important; overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent; box-sizing: border-box; }
+.settings-button image { width: 154rpx; height: 154rpx; max-width: none; flex: 0 0 auto; }
 .settings-button::after { border: none; }
 
 .ready-actions { margin-top: 29rpx; position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 17rpx; }
 .conversation-action,
-.exact-action { height: 91rpx; border-radius: 29rpx; display: flex; align-items: center; justify-content: center; gap: 12rpx; font-size: 28rpx; font-weight: 650; }
+.exact-action { width: 100% !important; min-width: 0 !important; height: 91rpx; margin: 0 !important; padding: 0 16rpx !important; border-radius: 29rpx; display: flex; align-items: center; justify-content: center; gap: 12rpx; font-size: 28rpx; font-weight: 650; box-sizing: border-box; }
 .conversation-action { color: #fff; background: linear-gradient(120deg,#7f67fa 0%,#6d57f6 53%,#635cf5 100%); box-shadow: 0 18rpx 34rpx rgba(101,82,245,.22); }
 .exact-action { color: #5848f6; background: rgba(255,255,255,.72); border: 1rpx solid rgba(238,237,247,.96); box-shadow: 0 12rpx 28rpx rgba(66,71,105,.05); }
 .conversation-action image,
-.exact-action image { width: 54rpx; height: 54rpx; }
+.exact-action image { flex: 0 0 auto; width: 68rpx; height: 68rpx; }
 .conversation-action image { filter: grayscale(1) brightness(0) invert(1); }
 .conversation-action::after,
 .exact-action::after { border: none; }
@@ -56,7 +48,7 @@
 .progress-track { flex: 1; height: 14rpx; overflow: hidden; border-radius: 999rpx; background: #e8e6f6; }
 .progress-value { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#8a6cf6,#5c4df5); box-shadow: 0 0 13rpx rgba(101,82,245,.22); }
 
-.resume-action { width: 100%; height: 76rpx; margin-top: 20rpx; position: relative; z-index: 2; border-radius: 25rpx; display: flex; align-items: center; justify-content: center; gap: 14rpx; color: #5346f2; background: rgba(255,255,255,.52); border: 2rpx solid #6355f7; font-size: 27rpx; font-weight: 660; }
+.resume-action { width: 100% !important; min-width: 0 !important; height: 76rpx; margin: 20rpx 0 0 !important; padding: 0 20rpx !important; position: relative; z-index: 2; border-radius: 25rpx; display: flex; align-items: center; justify-content: center; gap: 14rpx; color: #5346f2; background: rgba(255,255,255,.52); border: 2rpx solid #6355f7; font-size: 27rpx; font-weight: 660; box-sizing: border-box; }
 .resume-action.failed-action { color: #c9515b; border-color: #d96a72; }
 .resume-action::after { border: none; }
 .draft-pencil { width: 38rpx; height: 38rpx; display: flex; align-items: center; justify-content: center; font-size: 39rpx; line-height: 1; font-weight: 650; }
@@ -71,7 +63,6 @@
   .voice-card.is-processing { min-height: 214rpx; }
   .voice-card.is-draft,
   .voice-card.is-failed { min-height: 254rpx; }
-  .voice-avatar { width: 124rpx; height: 124rpx; }
   .voice-name { font-size: 34rpx; }
   .status-pill { margin-top: 12rpx; }
   .voice-meta { margin-top: 12rpx; font-size: 21rpx; }

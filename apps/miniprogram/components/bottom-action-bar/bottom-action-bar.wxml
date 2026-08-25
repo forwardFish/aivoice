@@ -1,0 +1,6 @@
+<view
+  class="bottom-action-bar {{compact ? 'is-compact' : ''}} custom-class"
+  style="{{minHeight ? 'min-height:' + minHeight + 'rpx;' : ''}}"
+>
+  <view class="bottom-action-content is-{{layout}}"><slot></slot></view>
+</view>

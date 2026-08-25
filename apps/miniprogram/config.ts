@@ -14,7 +14,10 @@ function resolveApiBaseUrl(): string {
   } catch (_error) {
     // ExtConfig is optional; fall back to the public compile-time origin.
   }
-  return 'http://127.0.0.1:8787'
+  const isWechatRuntime = typeof wx !== 'undefined' && typeof wx.getAccountInfoSync === 'function'
+  return isWechatRuntime
+    ? 'https://aivoice-api-301049-8-1434074357.sh.run.tcloudbase.com'
+    : 'http://127.0.0.1:8787'
 }
 
 export const API_BASE_URL = resolveApiBaseUrl()

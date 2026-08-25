@@ -52,18 +52,17 @@
 }
 .empty-wave-image { width:84rpx; height:48rpx; }
 
-.loading-wave text,
-.empty-wave text {
+.state-wave-bar {
   width: 6rpx;
   border-radius: 999rpx;
   background: #6552f5;
 }
 
-.loading-wave text:nth-child(1), .empty-wave text:nth-child(1) { height: 22rpx; }
-.loading-wave text:nth-child(2), .empty-wave text:nth-child(2) { height: 36rpx; }
-.loading-wave text:nth-child(3), .empty-wave text:nth-child(3) { height: 52rpx; }
-.loading-wave text:nth-child(4), .empty-wave text:nth-child(4) { height: 36rpx; }
-.loading-wave text:nth-child(5), .empty-wave text:nth-child(5) { height: 22rpx; }
+.state-wave-bar:nth-child(1) { height:22rpx; }
+.state-wave-bar:nth-child(2) { height:36rpx; }
+.state-wave-bar:nth-child(3) { height:52rpx; }
+.state-wave-bar:nth-child(4) { height:36rpx; }
+.state-wave-bar:nth-child(5) { height:22rpx; }
 
 .error-visual {
   color: #ffffff;
@@ -90,19 +89,7 @@
   color: #737b94;
 }
 
-.state-action {
-  min-width: 240rpx;
-  height: 84rpx;
-  margin-top: 34rpx;
-  padding: 0 38rpx;
-  border-radius: 24rpx;
-  color: #ffffff;
-  background: linear-gradient(135deg, #5f52f5, #8d68f6);
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.state-action::after { border: none; }
+.state-action-shell { width:280rpx; margin-top:34rpx; }
 
 @keyframes state-spin {
   from { transform: rotate(0deg); }

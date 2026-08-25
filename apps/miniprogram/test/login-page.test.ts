@@ -5,7 +5,7 @@ import test from 'node:test'
 
 const miniprogramRoot = path.resolve(__dirname, '..')
 
-test('login page matches the latest visual hierarchy without restoring profile onboarding', () => {
+test('login page keeps the reference hierarchy and opens native WeChat profile onboarding after consent', () => {
   const view = fs.readFileSync(path.join(miniprogramRoot, 'pages/login/index.wxml'), 'utf8')
   const style = fs.readFileSync(path.join(miniprogramRoot, 'pages/login/index.wxss'), 'utf8')
 
@@ -13,10 +13,12 @@ test('login page matches the latest visual hierarchy without restoring profile o
   assert.match(view, /class="wechat-login-button/)
   assert.match(view, /\/assets\/ui\/wechat-mark\.png/)
   assert.doesNotMatch(view, /wechat-bubble|bubble-large|bubble-small/)
-  assert.match(view, /欢迎来到那时的TA/)
+  assert.match(view, /欢迎来到那年的TA/)
   assert.match(view, /《用户协议》/)
   assert.match(view, /《隐私政策》/)
-  assert.doesNotMatch(view, /chooseAvatar|nickname-input|avatar-picker/)
+  assert.match(view, /open-type="chooseAvatar"/)
+  assert.match(view, /type="nickname"/)
+  assert.match(view, /<bottom-sheet[^>]*visible="\{\{showProfileSheet\}\}"/)
   assert.match(style, /\.wechat-login-button\s*\{[^}]*linear-gradient/s)
   assert.match(style, /\.wechat-login-button\s*\{[^}]*width:590rpx\s*!important/s)
   assert.match(style, /\.wechat-login-button\s*\{[^}]*height:120rpx/s)
@@ -24,7 +26,7 @@ test('login page matches the latest visual hierarchy without restoring profile o
   assert.match(style, /\.login-clouds\s*\{/)
 })
 
-test('login page uses wx.login code with HTTPS production config and stores only API session data', async () => {
+test('login page uses wx.login code with HTTPS production config and stores API session plus chosen profile', async () => {
   const storage = new Map<string, any>()
   let pageDefinition: any
   let loginCalled = false
@@ -57,16 +59,19 @@ test('login page uses wx.login code with HTTPS production config and stores only
   await import('../pages/login/index')
   const instance: any = {
     ...pageDefinition,
-    data: { ...structuredClone(pageDefinition.data), agreed: true, nickname: '测试用户' },
+    data: { ...structuredClone(pageDefinition.data), agreed: true, nickname: '测试用户', avatarUrl: 'https://cdn.example.test/avatar.png' },
     setData(patch: Record<string, unknown>) { Object.assign(this.data, patch) }
   }
-  await instance.submitLogin()
+  instance.submitLogin()
+  assert.equal(instance.data.showProfileSheet, true)
+  await instance.confirmProfileLogin({ detail: { value: { nickname: '测试用户' } } })
   await new Promise(resolve => setTimeout(resolve, 500))
 
   assert.equal(loginCalled, true)
   assert.equal(requestBody.code, 'real-wx-code')
+  assert.deepEqual(requestBody.profile, { nickname: '测试用户', avatarUrl: 'https://cdn.example.test/avatar.png' })
   assert.equal(storage.get('nashide_ta_token'), 'server-session-token')
-  assert.deepEqual(storage.get('nashide_ta_user'), { id: 'user-1', nickname: '测试用户', avatarUrl: undefined, status: undefined })
+  assert.deepEqual(storage.get('nashide_ta_user'), { id: 'user-1', nickname: '测试用户', avatarUrl: 'https://cdn.example.test/avatar.png', status: undefined })
   assert.equal(switchedTo, '/pages/home/index')
   assert.equal(storage.has('session_key'), false)
 })

@@ -11,6 +11,7 @@
     "pages/purchase/index",
     "pages/voices/index",
     "pages/account/index",
+    "pages/account/service-detail",
     "pages/voice/settings"
   ],
   "window": {
@@ -18,6 +19,15 @@
     "backgroundColor": "#F7F8FF",
     "backgroundTextStyle": "dark",
     "enablePullDownRefresh": false
+  },
+  "usingComponents": {
+    "app-button": "/components/app-button/app-button",
+    "app-avatar": "/components/app-avatar/app-avatar",
+    "app-chevron": "/components/app-chevron/app-chevron",
+    "bottom-action-bar": "/components/bottom-action-bar/bottom-action-bar",
+    "bottom-sheet": "/components/bottom-sheet/bottom-sheet",
+    "menu-row": "/components/menu-row/menu-row",
+    "voice-input-dock": "/components/voice-input-dock/voice-input-dock"
   },
   "tabBar": {
     "custom": true,

@@ -110,6 +110,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   const workbenchStyle = read('pages/voice/workbench.wxss')
   const quotaView = read('components/quota-purchase-dialog/quota-purchase-dialog.wxml')
   const purchaseView = read('pages/purchase/index.wxml')
+  const bottomBarStyle = read('components/bottom-action-bar/bottom-action-bar.wxss')
 
   assert.match(selectVideoTs, /selectedIndex:\s*-1/)
   assert.match(selectVideoTs, /dataset\.index/)
@@ -122,7 +123,8 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.doesNotMatch(selectVideoView, /selected\s*&&\s*index\s*===\s*0/)
   assert.doesNotMatch(selectVideoView, />\s*▶\s*</)
   assert.match(selectVideoStyle, /\.media-tile\.is-selected/)
-  assert.match(selectVideoStyle, /\.selection-footer\s*\{[^}]*position:\s*fixed/s)
+  assert.match(selectVideoView, /<bottom-action-bar[^>]*custom-class="selection-footer"/)
+  assert.match(bottomBarStyle, /\.bottom-action-bar\s*\{[^}]*position:\s*fixed/s)
 
   assert.match(homeTs, /clipStartMs/)
   assert.match(homeTs, /clipEndMs/)
@@ -131,8 +133,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(homeView, /wx:if="\{\{item\.durationText\}\}"/)
   assert.doesNotMatch(homeView, /voice-points|item\.pointsText/)
   assert.doesNotMatch(homeView, /00:21|00:20|00:18|00:24/)
-  assert.match(homeView, /wx:if="\{\{item\.displayAvatarUrl\}\}"/)
-  assert.match(homeView, /class="voice-avatar fallback"/)
+  assert.match(homeView, /<app-avatar[^>]*src="\{\{item\.displayAvatarUrl\}\}"/)
 
   assert.match(appStyle, /\.sprite-play-line \.ui-sprite-sheet/)
   assert.match(appStyle, /sprite-play-line[^}]*transform:\s*none/s)
@@ -151,7 +152,7 @@ test('selection markup, metadata and icon assets consume real state without hard
   assert.match(voicesView, /class="resume-action/)
   assert.doesNotMatch(voicesView, /filter-shell|rightText="新建"/)
   assert.match(voicesView, /\/assets\/ui\/icon-more-glass\.png/)
-  assert.match(accountView, /data-type="contact"/)
+  assert.match(accountView, /itemKey="contact"/)
   assert.doesNotMatch(accountView, /bindtap="openPurchase"/)
   assert.doesNotMatch(accountSource, /navigateTo\(\{\s*url:\s*['"]\/pages\/purchase\/index['"]/)
   assert.match(appNavView, /rightText && !back/)
@@ -212,13 +213,15 @@ test('fixed actions remain protected on compact screens and legacy ten-use copy 
     read('pages/voice/workbench.wxml'),
     read('components/quota-purchase-dialog/quota-purchase-dialog.wxml')
   ].join('\n')
+  const bottomBarStyle = read('components/bottom-action-bar/bottom-action-bar.wxss')
 
-  assert.match(clipStyle, /\.clip-footer\s*\{[^}]*position:\s*fixed/s)
+  assert.match(read('pages/create/select-clip.wxml'), /<bottom-action-bar[^>]*custom-class="clip-footer"/)
+  assert.match(bottomBarStyle, /\.bottom-action-bar\s*\{[^}]*position:\s*fixed/s)
   assert.match(clipStyle, /@media \(max-height:\s*740px\)/)
   assert.match(workbenchView, /class="primary-button exact-generate/)
   assert.match(workbenchStyle, /@media \(max-height:\s*740px\)/)
-  assert.match(profileStyle, /\.profile-footer\s*\{[^}]*position:\s*fixed/s)
-  assert.match(purchaseStyle, /\.purchase-footer\s*\{[^}]*position:\s*fixed/s)
+  assert.doesNotMatch(profileStyle, /\.profile-footer\s*\{[^}]*position:\s*fixed/s)
+  assert.doesNotMatch(purchaseStyle, /\.purchase-footer\s*\{[^}]*position:\s*fixed/s)
   assert.match(homeStyle, /padding:\s*0 32rpx calc\(190rpx \+ env\(safe-area-inset-bottom\)\)/)
 
   assert.match(contractFiles, /50 个账号积分|purchaseOption\.points|账号积分/)

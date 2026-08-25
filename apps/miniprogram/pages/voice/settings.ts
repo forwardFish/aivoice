@@ -1,12 +1,11 @@
 import {
   clearConversation,
   deleteVoice,
-  getPoints,
   getVoice,
   saveVoiceProfile
 } from '../../services/api'
-import { ConversationStyle, PermissionType, VoiceStatus } from '../../models/api'
-import { ensureAuthenticated, openPurchasePage } from '../../utils/navigation'
+import { PermissionType, VoiceStatus } from '../../models/api'
+import { ensureAuthenticated } from '../../utils/navigation'
 import { confirm, toast } from '../../utils/ui'
 import {
   clearCreationSession,
@@ -22,16 +21,6 @@ function permissionLabel(value?: PermissionType): string {
     MINOR: '未成年人的声音'
   }
   return value ? labels[value] || '未设置' : '未设置'
-}
-
-function styleLabel(value?: ConversationStyle): string {
-  const labels: Record<ConversationStyle, string> = {
-    NATURAL: '自然',
-    GENTLE: '温柔',
-    LIVELY: '活泼',
-    CALM: '沉稳'
-  }
-  return value ? labels[value] || '自然' : '自然'
 }
 
 function statusLabel(value: VoiceStatus): string {
@@ -60,11 +49,7 @@ Page({
     nameDraft: '',
     permissionType: '' as PermissionType | '',
     permissionText: '',
-    styleText: '',
-    stageText: '未设置',
-    callerText: '未设置',
     statusText: '',
-    availablePoints: 0,
     saving: false,
     clearing: false,
     deleting: false,
@@ -91,7 +76,6 @@ Page({
         this.setData({ state: 'success', deleted: true, voiceName: voice.name || '这个声音' })
         return
       }
-      const points = await getPoints().catch(() => voice.points || voice.quota)
       this.setData({
         state: 'success',
         deleted: false,
@@ -99,11 +83,7 @@ Page({
         nameDraft: voice.name || '',
         permissionType: voice.permissionType || '',
         permissionText: permissionLabel(voice.permissionType),
-        styleText: styleLabel(voice.conversationStyle),
-        stageText: voice.stageLabel || '未设置',
-        callerText: '由声音资料保存',
-        statusText: statusLabel(voice.status),
-        availablePoints: points.availablePoints
+        statusText: statusLabel(voice.status)
       })
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音设置加载失败，请重试。' })
@@ -151,12 +131,6 @@ Page({
       showCancel: false,
       confirmText: '知道了'
     })
-  },
-  openAccount() {
-    wx.switchTab({ url: '/pages/account/index' })
-  },
-  openPurchase() {
-    openPurchasePage({ voiceId: this.data.voiceId, source: 'settings' })
   },
   goVoices() {
     wx.switchTab({ url: '/pages/voices/index' })

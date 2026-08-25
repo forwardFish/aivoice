@@ -1,3 +1,10 @@
+function formatTime(value: number): string {
+  const total = Math.max(0, Math.floor(value || 0))
+  const minute = Math.floor(total / 60)
+  const second = total % 60
+  return `${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`
+}
+
 Component({
   properties: {
     src: {
@@ -7,11 +14,17 @@ Component({
         if (this.audio) {
           this.audio.stop()
           this.audio.src = newValue || ''
-          this.setData({ playing: false, progress: 0, currentText: '00:00' })
+          this.setData({ playing: false, progress: 0, currentText: formatTime(Number(this.data.durationMs || 0) / 1000) })
         }
       }
     },
-    durationMs: { type: Number, value: 0 },
+    durationMs: {
+      type: Number,
+      value: 0,
+      observer(newValue: number) {
+        if (!this.data.playing) this.setData({ currentText: formatTime(Number(newValue || 0) / 1000) })
+      }
+    },
     label: { type: String, value: '' },
     tag: { type: String, value: '' },
     disabled: { type: Boolean, value: false },
@@ -23,17 +36,18 @@ Component({
     downloading: false,
     progress: 0,
     currentText: '00:00',
-    bars: [18, 30, 42, 26, 52, 36, 46, 24, 40, 32, 50, 28, 20, 12]
+    bars: [14, 26, 38, 22, 42, 30, 36, 20, 34, 26, 40, 24, 18, 12]
   },
   lifetimes: {
     attached() {
+      this.setData({ currentText: formatTime(Number(this.data.durationMs || 0) / 1000) })
       const audio = wx.createInnerAudioContext()
       audio.obeyMuteSwitch = false
       audio.autoplay = false
       if (this.data.src) audio.src = this.data.src
       audio.onPlay(() => this.setData({ playing: true }))
       audio.onPause(() => this.setData({ playing: false }))
-      audio.onStop(() => this.setData({ playing: false, progress: 0, currentText: '00:00' }))
+      audio.onStop(() => this.setData({ playing: false, progress: 0, currentText: formatTime(Number(this.data.durationMs || 0) / 1000) }))
       audio.onTimeUpdate(() => {
         const duration = Number(audio.duration || 0)
         const current = Number(audio.currentTime || 0)
@@ -63,10 +77,7 @@ Component({
   },
   methods: {
     formatSeconds(value: number): string {
-      const total = Math.max(0, Math.floor(value || 0))
-      const minute = Math.floor(total / 60)
-      const second = total % 60
-      return `${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`
+      return formatTime(value)
     },
     toggle() {
       if (this.data.disabled || !this.data.src || !this.audio) {

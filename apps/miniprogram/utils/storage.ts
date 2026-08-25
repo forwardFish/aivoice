@@ -29,7 +29,13 @@ export interface WorkbenchDraft {
 }
 
 export function getToken(): string {
-  return String(wx.getStorageSync(TOKEN_KEY) || '')
+  const token = String(wx.getStorageSync(TOKEN_KEY) || '')
+  if (token === 'visual-token' || token === 'local-token' || token === 'mock-token' || token.startsWith('mock-') || token.startsWith('local-')) {
+    wx.removeStorageSync(TOKEN_KEY)
+    wx.removeStorageSync(USER_KEY)
+    return ''
+  }
+  return token
 }
 
 export function setToken(token: string): void {

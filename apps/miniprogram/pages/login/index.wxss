@@ -12,7 +12,7 @@
 .login-aurora { position:absolute; border-radius:50%; pointer-events:none; filter:blur(3rpx); }
 .aurora-a { width:420rpx; height:360rpx; right:-176rpx; top:100rpx; background:radial-gradient(circle,rgba(179,160,255,.23),transparent 68%); }
 .aurora-b { width:520rpx; height:400rpx; left:-220rpx; bottom:-110rpx; background:radial-gradient(circle,rgba(203,169,255,.26),transparent 68%); }
-.login-clouds { height:230rpx; position:absolute; left:-40rpx; right:-40rpx; bottom:-35rpx; opacity:.63; background:
+.login-clouds { height:210rpx; position:absolute; left:-55rpx; right:-55rpx; bottom:-55rpx; opacity:.46; filter:blur(20rpx); background:
   radial-gradient(ellipse at 6% 90%,rgba(255,255,255,.95) 0 18%,transparent 19%),
   radial-gradient(ellipse at 22% 86%,rgba(255,255,255,.9) 0 24%,transparent 25%),
   radial-gradient(ellipse at 43% 94%,rgba(255,255,255,.94) 0 23%,transparent 24%),
@@ -31,17 +31,17 @@
 .spark-d { right:88rpx; bottom:118rpx; transform:scale(.75) rotate(45deg); }
 
 .login-content { width:100%; position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
-.login-hero { width:100%; height:410rpx; position:relative; }
-.login-brand-copy { position:absolute; z-index:3; left:16rpx; top:140rpx; }
+.login-hero { width:100%; height:475rpx; position:relative; }
+.login-brand-copy { position:absolute; z-index:3; left:16rpx; top:260rpx; }
 .login-title { display:block; color:#0d1e4a; font-family:Georgia,"Songti SC","STSong",serif; font-size:68rpx; line-height:1.08; font-weight:700; letter-spacing:.4rpx; }
 .login-subtitle { display:block; margin-top:26rpx; color:#52658d; font-size:26rpx; letter-spacing:.6rpx; }
-.login-memory { width:430rpx; height:430rpx; position:absolute; z-index:2; right:-20rpx; top:0; opacity:.82; }
+.login-memory { width:430rpx; height:430rpx; position:absolute; z-index:2; right:-20rpx; top:100rpx; opacity:.82; }
 
 .welcome-block { margin-top:72rpx; display:flex; flex-direction:column; align-items:center; text-align:center; }
 .welcome-title { color:#102756; font-size:43rpx; line-height:1.25; font-weight:720; letter-spacing:1rpx; }
 .welcome-subtitle { margin-top:26rpx; color:#607098; font-size:29rpx; letter-spacing:1rpx; }
 
-.wechat-login-button { width:590rpx !important; flex:0 0 auto; height:120rpx; margin:68rpx 0 0; padding:0 42rpx; border:2rpx solid rgba(255,255,255,.78); border-radius:60rpx; display:flex; align-items:center; justify-content:center; gap:21rpx; color:#fff; background:linear-gradient(100deg,#ac7cf7 0%,#765cf5 48%,#6b64ef 100%); box-shadow:0 24rpx 54rpx rgba(111,83,235,.26),inset 0 2rpx 4rpx rgba(255,255,255,.34); font-size:40rpx; font-weight:600; }
+.wechat-login-button { width:590rpx !important; min-width:590rpx !important; max-width:590rpx !important; flex:0 0 auto; height:120rpx; margin:68rpx auto 0 !important; padding:0 42rpx !important; border:2rpx solid rgba(255,255,255,.78); border-radius:60rpx; display:flex; align-items:center; justify-content:center; gap:21rpx; color:#fff; background:linear-gradient(100deg,#ac7cf7 0%,#765cf5 48%,#6b64ef 100%); box-shadow:0 24rpx 54rpx rgba(111,83,235,.26),inset 0 2rpx 4rpx rgba(255,255,255,.34); font-size:40rpx; font-weight:600; box-sizing:border-box; }
 .wechat-login-button::after { border:0; }
 .wechat-mark { width:70rpx; height:58rpx; flex:0 0 auto; }
 
@@ -54,15 +54,35 @@
 .login-error { width:590rpx; margin-top:30rpx; padding:17rpx 22rpx; border-radius:18rpx; background:rgba(255,238,241,.9); color:#c9515b; font-size:22rpx; line-height:1.45; text-align:center; }
 .login-success { position:relative; z-index:3; padding-top:170rpx; }
 
+.profile-title { display:block; color:#102756; font-size:38rpx; line-height:1.3; font-weight:720; text-align:center; }
+.profile-description { display:block; margin-top:15rpx; color:#76809b; font-size:24rpx; text-align:center; }
+.profile-form { margin-top:38rpx; }
+.avatar-picker { width:408rpx !important; min-width:408rpx !important; min-height:126rpx; margin:0 auto !important; padding:16rpx 28rpx; border-radius:31rpx; display:flex; align-items:center; justify-content:flex-start; gap:22rpx; color:#17264a; background:rgba(255,255,255,.94); border:2rpx solid rgba(220,215,249,.98); box-shadow:0 12rpx 30rpx rgba(63,59,105,.06); font-size:28rpx; font-weight:680; box-sizing:border-box; }
+.avatar-picker::after { border:0; }
+.album-avatar-button { width:408rpx !important; height:58rpx; margin:12rpx auto 0 !important; padding:0 !important; border-radius:29rpx; color:#6757e8; background:#f1eeff; font-size:20rpx; }
+.album-avatar-button::after { border:0; }
+.avatar-preview,
+.avatar-placeholder { flex:0 0 auto; width:86rpx; height:86rpx; border-radius:50%; }
+.avatar-preview { border:3rpx solid #fff; box-shadow:0 7rpx 18rpx rgba(52,55,88,.14); }
+.avatar-placeholder { padding:18rpx; background:linear-gradient(145deg,#efedff,#faf9ff); }
+.nickname-input { width:100%; height:108rpx; margin-top:22rpx; padding:0 34rpx; border-radius:31rpx; color:#172342; background:rgba(255,255,255,.94); border:2rpx solid rgba(220,215,249,.98); font-size:28rpx; box-sizing:border-box; }
+.profile-error { display:block; margin-top:18rpx; color:#c9515b; font-size:23rpx; text-align:center; }
+.profile-privacy { display:block; margin-top:33rpx; color:#9298b0; font-size:21rpx; text-align:center; }
+
 @media (max-height:740px) {
-  .login-hero { height:350rpx; }
-  .login-brand-copy { top:96rpx; }
+  .login-hero { height:405rpx; }
+  .login-brand-copy { top:190rpx; }
   .login-title { font-size:62rpx; }
   .login-subtitle { margin-top:20rpx; font-size:24rpx; }
-  .login-memory { width:360rpx; height:360rpx; right:-12rpx; }
+  .login-memory { width:360rpx; height:360rpx; right:-12rpx; top:70rpx; }
   .welcome-block { margin-top:35rpx; }
   .welcome-title { font-size:37rpx; }
   .welcome-subtitle { margin-top:16rpx; font-size:25rpx; }
   .wechat-login-button { height:98rpx; margin-top:42rpx; }
   .agreement-row { margin-top:28rpx; }
+  .profile-form { margin-top:23rpx; }
+  .avatar-picker { width:380rpx !important; min-width:380rpx !important; min-height:98rpx; }
+  .album-avatar-button { width:380rpx !important; height:52rpx; margin-top:8rpx !important; }
+  .nickname-input { height:84rpx; margin-top:14rpx; }
+  .profile-privacy { margin-top:18rpx; }
 }

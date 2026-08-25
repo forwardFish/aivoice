@@ -13,7 +13,7 @@
     <view class="empty-icon-shell"><image class="empty-wave-icon" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
     <text class="voices-empty-title">还没有声音</text>
     <text class="voices-empty-copy">从相册选择一段视频，创建第一个私有 AI 声音。</text>
-    <button class="voices-empty-button" bindtap="createVoice">创建新声音</button>
+    <view class="voices-empty-action"><app-button label="创建新声音" bindaction="createVoice"></app-button></view>
   </view>
 
   <view wx:else class="voice-list fade-in">
@@ -26,8 +26,7 @@
       bindtap="openPrimary"
     >
       <view class="card-top">
-        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback"><image src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
+        <app-avatar size="{{item.isReady ? 154 : 144}}" src="{{item.displayAvatarUrl}}" custom-class="voice-avatar"></app-avatar>
 
         <view class="voice-copy">
           <text class="voice-name">{{item.name}}</text>

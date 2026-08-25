@@ -3,8 +3,8 @@ import { formatDurationSeconds } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { getCreationSession, patchCreationSession } from '../../utils/storage'
 
-const MIN_CLIP_SECONDS = 10
-const MAX_CLIP_SECONDS = 30
+const MIN_CLIP_SECONDS = 8
+const MAX_CLIP_SECONDS = 20
 
 function toPercent(valueSec: number, durationSec: number): number {
   if (!Number.isFinite(durationSec) || durationSec <= 0) return 0
@@ -32,6 +32,7 @@ Page({
     confirmed: false,
     saving: false,
     previewing: false,
+    showAdvanced: false,
     errorMessage: ''
   },
   onLoad(options: Record<string, string>) {
@@ -46,7 +47,7 @@ Page({
       })
       return
     }
-    const durationSec = Math.max(12, Math.round(session.durationMs / 1000))
+    const durationSec = Math.max(8, Math.round(session.durationMs / 1000))
     const startSec = Math.max(0, Math.round((session.clipStartMs || 0) / 1000))
     const savedEnd = Math.round((session.clipEndMs || 0) / 1000)
     const endSec = savedEnd > startSec ? Math.min(durationSec, savedEnd) : Math.min(durationSec, startSec + Math.min(20, durationSec))
@@ -91,6 +92,40 @@ Page({
     const minEnd = this.data.startSec + MIN_CLIP_SECONDS
     this.updateRange(this.data.startSec, Math.max(value, minEnd))
   },
+  applyMarkerPosition(edge: 'start' | 'end', clientX: number, bounds: { left: number; width: number }) {
+    if (!bounds || !Number.isFinite(bounds.width) || bounds.width <= 0) return
+    const ratio = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width))
+    const value = Math.round(ratio * this.data.durationSec)
+    if (edge === 'start') {
+      const minimum = Math.max(0, this.data.endSec - MAX_CLIP_SECONDS)
+      const maximum = Math.max(minimum, this.data.endSec - MIN_CLIP_SECONDS)
+      this.updateRange(Math.max(minimum, Math.min(maximum, value)), this.data.endSec)
+      return
+    }
+    const minimum = Math.min(this.data.durationSec, this.data.startSec + MIN_CLIP_SECONDS)
+    const maximum = Math.min(this.data.durationSec, this.data.startSec + MAX_CLIP_SECONDS)
+    this.updateRange(this.data.startSec, Math.max(minimum, Math.min(maximum, value)))
+  },
+  onMarkerDragStart(event: any) {
+    const edge = String(event.currentTarget.dataset.edge || '') as 'start' | 'end'
+    const touch = event.touches && event.touches[0]
+    if ((edge !== 'start' && edge !== 'end') || !touch) return
+    wx.createSelectorQuery().in(this).select('.wave-shell').boundingClientRect((rect: any) => {
+      if (!rect || !Number(rect.width)) return
+      const drag = { edge, bounds: { left: Number(rect.left || 0), width: Number(rect.width) } }
+      ;(this as any)._markerDrag = drag
+      this.applyMarkerPosition(edge, Number(touch.clientX ?? touch.pageX ?? 0), drag.bounds)
+    }).exec()
+  },
+  onMarkerDragMove(event: any) {
+    const drag = (this as any)._markerDrag
+    const touch = event.touches && event.touches[0]
+    if (!drag || !touch) return
+    this.applyMarkerPosition(drag.edge, Number(touch.clientX ?? touch.pageX ?? 0), drag.bounds)
+  },
+  onMarkerDragEnd() {
+    ;(this as any)._markerDrag = null
+  },
   updateRange(startSec: number, endSec: number, durationSec = this.data.durationSec) {
     const normalizedDuration = Math.max(0, Number(durationSec || 0))
     const normalizedStart = Math.max(0, Math.min(startSec, normalizedDuration))
@@ -109,7 +144,7 @@ Page({
       endPercent,
       selectionPercent: Math.max(0, Math.round((endPercent - startPercent) * 10000) / 10000),
       valid,
-      errorMessage: valid ? '' : selected < MIN_CLIP_SECONDS ? '片段至少需要 10 秒。' : '片段最长为 30 秒。'
+      errorMessage: valid ? '' : selected < MIN_CLIP_SECONDS ? '片段至少需要 8 秒。' : '片段最长为 20 秒。'
     })
   },
   previewSelection() {
@@ -118,6 +153,9 @@ Page({
     video.seek(this.data.startSec)
     setTimeout(() => video.play(), 120)
     this.setData({ previewing: true })
+  },
+  toggleAdvanced() {
+    this.setData({ showAdvanced: !this.data.showAdvanced })
   },
   toggleConfirmed() {
     this.setData({ confirmed: !this.data.confirmed })

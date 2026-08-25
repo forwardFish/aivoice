@@ -18,7 +18,7 @@
 
       <view class="compact-heading">
         <text class="page-title">请标记 TA 说话的片段</text>
-        <text class="page-subtitle">建议选择清晰朗读、安静的 10–30 秒片段</text>
+        <text class="page-subtitle">建议选择清晰朗读、安静的 8–20 秒片段</text>
       </view>
 
       <view class="trim-card">
@@ -27,17 +27,19 @@
           <view class="wave-bars">
             <text style="height:18rpx"></text><text style="height:34rpx"></text><text style="height:48rpx"></text><text style="height:28rpx"></text><text style="height:58rpx"></text><text style="height:42rpx"></text><text style="height:66rpx"></text><text style="height:38rpx"></text><text style="height:54rpx"></text><text style="height:30rpx"></text><text style="height:64rpx"></text><text style="height:45rpx"></text><text style="height:57rpx"></text><text style="height:26rpx"></text><text style="height:49rpx"></text><text style="height:62rpx"></text><text style="height:35rpx"></text><text style="height:53rpx"></text><text style="height:24rpx"></text><text style="height:44rpx"></text><text style="height:60rpx"></text><text style="height:32rpx"></text><text style="height:51rpx"></text><text style="height:22rpx"></text>
           </view>
-          <view class="marker marker-start" style="left: {{startPercent}}%;"><view class="marker-handle"></view></view>
-          <view class="marker marker-end" style="left: {{endPercent}}%;"><view class="marker-handle"></view></view>
+          <view class="marker marker-start" data-edge="start" style="left: {{startPercent}}%;" catchtouchstart="onMarkerDragStart" catchtouchmove="onMarkerDragMove" catchtouchend="onMarkerDragEnd" catchtouchcancel="onMarkerDragEnd"><view class="marker-handle"></view></view>
+          <view class="marker marker-end" data-edge="end" style="left: {{endPercent}}%;" catchtouchstart="onMarkerDragStart" catchtouchmove="onMarkerDragMove" catchtouchend="onMarkerDragEnd" catchtouchcancel="onMarkerDragEnd"><view class="marker-handle"></view></view>
         </view>
         <view class="time-labels"><text>{{startText}}</text><text>{{endText}}</text></view>
+        <text class="drag-hint">拖动左右紫色手柄调整片段</text>
 
         <view class="selected-duration">
           <text class="selected-duration-value">{{selectedText}}</text>
           <text class="selected-duration-label">已选择时长</text>
         </view>
 
-        <view class="advanced-tools">
+        <button class="advanced-toggle" bindtap="toggleAdvanced">{{showAdvanced ? '收起精细调整' : '精细调整'}}</button>
+        <view wx:if="{{showAdvanced}}" class="advanced-tools">
           <text class="advanced-title">精细调整</text>
           <view class="position-actions">
             <button bindtap="setStartFromCurrent"><text class="action-dot start-dot"></text><text>当前设为开始</text></button>
@@ -71,10 +73,13 @@
       <view class="clip-content-spacer"></view>
     </view>
 
-    <view class="clip-footer safe-bottom">
-      <button class="primary-button footer-next {{!valid || !confirmed || saving ? 'button-disabled' : ''}}" bindtap="saveAndContinue" disabled="{{!valid || !confirmed || saving}}">
-        {{saving ? '正在保存片段…' : '下一步'}}
-      </button>
-    </view>
+    <bottom-action-bar custom-class="clip-footer">
+      <app-button
+        label="{{saving ? '正在保存片段…' : '下一步'}}"
+        disabled="{{!valid || !confirmed || saving}}"
+        loading="{{saving}}"
+        bindaction="saveAndContinue"
+      ></app-button>
+    </bottom-action-bar>
   </block>
 </view>

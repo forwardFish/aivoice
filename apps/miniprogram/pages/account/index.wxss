@@ -1,292 +1,92 @@
 .account-screen {
   min-height: 100vh;
-  padding: 0 30rpx calc(190rpx + env(safe-area-inset-bottom));
-}
-
-.account-state {
-  margin-top: 28rpx;
-  overflow: hidden;
-  border-radius: 30rpx;
-}
-
-.account-content {
-  padding-top: 16rpx;
-}
-
-.account-hero {
-  margin-top: 10rpx;
-  padding: 28rpx 26rpx 24rpx;
-  border-radius: 34rpx;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  padding: 0 40rpx calc(210rpx + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 83% 14%, rgba(211,204,255,.31), transparent 24%),
+    radial-gradient(circle at 8% 50%, rgba(225,218,255,.24), transparent 28%),
+    linear-gradient(158deg,#fafbff 0%,#f8f7ff 48%,#f5f5ff 100%);
 }
 
-.account-glow {
-  width: 240rpx;
-  height: 170rpx;
-  position: absolute;
-  right: -60rpx;
-  top: -40rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(193, 183, 255, .24), rgba(193, 183, 255, 0));
-}
+.account-aurora { position: absolute; border-radius: 50%; pointer-events: none; }
+.aurora-top { width: 390rpx; height: 330rpx; right: -150rpx; top: 30rpx; background: radial-gradient(circle,rgba(189,174,255,.18),transparent 67%); }
+.aurora-middle { width: 430rpx; height: 360rpx; left: -210rpx; top: 650rpx; background: radial-gradient(circle,rgba(212,205,255,.18),transparent 68%); }
+.account-state { position: relative; z-index: 2; margin-top: 28rpx; overflow: hidden; border-radius: 34rpx; }
+.account-content { position: relative; z-index: 2; }
 
-.profile-card {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
+.account-hero { height: 250rpx; position: relative; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+.profile-avatar { width: 124rpx; height: 124rpx; position: absolute; left: 10rpx; top: 31rpx; z-index: 3; border-radius: 50%; overflow: hidden; border: 4rpx solid rgba(255,255,255,.96); background: #efedff; box-shadow: 0 14rpx 34rpx rgba(63,62,98,.14); }
+.profile-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg,#f4f2ff,#e7e3fa); }
+.profile-avatar.fallback image { width: 112rpx; height: 112rpx; }
+.profile-copy { position: absolute; left: 164rpx; top: 47rpx; z-index: 4; }
+.profile-name { display: block; max-width: 260rpx; overflow: hidden; color: #111b3c; font-size: 36rpx; line-height: 1.2; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
+.wechat-profile-row { margin-top: 17rpx; display: flex; align-items: center; gap: 10rpx; color: #7f87a0; font-size: 22rpx; }
+.wechat-profile-row image { width: 29rpx; height: 25rpx; opacity: .50; filter: grayscale(1) brightness(.72); }
 
-.profile-avatar {
-  flex: 0 0 auto;
-  width: 112rpx;
-  height: 112rpx;
-  border-radius: 50%;
-  border: 3rpx solid rgba(255,255,255,.95);
-  box-shadow: 0 12rpx 26rpx rgba(76,72,122,.14);
-  background: #efedff;
-}
+.edit-profile-button { width: 170rpx !important; min-width: 170rpx !important; height: 49rpx; margin: 23rpx 0 0 !important; padding: 0 10rpx !important; border-radius: 25rpx; display: flex; align-items: center; justify-content: center; gap: 5rpx; color: #6755f5; background: rgba(255,255,255,.38); border: 2rpx solid #a892ff; font-size: 21rpx; font-weight: 630; white-space: nowrap; box-sizing: border-box; }
+.edit-profile-button::after { border: 0; }
+.edit-profile-button image { flex: 0 0 auto; width: 43rpx; height: 43rpx; margin-left: -4rpx; }
 
-.profile-avatar.fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: linear-gradient(145deg, #f4f2ff, #e6e2f8);
-  border: 2rpx solid rgba(255,255,255,.94);
-  box-shadow: 0 10rpx 24rpx rgba(76,72,122,.10);
-}
+.identity-visual { width:250rpx; height:230rpx; position:absolute; right:-10rpx; top:2rpx; opacity:.94; }
 
-.profile-avatar-icon {
-  width: 118rpx;
-  height: 118rpx;
-}
+.account-summary { min-height: 190rpx; padding: 30rpx 27rpx; border-radius: 34rpx; display: flex; align-items: stretch; background: rgba(255,255,255,.58); border: 2rpx solid rgba(255,255,255,.86); box-shadow: 0 19rpx 48rpx rgba(69,69,108,.07); }
+.summary-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: 20rpx; }
+.summary-divider { width: 1rpx; margin: 10rpx 28rpx; background: rgba(213,213,231,.82); }
+.summary-icon { flex: 0 0 auto; width: 74rpx; height: 74rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle,rgba(234,229,255,.95),rgba(225,218,255,.52)); }
+.summary-icon image { width: 112rpx; height: 112rpx; }
+.summary-copy { min-width: 0; }
+.summary-value { display: block; color: #101a3b; font-size: 43rpx; line-height: 1; font-weight: 760; }
+.summary-label { display: block; margin-top: 17rpx; color: #17213e; font-size: 25rpx; font-weight: 680; }
+.summary-meta { display: block; margin-top: 12rpx; color: #8a91aa; font-size: 20rpx; white-space: nowrap; }
+.summary-link { display:flex; align-items:center; gap:8rpx; }
 
-.profile-copy {
-  flex: 1;
-  min-width: 0;
-}
+.section-heading { margin: 32rpx 0 13rpx; color: #111b38; font-size: 30rpx; font-weight: 750; }
+.service-heading { margin-top: 27rpx; }
+.account-menu,
+.service-menu { overflow: hidden; border-radius: 30rpx; background: rgba(255,255,255,.72); border: 2rpx solid rgba(255,255,255,.86); box-shadow: 0 16rpx 42rpx rgba(67,71,108,.06); }
+.menu-divider { height: 1rpx; margin: 0 27rpx; background: rgba(222,223,237,.90); }
 
-.profile-name {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #11172d;
-  font-size: 35rpx;
-  font-weight: 720;
-}
-
-.profile-caption {
-  display: block;
-  margin-top: 11rpx;
-  color: #6f7993;
-  font-size: 22rpx;
-}
-
-.edit-button {
-  flex: 0 0 auto;
-  min-width: 102rpx;
-  height: 64rpx;
-  padding: 0 18rpx;
-  border-radius: 20rpx;
-  color: #6552f5;
-  background: #efedff;
-  font-size: 23rpx;
-  font-weight: 600;
-}
-
-.edit-button::after { border: none; }
-
-.summary-grid {
-  position: relative;
-  z-index: 2;
-  margin-top: 22rpx;
-  display: flex;
-  gap: 18rpx;
-}
-
-.summary-card {
-  flex: 1;
-  min-width: 0;
-  min-height: 138rpx;
-  padding: 24rpx;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-radius: 28rpx;
-}
-
-.summary-value {
-  display: block;
-  color: #11172d;
-  font-size: 46rpx;
-  font-weight: 750;
-}
-
-.summary-value.brand { color: #6552f5; }
-
-.summary-label {
-  display: block;
-  margin-top: 8rpx;
-  color: #7e859c;
-  font-size: 23rpx;
-}
-
-.section-block {
-  margin-top: 30rpx;
-  padding: 0 4rpx;
-}
-
-.service-block {
-  margin-top: 26rpx;
-}
-
-.section-copy .section-title {
-  font-family: Georgia, "Songti SC", "STSong", serif;
-  font-size: 35rpx;
-  font-weight: 720;
-}
-
-.section-copy .section-caption {
-  display: block;
-  margin-top: 10rpx;
-}
-
-.section-card,
-.menu-card {
-  margin-top: 16rpx;
-  overflow: hidden;
-  border-radius: 30rpx;
-}
-
-.section-heading {
-  min-height: 116rpx;
-  padding: 24rpx 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-heading .section-title,
-.section-heading .section-caption {
-  display: block;
-}
-
-.section-heading .section-caption {
-  margin-top: 6rpx;
-}
-
-.chevron {
-  color: #9298aa;
-  font-size: 40rpx;
-}
-
-.section-body {
-  border-top: 1rpx solid #ececf4;
-}
-
+.expanded-list { border-top: 1rpx solid rgba(224,225,238,.90); background: rgba(249,249,253,.74); }
 .order-row,
-.ledger-row {
-  min-height: 112rpx;
-  padding: 22rpx 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  border-bottom: 1rpx solid #f0f0f5;
-}
-
+.ledger-row { min-height: 96rpx; padding: 18rpx 26rpx; display: flex; align-items: center; justify-content: space-between; gap: 18rpx; border-bottom: 1rpx solid #ececf4; }
 .order-row:last-child,
-.ledger-row:last-child { border-bottom: none; }
-
-.row-title,
-.row-meta {
-  display: block;
-}
-
-.row-title {
-  color: #11172d;
-  font-size: 26rpx;
-  font-weight: 650;
-}
-
-.row-meta {
-  margin-top: 7rpx;
-  color: #858ca2;
-  font-size: 21rpx;
-}
-
-.order-price {
-  color: #11172d;
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
-.ledger-amount {
-  color: #6f768c;
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
+.ledger-row:last-child { border-bottom: 0; }
+.row-title { display: block; color: #20263b; font-size: 22rpx; font-weight: 630; }
+.row-meta { display: block; margin-top: 5rpx; color: #9197aa; font-size: 18rpx; }
+.order-price,
+.ledger-amount { color: #30374d; font-size: 23rpx; font-weight: 700; }
 .ledger-amount.positive { color: #3f9b64; }
+.sub-empty { padding: 27rpx 24rpx; color: #9298aa; font-size: 20rpx; text-align: center; }
 
-.sub-empty {
-  padding: 34rpx 26rpx;
-  color: #9298aa;
-  text-align: center;
-  font-size: 23rpx;
-}
-
-.menu-row {
-  min-height: 96rpx;
-  padding: 0 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #11172d;
-  font-size: 27rpx;
-}
-
-.menu-row text:last-child {
-  color: #a1a6b5;
-  font-size: 38rpx;
-}
-
-.menu-card .divider {
-  margin: 0 26rpx;
-}
-
-.logout-button {
-  width: 100%;
-  height: 92rpx;
-  margin-top: 28rpx;
-  border-radius: 26rpx;
-  color: #c9515b;
-  background: #fff0f1;
-  font-size: 28rpx;
-  font-weight: 650;
-}
-
-.logout-button::after { border: none; }
-
-.version-note {
-  display: block;
-  margin-top: 24rpx;
-  text-align: center;
-  color: #a0a5b5;
-  font-size: 20rpx;
-}
+.sheet-title { display: block; color: #102756; font-size: 36rpx; line-height: 1.3; font-weight: 720; text-align: center; }
+.sheet-description { display: block; margin-top: 10rpx; color: #76809b; font-size: 22rpx; text-align: center; }
+.profile-editor-form { margin-top: 27rpx; }
+.avatar-picker { width: 100%; min-height: 106rpx; padding: 14rpx 24rpx; border-radius: 29rpx; display: flex; align-items: center; gap: 21rpx; color: #273557; background: rgba(255,255,255,.92); border: 2rpx solid rgba(225,221,247,.95); font-size: 25rpx; font-weight: 620; }
+.avatar-picker::after { border: 0; }
+.profile-album-button { width:100% !important; height:58rpx; margin:12rpx 0 0 !important; padding:0 !important; border-radius:29rpx; color:#6757e8; background:#f1eeff; font-size:20rpx; }
+.profile-album-button::after { border:0; }
+.avatar-preview,
+.avatar-placeholder { flex: 0 0 auto; width: 76rpx; height: 76rpx; border-radius: 50%; }
+.avatar-preview { border: 3rpx solid #fff; box-shadow: 0 7rpx 18rpx rgba(52,55,88,.14); }
+.avatar-placeholder { padding: 16rpx; background: linear-gradient(145deg,#efedff,#faf9ff); }
+.nickname-input { width: 100%; height: 92rpx; margin-top: 18rpx; padding: 0 26rpx; border-radius: 29rpx; color: #172342; background: rgba(255,255,255,.92); border: 2rpx solid rgba(225,221,247,.95); font-size: 26rpx; box-sizing: border-box; }
+.profile-editor-error { display: block; margin-top: 15rpx; color: #c9515b; font-size: 21rpx; text-align: center; }
+.sheet-settings { margin-top: 22rpx; display: flex; justify-content: center; gap: 10rpx; color: #7467dd; font-size: 20rpx; }
+.sheet-delete-account { width: 100% !important; height: 70rpx; margin: 20rpx 0 0 !important; border-radius: 24rpx; color: #c9515b; background: #fff0f1; font-size: 22rpx; }
+.sheet-delete-account::after { border: 0; }
 
 @media (max-height: 740px) {
-  .account-screen { padding-bottom: calc(172rpx + env(safe-area-inset-bottom)); }
-  .account-hero { padding: 24rpx 22rpx 20rpx; }
-  .profile-avatar { width: 96rpx; height: 96rpx; }
-  .summary-card { min-height: 124rpx; padding: 22rpx; }
-  .summary-value { font-size: 42rpx; }
-  .section-block { margin-top: 24rpx; }
-  .section-heading { min-height: 102rpx; }
-  .menu-row { min-height: 88rpx; }
+  .account-screen { padding-bottom: calc(195rpx + env(safe-area-inset-bottom)); }
+  .account-hero { height: 220rpx; }
+  .profile-avatar { width: 108rpx; height: 108rpx; top: 22rpx; }
+  .profile-copy { left: 145rpx; top: 32rpx; }
+  .profile-name { font-size: 32rpx; }
+  .identity-visual { width:210rpx; height:198rpx; right:-8rpx; top:1rpx; }
+  .account-summary { min-height: 168rpx; padding: 24rpx; }
+  .summary-icon { width: 64rpx; height: 64rpx; }
+  .summary-value { font-size: 38rpx; }
+  .summary-label { margin-top: 12rpx; font-size: 23rpx; }
+  .summary-meta { margin-top: 8rpx; font-size: 18rpx; }
+  .section-heading { margin-top: 24rpx; }
 }

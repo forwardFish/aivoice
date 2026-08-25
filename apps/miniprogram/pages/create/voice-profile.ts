@@ -98,7 +98,14 @@ Page({
       this.setData({ submitting: false })
       wx.redirectTo({ url: `/pages/create/progress?voiceId=${encodeURIComponent(this.data.voiceId)}` })
     } catch (error: any) {
-      this.setData({ submitting: false, errorMessage: error.message || '提交失败，请重试。' })
+      const message = String(error.message || '')
+      if (error.code === 'SOURCE_VIDEO_REQUIRED' || /source video is required|原视频已经失效/i.test(message)) {
+        this.setData({ submitting: false, errorMessage: '原视频已经失效，请重新选择视频后继续创建。' })
+        wx.showToast({ title: '请重新选择视频', icon: 'none' })
+        wx.redirectTo({ url: `/pages/create/select-video?voiceId=${encodeURIComponent(this.data.voiceId)}` })
+        return
+      }
+      this.setData({ submitting: false, errorMessage: message || '提交失败，请重试。' })
     }
   }
 })

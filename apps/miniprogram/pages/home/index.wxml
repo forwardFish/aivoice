@@ -3,7 +3,7 @@
 
   <view class="hero fade-in">
     <view class="hero-copy">
-      <text class="brand-title">那时的TA</text>
+      <text class="brand-title">那年的TA</text>
       <text class="brand-subtitle">把记忆里的声音，轻轻留住</text>
     </view>
     <image class="hero-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
@@ -18,7 +18,7 @@
       <text class="create-title">创建新声音</text>
       <text class="create-subtitle">从旧视频中提取 TA 的声音</text>
     </view>
-    <image class="create-arrow" src="/assets/ui/icon-arrow.png" mode="aspectFit"></image>
+    <view class="create-arrow"><app-chevron direction="right" tone="brand" size="28"></app-chevron></view>
   </view>
 
   <view wx:if="{{state === 'loading'}}" class="home-state glass-card fade-in">
@@ -34,7 +34,7 @@
     <view class="empty-card soft-card">
       <image class="empty-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
       <text class="empty-title">还没有留下声音</text>
-      <text class="empty-copy">选一段 12–60 秒的旧视频，完成试听后，声音会出现在这里。</text>
+      <text class="empty-copy">选一段 8–60 秒的旧视频，完成试听后，声音会出现在这里。</text>
       <view class="empty-steps">
         <view><text>1</text><text>选视频</text></view>
         <view class="step-line"></view>
@@ -42,20 +42,18 @@
         <view class="step-line"></view>
         <view><text>3</text><text>开始体验</text></view>
       </view>
-      <button class="empty-action" bindtap="createVoice">创建第一个声音</button>
     </view>
   </view>
 
   <view wx:else class="recent-section fade-in">
     <view class="section-row">
       <text class="section-title">最近的声音</text>
-      <navigator class="section-link" url="/pages/voices/index" open-type="switchTab">全部 ›</navigator>
+      <navigator class="section-link" url="/pages/voices/index" open-type="switchTab"><text>全部</text><app-chevron direction="right" size="13"></app-chevron></navigator>
     </view>
 
     <view class="voice-list">
       <view wx:for="{{voices}}" wx:key="id" class="voice-card soft-card" data-id="{{item.id}}" bindtap="openVoice">
-        <image wx:if="{{item.displayAvatarUrl}}" class="voice-avatar" src="{{item.displayAvatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="voice-avatar fallback"><image class="fallback-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
+        <app-avatar size="104" src="{{item.displayAvatarUrl}}" custom-class="voice-avatar"></app-avatar>
 
         <view class="voice-info">
           <text class="voice-name">{{item.name}}</text>

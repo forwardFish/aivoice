@@ -34,9 +34,12 @@
     <view class="profile-spacer"></view>
   </view>
 
-  <view class="profile-footer safe-bottom">
-    <button class="primary-button submit-button {{submitting ? 'button-disabled' : ''}}" bindtap="submit" disabled="{{submitting}}">
-      {{submitting ? '正在提交并启动创建…' : '下一步'}}
-    </button>
-  </view>
+  <bottom-action-bar custom-class="profile-footer">
+    <app-button
+      label="{{submitting ? '正在提交并启动创建…' : '下一步'}}"
+      disabled="{{submitting}}"
+      loading="{{submitting}}"
+      bindaction="submit"
+    ></app-button>
+  </bottom-action-bar>
 </view>

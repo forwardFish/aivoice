@@ -34,12 +34,15 @@ function pointsLabel(points: PointsBalanceResponse): string {
 }
 
 function messageView(message: ConversationMessage, initial: string): any {
+  const isUser = message.role === 'USER'
+  const textLength = String(message.text || '').length
   return {
     ...message,
-    isUser: message.role === 'USER',
+    isUser,
     isAssistant: message.role === 'ASSISTANT',
     showAudio: message.role === 'ASSISTANT' && message.status === 'READY' && Boolean(message.audioUrl),
     tag: message.mode === 'EXACT_TTS' ? 'AI生成' : 'AI回复',
+    bubbleSize: isUser ? 'bubble-user-size' : textLength > 26 ? 'bubble-assistant-long' : 'bubble-assistant-short',
     initial
   }
 }
@@ -61,6 +64,7 @@ Page({
     messages: [] as any[],
     chatMessages: [] as any[],
     exactResults: [] as any[],
+    chatInputMode: 'voice' as 'voice' | 'text',
     chatText: '',
     exactText: '',
     chatCount: 0,
@@ -180,6 +184,12 @@ Page({
     const chatText = String(event.detail.value || '').slice(0, 200)
     this.setData({ chatText, chatCount: chatText.length, errorMessage: '' })
     this.persistDraft('chat', { chatText })
+  },
+  toggleChatInputMode() {
+    this.setData({ chatInputMode: this.data.chatInputMode === 'voice' ? 'text' : 'voice' })
+  },
+  showVoiceInputNotice() {
+    toast('语音输入尚未接入，请切换键盘输入')
   },
   onExactInput(event: any) {
     const exactText = String(event.detail.value || '').slice(0, 50)

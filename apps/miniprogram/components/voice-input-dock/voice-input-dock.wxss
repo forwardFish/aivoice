@@ -1,0 +1,24 @@
+.voice-input-dock { width:calc(100% - 56rpx); min-height:132rpx; padding:18rpx 20rpx; display:flex; align-items:center; gap:18rpx; border:1rpx solid rgba(255,255,255,.96); border-radius:66rpx; background:rgba(255,255,255,.92); box-shadow:0 22rpx 58rpx rgba(59,62,94,.14); box-sizing:border-box; }
+.voice-input-dock.is-fixed { position:fixed; z-index:40; left:28rpx; right:28rpx; bottom:calc(20rpx + env(safe-area-inset-bottom)); }
+.dock-round { flex:0 0 96rpx !important; width:96rpx !important; min-width:96rpx !important; height:96rpx; margin:0 !important; padding:0 !important; border:1rpx solid rgba(230,229,240,.96); border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.98); box-shadow:0 10rpx 28rpx rgba(66,71,105,.10); box-sizing:border-box; }
+.dock-round::after,.dock-primary::after { border:0; }
+.dock-round.is-disabled { opacity:.48; box-shadow:none; }
+.keyboard-icon { width:46rpx; height:38rpx; padding:6rpx; border:4rpx solid #283047; border-radius:8rpx; box-sizing:border-box; }
+.keyboard-face { width:100%; height:100%; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:1fr 1fr; gap:4rpx; }
+.key-dot { border-radius:2rpx; background:#283047; }
+.key-space { grid-column:2 / span 3; }
+.smile-icon { width:42rpx; height:42rpx; position:relative; border:4rpx solid #283047; border-radius:50%; box-sizing:border-box; }
+.smile-icon::before,.smile-icon::after { content:''; width:5rpx; height:5rpx; position:absolute; top:11rpx; border-radius:50%; background:#283047; }
+.smile-icon::before { left:9rpx; }.smile-icon::after { right:9rpx; }
+.smile-mouth { width:18rpx; height:8rpx; position:absolute; left:50%; bottom:7rpx; border-bottom:4rpx solid #283047; border-radius:0 0 18rpx 18rpx; transform:translateX(-50%); }
+.dock-primary { flex:1; min-width:0; height:96rpx; margin:0 !important; padding:0 20rpx !important; border:1rpx solid rgba(232,227,255,.94); border-radius:999rpx; color:#5647ee; background:linear-gradient(145deg,#f1eeff,#f8f7ff); font-size:30rpx; font-weight:650; box-sizing:border-box; }
+.dock-primary.is-disabled { color:#9b93d9; opacity:.72; }
+.text-input-shell { padding:0 24rpx !important; display:flex; align-items:center; }
+.text-input { width:100%; min-height:40rpx; max-height:120rpx; padding:19rpx 0 15rpx; color:#171d33; background:transparent; font-size:24rpx; line-height:1.45; }
+.dock-mic-image { width:68rpx; height:68rpx; }
+
+@media (max-height:740px) {
+  .voice-input-dock { min-height:116rpx; padding-top:14rpx; padding-bottom:14rpx; }
+  .dock-round { flex-basis:86rpx !important; width:86rpx !important; min-width:86rpx !important; height:86rpx; }
+  .dock-primary { height:86rpx; }
+}

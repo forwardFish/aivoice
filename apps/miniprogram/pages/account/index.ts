@@ -11,6 +11,7 @@ import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { clearLocalProjectData, setUser } from '../../utils/storage'
 import { syncTabBarSelection } from '../../utils/tab-bar'
+import { chooseFallbackAvatar } from '../../utils/avatar-picker'
 import { confirm, toast } from '../../utils/ui'
 
 function orderStatusLabel(status: string): string {
@@ -68,6 +69,11 @@ Page({
     ledgers: [] as any[],
     orderExpanded: false,
     ledgerExpanded: false,
+    profileEditorVisible: false,
+    profileDraftNickname: '',
+    profileDraftAvatarUrl: '',
+    profileAvatarFallbackVisible: false,
+    profileErrorMessage: '',
     updatingProfile: false,
     deletingAccount: false
   },
@@ -117,33 +123,72 @@ Page({
   },
   async editNickname() {
     if (this.data.updatingProfile) return
-    const current = this.data.user && this.data.user.nickname || ''
-    const result = await new Promise<any>(resolve => {
-      wx.showModal({
-        title: '修改昵称',
-        content: current,
-        editable: true,
-        placeholderText: '请输入昵称',
-        confirmText: '保存',
-        success: resolve,
-        fail: () => resolve({ confirm: false })
-      })
+    const user = this.data.user || {} as UserProfile
+    this.setData({
+      profileEditorVisible: true,
+      profileDraftNickname: user.nickname || '',
+      profileDraftAvatarUrl: user.avatarUrl || '',
+      profileAvatarFallbackVisible: false,
+      profileErrorMessage: ''
     })
-    if (!result.confirm) return
-    const nickname = String(result.content || '').trim().slice(0, 20)
+  },
+  closeProfileEditor() {
+    if (this.data.updatingProfile) return
+    this.setData({ profileEditorVisible: false, profileErrorMessage: '' })
+  },
+  noop() {},
+  onChooseProfileAvatar(event: any) {
+    const avatarUrl = event.detail && event.detail.avatarUrl
+    if (avatarUrl) this.setData({ profileDraftAvatarUrl: avatarUrl, profileErrorMessage: '' })
+  },
+  onProfileAvatarChooseError() {
+    this.setData({
+      profileAvatarFallbackVisible: true,
+      profileErrorMessage: '微信头像在开发者工具中不可用，请改用相册选择。'
+    })
+  },
+  async chooseProfileAvatarFromAlbum() {
+    try {
+      const avatarUrl = await chooseFallbackAvatar()
+      this.setData({ profileDraftAvatarUrl: avatarUrl, profileAvatarFallbackVisible: false, profileErrorMessage: '' })
+    } catch (error: any) {
+      this.setData({ profileErrorMessage: error.message || '头像选择失败，请重试。' })
+    }
+  },
+  onProfileNicknameInput(event: any) {
+    this.setData({
+      profileDraftNickname: String(event.detail.value || '').trimStart(),
+      profileErrorMessage: ''
+    })
+  },
+  async saveProfile(event: any) {
+    if (this.data.updatingProfile) return
+    const formNickname = event && event.detail && event.detail.value && event.detail.value.nickname
+    const nickname = String(formNickname || this.data.profileDraftNickname || '').trim().slice(0, 20)
     if (!nickname) {
-      toast('昵称不能为空')
+      this.setData({ profileErrorMessage: '昵称不能为空。' })
       return
     }
     this.setData({ updatingProfile: true })
     try {
-      const user = await updateMeProfile({ nickname })
+      const user = await updateMeProfile({
+        nickname,
+        avatarUrl: this.data.profileDraftAvatarUrl || undefined
+      })
       setUser(user)
-      this.setData({ user, userInitial: voiceInitial(user.nickname || '我'), updatingProfile: false })
-      toast('昵称已更新', 'success')
+      this.setData({
+        user,
+        userInitial: voiceInitial(user.nickname || '我'),
+        updatingProfile: false,
+        profileEditorVisible: false,
+        profileErrorMessage: ''
+      })
+      toast('资料已更新', 'success')
     } catch (error: any) {
-      this.setData({ updatingProfile: false })
-      toast(error.message || '昵称更新失败')
+      this.setData({
+        updatingProfile: false,
+        profileErrorMessage: error.message || error.errMsg || '资料更新失败，请重试。'
+      })
     }
   },
   goVoices() {
@@ -156,24 +201,12 @@ Page({
     this.setData({ ledgerExpanded: !this.data.ledgerExpanded })
   },
   showInfo(event: any) {
-    const type = String(event.currentTarget.dataset.type || '')
+    const type = String(event.detail?.key || event.currentTarget?.dataset?.type || '')
+    if (['help', 'contact', 'service', 'feedback'].includes(type)) {
+      wx.navigateTo({ url: `/pages/account/service-detail?type=${encodeURIComponent(type)}` })
+      return
+    }
     const contentMap: Record<string, { title: string; content: string }> = {
-      help: {
-        title: '使用帮助',
-        content: '选择 12–60 秒视频，再标记 10–30 秒清晰单人说话片段。试听完整播放后，可使用该声音进行对话或“说一句”。'
-      },
-      service: {
-        title: '退款与售后',
-        content: '支付、生成或删除异常时，请通过小程序客服提供订单时间和声音名称。支付结果与积分到账均以服务端记录为准。'
-      },
-      contact: {
-        title: '联系客服',
-        content: '可通过小程序客服说明问题页面、订单时间、声音名称和错误提示。涉及支付或数据删除时，以服务端记录为准。'
-      },
-      feedback: {
-        title: '意见反馈',
-        content: '请记录发生问题的页面、时间、手机系统和错误提示，提交给运营客服。前端不会展示或保存声音供应商音色 ID。'
-      },
       privacy: {
         title: '数据与隐私',
         content: '原视频仅用于提取所选声音片段；声音和生成记录均为私有数据。你可以在声音设置中清空对话或删除整个声音。'

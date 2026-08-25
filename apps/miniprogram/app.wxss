@@ -47,6 +47,25 @@ button {
 button::after { border: 0; }
 image { display: block; }
 
+/* Normalize custom-component hosts. Internal width:100% is not enough in
+   WeChat when the component host itself shrinks to its text content. */
+app-button,
+menu-row,
+bottom-action-bar,
+bottom-sheet,
+voice-input-dock { display:block; width:100%; }
+app-avatar { display:block; flex:0 0 auto; }
+app-chevron { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; }
+
+/* Native form submit buttons stay native, but share the same design-system
+   geometry so form behavior never causes page-specific visual drift. */
+.ui-form-actions { width:100%; margin-top:28rpx; padding:0 20rpx; display:grid; grid-template-columns:1fr 1fr; gap:28rpx; box-sizing:border-box; }
+.ui-form-button { width:100% !important; min-width:0 !important; height:88rpx; margin:0 !important; padding:0 22rpx !important; border:0; border-radius:44rpx; display:flex; align-items:center; justify-content:center; font-size:28rpx; line-height:1.2; font-weight:680; text-align:center; box-sizing:border-box; }
+.ui-form-button::after { border:0; }
+.ui-form-button--secondary { color:#08a96c; background:linear-gradient(145deg,#f3f4f1,#fafafa); }
+.ui-form-button--primary { color:#fff; background:linear-gradient(100deg,#a979f7 0%,#765cf5 50%,#685ff0 100%); box-shadow:0 16rpx 34rpx rgba(111,83,235,.22); }
+.ui-form-button.is-disabled { opacity:.58; box-shadow:none; }
+
 .screen,
 .screen-shell {
   min-height: 100vh;
@@ -237,6 +256,11 @@ image { display: block; }
 @keyframes float-in { from { opacity: 0; transform: translateY(18rpx); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse-soft { 0%, 100% { transform: scale(1); opacity: .76; } 50% { transform: scale(1.06); opacity: 1; } }
+
+@media (max-height:740px) {
+  .ui-form-actions { margin-top:20rpx; gap:20rpx; }
+  .ui-form-button { height:76rpx; font-size:26rpx; }
+}
 
 .ui-sprite { position: relative; display: block; overflow: hidden; }
 .ui-sprite-sheet { width: 100%; height: auto; position: absolute; left: 0; top: 0; max-width: none; pointer-events: none; }

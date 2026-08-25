@@ -4,7 +4,7 @@
     <view wx:else class="pause-icon"><text></text><text></text></view>
   </view>
   <view class="audio-main">
-    <text wx:if="{{label || tag}}" class="audio-label">{{label || '试听声音'}}</text>
+    <text wx:if="{{label || tag}}" class="audio-label">{{label || tag}}</text>
     <view class="wave-row">
       <view class="wave-bars">
         <view wx:for="{{bars}}" wx:key="index" class="wave-bar" style="height: {{item}}rpx;"></view>

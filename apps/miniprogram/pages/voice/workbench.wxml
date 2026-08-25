@@ -58,10 +58,8 @@
           </view>
 
           <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'is-user' : ''}}">
-            <image wx:if="{{item.isAssistant && avatarUrl}}" class="message-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
-            <view wx:elif="{{item.isAssistant}}" class="message-avatar">{{item.initial}}</view>
-            <view class="message-bubble {{item.isUser ? 'bubble-user' : 'bubble-assistant'}}">
-              <view wx:if="{{item.isAssistant}}" class="ai-tag-row"><text class="ai-tag">AI 回复</text><text class="message-status">{{item.status === 'PROCESSING' ? '生成中' : item.status === 'FAILED' ? '生成失败' : item.status === 'BLOCKED' ? '未通过审核' : '已完成'}}</text></view>
+            <app-avatar wx:if="{{item.isAssistant}}" size="78" src="{{avatarUrl}}" custom-class="message-avatar"></app-avatar>
+            <view class="message-bubble {{item.isUser ? 'bubble-user' : 'bubble-assistant'}} {{item.bubbleSize}}">
               <text class="message-text">{{item.text}}</text>
               <audio-player wx:if="{{item.showAudio}}" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" tag="AI回复" compact="{{true}}"></audio-player>
               <text wx:elif="{{item.isAssistant && item.status === 'FAILED'}}" class="message-error">生成失败，本次未扣积分</text>
@@ -69,7 +67,7 @@
           </view>
 
           <view wx:if="{{sending && pendingMode === 'chat'}}" class="message-row">
-            <view class="message-avatar">{{voiceInitial}}</view>
+            <app-avatar size="78" src="{{avatarUrl}}" custom-class="message-avatar"></app-avatar>
             <view class="message-bubble bubble-assistant pending-bubble">
               <view class="typing"><text></text><text></text><text></text></view>
               <text>{{generationStatusText}}</text>
@@ -79,16 +77,17 @@
         </scroll-view>
 
         <text wx:if="{{errorMessage}}" class="inline-error chat-inline-error">{{errorMessage}}</text>
-        <view class="chat-dock glass-card">
-          <button class="dock-side-button dock-emoji-button" data-text="今天过得怎么样？" bindtap="useQuickPrompt">☺</button>
-          <view class="chat-input-pill">
-            <textarea class="chat-input" value="{{chatText}}" placeholder="输入想对 TA 说的话…" maxlength="200" auto-height="{{true}}" bindinput="onChatInput" disabled="{{sending}}"></textarea>
-          </view>
-          <button class="dock-side-button dock-send-button" bindtap="sendChat" disabled="{{sending || !chatText}}">
-            <text wx:if="{{sending}}" class="dock-send-glyph">…</text>
-            <image wx:else class="dock-send-image" src="/assets/ui/icon-arrow.png" mode="aspectFit"></image>
-          </button>
-        </view>
+        <voice-input-dock
+          mode="{{chatInputMode}}"
+          value="{{chatText}}"
+          disabled="{{sending}}"
+          sendDisabled="{{sending || !chatText}}"
+          bindmodetoggle="toggleChatInputMode"
+          bindhold="showVoiceInputNotice"
+          bindmic="showVoiceInputNotice"
+          bindinput="onChatInput"
+          bindsend="sendChat"
+        ></voice-input-dock>
       </block>
 
       <block wx:else>

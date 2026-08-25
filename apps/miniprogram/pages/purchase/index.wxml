@@ -47,11 +47,14 @@
       <view class="purchase-spacer"></view>
     </view>
 
-    <view class="purchase-footer safe-bottom">
-      <button class="primary-button buy-button {{paying || pending ? 'button-disabled' : ''}}" bindtap="submitPurchase" disabled="{{paying || pending}}">
-        {{paying ? '正在打开微信支付…' : pending ? '正在确认积分到账…' : '立即购买 ' + purchaseOption.points + ' 积分 · ' + priceText}}
-      </button>
+    <bottom-action-bar custom-class="purchase-footer">
+      <app-button
+        label="{{paying ? '正在打开微信支付…' : pending ? '正在确认积分到账…' : '立即购买 ' + purchaseOption.points + ' 积分 · ' + priceText}}"
+        disabled="{{paying || pending}}"
+        loading="{{paying || pending}}"
+        bindaction="submitPurchase"
+      ></app-button>
       <text class="footer-note">未完成支付不会扣款；支付成功后自动确认入账并保留原输入。</text>
-    </view>
+    </bottom-action-bar>
   </block>
 </view>

@@ -1,0 +1,20 @@
+<view class="voice-input-dock {{fixed ? 'is-fixed' : ''}} {{mode === 'voice' ? 'is-voice' : 'is-text'}}">
+  <button class="dock-round dock-mode" bindtap="toggleMode" aria-label="{{mode === 'voice' ? '切换到键盘输入' : '切换到语音输入'}}">
+    <view wx:if="{{mode === 'voice'}}" class="keyboard-icon">
+      <view class="keyboard-face"><text class="key-dot"></text><text class="key-dot"></text><text class="key-dot"></text><text class="key-dot key-space"></text></view>
+    </view>
+    <view wx:else class="smile-icon"><text class="smile-mouth"></text></view>
+  </button>
+
+  <button wx:if="{{mode === 'voice'}}" class="dock-primary voice-hold {{disabled ? 'is-disabled' : ''}}" bindlongpress="holdVoice" disabled="{{disabled}}">{{holdText}}</button>
+  <view wx:else class="dock-primary text-input-shell">
+    <textarea class="text-input" value="{{value}}" placeholder="{{placeholder}}" maxlength="200" auto-height="{{true}}" bindinput="inputText" disabled="{{disabled}}"></textarea>
+  </view>
+
+  <button wx:if="{{mode === 'voice'}}" class="dock-round dock-mic {{disabled ? 'is-disabled' : ''}}" bindtap="tapMic" disabled="{{disabled}}" aria-label="语音输入">
+    <image class="dock-mic-image" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
+  </button>
+  <button wx:else class="dock-round dock-send {{disabled || sendDisabled ? 'is-disabled' : ''}}" bindtap="sendText" disabled="{{disabled || sendDisabled}}" aria-label="发送">
+    <app-chevron direction="right" tone="brand" size="27"></app-chevron>
+  </button>
+</view>

@@ -1,15 +1,15 @@
 {
-  "appid": "touristappid",
+  "appid": "wx106e5dcda1d1baeb",
   "compileType": "miniprogram",
   "miniprogramRoot": "./",
-  "projectname": "nashide-ta-miniprogram",
-  "description": "那时的 TA 微信原生小程序前端",
+  "projectname": "AIVOICE-CURRENT-UI",
+  "description": "那年的TA 微信原生小程序前端",
   "setting": {
     "useCompilerPlugins": [
       "typescript"
     ],
     "es6": true,
-    "enhance": true,
+    "enhance": false,
     "postcss": true,
     "minified": false,
     "minifyWXSS": false,

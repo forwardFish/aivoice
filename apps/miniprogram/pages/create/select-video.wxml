@@ -43,22 +43,23 @@
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
     </view>
 
-    <view class="selection-footer safe-bottom">
+    <bottom-action-bar layout="row" minHeight="148" custom-class="selection-footer">
       <view wx:if="{{selected}}" class="selected-summary">
         <view class="summary-copy">
           <text class="summary-title">已选择 1 个视频</text>
-          <text class="summary-meta">{{selected.durationText}} · 仅处理这一段</text>
         </view>
         <button class="summary-clear" catchtap="resetSelection" aria-label="清除选择">×</button>
       </view>
       <view wx:else class="selected-summary">
         <view class="summary-copy">
-          <text class="summary-title">选择 1 个视频</text>
-          <text class="summary-meta">支持 12–60 秒，最大 100MB</text>
+          <text class="summary-title">请选择 1 个视频</text>
+          <text class="summary-meta">支持 8–60 秒，最大 100MB</text>
         </view>
       </view>
-      <button wx:if="{{selected}}" class="footer-next" bindtap="uploadAndContinue">下一步</button>
-      <button wx:else class="footer-next is-choose" bindtap="chooseVideo">选择视频</button>
-    </view>
+      <view class="footer-action">
+        <app-button wx:if="{{selected}}" label="下一步" bindaction="uploadAndContinue"></app-button>
+        <app-button wx:else label="选择视频" bindaction="chooseVideo"></app-button>
+      </view>
+    </bottom-action-bar>
   </block>
 </view>

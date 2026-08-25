@@ -9,7 +9,7 @@ import { DEFAULT_MEDIA_TILE_INDEX, normalizeMediaTileIndex } from '../../utils/m
 import { ensureAuthenticated } from '../../utils/navigation'
 import { getCreationSession, setCreationSession } from '../../utils/storage'
 
-const MIN_DURATION_MS = 12000
+const MIN_DURATION_MS = 8000
 const MAX_DURATION_MS = 60000
 const MAX_SIZE_BYTES = 100 * 1024 * 1024
 
@@ -96,7 +96,7 @@ Page({
       })
       const durationMs = Math.round(Number(info.duration || file.duration || 0) * 1000)
       const sizeBytes = Number(file.size || 0)
-      if (durationMs < MIN_DURATION_MS) throw new Error('视频至少需要 12 秒，请重新选择。')
+      if (durationMs < MIN_DURATION_MS) throw new Error('视频至少需要 8 秒，请重新选择。')
       if (durationMs > MAX_DURATION_MS) throw new Error('视频不能超过 60 秒，请先在相册中裁短。')
       if (sizeBytes > MAX_SIZE_BYTES) throw new Error('视频超过 100MB，请裁短或压缩后重试。')
       const fileName = fileNameFromPath(file.tempFilePath)

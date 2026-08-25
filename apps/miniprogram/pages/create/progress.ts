@@ -4,7 +4,6 @@ import {
 } from '../../services/api'
 import { VoiceDetail, VoiceStatus } from '../../models/api'
 import { ensureAuthenticated, openPreview } from '../../utils/navigation'
-import { getCreationSession } from '../../utils/storage'
 import { PROCESS_POLL_INTERVAL_MS } from '../../config'
 
 const PROGRESS_BY_STATUS: Record<VoiceStatus, number> = {
@@ -140,11 +139,6 @@ Page({
     }
   },
   retry() {
-    const session = getCreationSession()
-    if (session && session.voiceId === this.data.voiceId && session.tempFilePath) {
-      wx.redirectTo({ url: `/pages/create/select-clip?voiceId=${encodeURIComponent(this.data.voiceId)}` })
-      return
-    }
     wx.redirectTo({ url: `/pages/create/select-video?voiceId=${encodeURIComponent(this.data.voiceId)}` })
   },
   goVoices() {

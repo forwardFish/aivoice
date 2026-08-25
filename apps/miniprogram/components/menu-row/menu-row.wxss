@@ -1,0 +1,12 @@
+.menu-row { min-height:96rpx; padding:16rpx 23rpx; display:flex; align-items:center; gap:19rpx; box-sizing:border-box; }
+.menu-row.is-large { min-height:112rpx; }
+.menu-row.is-unpadded { padding-left:0; padding-right:0; }
+.menu-row.has-divider { border-bottom:1rpx solid rgba(225,226,238,.9); }
+.menu-icon-shell { flex:0 0 auto; width:62rpx; height:62rpx; overflow:hidden; border-radius:18rpx; display:flex; align-items:center; justify-content:center; background:linear-gradient(145deg,rgba(247,245,255,.98),rgba(230,224,255,.74)); }
+.menu-icon-image { width:105rpx; height:105rpx; max-width:none; }
+.menu-copy { flex:1; min-width:0; }
+.menu-title { display:block; overflow:hidden; color:#17213d; font-size:25rpx; font-weight:680; text-overflow:ellipsis; white-space:nowrap; }
+.menu-description { display:block; margin-top:7rpx; overflow:hidden; color:#838ca8; font-size:20rpx; line-height:1.4; text-overflow:ellipsis; white-space:nowrap; }
+.menu-trailing { flex:0 0 auto; color:#929ab0; font-size:20rpx; }
+.tone-danger .menu-title { color:#c73f4c; }
+.tone-danger .menu-description { color:#ae6d75; }

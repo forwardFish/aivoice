@@ -10,20 +10,20 @@
   <view class="login-spark spark-d"></view>
 
   <view wx:if="{{success}}" class="login-success">
-    <page-state mode="success" title="登录成功" description="正在进入那时的 TA…"></page-state>
+    <page-state mode="success" title="登录成功" description="正在进入那年的TA…"></page-state>
   </view>
 
   <view wx:else class="login-content fade-in">
     <view class="login-hero">
       <view class="login-brand-copy">
-        <text class="login-title">那时的TA</text>
+        <text class="login-title">那年的TA</text>
         <text class="login-subtitle">把记忆里的声音，轻轻留住</text>
       </view>
       <image class="login-memory" src="/assets/ui/hero-memory.png" mode="aspectFit"></image>
     </view>
 
     <view class="welcome-block">
-      <text class="welcome-title">欢迎来到那时的TA</text>
+      <text class="welcome-title">欢迎来到那年的TA</text>
       <text class="welcome-subtitle">登录后体验完整功能</text>
     </view>
 
@@ -44,4 +44,36 @@
       </view>
     </view>
   </view>
+
+  <bottom-sheet visible="{{showProfileSheet}}" sheet-class="login-profile-sheet" bindclose="closeProfileSheet">
+    <text class="profile-title">授权微信资料</text>
+    <text class="profile-description">选择微信头像和昵称后完成登录</text>
+
+    <form class="profile-form" bindsubmit="confirmProfileLogin">
+        <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" binderror="onAvatarChooseError">
+          <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
+          <image wx:else class="avatar-placeholder" src="/assets/ui/user-outline.png" mode="aspectFit"></image>
+          <text>{{avatarUrl ? '已选择微信头像' : '选择微信头像'}}</text>
+        </button>
+        <button wx:if="{{avatarFallbackVisible}}" class="album-avatar-button" bindtap="chooseAvatarFromAlbum">从相册或相机选择头像</button>
+
+        <input
+          class="nickname-input"
+          name="nickname"
+          type="nickname"
+          value="{{nickname}}"
+          maxlength="40"
+          placeholder="选择或填写微信昵称"
+          bindinput="onNicknameInput"
+        />
+
+        <text wx:if="{{errorMessage}}" class="profile-error">{{errorMessage}}</text>
+        <text class="profile-privacy">头像和昵称仅用于你的账号展示</text>
+
+        <view class="ui-form-actions">
+          <button class="ui-form-button ui-form-button--secondary {{loading ? 'is-disabled' : ''}}" type="default" bindtap="closeProfileSheet" disabled="{{loading}}">取消</button>
+          <button class="ui-form-button ui-form-button--primary {{loading ? 'is-disabled' : ''}}" form-type="submit" disabled="{{loading}}">{{loading ? '登录中…' : '确认登录'}}</button>
+        </view>
+    </form>
+  </bottom-sheet>
 </view>

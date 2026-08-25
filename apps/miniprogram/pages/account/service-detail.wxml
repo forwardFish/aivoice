@@ -1,0 +1,35 @@
+<view class="detail-screen screen-shell">
+  <app-nav title="{{title}}" back="{{true}}" transparent="{{true}}"></app-nav>
+
+  <view class="detail-content fade-in">
+    <view class="detail-hero">
+      <view class="detail-icon-shell"><image src="{{icon}}" mode="aspectFit"></image></view>
+      <text class="detail-title">{{title}}</text>
+      <text class="detail-subtitle">{{subtitle}}</text>
+    </view>
+
+    <view class="detail-sections">
+      <view wx:for="{{sections}}" wx:key="title" wx:for-item="section" class="detail-card luminous-card">
+        <text class="section-title">{{section.title}}</text>
+        <view class="detail-lines">
+          <view wx:for="{{section.items}}" wx:key="*this" wx:for-item="line" class="detail-line">
+            <view class="line-dot"></view><text>{{line}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{actionType === 'qr'}}" class="qr-contact-card luminous-card">
+      <image wx:if="{{qrImage}}" class="customer-qr" src="{{qrImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}"></image>
+      <view wx:else class="qr-placeholder">
+        <view class="qr-grid"><view></view><view></view><view></view><view></view><view></view><view></view><view></view><view></view><view></view></view>
+        <text>客服二维码待配置</text>
+      </view>
+      <text class="qr-title">扫码添加客服微信</text>
+      <text class="qr-description">请备注“那年的TA + 问题类型”，便于快速定位订单或声音记录</text>
+      <text class="qr-safety">客服不会索要微信密码、支付密码或要求远程控制设备</text>
+    </view>
+    <app-button wx:elif="{{primaryAction}}" custom-class="detail-primary" label="{{primaryAction}}" bindaction="handlePrimaryAction"></app-button>
+    <text class="detail-note">账户、支付、积分和删除结果均以服务端记录为准</text>
+  </view>
+</view>
