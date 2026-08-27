@@ -12,25 +12,26 @@
   <block wx:else>
     <view class="clip-content fade-in">
       <view class="video-stage">
-        <video id="clipVideo" class="clip-video" src="{{tempFilePath}}" controls="{{true}}" object-fit="cover" bindtimeupdate="onTimeUpdate"></video>
-        <text class="video-time">{{currentText}} / {{durationSec}} 秒</text>
+        <video id="clipVideo" class="clip-video" src="{{tempFilePath}}" controls="{{true}}" object-fit="contain" bindtimeupdate="onTimeUpdate"></video>
+        <text class="video-time">{{currentText}} / {{durationText}}</text>
       </view>
 
-      <view class="compact-heading">
-        <text class="page-title">请标记 TA 说话的片段</text>
-        <text class="page-subtitle">建议选择清晰朗读、安静的 8–20 秒片段</text>
+      <view class="clip-intro">
+        <text class="page-title clip-title">请标记 TA 说话的片段</text>
+        <text class="page-subtitle clip-subtitle">建议选择清晰朗读、安静的 8–20 秒片段</text>
       </view>
 
       <view class="trim-card">
-        <view class="wave-shell">
-          <view class="wave-selection" style="left: {{startPercent}}%; width: {{selectionPercent}}%;"></view>
+        <view class="wave-shell" catchtouchstart="onWaveShellTouchStart" catchtouchmove="onMarkerTouchMove" catchtouchend="onMarkerTouchEnd" catchtouchcancel="onMarkerTouchEnd">
+          <view class="wave-selection {{draggingMarker === 'range' ? 'is-dragging' : ''}}" style="left: {{startPercent}}%; width: {{selectionPercent}}%;" role="slider" aria-label="整体移动所选片段" data-marker="range" catchtouchstart="onMarkerTouchStart" catchtouchmove="onMarkerTouchMove" catchtouchend="onMarkerTouchEnd" catchtouchcancel="onMarkerTouchEnd"></view>
           <view class="wave-bars">
-            <text style="height:18rpx"></text><text style="height:34rpx"></text><text style="height:48rpx"></text><text style="height:28rpx"></text><text style="height:58rpx"></text><text style="height:42rpx"></text><text style="height:66rpx"></text><text style="height:38rpx"></text><text style="height:54rpx"></text><text style="height:30rpx"></text><text style="height:64rpx"></text><text style="height:45rpx"></text><text style="height:57rpx"></text><text style="height:26rpx"></text><text style="height:49rpx"></text><text style="height:62rpx"></text><text style="height:35rpx"></text><text style="height:53rpx"></text><text style="height:24rpx"></text><text style="height:44rpx"></text><text style="height:60rpx"></text><text style="height:32rpx"></text><text style="height:51rpx"></text><text style="height:22rpx"></text>
+            <text class="wave-bar" style="height:18rpx"></text><text class="wave-bar" style="height:34rpx"></text><text class="wave-bar" style="height:48rpx"></text><text class="wave-bar" style="height:28rpx"></text><text class="wave-bar" style="height:58rpx"></text><text class="wave-bar" style="height:42rpx"></text><text class="wave-bar" style="height:66rpx"></text><text class="wave-bar" style="height:38rpx"></text><text class="wave-bar" style="height:54rpx"></text><text class="wave-bar" style="height:30rpx"></text><text class="wave-bar" style="height:64rpx"></text><text class="wave-bar" style="height:45rpx"></text><text class="wave-bar" style="height:57rpx"></text><text class="wave-bar" style="height:26rpx"></text><text class="wave-bar" style="height:49rpx"></text><text class="wave-bar" style="height:62rpx"></text><text class="wave-bar" style="height:35rpx"></text><text class="wave-bar" style="height:53rpx"></text><text class="wave-bar" style="height:24rpx"></text><text class="wave-bar" style="height:44rpx"></text><text class="wave-bar" style="height:60rpx"></text><text class="wave-bar" style="height:32rpx"></text><text class="wave-bar" style="height:51rpx"></text><text class="wave-bar" style="height:22rpx"></text>
           </view>
-          <view class="marker marker-start" style="left: {{startPercent}}%;"><view class="marker-handle"></view></view>
-          <view class="marker marker-end" style="left: {{endPercent}}%;"><view class="marker-handle"></view></view>
+          <view class="marker marker-start {{draggingMarker === 'start' ? 'is-dragging' : ''}}" style="left: {{startPercent}}%;" role="slider" aria-label="片段开始时间" data-marker="start" catchtouchstart="onMarkerTouchStart" catchtouchmove="onMarkerTouchMove" catchtouchend="onMarkerTouchEnd" catchtouchcancel="onMarkerTouchEnd"><view class="marker-handle"></view></view>
+          <view class="marker marker-end {{draggingMarker === 'end' ? 'is-dragging' : ''}}" style="left: {{endPercent}}%;" role="slider" aria-label="片段结束时间" data-marker="end" catchtouchstart="onMarkerTouchStart" catchtouchmove="onMarkerTouchMove" catchtouchend="onMarkerTouchEnd" catchtouchcancel="onMarkerTouchEnd"><view class="marker-handle"></view></view>
         </view>
         <view class="time-labels"><text>{{startText}}</text><text>{{endText}}</text></view>
+        <text class="trim-hint">拖动两侧手柄或中间高亮区域，选择 8–20 秒片段</text>
 
         <view class="selected-duration">
           <text class="selected-duration-value">{{selectedText}}</text>
@@ -41,8 +42,8 @@
         <view wx:if="{{showAdvanced}}" class="advanced-tools">
           <text class="advanced-title">精细调整</text>
           <view class="position-actions">
-            <button bindtap="setStartFromCurrent"><text class="action-dot start-dot"></text><text>当前设为开始</text></button>
-            <button bindtap="setEndFromCurrent"><text class="action-dot end-dot"></text><text>当前设为结束</text></button>
+            <button class="position-action-button" bindtap="setStartFromCurrent"><text class="action-dot start-dot"></text><text>当前设为开始</text></button>
+            <button class="position-action-button" bindtap="setEndFromCurrent"><text class="action-dot end-dot"></text><text>当前设为结束</text></button>
           </view>
 
           <view class="fine-tune">
@@ -64,7 +65,7 @@
 
         <view class="footer-consent {{confirmed ? 'is-confirmed' : ''}}" bindtap="toggleConfirmed">
           <view class="check-box"><text wx:if="{{confirmed}}">✓</text></view>
-          <text>我确认主要是目标人物清楚、单独说话</text>
+          <text class="consent-text">我确认主要是目标人物清楚、单独说话</text>
         </view>
       </view>
 
@@ -72,13 +73,13 @@
       <view class="clip-content-spacer"></view>
     </view>
 
-    <bottom-action-bar custom-class="clip-footer">
-      <app-button
-        label="{{saving ? '正在保存片段…' : '下一步'}}"
-        disabled="{{!valid || !confirmed || saving}}"
-        loading="{{saving}}"
-        bindaction="saveAndContinue"
-      ></app-button>
-    </bottom-action-bar>
+    <view class="clip-footer">
+      <view
+        role="button"
+        aria-disabled="{{!valid || !confirmed || saving}}"
+        class="clip-next-button primary-button {{!valid || !confirmed || saving ? 'button-disabled' : ''}}"
+        bindtap="saveAndContinue"
+      ><text>{{saving ? '正在保存片段…' : '下一步'}}</text></view>
+    </view>
   </block>
 </view>

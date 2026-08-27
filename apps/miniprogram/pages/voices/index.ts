@@ -41,27 +41,45 @@ function statusMeta(voice: VoiceSummary): { label: string; tone: string; action:
   return map[voice.status]
 }
 
+function processingStageText(voice: VoiceSummary): string {
+  return voice.processingStage || voice.stageLabel || '正在创建声音模型…'
+}
+
+function draftMetaText(voice: VoiceSummary): string {
+  if (voice.error?.message) return voice.error.message
+  if (voice.status === 'PREVIEW_READY') return voice.previewText || formatDateTime(voice.updatedAt || voice.createdAt)
+  if (voice.status === 'FAILED') return formatDateTime(voice.updatedAt || voice.createdAt)
+  return formatDateTime(voice.updatedAt || voice.createdAt)
+}
+
 function viewModel(voice: VoiceSummary, availablePoints: number): any {
   const meta = statusMeta(voice)
   const progress = Math.max(0, Math.min(100, Number(voice.progress || 0)))
+  const isReady = voice.status === 'READY'
+  const showProgress = ['UPLOADING', 'QUEUED', 'PROCESSING', 'DELETING'].indexOf(voice.status) >= 0
+  const displayName = String(voice.name || '').trim() || '未命名声音'
+  const readyMetaTime = formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)
   return {
     ...voice,
-    initial: voiceInitial(voice.name),
+    initial: voiceInitial(displayName),
     displayAvatar: resolveVoiceAvatar(voice),
+    displayName,
     group: groupForStatus(voice.status),
     statusLabel: meta.label,
     statusTone: meta.tone,
     primaryAction: meta.action,
-    isReady: voice.status === 'READY',
+    isReady,
     isDisabled: voice.status === 'DELETED',
-    showProgress: ['UPLOADING', 'QUEUED', 'PROCESSING', 'DELETING'].indexOf(voice.status) >= 0,
+    showProgress,
     progress,
+    progressStage: showProgress ? processingStageText(voice) : '',
     pointsText: `剩余 ${availablePoints} 积分`,
-    metaText: voice.status === 'READY'
-      ? `${voice.conversationStyle ? styleLabel(voice.conversationStyle) + ' · ' : ''}${formatDateTime(voice.lastUsedAt || voice.updatedAt || voice.createdAt)}`
-      : voice.error && voice.error.message
-        ? voice.error.message
-        : formatDateTime(voice.updatedAt || voice.createdAt)
+    avatarSize: isReady ? 154 : 144,
+    metaText: isReady
+      ? `最近使用 ${readyMetaTime}`
+      : showProgress
+        ? processingStageText(voice)
+        : draftMetaText(voice)
   }
 }
 

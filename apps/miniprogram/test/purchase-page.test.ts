@@ -2,6 +2,31 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import test from 'node:test'
 
+test('purchase page copy keeps the fixed 50-point server-authoritative contract', () => {
+  const purchaseMarkup = fs.readFileSync(new URL('../pages/purchase/index.wxml', import.meta.url), 'utf8')
+  const purchaseStyle = fs.readFileSync(new URL('../pages/purchase/index.wxss', import.meta.url), 'utf8')
+  const purchaseLogic = fs.readFileSync(new URL('../pages/purchase/index.ts', import.meta.url), 'utf8')
+
+  assert.match(purchaseMarkup, /class="point-number">\{\{purchaseOption\.points\}\}/)
+  assert.match(purchaseMarkup, /class="product-price">\{\{priceText\}\}/)
+  assert.match(purchaseMarkup, /'购买 ' \+ purchaseOption\.points \+ ' 积分 · ' \+ priceText/)
+  assert.match(purchaseMarkup, /一次性购买/)
+  assert.match(purchaseMarkup, /class="benefit-item">一次性购买<\/text>/)
+  assert.match(purchaseMarkup, /class="benefit-item">不自动续费<\/text>/)
+  assert.doesNotMatch(purchaseMarkup, /class="benefit-item">适用于所有声音<\/text>/)
+  assert.match(purchaseMarkup, /支付取消或失败不会增加积分/)
+  assert.match(purchaseMarkup, /服务端确认订单成功后/)
+  assert.match(purchaseMarkup, /不自动续费/)
+  assert.doesNotMatch(purchaseMarkup, /10\s*次|180\s*天|有效期/)
+  assert.match(purchaseMarkup, /<view class="purchase-footer">[\s\S]*<app-button/)
+  assert.doesNotMatch(purchaseMarkup, /<bottom-action-bar/)
+  assert.match(purchaseStyle, /\.purchase-footer\s*\{[^}]*position:\s*fixed[^}]*left:\s*0[^}]*right:\s*0/s)
+  assert.match(purchaseStyle, /\.price-stage\s*\{/)
+  assert.match(purchaseStyle, /\.rule-list\s*\{/)
+  assert.match(purchaseLogic, /order\.status === 'PAID' && serverConfirmedGrant/)
+  assert.doesNotMatch(purchaseLogic, /points\.availablePoints > 0 && order\.status/)
+})
+
 test('account points card opens a voice-independent purchase flow', () => {
   const accountMarkup = fs.readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
   const accountLogic = fs.readFileSync(new URL('../pages/account/index.ts', import.meta.url), 'utf8')

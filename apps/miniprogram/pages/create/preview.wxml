@@ -13,21 +13,28 @@
     <text class="preview-subtitle">TA 的声音已为你生成</text>
 
     <view class="voice-visual">
+      <view class="visual-aura visual-aura-left"></view>
+      <view class="visual-aura visual-aura-right"></view>
       <view class="side-wave left-wave">
-        <view class="wave-bar wave-tall"></view>
         <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-tall"></view>
         <view class="wave-bar wave-short"></view>
-        <view class="wave-bar wave-mid"></view>
         <view class="wave-bar wave-tall"></view>
+        <view class="wave-bar wave-mid"></view>
       </view>
-      <image wx:if="{{avatarUrl}}" class="avatar-core" src="{{avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="avatar-core neutral-avatar"><image class="neutral-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image></view>
+      <view class="avatar-shell">
+        <image wx:if="{{avatarUrl}}" class="avatar-core" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="avatar-core neutral-avatar">
+          <image class="neutral-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+        </view>
+        <view class="avatar-glow"></view>
+      </view>
       <view class="side-wave right-wave">
-        <view class="wave-bar wave-tall"></view>
         <view class="wave-bar wave-mid"></view>
+        <view class="wave-bar wave-tall"></view>
         <view class="wave-bar wave-short"></view>
-        <view class="wave-bar wave-mid"></view>
         <view class="wave-bar wave-tall"></view>
+        <view class="wave-bar wave-mid"></view>
       </view>
       <view class="visual-spark spark-a"></view>
       <view class="visual-spark spark-b"></view>
@@ -35,21 +42,32 @@
 
     <text class="voice-name">{{voiceName}}</text>
 
-    <view class="preview-card">
-      <audio-player class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" tag="AI生成" bindplay="onPreviewPlay" bindended="onPreviewEnded" bindunavailable="onPreviewUnavailable"></audio-player>
+    <view class="preview-card glass-card {{playbackPrompted ? 'is-prompted' : ''}}">
+      <audio-player id="previewPlayer" class="preview-player" src="{{audioUrl}}" durationMs="{{durationMs}}" label="点击播放试听" tag="AI生成" bindplay="onPreviewPlay" bindpause="onPreviewPause" bindended="onPreviewEnded" binderror="onPreviewError" bindunavailable="onPreviewUnavailable"></audio-player>
     </view>
     <text class="preview-copy">{{previewText}}</text>
-    <text class="preview-status {{playCompleted ? 'is-complete' : ''}}">{{playCompleted ? '试听已完整播放，可以继续使用这个声音' : '请完整播放一次后再继续'}}</text>
+    <text wx:if="{{!playCompleted}}" class="preview-status {{playbackPrompted ? 'is-prompted' : ''}}">{{previewPlaying ? '试听播放中，完整听完后即可使用' : '点击下方按钮会自动播放试听'}}</text>
 
     <text wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</text>
 
-    <button class="primary-button use-button {{!playCompleted || accepting ? 'button-disabled' : ''}}" bindtap="acceptPreview" disabled="{{!playCompleted || accepting}}">
-      {{accepting ? '正在启用这个声音…' : '使用这个声音'}}
-    </button>
-    <button class="secondary-button retry-button" bindtap="retryPreview" disabled="{{retrying}}">
-      {{retrying ? '正在重新创建…' : freeRetryRemaining > 0 ? '换一段重新创建（剩余 ' + freeRetryRemaining + ' 次）' : '换一段重新创建'}}
-    </button>
-
-    <text class="points-note">新账号赠送 10 个账号积分；后续 ¥9.9 购买 50 个账号积分。对话与“说一句”共享使用，不自动续费。</text>
+    <view class="action-stack">
+      <view
+        role="button"
+        aria-disabled="{{accepting}}"
+        class="preview-action primary-button use-button {{accepting ? 'button-disabled' : ''}} {{playbackPrompted ? 'use-button-prompted' : ''}} {{!playCompleted ? 'use-button-listen-first' : ''}}"
+        bindtap="acceptPreview"
+      >
+        <text>{{accepting ? '正在启用这个声音…' : playCompleted ? (trialEligible ? '使用这个声音，免费体验 1 次' : '使用这个声音') : '先听完，再使用这个声音'}}</text>
+      </view>
+      <view
+        role="button"
+        aria-disabled="{{retrying}}"
+        class="preview-action retry-button {{retrying ? 'retry-button-disabled' : ''}}"
+        bindtap="retryPreview"
+      >
+        <text class="retry-button-label">{{retrying ? '正在重新创建…' : '换一段重新创建'}}</text>
+      </view>
+      <text wx:if="{{!retrying && freeRetryRemaining > 0}}" class="retry-remaining">免费重新创建剩余 {{freeRetryRemaining}} 次</text>
+    </view>
   </view>
 </view>

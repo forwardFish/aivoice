@@ -11,6 +11,11 @@ const voice = {
   relationshipType: 'SELF' as const,
   relationshipLabel: '',
   userAddress: '',
+  ageYears: null,
+  gender: null,
+  userLifeStage: null,
+  background: '',
+  relationshipNote: '',
   status: 'READY' as const,
   clipStartMs: 1_000,
   clipEndMs: 16_000,
@@ -44,7 +49,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     selectOne: async (table: string) => table === 'voice_profiles' ? relatedVoice : null,
     rpc: async (name: string, args: Record<string, unknown>) => {
       calls.push({ name, args });
-      if (name === 'rpc_voice_update_profile_v3') return { ...relatedVoice, userAddress: '小林' };
+      if (name === 'rpc_voice_update_profile_v4') return { ...relatedVoice, userAddress: '小林' };
       throw new Error(`unexpected rpc ${name}`);
     },
   };
@@ -60,10 +65,15 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     relationshipType: 'MOTHER',
     relationshipLabel: '',
     userAddress: '小林',
+    ageYears: 70,
+    gender: 'FEMALE',
+    userLifeStage: 'ADULT',
+    background: '退休前是中学老师，现在参加社区合唱活动。',
+    relationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
   });
 
   assert.equal(result.relationshipType, 'MOTHER');
-  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v3');
+  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v4');
   assert.deepEqual(calls[0]?.args, {
     pUserId: 'user-id',
     pVoiceId: 'voice-id',
@@ -72,6 +82,11 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     pRelationshipType: 'MOTHER',
     pRelationshipLabel: '',
     pUserAddress: '小林',
+    pAgeYears: 70,
+    pGender: 'FEMALE',
+    pUserLifeStage: 'ADULT',
+    pBackground: '退休前是中学老师，现在参加社区合唱活动。',
+    pRelationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
   });
 });
 

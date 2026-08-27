@@ -382,10 +382,16 @@ export class JobRunner {
       relationship_type: VoiceRelationshipType | null;
       relationship_label: string;
       user_address: string;
+      age_years: number | null;
+      gender: 'FEMALE' | 'MALE' | null;
+      user_life_stage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
+      background: string;
+      relationship_note: string;
       cleared_at: Date | null;
     }>(
       `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,
-              vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,c.cleared_at
+              vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
+              vp.age_years,vp.gender,vp.user_life_stage,vp.background,vp.relationship_note,c.cleared_at
        FROM messages m
        JOIN conversations c ON c.id=m.conversation_id
        JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
@@ -406,9 +412,14 @@ export class JobRunner {
       );
       const context = compileVoiceChatMessages({
         voiceName: message.voice_name,
+        ageYears: message.age_years,
+        gender: message.gender,
         relationshipType: message.relationship_type,
         relationshipLabel: message.relationship_label,
         userAddress: message.user_address,
+        userLifeStage: message.user_life_stage,
+        background: message.background,
+        relationshipNote: message.relationship_note,
         history: historyResult.rows.reverse().map((row) => ({
           messageId: row.id,
           mode: row.mode,

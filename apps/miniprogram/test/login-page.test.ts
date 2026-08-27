@@ -25,6 +25,19 @@ test('login waits for avatar and nickname before using real wx.login code', asyn
   let loginCalled = false
   let requestBody: any
   let switchedTo = ''
+  let avatarUpload: any
+  class SharedCloud {
+    init() {}
+    uploadFile(options: any) {
+      avatarUpload = options
+      queueMicrotask(() => options.success({ fileID: 'cloud://env.profile-avatars/avatar.jpg' }))
+      return {}
+    }
+    downloadFile(options: any) {
+      queueMicrotask(() => options.success({ tempFilePath: 'wxfile://resolved-profile-avatar.jpg' }))
+      return {}
+    }
+  }
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
   ;(globalThis as any).wx = {
@@ -46,7 +59,8 @@ test('login waits for avatar and nickname before using real wx.login code', asyn
     },
     switchTab: ({ url }: { url: string }) => { switchedTo = url },
     reLaunch: ({ url }: { url: string }) => { switchedTo = url },
-    showModal: () => undefined
+    showModal: () => undefined,
+    cloud: { Cloud: SharedCloud }
   }
 
   await import('../pages/login/index')
@@ -70,14 +84,24 @@ test('login waits for avatar and nickname before using real wx.login code', asyn
 
   assert.equal(loginCalled, true)
   assert.equal(requestBody.code, 'real-wx-code')
-  assert.deepEqual(requestBody.profile, { nickname: '测试用户', avatarUrl: undefined })
+  assert.deepEqual(requestBody.profile, {
+    nickname: '测试用户',
+    avatarUrl: 'cloud://env.profile-avatars/avatar.jpg'
+  })
+  assert.equal(avatarUpload.filePath, 'wxfile://selected-avatar.jpg')
+  assert.match(avatarUpload.cloudPath, /^profile-avatars\/.+\.jpg$/)
   assert.equal(storage.get('nashide_ta_token'), 'server-session-token')
   assert.deepEqual(storage.get('nashide_ta_user'), {
     id: 'user-1',
     nickname: '测试用户',
-    avatarUrl: 'wxfile://selected-avatar.jpg',
+    avatarUrl: 'cloud://env.profile-avatars/avatar.jpg',
     status: undefined
   })
+  const avatarPicker = await import('../utils/avatar-picker')
+  assert.equal(
+    await avatarPicker.resolveProfileAvatarSource('cloud://env.profile-avatars/avatar.jpg'),
+    'wxfile://resolved-profile-avatar.jpg'
+  )
   assert.equal(switchedTo, '/pages/home/index')
   assert.equal(storage.has('session_key'), false)
 })

@@ -22,6 +22,7 @@ import {
   clearWorkbenchDraft,
   getReplyFeedback,
   getPendingOrderId,
+  getUser,
   getWorkbenchDraft,
   setReplyFeedback,
   setWorkbenchDraft
@@ -29,7 +30,8 @@ import {
 import { delay, confirm, toast } from '../../utils/ui'
 import { uuidV4 } from '../../utils/uuid'
 import { resolveVoiceAvatar } from '../../utils/avatar'
-import { voiceInitial } from '../../utils/format'
+import { formatDateTime, voiceInitial } from '../../utils/format'
+import { resolveProfileAvatarSource } from '../../utils/avatar-picker'
 
 function pointsLabel(points: PointsBalanceResponse): string {
   return `剩余 ${points.availablePoints} 积分`
@@ -53,8 +55,15 @@ function messageView(message: ConversationMessage, initial: string, feedback?: {
     tag: message.mode === 'EXACT_TTS' ? 'AI生成' : 'AI回复',
     feedbackVerdict: feedback?.verdict || '',
     feedbackReason: feedback?.reason || '',
+    timeText: messageTimeLabel(message.createdAt),
     initial
   }
+}
+
+function messageTimeLabel(value?: string): string {
+  const formatted = formatDateTime(value)
+  const match = formatted.match(/(\d{2}:\d{2})$/)
+  return match ? match[1] : ''
 }
 
 Page({
@@ -65,6 +74,7 @@ Page({
     voiceName: '这个声音',
     voiceInitial: '声',
     voiceAvatar: '/assets/avatars/woman-01.png',
+    userAvatar: '/assets/ui/user-outline.png',
     points: {
       availablePoints: 0
     } as PointsBalanceResponse,
@@ -75,6 +85,7 @@ Page({
     chatMessages: [] as any[],
     exactResults: [] as any[],
     chatText: '',
+    chatInputFocused: false,
     exactText: '',
     chatCount: 0,
     exactCount: 0,
@@ -98,15 +109,18 @@ Page({
       return
     }
     const stored = getWorkbenchDraft(voiceId)
+    const initialChatText = stored?.chatText || ''
+    this.chatDraftText = initialChatText
+    this.chatDraftDirty = false
     const mode = options.mode === 'exact' ? 'exact' : stored?.mode || 'chat'
     const showModeChooser = options.choose === '1'
     this.setData({
       voiceId,
       mode,
       showModeChooser,
-      chatText: stored?.chatText || '',
+      chatText: initialChatText,
       exactText: stored?.exactText || '',
-      chatCount: (stored?.chatText || '').length,
+      chatCount: initialChatText.length,
       exactCount: (stored?.exactText || '').length
     })
     this.loadData()
@@ -117,6 +131,7 @@ Page({
     }
   },
   onUnload() {
+    if (this.chatDraftDirty && this.data.voiceId) this.persistDraft('chat')
     this.destroyed = true
     if (this.pollTimer) clearTimeout(this.pollTimer)
   },
@@ -150,12 +165,14 @@ Page({
       const chatMessages = messages.filter(item => item.mode === 'CHAT')
       const exactResults = messages.filter(item => item.mode === 'EXACT_TTS' && item.isAssistant).reverse()
       const scrollTarget = chatMessages.length ? `message-${chatMessages[chatMessages.length - 1].id}` : ''
+      const userAvatar = await this.resolveUserAvatar()
       this.setData({
         state: 'success',
         errorMessage: '',
         voiceName: voice.name,
         voiceInitial: initial,
         voiceAvatar: resolveVoiceAvatar(voice),
+        userAvatar,
         points,
         pointsText: pointsLabel(points),
         purchaseOption: products.products[0] || this.data.purchaseOption,
@@ -174,6 +191,15 @@ Page({
       this.setData({ state: 'error', errorMessage: error.message || '工作台加载失败，请重试。' })
     }
   },
+  async resolveUserAvatar() {
+    const source = String(getUser()?.avatarUrl || '')
+    if (!source) return '/assets/ui/user-outline.png'
+    try {
+      return await resolveProfileAvatarSource(source)
+    } catch (_error) {
+      return /^cloud:\/\//i.test(source) ? '/assets/ui/user-outline.png' : source
+    }
+  },
   selectMode(event: any) {
     const mode = event.currentTarget.dataset.mode === 'exact' ? 'exact' : 'chat'
     this.setData({ mode, showModeChooser: false })
@@ -188,11 +214,24 @@ Page({
     this.setData({ showModeChooser: true })
   },
   openSettings() {
+    if (!this.data.voiceId) return
     wx.navigateTo({ url: `/pages/voice/settings?voiceId=${encodeURIComponent(this.data.voiceId)}` })
   },
   onChatInput(event: any) {
     const chatText = String(event.detail.value || '').slice(0, 200)
-    this.setData({ chatText, chatCount: chatText.length, errorMessage: '' })
+    this.chatDraftText = chatText
+    this.chatDraftDirty = true
+    if (this.data.errorMessage) this.setData({ errorMessage: '' })
+  },
+  onChatFocus() {
+    if (this.data.chatInputFocused) return
+    this.setData({ chatInputFocused: true })
+  },
+  onChatBlur() {
+    const chatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText).slice(0, 200)
+    this.chatDraftText = chatText
+    this.chatDraftDirty = false
+    this.setData({ chatText, chatCount: chatText.length, chatInputFocused: false })
     this.persistDraft('chat', { chatText })
   },
   onExactInput(event: any) {
@@ -202,6 +241,8 @@ Page({
   },
   useQuickPrompt(event: any) {
     const text = String(event.currentTarget.dataset.text || '')
+    this.chatDraftText = text
+    this.chatDraftDirty = false
     this.setData({ chatText: text, chatCount: text.length })
     this.persistDraft('chat', { chatText: text })
   },
@@ -233,9 +274,10 @@ Page({
     })
   },
   persistDraft(mode = this.data.mode, patch: Record<string, string> = {}) {
+    const currentChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
     setWorkbenchDraft(this.data.voiceId, {
       mode,
-      chatText: patch.chatText == null ? this.data.chatText : patch.chatText,
+      chatText: patch.chatText == null ? currentChatText : patch.chatText,
       exactText: patch.exactText == null ? this.data.exactText : patch.exactText
     })
   },
@@ -247,7 +289,8 @@ Page({
   },
   async submitGeneration(mode: 'chat' | 'exact') {
     if (this.data.sending || this.data.paymentPending || this.data.paying) return
-    const text = String(mode === 'chat' ? this.data.chatText : this.data.exactText).trim()
+    const chatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
+    const text = String(mode === 'chat' ? chatText : this.data.exactText).trim()
     if (!text) {
       toast(mode === 'chat' ? '请输入想说的话' : '请输入希望 TA 说的话')
       return
@@ -301,7 +344,8 @@ Page({
       const result = await getMessage(messageId)
       if (result.status === 'READY') {
         const completedMode = this.data.pendingMode
-        const nextChatText = completedMode === 'chat' ? '' : this.data.chatText
+        const currentChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
+        const nextChatText = completedMode === 'chat' ? '' : currentChatText
         const nextExactText = completedMode === 'exact' ? '' : this.data.exactText
         if (nextChatText || nextExactText) {
           setWorkbenchDraft(this.data.voiceId, {
@@ -312,6 +356,8 @@ Page({
         } else {
           clearWorkbenchDraft(this.data.voiceId)
         }
+        this.chatDraftText = nextChatText
+        this.chatDraftDirty = false
         this.setData({
           chatText: nextChatText,
           exactText: nextExactText,

@@ -4,7 +4,7 @@ import {
   getVoice,
   saveVoiceProfile
 } from '../../services/api'
-import { ConversationStyle, PermissionType, RelationshipType, VoiceStatus } from '../../models/api'
+import { ConversationStyle, PermissionType, RelationshipType, UserLifeStage, VoiceGender, VoiceStatus } from '../../models/api'
 import { ensureAuthenticated } from '../../utils/navigation'
 import { confirm, toast } from '../../utils/ui'
 import {
@@ -65,6 +65,25 @@ function statusLabel(value: VoiceStatus): string {
   return labels[value]
 }
 
+function statusTone(value: VoiceStatus): 'success' | 'progress' | 'warning' | 'danger' | 'neutral' {
+  switch (value) {
+    case 'READY':
+      return 'success'
+    case 'UPLOADING':
+    case 'QUEUED':
+    case 'PROCESSING':
+    case 'PREVIEW_READY':
+      return 'progress'
+    case 'FAILED':
+      return 'danger'
+    case 'DELETING':
+    case 'DELETED':
+      return 'warning'
+    default:
+      return 'neutral'
+  }
+}
+
 Page({
   data: {
     voiceId: '',
@@ -78,7 +97,18 @@ Page({
     relationshipType: '' as RelationshipType | '',
     relationshipOther: '',
     relationshipOptions: [] as Array<{ key: RelationshipType; title: string }>,
+    showRelationship: false,
     userAddress: '',
+    ageYears: '',
+    gender: '' as VoiceGender | '',
+    userLifeStage: '' as UserLifeStage | '',
+    background: '',
+    relationshipNote: '',
+    genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
+    lifeStageOptions: [
+      { key: 'CHILD', title: '儿童' }, { key: 'TEEN', title: '青少年' },
+      { key: 'ADULT', title: '成年人' }, { key: 'OLDER_ADULT', title: '老年人' }
+    ],
     savedRelationshipType: '' as RelationshipType | '',
     savedRelationshipOther: '',
     savedUserAddress: '',
@@ -87,6 +117,7 @@ Page({
     stageText: '未设置',
     callerText: '未设置',
     statusText: '',
+    statusTone: 'neutral' as 'success' | 'progress' | 'warning' | 'danger' | 'neutral',
     saving: false,
     clearing: false,
     deleting: false,
@@ -123,6 +154,11 @@ Page({
         relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
         relationshipOptions: voice.permissionType ? RELATIONSHIP_OPTIONS[voice.permissionType] : [],
         userAddress: voice.userAddress || '',
+        ageYears: voice.ageYears == null ? '' : String(voice.ageYears),
+        gender: voice.gender || '',
+        userLifeStage: voice.userLifeStage || '',
+        background: voice.background || '',
+        relationshipNote: voice.relationshipNote || '',
         savedRelationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
         savedUserAddress: voice.userAddress || '',
@@ -130,7 +166,8 @@ Page({
         styleText: styleLabel(voice.conversationStyle),
         stageText: voice.stageLabel || '未设置',
         callerText: '由声音资料保存',
-        statusText: statusLabel(voice.status)
+        statusText: statusLabel(voice.status),
+        statusTone: statusTone(voice.status)
       })
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音设置加载失败，请重试。' })
@@ -138,6 +175,28 @@ Page({
   },
   onNameInput(event: any) {
     this.setData({ nameDraft: String(event.detail.value || '').slice(0, 20), errorMessage: '', successMessage: '' })
+  },
+  onAgeInput(event: any) {
+    this.setData({ ageYears: String(event.detail.value || '').replace(/\D/g, '').slice(0, 3), errorMessage: '', successMessage: '' })
+  },
+  selectGender(event: any) {
+    const gender = String(event.currentTarget.dataset.key || '') as VoiceGender
+    if (gender !== 'FEMALE' && gender !== 'MALE') return
+    this.setData({ gender, errorMessage: '', successMessage: '' })
+  },
+  selectUserLifeStage(event: any) {
+    const userLifeStage = String(event.currentTarget.dataset.key || '') as UserLifeStage
+    if (!['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(userLifeStage)) return
+    this.setData({ userLifeStage, errorMessage: '', successMessage: '' })
+  },
+  onBackgroundInput(event: any) {
+    this.setData({ background: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
+  },
+  onRelationshipNoteInput(event: any) {
+    this.setData({ relationshipNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
+  },
+  toggleRelationship() {
+    this.setData({ showRelationship: !this.data.showRelationship })
   },
   selectRelationship(event: any) {
     const relationshipType = String(event.currentTarget.dataset.key || '') as RelationshipType
@@ -174,6 +233,15 @@ Page({
       this.setData({ errorMessage: '服务端声音资料缺少权限类型，无法安全修改名称。' })
       return
     }
+    const ageYears = Number(this.data.ageYears)
+    if (!Number.isInteger(ageYears) || ageYears < 0 || ageYears > 120) {
+      toast('请填写0—120岁的准确年龄')
+      return
+    }
+    if (!this.data.gender) {
+      toast('请选择 TA 的性别')
+      return
+    }
     const relationshipLabel = String(this.data.relationshipOther || '').trim()
     if (!this.data.relationshipType) {
       toast('请选择 TA 是你的谁')
@@ -183,6 +251,10 @@ Page({
       toast('请填写你与 TA 的关系')
       return
     }
+    if (this.data.relationshipType !== 'SELF' && !this.data.userLifeStage) {
+      toast('请选择你现在所处的人生阶段')
+      return
+    }
     this.setData({ saving: true, errorMessage: '', successMessage: '' })
     try {
       const voice = await saveVoiceProfile(this.data.voiceId, {
@@ -190,7 +262,12 @@ Page({
         permissionType: this.data.permissionType,
         relationshipType: this.data.relationshipType,
         relationshipLabel: this.data.relationshipType === 'OTHER' ? relationshipLabel : '',
-        userAddress: String(this.data.userAddress || '').trim()
+        userAddress: String(this.data.userAddress || '').trim(),
+        ageYears,
+        gender: this.data.gender,
+        userLifeStage: this.data.relationshipType === 'SELF' ? undefined : this.data.userLifeStage || undefined,
+        background: String(this.data.background || '').trim(),
+        relationshipNote: String(this.data.relationshipNote || '').trim()
       })
       this.setData({
         saving: false,
@@ -199,6 +276,11 @@ Page({
         relationshipType: voice.relationshipType || this.data.relationshipType,
         relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
         userAddress: voice.userAddress || '',
+        ageYears: voice.ageYears == null ? String(ageYears) : String(voice.ageYears),
+        gender: voice.gender || this.data.gender,
+        userLifeStage: voice.userLifeStage || this.data.userLifeStage,
+        background: voice.background || '',
+        relationshipNote: voice.relationshipNote || '',
         savedRelationshipType: voice.relationshipType || this.data.relationshipType,
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
         savedUserAddress: voice.userAddress || '',

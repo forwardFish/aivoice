@@ -11,10 +11,6 @@ const stateName = String(process.argv[2] || '')
 fs.mkdirSync(outputDir, { recursive: true })
 
 async function resolveVoiceId(miniProgram) {
-  if (fs.existsSync(contextPath)) {
-    const saved = JSON.parse(fs.readFileSync(contextPath, 'utf8'))
-    if (saved.voiceId) return String(saved.voiceId)
-  }
   const home = await miniProgram.switchTab('/pages/home/index')
   await home.waitFor(1000)
   const data = await home.data()
@@ -33,13 +29,102 @@ async function main() {
 
     if (stateName === 'home') page = await miniProgram.switchTab('/pages/home/index')
     else if (stateName === 'voices') page = await miniProgram.switchTab('/pages/voices/index')
+    else if (stateName === 'voices-reference') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.switchTab('/pages/voices/index')
+      await page.waitFor(900)
+      await page.setData({
+        state: 'success', errorMessage: '', activeFilter: 'ALL',
+        voices: [
+          {
+            id: 'ui-ready', name: '小雨', displayName: '小雨', status: 'READY', group: 'READY',
+            displayAvatar: '/assets/avatars/child-girl-01.png', avatarSize: 154,
+            statusLabel: '可使用', statusTone: 'ready', primaryAction: '继续对话',
+            isReady: true, isDisabled: false, showProgress: false, progress: 0,
+            progressStage: '', metaLabel: '', metaText: '最近使用 2026-08-21'
+          },
+          {
+            id: 'ui-processing', name: '奶奶', displayName: '奶奶', status: 'PROCESSING', group: 'PROCESSING',
+            displayAvatar: '/assets/avatars/grandma-01.png', avatarSize: 144,
+            statusLabel: '正在创建', statusTone: 'processing', primaryAction: '查看进度',
+            isReady: false, isDisabled: false, showProgress: true, progress: 68,
+            progressStage: '正在创建声音模型…', metaLabel: '', metaText: ''
+          },
+          {
+            id: 'ui-draft', name: '爷爷', displayName: '爷爷', status: 'DRAFT', group: 'DRAFT',
+            displayAvatar: '/assets/avatars/grandpa-01.png', avatarSize: 144,
+            statusLabel: '创建未完成', statusTone: 'draft', primaryAction: '继续创建',
+            isReady: false, isDisabled: false, showProgress: false, progress: 0,
+            progressStage: '', metaLabel: '', metaText: '今天 16:20'
+          }
+        ]
+      })
+    }
+    else if (stateName === 'voices-error') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.switchTab('/pages/voices/index')
+      await page.waitFor(800)
+      await page.setData({
+        state: 'error',
+        errorMessage: 'cloud.callFunction:fail Error: Failed to fetch (system error)',
+        voices: []
+      })
+    }
     else if (stateName === 'account') page = await miniProgram.switchTab('/pages/account/index')
     else if (stateName === 'purchase') page = await miniProgram.reLaunch('/pages/purchase/index?source=account')
+    else if (stateName === 'purchase-controlled') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      await miniProgram.mockWxMethod('reLaunch', {})
+      page = await miniProgram.reLaunch('/pages/purchase/index?source=account')
+      await page.waitFor(500)
+      await miniProgram.restoreWxMethod('reLaunch')
+      await page.setData({
+        state: 'success', errorMessage: '', voiceId: '', purchaseScopeId: 'account',
+        voiceName: '账户积分', voiceInitial: '分', points: { availablePoints: 51 },
+        pointsText: '当前剩余 51 积分', priceText: '¥9.9',
+        purchaseOption: { productCode: 'POINTS_50', points: 50, quota: 50, amountFen: 990, autoRenew: false },
+        requestedProductCode: '', paying: false, pending: false, purchaseMessage: '', orderId: ''
+      })
+    }
     else if (stateName.startsWith('legal-')) page = await miniProgram.reLaunch(`/pages/legal/index?type=${stateName.slice(6)}`)
     else if (stateName === 'select-video') page = await miniProgram.reLaunch('/pages/create/select-video')
-    else if (stateName === 'workbench-chat') page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=chat`)
+    else if (stateName === 'workbench-chat-empty') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=chat`)
+      await page.waitFor(1200)
+      await page.setData({
+        state: 'success', mode: 'chat', showModeChooser: false, voiceName: '小雨', voiceInitial: '小',
+        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 49 积分', sending: false,
+        chatMessages: [], chatText: '', scrollTarget: '', errorMessage: ''
+      })
+    }
+    else if (stateName === 'workbench-chat') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=chat`)
+      await page.waitFor(1200)
+      await page.setData({
+        state: 'success', mode: 'chat', showModeChooser: false, voiceName: '小雨', voiceInitial: '雨',
+        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 0 积分', sending: false,
+        chatMessages: [
+          { id: 'ui-user', isUser: true, isAssistant: false, text: '你最近在学校开心吗？', status: 'READY', mode: 'CHAT', showAudio: false },
+          { id: 'ui-assistant', isUser: false, isAssistant: true, text: '开心呀！今天老师夸我画画得很好，还给了我一颗小星星。', status: 'READY', mode: 'CHAT', showAudio: false, audioUrl: '', durationMs: 0, tag: 'AI回复', initial: '雨', feedbackVerdict: '' }
+        ],
+        scrollTarget: '', errorMessage: ''
+      })
+    }
     else if (stateName === 'workbench-chooser') page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&choose=1`)
-    else if (stateName === 'workbench-exact') page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=exact`)
+    else if (stateName === 'workbench-exact') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.reLaunch(`/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=exact`)
+      await page.waitFor(1200)
+      await page.setData({
+        state: 'success', mode: 'exact', showModeChooser: false, voiceName: '小雨', voiceInitial: '雨',
+        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 0 积分', sending: false,
+        exactText: '祝妈妈生日快乐，永远年轻漂亮！', exactCount: 14,
+        exactResults: [{ id: 'ui-exact', text: '祝妈妈生日快乐，永远年轻漂亮！', status: 'READY', showAudio: false, audioUrl: '', durationMs: 0 }],
+        errorMessage: ''
+      })
+    }
     else if (stateName === 'settings') page = await miniProgram.reLaunch(`/pages/voice/settings?voiceId=${encodeURIComponent(voiceId)}`)
     else if (stateName === 'select-clip') {
       evidenceKind = 'CONTROLLED_TEST_STATE'
@@ -73,13 +158,14 @@ async function main() {
           { label: '生成免费试听', done: false, active: false }
         ]
       })
-    } else if (stateName === 'preview') {
+    } else if (stateName === 'preview' || stateName === 'preview-before-play') {
       evidenceKind = 'CONTROLLED_TEST_STATE'
       page = await miniProgram.reLaunch('/pages/create/preview?voiceId=ui-audit')
       await page.setData({
-        voiceId: 'ui-audit', state: 'success', voiceName: '妈妈', voiceInitial: '妈',
-        audioUrl: '', previewText: '你好呀，这是为你生成的私有 AI 声音试听。', durationMs: 5000,
-        playCompleted: true, accepting: false, retrying: false, trialEligible: true,
+        voiceId: 'ui-audit', state: 'success', voiceName: '小雨', voiceInitial: '雨', avatarUrl: '/assets/avatars/child-girl-01.png',
+        audioUrl: '', previewText: '妈妈，今天过得怎么样？', durationMs: 3000,
+        playCompleted: stateName === 'preview', previewPlaying: false, playbackPrompted: false,
+        accepting: false, retrying: false, trialEligible: true,
         freeRetryRemaining: 1, errorMessage: ''
       })
     } else if (stateName === 'login') {
@@ -95,6 +181,8 @@ async function main() {
     if (!page) throw new Error(`page unavailable for ${stateName}`)
     await page.waitFor(1200)
     const current = await miniProgram.currentPage()
+    const screenshotPath = String(process.env.UI_AUDIT_SCREENSHOT || '').trim()
+    if (screenshotPath) await miniProgram.screenshot({ path: path.resolve(screenshotPath) })
     process.stdout.write(`${JSON.stringify({ stateName, evidenceKind, voiceAvailable: Boolean(voiceId), expectedPath: page.path, actualPath: current?.path || '' })}\n`)
   } finally {
     miniProgram.disconnect()

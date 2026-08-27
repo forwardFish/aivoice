@@ -96,6 +96,11 @@ export const voiceProfiles = pgTable('voice_profiles', {
   relationshipType: voiceRelationshipType('relationship_type'),
   relationshipLabel: text('relationship_label').notNull().default(''),
   userAddress: text('user_address').notNull().default(''),
+  ageYears: integer('age_years'),
+  gender: text('gender'),
+  userLifeStage: text('user_life_stage'),
+  background: text('background').notNull().default(''),
+  relationshipNote: text('relationship_note').notNull().default(''),
   status: voiceStatus('status').notNull().default('DRAFT'),
   clipStartMs: integer('clip_start_ms'),
   clipEndMs: integer('clip_end_ms'),
@@ -117,6 +122,11 @@ export const voiceProfiles = pgTable('voice_profiles', {
   check('voice_profiles_preview_retry_count_valid', sql`${table.previewRetryCount} >= 0 AND ${table.previewRetryCount} <= 1`),
   check('voice_profiles_relationship_label_length', sql`char_length(${table.relationshipLabel}) <= 10`),
   check('voice_profiles_user_address_length', sql`char_length(${table.userAddress}) <= 10`),
+  check('voice_profiles_age_years_valid', sql`${table.ageYears} IS NULL OR (${table.ageYears} >= 0 AND ${table.ageYears} <= 120)`),
+  check('voice_profiles_gender_valid', sql`${table.gender} IS NULL OR ${table.gender} IN ('FEMALE','MALE')`),
+  check('voice_profiles_user_life_stage_valid', sql`${table.userLifeStage} IS NULL OR ${table.userLifeStage} IN ('CHILD','TEEN','ADULT','OLDER_ADULT')`),
+  check('voice_profiles_background_length', sql`char_length(${table.background}) <= 300`),
+  check('voice_profiles_relationship_note_length', sql`char_length(${table.relationshipNote}) <= 300`),
 ]);
 
 export const mediaAssets = pgTable('media_assets', {

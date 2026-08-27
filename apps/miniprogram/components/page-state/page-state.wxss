@@ -51,18 +51,15 @@
   gap: 5rpx;
 }
 
-.loading-wave text,
-.empty-wave text {
+.state-wave-bar {
   width: 6rpx;
   border-radius: 999rpx;
   background: #6552f5;
 }
 
-.loading-wave text:nth-child(1), .empty-wave text:nth-child(1) { height: 22rpx; }
-.loading-wave text:nth-child(2), .empty-wave text:nth-child(2) { height: 36rpx; }
-.loading-wave text:nth-child(3), .empty-wave text:nth-child(3) { height: 52rpx; }
-.loading-wave text:nth-child(4), .empty-wave text:nth-child(4) { height: 36rpx; }
-.loading-wave text:nth-child(5), .empty-wave text:nth-child(5) { height: 22rpx; }
+.state-wave-low { height: 22rpx; }
+.state-wave-mid { height: 36rpx; }
+.state-wave-high { height: 52rpx; }
 
 .error-visual {
   color: #ffffff;
@@ -90,18 +87,9 @@
 }
 
 .state-action {
-  min-width: 240rpx;
-  height: 84rpx;
+  width: 300rpx;
   margin-top: 34rpx;
-  padding: 0 38rpx;
-  border-radius: 24rpx;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--action-primary-start, #6552f5), var(--action-primary-end, #8d68f6));
-  font-size: 28rpx;
-  font-weight: 600;
 }
-
-.state-action::after { border: none; }
 
 @keyframes state-spin {
   from { transform: rotate(0deg); }

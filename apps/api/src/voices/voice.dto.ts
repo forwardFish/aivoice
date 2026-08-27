@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateVoiceDto {
   @IsString()
@@ -37,6 +37,30 @@ export class UpdateVoiceProfileDto {
   @IsString()
   @MaxLength(10)
   userAddress = '';
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(120)
+  ageYears?: number;
+
+  @IsOptional()
+  @IsIn(['FEMALE', 'MALE'])
+  gender?: 'FEMALE' | 'MALE';
+
+  @IsOptional()
+  @IsIn(['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'])
+  userLifeStage?: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  background = '';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  relationshipNote = '';
 }
 
 export class ConfirmConsentDto {

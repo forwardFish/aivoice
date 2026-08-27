@@ -16,11 +16,11 @@ test('relationship context keeps current user input last and filters exact speec
   });
 
   assert.equal(result.messages[0]?.role, 'system');
-  assert.match(result.messages[0]?.content || '', /母亲与自己的孩子交流/);
-  assert.match(result.messages[0]?.content || '', /不得自称妈妈/);
-  assert.match(result.messages[0]?.content || '', /普通对话中不得主动出现“我是AI”/);
-  assert.match(result.messages[0]?.content || '', /TA对用户的称呼：小林/);
-  assert.match(result.messages[0]?.content || '', /当前连续会话首次回复/);
+  assert.match(result.messages[0]?.content || '', /人物是用户的母亲/);
+  assert.match(result.messages[0]?.content || '', /任何回复都禁止出现“AI”/);
+  assert.match(result.messages[0]?.content || '', /用户询问身份时/);
+  assert.match(result.messages[0]?.content || '', /对用户称呼：小林/);
+  assert.match(result.messages[0]?.content || '', /连续会话首次回复/);
   assert.deepEqual(result.includedMessageIds, ['chat-1']);
   assert.deepEqual(result.messages.slice(1), [
     { role: 'user', content: '今天被批评了。' },
@@ -28,6 +28,28 @@ test('relationship context keeps current user input last and filters exact speec
     { role: 'user', content: '后来他向我道歉了。' },
   ]);
   assert.match(result.contextHash, /^[a-f0-9]{64}$/);
+});
+
+test('parent voice distinguishes an adult child and includes only confirmed relationship facts', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '桂兰',
+    ageYears: 70,
+    gender: 'FEMALE',
+    relationshipType: 'MOTHER',
+    relationshipLabel: '',
+    userAddress: '小林',
+    userLifeStage: 'ADULT',
+    background: '退休前是中学老师，现在参加社区合唱活动。',
+    relationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
+    history: [],
+    currentInput: '最近过得怎么样？',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /人物是用户的母亲/);
+  assert.match(system, /用户人生阶段：成年阶段/);
+  assert.match(system, /退休前是中学老师/);
+  assert.match(system, /和成年女儿每周通话/);
+  assert.doesNotMatch(system, /使用孩子容易理解/);
 });
 
 test('old voices without a relationship retain the generic assistant prompt', () => {
@@ -55,8 +77,8 @@ test('configured address is suppressed after it has already appeared in chat his
     ],
     currentInput: '我和朋友吵架了。',
   });
-  assert.match(result.messages[0]?.content || '', /历史assistant回复已经使用过称呼/);
-  assert.match(result.messages[0]?.content || '', /本轮不得再次使用/);
+  assert.match(result.messages[0]?.content || '', /历史回复已经使用过称呼/);
+  assert.match(result.messages[0]?.content || '', /本轮不要机械重复/);
 });
 
 test('custom relationship is data and does not replace system boundaries', () => {
@@ -69,7 +91,29 @@ test('custom relationship is data and does not replace system boundaries', () =>
     currentInput: '今天有点烦。',
   });
   const system = result.messages[0]?.content || '';
-  assert.match(system, /TA与用户的关系：表姐/);
-  assert.match(system, /只是服务端确认的资料/);
-  assert.match(system, /不代表你是真实人物/);
+  assert.match(system, /与用户关系：表姐/);
+  assert.match(system, /服务端确认的人物身份/);
+  assert.match(system, /根据已确认关系调整交流距离/);
+  assert.doesNotMatch(system, /年龄阶段|年龄身份/);
+});
+
+test('child relationship uses structured age and gender instead of parsing the voice name', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '小雨',
+    ageYears: 12,
+    gender: 'FEMALE',
+    relationshipType: 'CHILD',
+    relationshipLabel: '',
+    userAddress: '妈妈',
+    history: [],
+    currentInput: '今天在学校开心吗？',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /准确年龄：12岁/);
+  assert.match(system, /性别身份：青少年女孩/);
+  assert.match(system, /年龄阶段：青春期早期/);
+  assert.match(system, /正经历童年向青春期的连续过渡/);
+  assert.match(system, /不预设抵触、沉默或过度懂事/);
+  assert.match(system, /不使用成年人式总结、说教和疗愈表达/);
+  assert.doesNotMatch(system, /本轮说话动作|SHORT|HESITANT|SOFT_RESISTANCE/);
 });

@@ -20,8 +20,12 @@ test('button families share color tokens without forcing page-specific geometry'
   assert.match(appStyle, /\.secondary-button\s*\{[^}]*var\(--action-secondary-text\)[^}]*var\(--action-secondary-bg\)/s)
   assert.match(componentStyle, /\.is-primary[^}]*var\(--action-primary-start/)
   assert.match(loginStyle, /\.wechat-login-button[^}]*width:590rpx[^}]*height:120rpx[^}]*var\(--action-primary-start\)/s)
-  assert.match(progressStyle, /\.leave-button[^}]*width:300rpx[^}]*height:62rpx[^}]*var\(--action-primary-start\)/s)
-  assert.match(workbenchStyle, /\.send-button\s*\{[^}]*min-width:\s*112rpx[^}]*min-height:\s*74rpx/s)
+  assert.match(progressStyle, /\.leave-button[^}]*width:\s*100%[^}]*min-height:\s*96rpx[^}]*var\(--action-primary-start\)/s)
+  const sendButtonBlock = workbenchStyle.match(/\.send-button\s*\{([^}]*)\}/s)?.[1] || ''
+  const sendButtonMinWidth = Number(sendButtonBlock.match(/min-width:\s*(\d+)rpx/)?.[1] || 0)
+  const sendButtonMinHeight = Number(sendButtonBlock.match(/min-height:\s*(\d+)rpx/)?.[1] || 0)
+  assert.ok(sendButtonMinWidth >= 128, 'send button keeps a usable minimum width')
+  assert.ok(sendButtonMinHeight >= 80, 'send button keeps a usable minimum touch height')
   assert.match(dialogStyle, /\.buy-button\s*\{[^}]*min-height:\s*94rpx[^}]*var\(--action-primary-start/s)
 })
 

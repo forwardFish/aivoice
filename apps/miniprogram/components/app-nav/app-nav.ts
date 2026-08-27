@@ -1,6 +1,7 @@
 Component({
   properties: {
     title: { type: String, value: '' },
+    subtitle: { type: String, value: '' },
     back: { type: Boolean, value: false },
     rightText: { type: String, value: '' },
     transparent: { type: Boolean, value: false },
@@ -15,7 +16,10 @@ Component({
   lifetimes: {
     attached() {
       try {
-        const system = wx.getSystemInfoSync()
+        const getWindowInfo = (wx as any).getWindowInfo
+        const system = typeof getWindowInfo === 'function'
+          ? getWindowInfo.call(wx)
+          : { statusBarHeight: 24, windowWidth: 375 }
         const menu = wx.getMenuButtonBoundingClientRect()
         const statusBarHeight = Number(system.statusBarHeight || 24)
         const navHeight = Math.max(44, (menu.top - statusBarHeight) * 2 + menu.height)

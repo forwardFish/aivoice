@@ -1,5 +1,120 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import test from 'node:test'
+import path from 'node:path'
+
+test('pending chat keeps the user message out of the assistant bubble', () => {
+  const view = fs.readFileSync(path.resolve(process.cwd(), 'apps/miniprogram/pages/voice/workbench.wxml'), 'utf8')
+  assert.match(view, /class="message-row user-row pending-user-row"[\s\S]*\{\{pendingText\}\}/)
+  assert.match(view, /class="message-row assistant-row pending-row"[\s\S]*\{\{generationStatusText\}\}/)
+  assert.doesNotMatch(view, /pending-user-copy|你：\{\{pendingText\}\}/)
+})
+
+test('app nav supports stacked voice title plus subtitle without reintroducing bold settings chrome', () => {
+  const markup = fs.readFileSync(new URL('../components/app-nav/app-nav.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../components/app-nav/app-nav.wxss', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../components/app-nav/app-nav.ts', import.meta.url), 'utf8')
+
+  assert.match(source, /subtitle:\s*\{\s*type:\s*String,\s*value:\s*''\s*\}/)
+  assert.match(markup, /class="nav-center \{\{subtitle \? 'nav-center-with-subtitle' : ''\}\}"/)
+  assert.match(markup, /<text wx:if="\{\{subtitle\}\}" class="nav-subtitle">\{\{subtitle\}\}<\/text>/)
+  assert.match(style, /\.nav-center-with-subtitle\s*\{[^}]*max-width:\s*calc\(100% - 72rpx\)[^}]*transform:\s*translateX\(-48rpx\)/s)
+  assert.match(style, /\.nav-subtitle\s*\{[^}]*font-size:\s*20rpx[^}]*color:\s*#7b8197/s)
+  assert.match(style, /\.nav-right\s*\{[^}]*font-weight:\s*400[^}]*background:\s*transparent/s)
+})
+
+test('workbench moves voice name and points into app nav only after success', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+
+  assert.match(markup, /title="\{\{state === 'success' \? voiceName : ''\}\}"/)
+  assert.match(markup, /subtitle="\{\{state === 'success' \? pointsText : ''\}\}"/)
+  assert.match(markup, /rightText="\{\{state === 'success' \? '声音设置' : ''\}\}"/)
+  assert.match(markup, /bindrighttap="openSettings"/)
+  assert.doesNotMatch(markup, /workbench-hero|hero-title|hero-quota/)
+  assert.doesNotMatch(markup, /生成音频会明确显示“AI生成”标识/)
+  assert.match(markup, /tag="AI生成"/)
+  assert.match(style, /\.segment-control\s*\{[^}]*width:\s*540rpx[^}]*max-width:\s*calc\(100% - 104rpx\)[^}]*margin:\s*16rpx auto 0[^}]*padding:\s*7rpx[^}]*border-radius:\s*23rpx/s)
+  assert.match(style, /\.segment-item\s*\{[^}]*height:\s*78rpx[^}]*border-radius:\s*18rpx[^}]*font-size:\s*29rpx[^}]*text-align:\s*center/s)
+  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-control\s*\{[^}]*margin-top:\s*8rpx/s)
+  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-item\s*\{[^}]*height:\s*74rpx[^}]*font-size:\s*28rpx/s)
+  assert.match(source, /openSettings\(\)\s*\{[\s\S]*\/pages\/voice\/settings\?voiceId=/)
+})
+
+test('chat workbench matches the approved bilateral conversation structure', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+  const playerMarkup = fs.readFileSync(new URL('../components/audio-player/audio-player.wxml', import.meta.url), 'utf8')
+
+  assert.match(markup, /class="message-avatar assistant-message-avatar">\{\{voiceInitial\}\}/)
+  assert.match(markup, /class="message-avatar user-message-avatar" src="\{\{userAvatar\}\}"/)
+  assert.match(markup, /item\.isUser && item\.timeText/)
+  assert.match(markup, /bubble="\{\{true\}\}"[^>]*durationOnly="\{\{true\}\}"/)
+  assert.doesNotMatch(markup, /class="workbench-content fade-in"/)
+  assert.doesNotMatch(markup, /class="text-button change-mode"/)
+  assert.doesNotMatch(markup, /class="reply-feedback"/)
+  assert.match(style, /\.user-bubble\s*\{[^}]*color:\s*#ffffff[^}]*linear-gradient\(135deg,\s*#7264f9/s)
+  assert.match(style, /\.message-time\s*\{/)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*height:\s*calc\(100vh - 694rpx/s)
+  assert.match(style, /\.send-button\s*\{[^}]*width:\s*200rpx\s*!important[^}]*min-width:\s*200rpx[^}]*min-height:\s*80rpx/s)
+  assert.match(source, /timeText:\s*messageTimeLabel\(message\.createdAt\)/)
+  assert.match(source, /resolveProfileAvatarSource\(source\)/)
+  assert.match(playerMarkup, /durationOnly \? durationLabel : currentText/)
+})
+
+test('chat composer keeps the native single-line input stable while typing', async () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => '',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined,
+    showToast: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=stable-composer')
+  assert.ok(pageDefinition)
+  assert.match(markup, /<input[\s\S]*class="composer-input"/)
+  assert.match(markup, /adjust-position="\{\{false\}\}"/)
+  assert.match(markup, /hold-keyboard="\{\{true\}\}"/)
+  assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
+  assert.match(markup, /bindfocus="onChatFocus"/)
+  assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
+  assert.match(style, /\.composer-input\s*\{[^}]*height:\s*72rpx[^}]*overflow:\s*hidden/s)
+
+  let renderCount = 0
+  const instance: any = {
+    ...pageDefinition,
+    data: { ...structuredClone(pageDefinition.data), errorMessage: '' },
+    setData(patch: Record<string, unknown>) {
+      renderCount += 1
+      Object.assign(this.data, patch)
+    }
+  }
+  instance.onChatFocus()
+  assert.equal(instance.data.chatInputFocused, true)
+  assert.equal(renderCount, 1)
+  instance.onChatInput({ detail: { value: '今天不开心' } })
+  assert.equal(instance.chatDraftText, '今天不开心')
+  assert.equal(renderCount, 1)
+  instance.onChatBlur()
+  assert.equal(instance.data.chatInputFocused, false)
+  assert.equal(instance.data.chatText, '今天不开心')
+  assert.equal(renderCount, 2)
+})
+
+test('non-ready exact results never present themselves as generated audio', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  assert.match(markup, /item\.status === 'BLOCKED' \? '内容未通过审核，未扣积分'/)
+  assert.match(markup, /item\.status === 'PROCESSING' \? '正在生成'/)
+  assert.doesNotMatch(markup, /item\.status === 'FAILED' \? '生成失败，未扣积分' : 'AI生成'/)
+})
 
 test('zero points shows the purchase option only after an active generation and preserves the draft', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])

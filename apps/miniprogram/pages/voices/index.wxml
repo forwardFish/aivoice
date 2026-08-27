@@ -26,38 +26,41 @@
       bindtap="openPrimary"
     >
       <view class="card-top">
-        <app-avatar size="{{item.isReady ? 154 : 144}}" src="{{item.displayAvatar}}" custom-class="voice-avatar"></app-avatar>
+        <app-avatar size="{{item.avatarSize}}" src="{{item.displayAvatar}}" custom-class="voice-avatar"></app-avatar>
 
         <view class="voice-copy">
-          <text class="voice-name">{{item.name}}</text>
+          <text class="voice-name">{{item.displayName}}</text>
           <text class="status-pill {{item.statusTone}}">{{item.statusLabel}}</text>
           <text class="voice-meta">{{item.metaText}}</text>
         </view>
 
         <button wx:if="{{item.status === 'READY'}}" class="settings-button" data-id="{{item.id}}" catchtap="openSettings" aria-label="声音设置">
-          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
+          <image class="settings-button-icon" src="/assets/ui/more-circle.png" mode="aspectFit"></image>
         </button>
         <button wx:else class="settings-button" data-id="{{item.id}}" data-status="{{item.status}}" catchtap="openPrimary" aria-label="查看声音状态">
-          <image src="/assets/ui/icon-more-glass.png" mode="aspectFit"></image>
+          <image class="settings-button-icon" src="/assets/ui/more-circle.png" mode="aspectFit"></image>
         </button>
       </view>
 
-      <view wx:if="{{item.showProgress}}" class="progress-wrap">
-        <view class="progress-track"><view class="progress-value" style="width: {{item.progress}}%;"></view></view>
-        <text>{{item.progress}}%</text>
+      <view wx:if="{{item.showProgress}}" class="progress-section">
+        <text wx:if="{{item.progressStage}}" class="progress-stage">{{item.progressStage}}</text>
+        <view class="progress-wrap">
+          <view class="progress-track"><view class="progress-value" style="width: {{item.progress}}%;"></view></view>
+          <text class="progress-percent">{{item.progress}}%</text>
+        </view>
       </view>
 
       <view wx:if="{{item.isReady}}" class="ready-actions">
-        <app-button variant="primary" size="medium" label="继续对话" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="conversation-action">
+        <app-button class="ready-action-host" style="width:100%;min-width:0;display:block;" variant="primary" size="large" label="继续对话" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="conversation-action">
           <image slot="icon" class="action-icon" src="/assets/ui/chat-mode.png" mode="aspectFit"></image>
         </app-button>
-        <app-button variant="secondary" size="medium" label="说一句" data-id="{{item.id}}" bindaction="openExact" custom-class="exact-action">
+        <app-button class="ready-action-host" style="width:100%;min-width:0;display:block;" variant="secondary" size="large" label="说一句" data-id="{{item.id}}" bindaction="openExact" custom-class="exact-action">
           <image slot="icon" class="action-icon" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
         </app-button>
       </view>
 
       <view wx:elif="{{item.group === 'DRAFT' || item.group === 'FAILED'}}" class="resume-action-wrap">
-        <app-button variant="secondary" size="medium" label="{{item.primaryAction}}" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="resume-action"></app-button>
+        <app-button class="resume-action-host" style="width:100%;min-width:0;display:block;" variant="secondary" size="large" label="{{item.primaryAction}}" data-id="{{item.id}}" data-status="{{item.status}}" bindaction="openPrimary" custom-class="resume-action"></app-button>
       </view>
     </view>
   </view>

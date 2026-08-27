@@ -9,9 +9,14 @@ import {
 import { OrderDetail, PointsLedgerItem, UserProfile } from '../../models/api'
 import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
-import { clearLocalProjectData, setUser } from '../../utils/storage'
+import { clearLocalProjectData, getUser, setUser } from '../../utils/storage'
 import { syncTabBarSelection } from '../../utils/tab-bar'
 import { confirm, toast } from '../../utils/ui'
+import {
+  chooseFallbackAvatar,
+  persistProfileAvatar,
+  resolveProfileAvatarSource
+} from '../../utils/avatar-picker'
 
 function orderStatusLabel(status: string): string {
   const map: Record<string, string> = {
@@ -61,6 +66,7 @@ Page({
     state: 'loading',
     errorMessage: '',
     user: null as UserProfile | null,
+    avatarDisplayUrl: '',
     userInitial: '我',
     voiceCount: 0,
     availablePoints: 0,
@@ -68,6 +74,7 @@ Page({
     ledgers: [] as any[],
     orderExpanded: false,
     ledgerExpanded: false,
+    updatingAvatar: false,
     updatingProfile: false,
     deletingAccount: false
   },
@@ -96,16 +103,26 @@ Page({
         .slice()
         .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
         .map(ledgerView)
+      const localUser = getUser()
+      const localAvatarUrl = String(localUser?.avatarUrl || '')
+      const serverAvatarUrl = String(me.user.avatarUrl || '')
+      const avatarSource = serverAvatarUrl || localAvatarUrl
+      const avatarDisplayUrl = await this.resolveAvatarDisplayUrl(avatarSource)
+      const user = serverAvatarUrl || !localAvatarUrl
+        ? me.user
+        : { ...me.user, avatarUrl: localAvatarUrl }
       this.setData({
         state: 'success',
-        user: me.user,
+        user,
+        avatarDisplayUrl,
         userInitial: voiceInitial(me.user.nickname || '我'),
         voiceCount: me.voiceCount == null ? 0 : me.voiceCount,
         availablePoints: points.availablePoints,
         orders,
         ledgers
       })
-      setUser(me.user)
+      setUser(user)
+      if (!serverAvatarUrl && localAvatarUrl) void this.syncProfileAvatar(localAvatarUrl)
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '账户信息加载失败，请重试。' })
     } finally {
@@ -115,8 +132,70 @@ Page({
   retryLoad() {
     this.loadAccount()
   },
+  async resolveAvatarDisplayUrl(source: string) {
+    if (!source) return ''
+    try {
+      return await resolveProfileAvatarSource(source)
+    } catch (_error) {
+      return /^cloud:\/\//i.test(source) ? '' : source
+    }
+  },
+  async syncProfileAvatar(source: string) {
+    if (!source || this.avatarSyncing) return
+    this.avatarSyncing = true
+    try {
+      const avatarUrl = await persistProfileAvatar(source)
+      const user = await updateMeProfile({ avatarUrl })
+      const avatarDisplayUrl = await this.resolveAvatarDisplayUrl(avatarUrl)
+      setUser(user)
+      this.setData({ user, avatarDisplayUrl })
+    } catch (_error) {
+      // Keep showing the local avatar and retry on the next account-page load.
+    } finally {
+      this.avatarSyncing = false
+    }
+  },
+  onAvatarLoadError() {
+    this.setData({ avatarDisplayUrl: '' })
+  },
+  editProfile() {
+    if (this.data.updatingAvatar || this.data.updatingProfile) return
+    wx.showActionSheet({
+      itemList: ['更换头像', '修改昵称'],
+      success: (result: { tapIndex: number }) => {
+        if (Number(result.tapIndex) === 0) void this.editAvatar()
+        if (Number(result.tapIndex) === 1) void this.editNickname()
+      }
+    })
+  },
+  async editAvatar() {
+    if (this.data.updatingAvatar) return
+    try {
+      const localAvatarUrl = await chooseFallbackAvatar()
+      const optimisticUser = this.data.user
+        ? { ...this.data.user, avatarUrl: localAvatarUrl }
+        : null
+      if (optimisticUser) setUser(optimisticUser)
+      this.setData({
+        user: optimisticUser || this.data.user,
+        avatarDisplayUrl: localAvatarUrl,
+        updatingAvatar: true
+      })
+      const avatarUrl = await persistProfileAvatar(localAvatarUrl)
+      const user = await updateMeProfile({ avatarUrl })
+      const avatarDisplayUrl = await this.resolveAvatarDisplayUrl(avatarUrl)
+      setUser(user)
+      this.setData({ user, avatarDisplayUrl, updatingAvatar: false })
+      toast('头像已更新', 'success')
+    } catch (error: any) {
+      this.setData({ updatingAvatar: false })
+      const message = String(error?.message || '')
+      if (/cancel/i.test(message)) return
+      toast(message || '头像更新失败，请重试。')
+    }
+  },
   async editNickname() {
-    if (this.data.updatingProfile) return
+    if (this.data.updatingProfile || this.data.updatingAvatar) return
     const current = this.data.user && this.data.user.nickname || ''
     const result = await new Promise<any>(resolve => {
       wx.showModal({

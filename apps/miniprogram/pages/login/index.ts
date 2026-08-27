@@ -6,7 +6,11 @@ import {
   setToken,
   setUser
 } from '../../utils/storage'
-import { chooseFallbackAvatar } from '../../utils/avatar-picker'
+import {
+  chooseFallbackAvatar,
+  isPersistentAvatarSource,
+  persistProfileAvatar
+} from '../../utils/avatar-picker'
 
 Page({
   data: {
@@ -80,9 +84,16 @@ Page({
         wx.login({ success: resolve, fail: reject })
       })
       if (!loginResult.code && !LOCAL_DEV_MODE) throw new Error('未获取到微信登录凭证。')
-      const persistentAvatarUrl = /^https:\/\//i.test(String(this.data.avatarUrl || ''))
+      let persistentAvatarUrl = isPersistentAvatarSource(this.data.avatarUrl)
         ? this.data.avatarUrl
         : undefined
+      if (!persistentAvatarUrl) {
+        try {
+          persistentAvatarUrl = await persistProfileAvatar(this.data.avatarUrl)
+        } catch (_error) {
+          // Keep the selected local avatar for this device. The account page retries cloud sync after login.
+        }
+      }
       const response = await loginWechat({
         code: LOCAL_DEV_MODE ? LOCAL_DEV_LOGIN_CODE : loginResult.code,
         profile: { nickname, avatarUrl: persistentAvatarUrl }
@@ -92,7 +103,7 @@ Page({
       setUser({
         ...response.user,
         nickname: response.user.nickname || nickname,
-        avatarUrl: response.user.avatarUrl || this.data.avatarUrl
+        avatarUrl: response.user.avatarUrl || persistentAvatarUrl || this.data.avatarUrl
       })
       this.setData({ loading: false, showProfileSheet: false, success: true })
       const destination = consumePostLoginRoute() || '/pages/home/index'

@@ -18,6 +18,7 @@ Page({
     voiceId: '',
     tempFilePath: '',
     durationSec: 0,
+    durationText: '00:00',
     currentSec: 0,
     currentText: '00:00',
     startSec: 0,
@@ -33,6 +34,12 @@ Page({
     saving: false,
     previewing: false,
     showAdvanced: false,
+    draggingMarker: '',
+    waveLeft: 0,
+    waveWidth: 0,
+    dragAnchorX: 0,
+    dragRangeStart: 0,
+    dragRangeEnd: 0,
     errorMessage: ''
   },
   onLoad(options: Record<string, string>) {
@@ -56,6 +63,7 @@ Page({
       voiceId,
       tempFilePath: session.tempFilePath,
       durationSec,
+      durationText: formatDurationSeconds(durationSec),
       startSec,
       endSec
     })
@@ -91,6 +99,98 @@ Page({
     const value = Number(event.detail.value || this.data.durationSec)
     const minEnd = this.data.startSec + MIN_CLIP_SECONDS
     this.updateRange(this.data.startSec, Math.max(value, minEnd))
+  },
+  onMarkerTouchStart(event: any) {
+    const marker = String(event.currentTarget.dataset.marker || '')
+    if (marker !== 'start' && marker !== 'end' && marker !== 'range') return
+    const touch = event.touches && event.touches[0]
+    const clientX = Number(touch && (touch.clientX ?? touch.pageX))
+    this.setData({
+      draggingMarker: marker,
+      dragAnchorX: clientX,
+      dragRangeStart: this.data.startSec,
+      dragRangeEnd: this.data.endSec
+    })
+    this.createSelectorQuery()
+      .select('.wave-shell')
+      .boundingClientRect((rect: any) => {
+        if (!rect || !Number(rect.width)) return
+        this.setData({ waveLeft: Number(rect.left || 0), waveWidth: Number(rect.width) })
+        if (marker !== 'range' && Number.isFinite(clientX)) this.updateMarkerFromClientX(marker, clientX)
+      })
+      .exec()
+  },
+  onWaveShellTouchStart(event: any) {
+    const touch = event.touches && event.touches[0]
+    const clientX = Number(touch && (touch.clientX ?? touch.pageX))
+    this.createSelectorQuery()
+      .select('.wave-shell')
+      .boundingClientRect((rect: any) => {
+        if (!rect || !Number(rect.width)) return
+        const waveLeft = Number(rect.left || 0)
+        const waveWidth = Number(rect.width)
+        const startX = waveLeft + waveWidth * (Number(this.data.startPercent || 0) / 100)
+        const endX = waveLeft + waveWidth * (Number(this.data.endPercent || 0) / 100)
+        const marker = this.resolveWaveTouchMarker(clientX, startX, endX)
+        if (!marker) return
+        this.setData({
+          waveLeft,
+          waveWidth,
+          draggingMarker: marker,
+          dragAnchorX: clientX,
+          dragRangeStart: this.data.startSec,
+          dragRangeEnd: this.data.endSec
+        })
+        if (marker !== 'range') this.updateMarkerFromClientX(marker, clientX)
+      })
+      .exec()
+  },
+  onMarkerTouchMove(event: any) {
+    const marker = String(this.data.draggingMarker || '')
+    const touch = event.touches && event.touches[0]
+    const clientX = Number(touch && (touch.clientX ?? touch.pageX))
+    if (marker === 'range' && Number.isFinite(clientX)) {
+      const durationSec = Number(this.data.durationSec || 0)
+      const waveWidth = Number(this.data.waveWidth || 0)
+      if (!durationSec || !waveWidth) return
+      const rawDelta = Math.round((clientX - Number(this.data.dragAnchorX || 0)) / waveWidth * durationSec)
+      const minDelta = -Number(this.data.dragRangeStart || 0)
+      const maxDelta = durationSec - Number(this.data.dragRangeEnd || 0)
+      const delta = Math.max(minDelta, Math.min(maxDelta, rawDelta))
+      this.updateRange(this.data.dragRangeStart + delta, this.data.dragRangeEnd + delta)
+      return
+    }
+    if ((marker === 'start' || marker === 'end') && Number.isFinite(clientX)) {
+      this.updateMarkerFromClientX(marker, clientX)
+    }
+  },
+  onMarkerTouchEnd() {
+    this.setData({ draggingMarker: '' })
+  },
+  resolveWaveTouchMarker(clientX: number, startX: number, endX: number): 'start' | 'end' | 'range' | '' {
+    if (!Number.isFinite(clientX)) return ''
+    const handleSlop = 32
+    if (Math.abs(clientX - startX) <= handleSlop) return 'start'
+    if (Math.abs(clientX - endX) <= handleSlop) return 'end'
+    if (clientX > startX && clientX < endX) return 'range'
+    return clientX <= startX ? 'start' : 'end'
+  },
+  updateMarkerFromClientX(marker: string, clientX: number) {
+    const durationSec = Number(this.data.durationSec || 0)
+    const waveWidth = Number(this.data.waveWidth || 0)
+    if (!durationSec || !waveWidth) return
+    const waveLeft = Number(this.data.waveLeft || 0)
+    const percent = Math.max(0, Math.min(1, (clientX - waveLeft) / waveWidth))
+    const nextSec = Math.round(percent * durationSec)
+    if (marker === 'start') {
+      const minStart = Math.max(0, this.data.endSec - MAX_CLIP_SECONDS)
+      const maxStart = Math.max(minStart, this.data.endSec - MIN_CLIP_SECONDS)
+      this.updateRange(Math.max(minStart, Math.min(maxStart, nextSec)), this.data.endSec)
+      return
+    }
+    const minEnd = Math.min(durationSec, this.data.startSec + MIN_CLIP_SECONDS)
+    const maxEnd = Math.min(durationSec, this.data.startSec + MAX_CLIP_SECONDS)
+    this.updateRange(this.data.startSec, Math.max(minEnd, Math.min(maxEnd, nextSec)))
   },
   updateRange(startSec: number, endSec: number) {
     const normalizedDuration = Math.max(0, Number(this.data.durationSec || 0))

@@ -13,8 +13,8 @@
 
   <view wx:else class="account-content fade-in">
     <view class="account-hero">
-      <image wx:if="{{user.avatarUrl}}" class="profile-avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="profile-avatar fallback"><image src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
+      <image wx:if="{{avatarDisplayUrl}}" class="profile-avatar" src="{{avatarDisplayUrl}}" mode="aspectFill" binderror="onAvatarLoadError" bindtap="editAvatar" aria-label="更换头像"></image>
+      <view wx:else class="profile-avatar fallback" bindtap="editAvatar" role="button" aria-label="更换头像"><image src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
 
       <view class="profile-copy">
         <text class="profile-name">{{user.nickname || '微信用户'}}</text>
@@ -22,9 +22,9 @@
           <image src="/assets/ui/wechat-mark.png" mode="aspectFit"></image>
           <text>微信账号资料</text>
         </view>
-        <button class="secondary-button edit-profile-button" bindtap="editNickname" disabled="{{updatingProfile}}">
+        <button class="secondary-button edit-profile-button" bindtap="editProfile" disabled="{{updatingProfile || updatingAvatar}}">
           <image src="/assets/ui/account-edit.webp" mode="aspectFit"></image>
-          <text>{{updatingProfile ? '保存中…' : '编辑资料'}}</text>
+          <text>{{updatingAvatar ? '头像同步中…' : updatingProfile ? '保存中…' : '编辑资料'}}</text>
         </button>
       </view>
 

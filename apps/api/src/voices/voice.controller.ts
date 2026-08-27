@@ -57,6 +57,11 @@ export class VoiceController {
       relationshipType: body.relationshipType,
       relationshipLabel: body.relationshipLabel,
       userAddress: body.userAddress,
+      ageYears: body.ageYears,
+      gender: body.gender,
+      userLifeStage: body.userLifeStage,
+      background: body.background,
+      relationshipNote: body.relationshipNote,
     });
   }
 

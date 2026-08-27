@@ -134,6 +134,28 @@ function bodyRecord(value: unknown): Record<string, any> {
   return value && typeof value === 'object' ? value as Record<string, any> : {}
 }
 
+function transportErrorText(error: any): string {
+  const raw = String(error?.errMsg || error?.message || '').trim()
+  if (/failed to fetch|network|request:fail|timeout|timed out|abort/i.test(raw)) {
+    return '网络连接失败，请检查网络后重试。'
+  }
+  return raw || '网络连接失败，请检查网络后重试。'
+}
+
+function isCloudTransportFailure(error: any): boolean {
+  const raw = String(error?.errMsg || error?.message || '')
+  return /failed to fetch|network|request:fail|timeout|timed out|abort/i.test(raw)
+}
+
+function isDevToolsRuntime(): boolean {
+  try {
+    return typeof (wx as any).getDeviceInfo === 'function'
+      && String((wx as any).getDeviceInfo()?.platform || '').toLowerCase() === 'devtools'
+  } catch (_error) {
+    return false
+  }
+}
+
 function unauthorizedRedirect(): void {
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
@@ -187,7 +209,7 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
         }))
       },
       fail(error: any) {
-        reject(new ApiError(error.errMsg || error.message || '网络连接失败，请检查网络后重试。', {
+        reject(new ApiError(transportErrorText(error), {
           statusCode: 0,
           code: 'NETWORK_ERROR',
           data: bodyRecord(error)
@@ -196,6 +218,11 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
     }
     if (PURE_CLOUD_MODE) {
       const normalized = options.path.startsWith('/') ? options.path : `/${options.path}`
+      const method = String(requestOptions.method || 'GET').toUpperCase()
+      if (method === 'GET' && isDevToolsRuntime() && typeof wx.request === 'function') {
+        wx.request({ ...requestOptions, url: apiUrl(options.path) })
+        return
+      }
       const targetEnv = CLOUDBASE_API_TRANSPORT === 'container' ? CLOUDBASE_RUN_ENV_ID : CLOUDBASE_ENV_ID
       void getCloudClient(targetEnv).then((binding) => {
         const cloud = binding.client
@@ -235,7 +262,13 @@ export function requestRaw<T = any>(options: RequestOptions): Promise<T> {
           success(result: any) {
             requestOptions.success(result.result || {})
           },
-          fail: requestOptions.fail,
+          fail(error: any) {
+            if (method === 'GET' && isCloudTransportFailure(error) && typeof wx.request === 'function') {
+              wx.request({ ...requestOptions, url: apiUrl(options.path) })
+              return
+            }
+            requestOptions.fail(error)
+          },
         })
       }).catch((error: any) => {
         reject(new ApiError(error?.message || '共享云环境初始化失败，请稍后重试。', {
@@ -540,6 +573,11 @@ export async function saveVoiceProfile(voiceId: string, input: {
   relationshipType?: import('../models/api').RelationshipType
   relationshipLabel?: string
   userAddress?: string
+  ageYears?: number
+  gender?: import('../models/api').VoiceGender
+  userLifeStage?: import('../models/api').UserLifeStage
+  background?: string
+  relationshipNote?: string
 }): Promise<VoiceDetail> {
   const raw = await requestRaw<any>({
     path: `/voices/${encodeURIComponent(voiceId)}/profile`,

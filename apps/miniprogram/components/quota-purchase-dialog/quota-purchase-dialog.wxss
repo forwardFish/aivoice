@@ -162,7 +162,8 @@
   font-size: 26rpx;
 }
 
-button::after { border: none; }
+.buy-button::after,
+.cancel-button::after { border: none; }
 
 @keyframes dialog-spin {
   from { transform: rotate(0); }

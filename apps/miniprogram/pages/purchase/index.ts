@@ -226,7 +226,7 @@ Page({
       }
       const points = await getPoints()
       const serverConfirmedGrant = Boolean(order.pointsGranted || order.pointsGrantedAt || order.quotaGranted || order.quotaGrantedAt)
-      if (points.availablePoints > 0 && order.status === 'PAID' && serverConfirmedGrant) {
+      if (order.status === 'PAID' && serverConfirmedGrant) {
         clearPendingOrderId(this.data.purchaseScopeId)
         this.setData({
           pending: false,

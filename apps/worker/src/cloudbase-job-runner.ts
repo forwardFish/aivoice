@@ -270,6 +270,11 @@ export class CloudBaseJobRunner {
       relationshipType: VoiceRelationshipType | null;
       relationshipLabel: string;
       userAddress: string;
+      ageYears: number | null;
+      gender: 'FEMALE' | 'MALE' | null;
+      userLifeStage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
+      background: string;
+      relationshipNote: string;
       providerVoiceIdEncrypted: string;
       history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string }>;
     } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId }));
@@ -277,9 +282,14 @@ export class CloudBaseJobRunner {
     if (message.mode === 'CHAT') {
       const context = compileVoiceChatMessages({
         voiceName: message.voiceName,
+        ageYears: message.ageYears,
+        gender: message.gender,
         relationshipType: message.relationshipType,
         relationshipLabel: message.relationshipLabel,
         userAddress: message.userAddress,
+        userLifeStage: message.userLifeStage,
+        background: message.background,
+        relationshipNote: message.relationshipNote,
         history: message.history,
         currentInput: message.inputText,
       });

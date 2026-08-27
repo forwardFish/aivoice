@@ -13,6 +13,18 @@
         <input class="field-input" value="{{name}}" placeholder="如：小雨 · 5岁" maxlength="20" bindinput="onNameInput" />
       </view>
 
+      <view class="field-block">
+        <text class="field-label">TA 的年龄</text>
+        <input class="field-input" type="number" value="{{ageYears}}" placeholder="请输入准确年龄" maxlength="3" bindinput="onAgeInput" />
+      </view>
+
+      <view class="field-block">
+        <text class="field-label">TA 的性别</text>
+        <view class="relationship-grid">
+          <view wx:for="{{genderOptions}}" wx:key="key" class="relationship-option {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
+        </view>
+      </view>
+
       <view class="field-block permission-block">
         <view class="permission-heading">
           <text class="field-label">声音使用权限</text>
@@ -71,7 +83,26 @@
             />
             <text class="relationship-other-count">{{userAddress.length}}/10</text>
           </view>
+          <view class="user-address-heading">
+            <text class="user-address-label">你现在处于什么阶段？</text>
+          </view>
+          <text class="user-address-help">用于区分父母面对未成年孩子或成年子女。</text>
+          <view class="relationship-grid">
+            <view wx:for="{{lifeStageOptions}}" wx:key="key" class="relationship-option {{userLifeStage === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectUserLifeStage">{{item.title}}</view>
+          </view>
         </view>
+      </view>
+
+      <view wx:if="{{permissionType}}" class="field-block">
+        <text class="field-label">补充 TA 的基本情况</text>
+        <text class="user-address-help">可选，例如退休前做什么、现在平时做什么、生活在哪里。</text>
+        <textarea class="relationship-other-input" value="{{background}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onBackgroundInput" />
+      </view>
+
+      <view wx:if="{{permissionType && relationshipType !== 'SELF'}}" class="field-block">
+        <text class="field-label">补充你们平时怎样相处</text>
+        <text class="user-address-help">可选，例如经常联系、偶尔联系、遇到大事会商量。</text>
+        <textarea class="relationship-other-input" value="{{relationshipNote}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
       </view>
 
       <view wx:if="{{permissionType}}" class="consent-box" bindtap="toggleConfirmed">

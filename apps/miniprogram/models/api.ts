@@ -56,6 +56,9 @@ export interface PointsBalanceResponse {
 
 export type QuotaResponse = PointsBalanceResponse
 
+export type VoiceGender = 'FEMALE' | 'MALE'
+export type UserLifeStage = 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT'
+
 export interface RecoverableVoiceError {
   code?: string
   message?: string
@@ -70,6 +73,11 @@ export interface VoiceSummary {
   relationshipType?: RelationshipType
   relationshipLabel?: string
   userAddress?: string
+  ageYears?: number
+  gender?: VoiceGender
+  userLifeStage?: UserLifeStage
+  background?: string
+  relationshipNote?: string
   avatarUrl?: string
   stageLabel?: string
   conversationStyle?: ConversationStyle

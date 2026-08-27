@@ -1,5 +1,7 @@
 <view class="settings-screen">
   <app-nav title="声音设置" back="{{true}}"></app-nav>
+  <view class="settings-aurora aurora-top"></view>
+  <view class="settings-aurora aurora-middle"></view>
 
   <view wx:if="{{state === 'loading'}}" class="settings-state">
     <page-state mode="loading" title="正在读取声音设置" description="正在同步服务端声音资料与状态…"></page-state>
@@ -15,11 +17,15 @@
 
   <view wx:else class="settings-content fade-in">
     <view class="settings-hero glass-card">
-      <view class="hero-wave"><text></text><text></text><text></text><text></text><text></text></view>
+      <view class="hero-wave-wrap">
+        <view class="hero-wave"><text class="hero-wave-bar hero-wave-outer"></text><text class="hero-wave-bar hero-wave-mid"></text><text class="hero-wave-bar hero-wave-center"></text><text class="hero-wave-bar hero-wave-mid"></text><text class="hero-wave-bar hero-wave-outer"></text></view>
+      </view>
       <view class="hero-copy">
         <text class="hero-name">{{voiceName}}</text>
-        <text class="hero-meta">{{statusText}}</text>
+        <text class="hero-badge hero-badge-{{statusTone}}">{{statusText}}</text>
       </view>
+      <view class="hero-spark hero-spark-left"></view>
+      <view class="hero-spark hero-spark-right"></view>
     </view>
 
     <view class="section-heading">
@@ -27,39 +33,79 @@
       <text class="section-caption">修改操作始终提交服务端，不在本地覆盖声音资料。</text>
     </view>
     <view class="form-card soft-card">
-      <text class="field-label">声音名称</text>
-      <view class="name-row">
-        <input class="name-input" value="{{nameDraft}}" maxlength="20" bindinput="onNameInput" />
-        <button class="primary-button save-name {{saving ? 'button-disabled' : ''}}" bindtap="saveName" disabled="{{saving}}">{{saving ? '保存中…' : '保存资料'}}</button>
+      <view class="field-surface">
+        <text class="field-label">声音名称</text>
+        <view class="name-row">
+          <input class="name-input" value="{{nameDraft}}" maxlength="20" bindinput="onNameInput" />
+          <button class="primary-button save-name {{saving ? 'button-disabled' : ''}}" bindtap="saveName" disabled="{{saving}}">{{saving ? '保存中…' : '保存'}}</button>
+        </view>
       </view>
 
-      <view class="info-row" bindtap="showPermissionRules">
-        <text>声音使用权限</text>
-        <view><text>{{permissionText}}</text><text class="arrow">›</text></view>
+      <view class="settings-profile-block">
+        <text class="settings-profile-label">TA 的年龄</text>
+        <input class="settings-profile-input" type="number" value="{{ageYears}}" placeholder="请输入准确年龄" maxlength="3" bindinput="onAgeInput" />
+        <text class="settings-profile-label">TA 的性别</text>
+        <view class="settings-relationship-grid">
+          <view wx:for="{{genderOptions}}" wx:key="key" class="settings-relationship-chip {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
+        </view>
       </view>
-      <view wx:if="{{relationshipOptions.length}}" class="dialogue-profile-block">
+
+      <view class="info-row info-row-first" bindtap="showPermissionRules">
+        <view class="info-copy">
+          <text class="info-title">声音使用权限</text>
+        </view>
+        <view class="info-trailing"><text class="info-value">{{permissionText}}</text><text class="arrow">›</text></view>
+      </view>
+
+      <view wx:if="{{relationshipOptions.length}}" class="info-row relationship-toggle" bindtap="toggleRelationship">
+        <view class="info-copy"><text class="info-title">关系与称呼</text></view>
+        <view class="info-trailing"><text class="info-value">{{relationshipType ? '已设置' : '未设置'}}</text><text class="arrow {{showRelationship ? 'is-open' : ''}}">›</text></view>
+      </view>
+
+      <view wx:if="{{relationshipOptions.length && showRelationship}}" class="dialogue-profile-block">
         <view class="dialogue-profile-heading">
-          <text>TA 是你的谁</text>
-          <text>用于调整 AI 对话</text>
+          <text class="dialogue-profile-title">TA 是你的谁</text>
+          <text class="dialogue-profile-note">用于调整 AI 对话</text>
         </view>
         <view class="settings-relationship-grid">
           <view wx:for="{{relationshipOptions}}" wx:key="key" class="settings-relationship-chip {{relationshipType === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectRelationship">{{item.title}}</view>
         </view>
         <input wx:if="{{relationshipType === 'OTHER'}}" class="settings-profile-input" value="{{relationshipOther}}" placeholder="请输入关系，如：表姐" maxlength="10" bindinput="onRelationshipOtherInput" />
-        <text wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-label">TA 怎么称呼你（可选）</text>
-        <input wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-input" value="{{userAddress}}" placeholder="如：小林、小名" maxlength="10" bindinput="onUserAddressInput" />
+        <view wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-block">
+          <text class="settings-profile-label">TA 怎么称呼你</text>
+          <text class="settings-profile-caption">可选，填写后 AI 对话会更自然。</text>
+          <input class="settings-profile-input" value="{{userAddress}}" placeholder="如：小林、小名" maxlength="10" bindinput="onUserAddressInput" />
+          <text class="settings-profile-label">你现在处于什么阶段</text>
+          <text class="settings-profile-caption">用于区分父母面对未成年孩子或成年子女。</text>
+          <view class="settings-relationship-grid">
+            <view wx:for="{{lifeStageOptions}}" wx:key="key" class="settings-relationship-chip {{userLifeStage === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectUserLifeStage">{{item.title}}</view>
+          </view>
+        </view>
+        <view class="settings-profile-block">
+          <text class="settings-profile-label">补充 TA 的基本情况</text>
+          <text class="settings-profile-caption">可选，例如退休前做什么、现在平时做什么、生活在哪里。</text>
+          <textarea class="settings-profile-input" value="{{background}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onBackgroundInput" />
+        </view>
+        <view wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-block">
+          <text class="settings-profile-label">补充你们平时怎样相处</text>
+          <text class="settings-profile-caption">可选，例如经常联系、偶尔联系、遇到大事会商量。</text>
+          <textarea class="settings-profile-input" value="{{relationshipNote}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
+        </view>
       </view>
     </view>
 
     <view class="section-heading {{focus === 'conversation' ? 'focused-heading' : ''}}">
       <text class="section-title">数据管理</text>
-      <text class="section-caption">删除和清空操作由服务端执行并返回最终状态。</text>
+      <text class="section-caption">清空后，现有消息不会再参与后续对话上下文。</text>
     </view>
     <view class="action-card soft-card {{focus === 'conversation' ? 'focused-card' : ''}}">
       <view class="action-row" bindtap="clearChat">
-        <view>
-          <text class="action-title">清空当前对话</text>
-          <text class="action-copy">清空后不再用于最近 8 轮上下文</text>
+        <view class="action-leading">
+          <view class="action-icon action-icon-chat"><text class="chat-icon-body"></text><text class="chat-icon-tail"></text></view>
+          <view class="action-copy">
+            <text class="action-title">清空当前对话</text>
+            <text class="action-description">清空后不再参与后续对话上下文</text>
+          </view>
         </view>
         <text class="action-state">{{clearing ? '处理中…' : '›'}}</text>
       </view>
@@ -68,10 +114,18 @@
     <text wx:if="{{successMessage}}" class="success-message">{{successMessage}}</text>
     <text wx:if="{{errorMessage}}" class="error-message">{{errorMessage}}</text>
 
-    <view class="danger-zone">
-      <text class="danger-title">危险操作</text>
-      <button class="danger-button delete-voice-button {{deleting ? 'button-disabled' : ''}}" bindtap="removeVoice" disabled="{{deleting}}">{{deleting ? '正在提交删除…' : '删除整个声音'}}</button>
-      <text class="danger-copy">删除后无法恢复，账号级免费体验资格不会因删除而恢复。</text>
+    <view class="section-heading danger-heading">
+      <text class="section-title danger-title">危险操作</text>
+    </view>
+    <view role="button" aria-disabled="{{deleting}}" class="danger-action-card {{deleting ? 'button-disabled' : ''}}" bindtap="removeVoice">
+      <view class="danger-action-leading">
+        <view class="danger-action-icon"><text class="danger-bin"></text><text class="danger-lid"></text></view>
+        <view class="danger-action-copy">
+          <text class="danger-action-title">{{deleting ? '正在提交删除…' : '删除整个声音'}}</text>
+          <text class="danger-action-description">删除后，声音样本、模型、对话和生成记录均无法恢复。</text>
+        </view>
+      </view>
+      <text class="danger-action-arrow">›</text>
     </view>
   </view>
 </view>

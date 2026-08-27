@@ -1,14 +1,16 @@
 <view class="state-shell {{compact ? 'state-compact' : ''}}">
   <view wx:if="{{mode === 'loading'}}" class="state-visual loading-visual">
     <view class="loading-ring"></view>
-    <view class="loading-wave"><text></text><text></text><text></text><text></text><text></text></view>
+    <view class="loading-wave"><text class="state-wave-bar state-wave-low"></text><text class="state-wave-bar state-wave-mid"></text><text class="state-wave-bar state-wave-high"></text><text class="state-wave-bar state-wave-mid"></text><text class="state-wave-bar state-wave-low"></text></view>
   </view>
   <view wx:elif="{{mode === 'error'}}" class="state-visual error-visual">!</view>
   <view wx:elif="{{mode === 'empty'}}" class="state-visual empty-visual">
-    <view class="empty-wave"><text></text><text></text><text></text><text></text><text></text></view>
+    <view class="empty-wave"><text class="state-wave-bar state-wave-low"></text><text class="state-wave-bar state-wave-mid"></text><text class="state-wave-bar state-wave-high"></text><text class="state-wave-bar state-wave-mid"></text><text class="state-wave-bar state-wave-low"></text></view>
   </view>
   <view wx:else class="state-visual success-visual">✓</view>
   <text class="state-title">{{title}}</text>
-  <text wx:if="{{description}}" class="state-description">{{description}}</text>
-  <button wx:if="{{actionText}}" class="state-action" bindtap="onAction">{{actionText}}</button>
+  <text wx:if="{{description && mode !== 'error'}}" class="state-description">{{description}}</text>
+  <view wx:if="{{actionText}}" class="state-action">
+    <app-button label="{{actionText}}" size="medium" bindaction="onAction"></app-button>
+  </view>
 </view>

@@ -39,16 +39,24 @@
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
     </view>
 
-    <bottom-action-bar layout="row" minHeight="{{148}}" actionWidth="{{204}}" custom-class="selection-footer">
-      <view slot="leading" wx:if="{{selected}}" class="selected-summary">
-        <view class="summary-copy"><text class="summary-title">已选择 1 个视频</text></view>
-        <app-icon-button label="清除选择" size="52" bindaction="resetSelection" custom-class="summary-clear">×</app-icon-button>
+    <view class="selection-footer">
+      <view wx:if="{{selected}}" class="selected-summary">
+        <view class="summary-copy"><text class="summary-title">已选择 1 个视频</text><text class="summary-meta">可继续上传并进入标记片段</text></view>
+        <view role="button" aria-label="移除已选视频" class="summary-remove-button" bindtap="resetSelection">
+          <view class="summary-remove-icon" aria-hidden="true">
+            <text class="summary-remove-stroke stroke-a"></text>
+            <text class="summary-remove-stroke stroke-b"></text>
+          </view>
+          <text class="summary-remove-label">移除</text>
+        </view>
       </view>
-      <view slot="leading" wx:else class="selected-summary">
+      <view wx:else class="selected-summary">
         <view class="summary-copy"><text class="summary-title">请选择 1 个视频</text><text class="summary-meta">支持 8–60 秒，最大 100MB</text></view>
       </view>
-      <app-button slot="action" wx:if="{{selected}}" label="下一步" bindaction="uploadAndContinue"></app-button>
-      <app-button slot="action" wx:else label="选择视频" bindaction="chooseVideo"></app-button>
-    </bottom-action-bar>
+      <view class="selection-footer-action">
+        <view role="button" wx:if="{{selected}}" class="selection-action-button primary-button" bindtap="uploadAndContinue"><text>下一步</text></view>
+        <view role="button" wx:else class="selection-action-button primary-button" bindtap="chooseVideo"><text>选择视频</text></view>
+      </view>
+    </view>
   </block>
 </view>

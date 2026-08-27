@@ -10,6 +10,23 @@ test('voice settings contains no account balance or account points navigation', 
   assert.doesNotMatch(source, /\bgetPoints\b|\bavailablePoints\b|\bopenPurchasePage\b/)
 })
 
+test('account profile resolves and retries persistence for the selected WeChat avatar', () => {
+  const markup = readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../pages/account/index.ts', import.meta.url), 'utf8')
+
+  assert.match(markup, /wx:if="\{\{avatarDisplayUrl\}\}"/)
+  assert.match(markup, /src="\{\{avatarDisplayUrl\}\}"/)
+  assert.match(markup, /binderror="onAvatarLoadError"/)
+  assert.match(markup, /bindtap="editAvatar"/)
+  assert.match(markup, /bindtap="editProfile"/)
+  assert.match(source, /const localUser = getUser\(\)/)
+  assert.match(source, /persistProfileAvatar\(source\)/)
+  assert.match(source, /updateMeProfile\(\{ avatarUrl \}\)/)
+  assert.match(source, /resolveProfileAvatarSource\(source\)/)
+  assert.match(source, /itemList:\s*\['更换头像', '修改昵称'\]/)
+  assert.match(source, /const localAvatarUrl = await chooseFallbackAvatar\(\)/)
+})
+
 test('voice profile submit posts the server canonical consent text returned by profile save', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
   let pageDefinition: any
@@ -67,6 +84,11 @@ test('voice profile submit posts the server canonical consent text returned by p
       relationshipType: 'MOTHER',
       relationshipOther: '',
       userAddress: '小林',
+      ageYears: '70',
+      gender: 'FEMALE',
+      userLifeStage: 'ADULT',
+      background: '退休前是中学老师。',
+      relationshipNote: '和成年女儿每周通话。',
       consentText: 'LOCAL FALLBACK OTHER',
       confirmed: true
     },
@@ -83,7 +105,12 @@ test('voice profile submit posts the server canonical consent text returned by p
     permissionType: 'OTHER',
     relationshipType: 'MOTHER',
     relationshipLabel: '',
-    userAddress: '小林'
+    userAddress: '小林',
+    ageYears: 70,
+    gender: 'FEMALE',
+    userLifeStage: 'ADULT',
+    background: '退休前是中学老师。',
+    relationshipNote: '和成年女儿每周通话。'
   })
   assert.deepEqual(consentRequestBody, {
     consentVersion: 'voice-consent-v-test',
@@ -96,6 +123,7 @@ test('voice profile submit posts the server canonical consent text returned by p
 test('voice relationship fields use native form controls and readable typography', () => {
   const wxml = readFileSync(new URL('../pages/create/voice-profile.wxml', import.meta.url), 'utf8')
   const style = readFileSync(new URL('../pages/create/voice-profile.wxss', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../pages/create/voice-profile.ts', import.meta.url), 'utf8')
 
   assert.match(wxml, /<radio-group[^>]*bindchange="onRelationshipRadioChange"/)
   assert.match(wxml, /<label[\s\S]*<radio[^>]*value="\{\{item\.key\}\}"/)
@@ -104,6 +132,8 @@ test('voice relationship fields use native form controls and readable typography
   assert.match(style, /grid-template-columns:\s*repeat\(3,/)
   assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)
   assert.doesNotMatch(wxml, /class="relationship-chip/)
+  assert.match(source, /请先勾选“声音使用确认”。/)
+  assert.doesNotMatch(source, /请确认与当前权限类型对应的授权文案。/)
 })
 
 test('settings clear chat returns immediately when the confirmation is canceled', async () => {

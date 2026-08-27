@@ -4,7 +4,10 @@
     <view wx:if="{{back}}" class="nav-back" bindtap="goBack" aria-label="返回">
       <view class="nav-back-arrow"></view>
     </view>
-    <text class="nav-title">{{title}}</text>
-    <view wx:if="{{rightText}}" class="nav-right" bindtap="onRightTap">{{rightText}}</view>
+    <view class="nav-center {{subtitle ? 'nav-center-with-subtitle' : ''}}">
+      <text class="nav-title">{{title}}</text>
+      <text wx:if="{{subtitle}}" class="nav-subtitle">{{subtitle}}</text>
+    </view>
+    <view wx:if="{{rightText}}" class="nav-right" style="right: {{menuWidth + menuRight + 12}}px;" bindtap="onRightTap">{{rightText}}</view>
   </view>
 </view>

@@ -21,10 +21,13 @@ Page({
     state: 'loading',
     voiceName: '这个声音',
     voiceInitial: '声',
+    avatarUrl: '',
     audioUrl: '',
     previewText: '',
     durationMs: 0,
     playCompleted: false,
+    previewPlaying: false,
+    playbackPrompted: false,
     accepting: false,
     retrying: false,
     trialEligible: false,
@@ -42,7 +45,7 @@ Page({
     this.loadPreview()
   },
   async loadPreview() {
-    this.setData({ state: 'loading', errorMessage: '', playCompleted: false })
+    this.setData({ state: 'loading', errorMessage: '', playCompleted: false, previewPlaying: false, playbackPrompted: false })
     try {
       const voice = await getVoice(this.data.voiceId)
       if (voice.status === 'READY') {
@@ -62,6 +65,7 @@ Page({
         state: 'success',
         voiceName: voice.name || '这个声音',
         voiceInitial: voiceInitial(voice.name),
+        avatarUrl: voice.avatarUrl || '',
         audioUrl: preview.audioUrl,
         previewText: preview.text,
         durationMs: preview.durationMs || 0,
@@ -73,25 +77,65 @@ Page({
     }
   },
   async onPreviewPlay() {
+    this.clearPlaybackPrompt()
+    this.setData({ previewPlaying: true })
     try {
       await markVoicePreviewStarted(this.data.voiceId)
     } catch (error: any) {
       this.setData({ errorMessage: error.message || '试听状态同步失败，请重新播放。' })
     }
   },
+  onPreviewPause() {
+    this.setData({ previewPlaying: false })
+  },
   async onPreviewEnded() {
     try {
       await markVoicePreviewPlayed(this.data.voiceId)
-      this.setData({ playCompleted: true, errorMessage: '' })
+      this.clearPlaybackPrompt()
+      this.setData({ playCompleted: true, previewPlaying: false, errorMessage: '' })
     } catch (error: any) {
-      this.setData({ playCompleted: false, errorMessage: error.message || '试听完成状态同步失败，请重新播放。' })
+      this.setData({ playCompleted: false, previewPlaying: false, errorMessage: error.message || '试听完成状态同步失败，请重新播放。' })
     }
   },
   onPreviewUnavailable() {
+    this.setData({ previewPlaying: false })
     wx.showToast({ title: '试听音频尚未准备好', icon: 'none' })
   },
+  onPreviewError() {
+    this.clearPlaybackPrompt()
+    this.setData({
+      previewPlaying: false,
+      errorMessage: '试听播放失败，请重新点击播放或稍后重试。'
+    })
+  },
+  clearPlaybackPrompt() {
+    if (this.playbackPromptTimer) {
+      clearTimeout(this.playbackPromptTimer)
+      this.playbackPromptTimer = null
+    }
+    if (this.data.playbackPrompted) this.setData({ playbackPrompted: false })
+  },
+  promptCompletePlayback(message: string) {
+    this.clearPlaybackPrompt()
+    this.setData({ playbackPrompted: true, errorMessage: '' })
+    this.playbackPromptTimer = setTimeout(() => {
+      this.playbackPromptTimer = null
+      if (this.data.playbackPrompted) this.setData({ playbackPrompted: false })
+    }, 1800)
+    wx.showToast({ title: message, icon: 'none' })
+  },
   async acceptPreview() {
-    if (!this.data.playCompleted || this.data.accepting) return
+    if (this.data.accepting) return
+    if (!this.data.playCompleted) {
+      if (!this.data.previewPlaying) {
+        const player = this.selectComponent('#previewPlayer') as { toggle?: () => void } | null
+        player?.toggle?.()
+        this.promptCompletePlayback('先完整听完这段试听，再正式使用')
+      } else {
+        this.promptCompletePlayback('试听播放中，完整听完后即可使用')
+      }
+      return
+    }
     this.setData({ accepting: true, errorMessage: '' })
     try {
       await acceptVoicePreview(this.data.voiceId)
@@ -112,5 +156,8 @@ Page({
     } catch (error: any) {
       this.setData({ retrying: false, errorMessage: error.message || '无法重新创建，请稍后重试。' })
     }
+  },
+  onUnload() {
+    this.clearPlaybackPrompt()
   }
 })

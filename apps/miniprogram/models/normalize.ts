@@ -116,6 +116,13 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     relationshipType: normalizeRelationship(raw.relationshipType ?? raw.relationship_type),
     relationshipLabel: stringOr(raw.relationshipLabel ?? raw.relationship_label) || undefined,
     userAddress: stringOr(raw.userAddress ?? raw.user_address) || undefined,
+    ageYears: raw.ageYears == null && raw.age_years == null ? undefined : numberOr(raw.ageYears ?? raw.age_years),
+    gender: ['FEMALE', 'MALE'].includes(String(raw.gender || '')) ? raw.gender : undefined,
+    userLifeStage: ['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(String(raw.userLifeStage ?? raw.user_life_stage ?? ''))
+      ? (raw.userLifeStage ?? raw.user_life_stage)
+      : undefined,
+    background: stringOr(raw.background) || undefined,
+    relationshipNote: stringOr(raw.relationshipNote ?? raw.relationship_note) || undefined,
     avatarUrl: stringOr(raw.avatarUrl ?? raw.avatar_url) || undefined,
     stageLabel: stringOr(raw.stageLabel ?? raw.stage_label) || undefined,
     conversationStyle: raw.conversationStyle ?? raw.conversation_style,
