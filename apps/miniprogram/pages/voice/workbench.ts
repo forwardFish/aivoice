@@ -19,6 +19,7 @@ import {
 } from '../../config'
 import { ensureAuthenticated } from '../../utils/navigation'
 import {
+  appendGenerationTiming,
   clearWorkbenchDraft,
   getReplyFeedback,
   getPendingOrderId,
@@ -91,6 +92,7 @@ Page({
     exactCount: 0,
     sending: false,
     pendingText: '',
+    pendingReplyText: '',
     pendingMode: '',
     generationStatusText: '',
     scrollTarget: '',
@@ -132,6 +134,7 @@ Page({
   },
   onUnload() {
     if (this.chatDraftDirty && this.data.voiceId) this.persistDraft('chat')
+    this.finishGenerationTiming('CANCELLED')
     this.destroyed = true
     if (this.pollTimer) clearTimeout(this.pollTimer)
   },
@@ -304,25 +307,43 @@ Page({
       sending: true,
       errorMessage: '',
       pendingText: text,
+      pendingReplyText: '',
       pendingMode: mode,
       generationStatusText: mode === 'chat' ? '正在生成 AI 回复…' : '正在生成 AI 语音…'
     })
+    this.generationClientTiming = {
+      startedAt: Date.now(),
+      mode,
+      messageId: '',
+      idempotencyMs: 0,
+      submitRequestMs: 0,
+      pollCount: 0,
+      pollRequestMs: 0,
+      firstTextMs: 0
+    }
     try {
+      const idempotencyStartedAt = Date.now()
       const idempotencyKey = await uuidV4()
+      this.generationClientTiming.idempotencyMs = Date.now() - idempotencyStartedAt
+      const submitStartedAt = Date.now()
       const accepted = mode === 'chat'
         ? await sendChatMessage(this.data.voiceId, text, idempotencyKey)
         : await sendExactSpeech(this.data.voiceId, text, idempotencyKey)
+      this.generationClientTiming.submitRequestMs = Date.now() - submitStartedAt
       if (!accepted.messageId) throw new Error('服务端未返回生成任务 ID。')
+      this.generationClientTiming.messageId = accepted.messageId
       await this.pollMessage(accepted.messageId)
     } catch (error: any) {
+      this.finishGenerationTiming('FAILED', error)
       if (error instanceof ApiError && ['POINTS_EXHAUSTED', 'QUOTA_EXHAUSTED'].includes(error.code)) {
         if (!error.purchaseOption && !this.data.purchaseOption) {
-          this.setData({ sending: false, pendingText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
+          this.setData({ sending: false, pendingText: '', pendingReplyText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
           return
         }
         this.setData({
           sending: false,
           pendingText: '',
+          pendingReplyText: '',
           pendingMode: '',
           purchaseVisible: true,
           purchaseOption: this.data.purchaseOption || error.purchaseOption || null,
@@ -333,6 +354,7 @@ Page({
       this.setData({
         sending: false,
         pendingText: '',
+        pendingReplyText: '',
         pendingMode: '',
         errorMessage: error.message || '生成失败，本次不会扣积分。'
       })
@@ -341,7 +363,25 @@ Page({
   async pollMessage(messageId: string) {
     for (let attempt = 0; attempt < MESSAGE_POLL_ATTEMPTS; attempt += 1) {
       if (this.destroyed) return
+      const pollStartedAt = Date.now()
       const result = await getMessage(messageId)
+      if (this.generationClientTiming) {
+        this.generationClientTiming.pollCount += 1
+        this.generationClientTiming.pollRequestMs += Date.now() - pollStartedAt
+      }
+      if (result.status === 'PROCESSING' && this.data.pendingMode === 'chat') {
+        const publishedText = String(result.text || '').trim()
+        if (publishedText && publishedText !== this.data.pendingReplyText) {
+          if (this.generationClientTiming && !this.generationClientTiming.firstTextMs) {
+            this.generationClientTiming.firstTextMs = Date.now() - this.generationClientTiming.startedAt
+          }
+          this.setData({
+            pendingReplyText: publishedText,
+            generationStatusText: '声音生成中…',
+            scrollTarget: 'pending-assistant'
+          })
+        }
+      }
       if (result.status === 'READY') {
         const completedMode = this.data.pendingMode
         const currentChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
@@ -358,6 +398,7 @@ Page({
         }
         this.chatDraftText = nextChatText
         this.chatDraftDirty = false
+        await this.loadData(false)
         this.setData({
           chatText: nextChatText,
           exactText: nextExactText,
@@ -365,10 +406,35 @@ Page({
           exactCount: nextExactText.length,
           sending: false,
           pendingText: '',
+          pendingReplyText: '',
           pendingMode: '',
           generationStatusText: ''
         })
+        this.finishGenerationTiming('READY')
+        return
+      }
+      if (result.status === 'FAILED' && this.data.pendingMode === 'chat' && String(result.text || '').trim()) {
+        const nextExactText = this.data.exactText
+        if (nextExactText) {
+          setWorkbenchDraft(this.data.voiceId, { mode: 'exact', chatText: '', exactText: nextExactText })
+        } else {
+          clearWorkbenchDraft(this.data.voiceId)
+        }
+        this.chatDraftText = ''
+        this.chatDraftDirty = false
         await this.loadData(false)
+        this.setData({
+          chatText: '',
+          chatCount: 0,
+          sending: false,
+          pendingText: '',
+          pendingReplyText: '',
+          pendingMode: '',
+          generationStatusText: '',
+          errorMessage: ''
+        })
+        this.finishGenerationTiming('FAILED', new Error('声音生成失败，文字回复已保留，本次未扣积分。'))
+        toast('文字回复已保留，声音生成失败，本次未扣积分')
         return
       }
       if (result.status === 'FAILED' || result.status === 'BLOCKED') {
@@ -379,6 +445,32 @@ Page({
       await delay(POLL_INTERVAL_MS)
     }
     throw new Error('生成时间较长，请稍后在当前页面刷新查看。')
+  },
+  finishGenerationTiming(status: 'READY' | 'FAILED' | 'CANCELLED', error?: unknown) {
+    const timing = this.generationClientTiming
+    if (!timing) return
+    const record = {
+      event: 'message_delivery_timing' as const,
+      status,
+      messageId: timing.messageId || '',
+      mode: timing.mode,
+      idempotencyMs: timing.idempotencyMs,
+      submitRequestMs: timing.submitRequestMs,
+      pollCount: timing.pollCount,
+      pollRequestMs: timing.pollRequestMs,
+      firstTextMs: timing.firstTextMs,
+      waitingForBackendAndPollMs: Math.max(0, Date.now() - timing.startedAt
+        - timing.idempotencyMs - timing.submitRequestMs - timing.pollRequestMs),
+      totalMs: Date.now() - timing.startedAt,
+      overThreeSecondTarget: Date.now() - timing.startedAt > 3_000,
+      error: error instanceof Error ? error.message.slice(0, 200) : error ? String(error).slice(0, 200) : '',
+      completedAt: Date.now()
+    }
+    appendGenerationTiming(record)
+    const logger = (globalThis as any).console
+    if (status === 'READY') logger?.info?.('message_delivery_timing', JSON.stringify(record))
+    else logger?.warn?.('message_delivery_timing', JSON.stringify(record))
+    this.generationClientTiming = null
   },
   closePurchase() {
     if (this.data.paying || this.data.paymentPending) return

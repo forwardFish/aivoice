@@ -3,32 +3,32 @@
   <view class="account-aurora aurora-top"></view>
   <view class="account-aurora aurora-middle"></view>
 
-  <view wx:if="{{state === 'loading'}}" class="account-state">
-    <page-state mode="loading" title="正在同步账户" description="正在获取声音、积分和订单信息…"></page-state>
-  </view>
-
-  <view wx:elif="{{state === 'error'}}" class="account-state soft-card">
-    <page-state mode="error" title="账户信息暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="retryLoad"></page-state>
-  </view>
-
-  <view wx:else class="account-content fade-in">
+  <view class="account-content fade-in">
     <view class="account-hero">
       <image wx:if="{{avatarDisplayUrl}}" class="profile-avatar" src="{{avatarDisplayUrl}}" mode="aspectFill" binderror="onAvatarLoadError" bindtap="editAvatar" aria-label="更换头像"></image>
       <view wx:else class="profile-avatar fallback" bindtap="editAvatar" role="button" aria-label="更换头像"><image src="/assets/ui/user-outline.png" mode="aspectFit"></image></view>
 
       <view class="profile-copy">
-        <text class="profile-name">{{user.nickname || '微信用户'}}</text>
+        <text class="profile-name">{{(user && user.nickname) || '微信用户'}}</text>
         <view class="wechat-profile-row">
           <image src="/assets/ui/wechat-mark.png" mode="aspectFit"></image>
           <text>微信账号资料</text>
         </view>
         <button class="secondary-button edit-profile-button" bindtap="editProfile" disabled="{{updatingProfile || updatingAvatar}}">
           <image src="/assets/ui/account-edit.webp" mode="aspectFit"></image>
-          <text>{{updatingAvatar ? '头像同步中…' : updatingProfile ? '保存中…' : '编辑资料'}}</text>
+          <text class="edit-profile-label">{{updatingAvatar ? '头像同步中…' : updatingProfile ? '保存中…' : '编辑资料'}}</text>
         </button>
       </view>
 
       <image class="identity-visual" src="/assets/ui/account-identity-hero.png" mode="aspectFit"></image>
+    </view>
+
+    <view wx:if="{{errorMessage}}" class="account-notice {{refreshing ? 'account-notice-disabled' : ''}}" bindtap="retryLoad" role="button">
+      <view class="account-notice-copy">
+        <text class="account-notice-title">账户信息同步不完整</text>
+        <text class="account-notice-desc">{{errorMessage}}</text>
+      </view>
+      <text class="account-notice-action">{{refreshing ? '重试中…' : '点击重试'}}</text>
     </view>
 
     <view class="account-summary glass-card">
@@ -96,5 +96,27 @@
 
     <button class="danger-button logout-button {{deletingAccount ? 'button-disabled' : ''}}" bindtap="removeAccount" disabled="{{deletingAccount}}">{{deletingAccount ? '正在注销…' : '注销账号'}}</button>
     <text class="version-note">那年的TA · 微信原生小程序前端 v0.4</text>
+  </view>
+
+  <view wx:if="{{showNicknameEditor}}" class="nickname-editor-backdrop" bindtap="closeNicknameEditor" catchtouchmove="noop">
+    <view class="nickname-editor" catchtap="noop">
+      <text class="nickname-editor-title">修改昵称</text>
+      <view class="nickname-input-shell">
+        <input
+          class="nickname-input"
+          type="nickname"
+          value="{{nicknameDraft}}"
+          maxlength="10"
+          focus="{{showNicknameEditor}}"
+          placeholder="请输入昵称"
+          bindinput="onNicknameInput"
+        />
+        <text class="nickname-count">{{nicknameCount}}/10</text>
+      </view>
+      <view class="nickname-editor-actions">
+        <button class="nickname-editor-action nickname-cancel" bindtap="closeNicknameEditor" disabled="{{updatingProfile}}">取消</button>
+        <button class="nickname-editor-action nickname-save" bindtap="saveNickname" disabled="{{updatingProfile}}">{{updatingProfile ? '保存中…' : '保存'}}</button>
+      </view>
+    </view>
   </view>
 </view>

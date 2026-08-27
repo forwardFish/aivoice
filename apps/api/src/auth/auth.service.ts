@@ -7,6 +7,12 @@ import { QuotaService } from '../quota/quota.service.js';
 import type { AuthenticatedUser } from './auth.types.js';
 import { WechatCodeExchanger } from './wechat-code-exchanger.js';
 
+const NICKNAME_MAX_LENGTH = 10;
+
+function normalizeNickname(value: unknown): string {
+  return Array.from(String(value || '').trim()).slice(0, NICKNAME_MAX_LENGTH).join('');
+}
+
 function tokenHash(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -59,7 +65,7 @@ export class AuthService {
       ? { openid: platformOpenid, unionid: '' }
       : await this.exchanger.exchange(code);
     const now = new Date();
-    const nickname = String(input.profile?.nickname || '').trim().slice(0, 40);
+    const nickname = normalizeNickname(input.profile?.nickname);
     const avatarUrl = String(input.profile?.avatarUrl || '').trim().slice(0, 500);
 
     if (this.database.isCloudBase) {
@@ -161,7 +167,7 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, input: { nickname?: string; avatarUrl?: string }) {
-    const nickname = input.nickname === undefined ? undefined : input.nickname.trim().slice(0, 40);
+    const nickname = input.nickname === undefined ? undefined : normalizeNickname(input.nickname);
     const avatarUrl = input.avatarUrl === undefined ? undefined : input.avatarUrl.trim().slice(0, 500);
     if (this.database.isCloudBase) {
       const [user] = await this.database.requireCloud().update<typeof users.$inferSelect>('users', {

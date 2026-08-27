@@ -125,30 +125,74 @@ export class AliyunCosyVoiceProvider {
     throw new Error('Aliyun voice enrollment did not become ready');
   }
 
-  async synthesize(voiceId: string, text: string): Promise<Buffer> {
-    const response = await fetch(`${this.apiHost}/api/v1/services/audio/tts/SpeechSynthesizer`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify({
-        model: this.targetModel,
-        input: {
-          text,
-          voice: voiceId,
-          format: 'wav',
-          sample_rate: 24000,
-          language_hints: ['zh'],
-          seed: 0,
-        },
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
-    if (!response.ok) throw new Error(`Aliyun synthesis failed: ${await responseError(response)}`);
-    const result = await response.json() as { output?: { audio?: { url?: string } } };
-    const audioUrl = result.output?.audio?.url;
-    if (!audioUrl) throw new Error('Aliyun synthesis returned no audio URL');
-    const audio = await fetch(trustedAliyunUrl(audioUrl), { signal: AbortSignal.timeout(120_000) });
-    if (!audio.ok) throw new Error('Aliyun synthesis output download failed');
-    return Buffer.from(await audio.arrayBuffer());
+  async synthesize(
+    voiceId: string,
+    text: string,
+    correlation: { jobId?: string; messageId?: string } = {},
+  ): Promise<Buffer> {
+    const totalStartedAt = Date.now();
+    let requestMs = 0;
+    let downloadMs = 0;
+    try {
+      const requestStartedAt = Date.now();
+      const response = await fetch(`${this.apiHost}/api/v1/services/audio/tts/SpeechSynthesizer`, {
+        method: 'POST',
+        headers: this.headers(),
+        body: JSON.stringify({
+          model: this.targetModel,
+          input: {
+            text,
+            voice: voiceId,
+            format: 'wav',
+            sample_rate: 24000,
+            language_hints: ['zh'],
+            seed: 0,
+          },
+        }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      requestMs = Date.now() - requestStartedAt;
+      if (!response.ok) throw new Error(`Aliyun synthesis failed: ${await responseError(response)}`);
+      const result = await response.json() as { output?: { audio?: { url?: string } } };
+      const audioUrl = result.output?.audio?.url;
+      if (!audioUrl) throw new Error('Aliyun synthesis returned no audio URL');
+      const downloadStartedAt = Date.now();
+      const audio = await fetch(trustedAliyunUrl(audioUrl), { signal: AbortSignal.timeout(120_000) });
+      if (!audio.ok) throw new Error('Aliyun synthesis output download failed');
+      const buffer = Buffer.from(await audio.arrayBuffer());
+      downloadMs = Date.now() - downloadStartedAt;
+      console.info('cosyvoice_synthesis_timing', JSON.stringify({
+        event: 'cosyvoice_synthesis_timing',
+        status: 'SUCCEEDED',
+        jobId: correlation.jobId || '',
+        messageId: correlation.messageId || '',
+        textLength: Array.from(text).length,
+        requestMs,
+        downloadMs,
+        slowestStage: requestMs >= downloadMs ? 'provider_synthesis_request' : 'provider_audio_download',
+        slowestStageMs: Math.max(requestMs, downloadMs),
+        totalMs: Date.now() - totalStartedAt,
+        overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+        bytes: buffer.length,
+      }));
+      return buffer;
+    } catch (error) {
+      console.error('cosyvoice_synthesis_timing', JSON.stringify({
+        event: 'cosyvoice_synthesis_timing',
+        status: 'FAILED',
+        jobId: correlation.jobId || '',
+        messageId: correlation.messageId || '',
+        textLength: Array.from(text).length,
+        requestMs,
+        downloadMs,
+        slowestStage: requestMs >= downloadMs ? 'provider_synthesis_request' : 'provider_audio_download',
+        slowestStageMs: Math.max(requestMs, downloadMs),
+        totalMs: Date.now() - totalStartedAt,
+        overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+        error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+      }));
+      throw error;
+    }
   }
 
   async deleteVoice(voiceId: string): Promise<void> {

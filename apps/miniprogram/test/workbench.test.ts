@@ -8,6 +8,28 @@ test('pending chat keeps the user message out of the assistant bubble', () => {
   assert.match(view, /class="message-row user-row pending-user-row"[\s\S]*\{\{pendingText\}\}/)
   assert.match(view, /class="message-row assistant-row pending-row"[\s\S]*\{\{generationStatusText\}\}/)
   assert.doesNotMatch(view, /pending-user-copy|你：\{\{pendingText\}\}/)
+  assert.match(view, /id="pending-assistant"[\s\S]*wx:if="\{\{pendingReplyText\}\}"[\s\S]*\{\{pendingReplyText\}\}/)
+  assert.match(view, /wx:else class="typing-wave"/)
+})
+
+test('processing chat publishes text first and keeps the same bubble waiting for audio', () => {
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+
+  assert.match(source, /result\.status === 'PROCESSING'[\s\S]*publishedText[\s\S]*pendingReplyText:\s*publishedText[\s\S]*generationStatusText:\s*'声音生成中…'/)
+  assert.match(source, /firstTextMs\s*=\s*Date\.now\(\) - this\.generationClientTiming\.startedAt/)
+  assert.match(source, /result\.status === 'READY'[\s\S]*await this\.loadData\(false\)[\s\S]*pendingReplyText:\s*''/)
+  assert.equal((markup.match(/id="pending-assistant"/g) || []).length, 1)
+})
+
+test('audio failure keeps an already published text reply visible without charging', () => {
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+
+  assert.match(source, /result\.status === 'FAILED'[\s\S]*pendingMode === 'chat'[\s\S]*result\.text[\s\S]*await this\.loadData\(false\)/)
+  assert.match(source, /声音生成失败，文字回复已保留，本次未扣积分/)
+  assert.match(source, /toast\('文字回复已保留，声音生成失败，本次未扣积分'\)/)
+  assert.match(markup, /声音生成失败，文字已保留，未扣积分/)
 })
 
 test('app nav supports stacked voice title plus subtitle without reintroducing bold settings chrome', () => {
@@ -67,6 +89,7 @@ test('chat workbench matches the approved bilateral conversation structure', () 
 test('chat composer keeps the native single-line input stable while typing', async () => {
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
   const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
   let pageDefinition: any
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
@@ -81,12 +104,20 @@ test('chat composer keeps the native single-line input stable while typing', asy
   await import('../pages/voice/workbench?case=stable-composer')
   assert.ok(pageDefinition)
   assert.match(markup, /<input[\s\S]*class="composer-input"/)
+  assert.match(markup, /class="composer-input-shell"[\s\S]*<input/)
+  assert.match(markup, /placeholder-class="composer-input-placeholder"/)
   assert.match(markup, /adjust-position="\{\{false\}\}"/)
   assert.match(markup, /hold-keyboard="\{\{true\}\}"/)
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
-  assert.match(style, /\.composer-input\s*\{[^}]*height:\s*72rpx[^}]*overflow:\s*hidden/s)
+  assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*72rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
+  assert.match(style, /\.composer-input\s*\{[^}]*width:\s*100%[^}]*height:\s*72rpx[^}]*padding:\s*0[^}]*line-height:\s*72rpx/s)
+  assert.match(style, /\.composer-input-placeholder\s*\{[^}]*line-height:\s*72rpx/s)
+  assert.match(source, /message_delivery_timing/)
+  assert.match(source, /idempotencyMs[\s\S]*submitRequestMs[\s\S]*pollCount[\s\S]*pollRequestMs[\s\S]*firstTextMs[\s\S]*totalMs/)
+  assert.match(source, /waitingForBackendAndPollMs[\s\S]*overThreeSecondTarget/)
+  assert.match(source, /appendGenerationTiming\(record\)/)
 
   let renderCount = 0
   const instance: any = {

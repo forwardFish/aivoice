@@ -12,6 +12,12 @@ import {
   persistProfileAvatar
 } from '../../utils/avatar-picker'
 
+const NICKNAME_MAX_LENGTH = 10
+
+function limitNickname(value: unknown): string {
+  return Array.from(String(value || '').trimStart()).slice(0, NICKNAME_MAX_LENGTH).join('')
+}
+
 Page({
   data: {
     avatarUrl: '',
@@ -45,7 +51,7 @@ Page({
     }
   },
   onNicknameInput(event: any) {
-    this.setData({ nickname: String(event.detail.value || '').trimStart(), errorMessage: '' })
+    this.setData({ nickname: limitNickname(event.detail.value), errorMessage: '' })
   },
   toggleAgreement() {
     this.setData({ agreed: !this.data.agreed, errorMessage: '' })
@@ -69,7 +75,7 @@ Page({
   async confirmProfileLogin(event: any) {
     if (this.data.loading) return
     const formNickname = event && event.detail && event.detail.value && event.detail.value.nickname
-    const nickname = String(formNickname || this.data.nickname || '').trim()
+    const nickname = limitNickname(formNickname || this.data.nickname).trim()
     if (!this.data.avatarUrl) {
       this.setData({ errorMessage: '请先选择微信头像。' })
       return

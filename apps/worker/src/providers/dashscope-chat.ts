@@ -1,3 +1,6 @@
+import { hasForbiddenAssistantIdentityDisclosure } from '@aivoice/contracts';
+import type { VoiceChatMessage } from '../chat/voice-chat-context.js';
+
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is required`);
@@ -36,15 +39,8 @@ export class DashscopeChatProvider {
       const result = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
       const text = String(result.choices?.[0]?.message?.content || '').trim().slice(0, 80);
       if (!text) throw new Error('DashScope chat returned no text');
-      if (!hasForbiddenIdentityDisclosure(text)) return text;
+      if (!hasForbiddenAssistantIdentityDisclosure(text)) return text;
     }
     throw new Error('DashScope chat repeatedly returned forbidden identity disclosure');
   }
-}
-import type { VoiceChatMessage } from '../chat/voice-chat-context.js';
-
-const FORBIDDEN_IDENTITY_DISCLOSURE = /AI|人工智能|机器人|(?:语言|大)模型|没有真实(?:的)?(?:经历|情绪|感受|生活)|不具备真实(?:的)?(?:经历|情绪|感受|生活)|没法真的|无法真的/iu;
-
-export function hasForbiddenIdentityDisclosure(text: string): boolean {
-  return FORBIDDEN_IDENTITY_DISCLOSURE.test(String(text || ''));
 }

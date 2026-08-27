@@ -18,6 +18,12 @@ import {
   resolveProfileAvatarSource
 } from '../../utils/avatar-picker'
 
+const NICKNAME_MAX_LENGTH = 10
+
+function limitNickname(value: unknown): string {
+  return Array.from(String(value || '').trimStart()).slice(0, NICKNAME_MAX_LENGTH).join('')
+}
+
 function orderStatusLabel(status: string): string {
   const map: Record<string, string> = {
     PENDING: '待支付',
@@ -61,9 +67,26 @@ function ledgerView(item: PointsLedgerItem): any {
   }
 }
 
+const LEGAL_ROUTE_MAP: Record<string, string> = {
+  help: 'help',
+  service: 'service',
+  feedback: 'feedback',
+  privacy: 'data-privacy',
+  rules: 'rules',
+  policy: 'privacy',
+  terms: 'terms',
+  ai: 'ai'
+}
+
+function refreshNotice(sections: string[]): string {
+  if (sections.length === 0) return ''
+  if (sections.length === 1) return `${sections[0]}暂未更新，点击重试`
+  if (sections.length === 2) return `${sections[0]}和${sections[1]}暂未更新，点击重试`
+  return '部分账户信息暂未更新，点击重试'
+}
+
 Page({
   data: {
-    state: 'loading',
     errorMessage: '',
     user: null as UserProfile | null,
     avatarDisplayUrl: '',
@@ -76,61 +99,111 @@ Page({
     ledgerExpanded: false,
     updatingAvatar: false,
     updatingProfile: false,
-    deletingAccount: false
+    showNicknameEditor: false,
+    nicknameDraft: '',
+    nicknameCount: 0,
+    deletingAccount: false,
+    refreshing: false
   },
   onShow() {
     syncTabBarSelection(this, 'pages/account/index')
     if (!ensureAuthenticated()) return
-    this.loadAccount()
+    void this.prepareAccount()
   },
   onPullDownRefresh() {
-    this.loadAccount(true)
+    void this.loadAccount(true)
+  },
+  async prepareAccount() {
+    await this.hydrateCachedUser()
+    await this.loadAccount()
+  },
+  async hydrateCachedUser() {
+    const localUser = getUser()
+    if (!localUser) return
+    const avatarDisplayUrl = await this.resolveAvatarDisplayUrl(String(localUser.avatarUrl || ''))
+    this.setData({
+      user: localUser,
+      avatarDisplayUrl,
+      userInitial: voiceInitial(localUser.nickname || '我')
+    })
   },
   async loadAccount(fromPullDown = false) {
-    this.setData({ state: 'loading', errorMessage: '' })
+    const refreshToken = (this.refreshToken || 0) + 1
+    this.refreshToken = refreshToken
+    this.setData({ refreshing: true, errorMessage: '' })
     try {
-      const [me, points, ordersResult, ledgersResult] = await Promise.all([
+      const cachedUser = this.data.user || getUser()
+      const cachedAvatarUrl = String(cachedUser?.avatarUrl || '')
+      const [meResult, pointsResult, ordersResult, ledgersResult] = await Promise.allSettled([
         getMe(),
         getPoints(),
         listOrders(),
         listPointLedgers()
       ])
-      const orders = ordersResult.orders
-        .slice()
-        .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-        .map(orderView)
-      const ledgers = ledgersResult.ledgers
-        .slice()
-        .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-        .map(ledgerView)
-      const localUser = getUser()
-      const localAvatarUrl = String(localUser?.avatarUrl || '')
-      const serverAvatarUrl = String(me.user.avatarUrl || '')
-      const avatarSource = serverAvatarUrl || localAvatarUrl
-      const avatarDisplayUrl = await this.resolveAvatarDisplayUrl(avatarSource)
-      const user = serverAvatarUrl || !localAvatarUrl
-        ? me.user
-        : { ...me.user, avatarUrl: localAvatarUrl }
+      if (this.refreshToken !== refreshToken) return
+
+      const failedSections: string[] = []
+      const patch: Record<string, any> = {}
+
+      if (meResult.status === 'fulfilled') {
+        const me = meResult.value
+        const serverAvatarUrl = String(me.user.avatarUrl || '')
+        const avatarSource = serverAvatarUrl || cachedAvatarUrl
+        const user = serverAvatarUrl || !cachedAvatarUrl
+          ? me.user
+          : { ...me.user, avatarUrl: cachedAvatarUrl }
+        patch.user = user
+        patch.avatarDisplayUrl = await this.resolveAvatarDisplayUrl(avatarSource)
+        if (this.refreshToken !== refreshToken) return
+        patch.userInitial = voiceInitial(user.nickname || '我')
+        patch.voiceCount = me.voiceCount == null ? 0 : me.voiceCount
+        setUser(user)
+        if (!serverAvatarUrl && cachedAvatarUrl) void this.syncProfileAvatar(cachedAvatarUrl)
+      } else {
+        failedSections.push('账户资料')
+      }
+
+      if (pointsResult.status === 'fulfilled') {
+        patch.availablePoints = pointsResult.value.availablePoints
+      } else {
+        failedSections.push('积分')
+      }
+
+      if (ordersResult.status === 'fulfilled') {
+        patch.orders = ordersResult.value.orders
+          .slice()
+          .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+          .map(orderView)
+      } else {
+        failedSections.push('订单')
+      }
+
+      if (ledgersResult.status === 'fulfilled') {
+        patch.ledgers = ledgersResult.value.ledgers
+          .slice()
+          .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+          .map(ledgerView)
+      } else {
+        failedSections.push('积分记录')
+      }
+
+      patch.errorMessage = refreshNotice(failedSections)
+      patch.refreshing = false
+      this.setData(patch)
+    } catch (_error) {
+      if (this.refreshToken !== refreshToken) return
       this.setData({
-        state: 'success',
-        user,
-        avatarDisplayUrl,
-        userInitial: voiceInitial(me.user.nickname || '我'),
-        voiceCount: me.voiceCount == null ? 0 : me.voiceCount,
-        availablePoints: points.availablePoints,
-        orders,
-        ledgers
+        refreshing: false,
+        errorMessage: '账户信息暂未更新，点击重试'
       })
-      setUser(user)
-      if (!serverAvatarUrl && localAvatarUrl) void this.syncProfileAvatar(localAvatarUrl)
-    } catch (error: any) {
-      this.setData({ state: 'error', errorMessage: error.message || '账户信息加载失败，请重试。' })
     } finally {
+      if (this.refreshToken === refreshToken) this.setData({ refreshing: false })
       if (fromPullDown) wx.stopPullDownRefresh()
     }
   },
   retryLoad() {
-    this.loadAccount()
+    if (this.data.refreshing) return
+    void this.loadAccount()
   },
   async resolveAvatarDisplayUrl(source: string) {
     if (!source) return ''
@@ -194,22 +267,27 @@ Page({
       toast(message || '头像更新失败，请重试。')
     }
   },
-  async editNickname() {
+  editNickname() {
     if (this.data.updatingProfile || this.data.updatingAvatar) return
-    const current = this.data.user && this.data.user.nickname || ''
-    const result = await new Promise<any>(resolve => {
-      wx.showModal({
-        title: '修改昵称',
-        content: current,
-        editable: true,
-        placeholderText: '请输入昵称',
-        confirmText: '保存',
-        success: resolve,
-        fail: () => resolve({ confirm: false })
-      })
+    const nicknameDraft = limitNickname(this.data.user && this.data.user.nickname)
+    this.setData({
+      showNicknameEditor: true,
+      nicknameDraft,
+      nicknameCount: Array.from(nicknameDraft).length
     })
-    if (!result.confirm) return
-    const nickname = String(result.content || '').trim().slice(0, 20)
+  },
+  onNicknameInput(event: any) {
+    const nicknameDraft = limitNickname(event?.detail?.value)
+    this.setData({ nicknameDraft, nicknameCount: Array.from(nicknameDraft).length })
+  },
+  closeNicknameEditor() {
+    if (this.data.updatingProfile) return
+    this.setData({ showNicknameEditor: false, nicknameDraft: '', nicknameCount: 0 })
+  },
+  noop() {},
+  async saveNickname() {
+    if (this.data.updatingProfile || this.data.updatingAvatar) return
+    const nickname = limitNickname(this.data.nicknameDraft).trim()
     if (!nickname) {
       toast('昵称不能为空')
       return
@@ -218,7 +296,14 @@ Page({
     try {
       const user = await updateMeProfile({ nickname })
       setUser(user)
-      this.setData({ user, userInitial: voiceInitial(user.nickname || '我'), updatingProfile: false })
+      this.setData({
+        user,
+        userInitial: voiceInitial(user.nickname || '我'),
+        updatingProfile: false,
+        showNicknameEditor: false,
+        nicknameDraft: '',
+        nicknameCount: 0
+      })
       toast('昵称已更新', 'success')
     } catch (error: any) {
       this.setData({ updatingProfile: false })
@@ -239,36 +324,9 @@ Page({
   },
   showInfo(event: any) {
     const type = String(event.detail?.key || event.currentTarget?.dataset?.type || '')
-    if (type === 'policy' || type === 'terms' || type === 'ai') {
-      const target = type === 'policy' ? 'privacy' : type
-      wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(target)}` })
-      return
-    }
-    const contentMap: Record<string, { title: string; content: string }> = {
-      help: {
-        title: '使用帮助',
-        content: '选择 8–60 秒视频，再标记 8–20 秒清晰单人说话片段。试听完整播放后，可使用该声音进行对话或“说一句”。'
-      },
-      service: {
-        title: '退款与售后',
-        content: '支付、生成或删除异常时，请通过小程序客服提供订单时间和声音名称。支付结果与积分到账均以服务端记录为准。'
-      },
-      feedback: {
-        title: '意见反馈',
-        content: '请记录发生问题的页面、时间、手机系统和错误提示，提交给运营客服。前端不会展示或保存声音供应商音色 ID。'
-      },
-      privacy: {
-        title: '数据与隐私',
-        content: '原视频仅用于提取所选声音片段；声音和生成记录均为私有数据。你可以在声音设置中清空对话或删除整个声音。'
-      },
-      rules: {
-        title: '声音使用规则',
-        content: '仅可使用本人声音，或已取得声音本人、合法权利人或监护人明确授权的声音。不得用于身份核验、财产操作、营销外呼或冒充公众人物。'
-      }
-    }
-    const item = contentMap[type]
-    if (!item) return
-    wx.showModal({ ...item, showCancel: false, confirmText: '知道了' })
+    const target = LEGAL_ROUTE_MAP[type]
+    if (!target) return
+    wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(target)}` })
   },
   async removeAccount() {
     if (this.data.deletingAccount) return

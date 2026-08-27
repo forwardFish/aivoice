@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { evaluateContentSafety } from '@aivoice/contracts';
+import { evaluateContentSafety, hasForbiddenAssistantIdentityDisclosure } from '@aivoice/contracts';
 import {
   CloudBaseHttpError,
   type CloudBaseRuntimeClient,
@@ -42,7 +42,7 @@ interface JobRow {
 interface VoiceProviderPort {
   readonly targetModel: string;
   enroll(referencePath: string, prefix: string): Promise<string>;
-  synthesize(voiceId: string, text: string): Promise<Buffer>;
+  synthesize(voiceId: string, text: string, correlation?: { jobId?: string; messageId?: string }): Promise<Buffer>;
   deleteVoice(voiceId: string): Promise<void>;
 }
 
@@ -87,6 +87,15 @@ async function sha256(filePath: string): Promise<string> {
   const hash = crypto.createHash('sha256');
   for await (const chunk of createReadStream(filePath)) hash.update(chunk as Buffer);
   return hash.digest('hex');
+}
+
+function slowestStage(stages: Record<string, number>): { slowestStage: string; slowestStageMs: number } {
+  return Object.entries(stages).reduce(
+    (slowest, [stage, durationMs]) => durationMs > slowest.slowestStageMs
+      ? { slowestStage: stage, slowestStageMs: durationMs }
+      : slowest,
+    { slowestStage: '', slowestStageMs: 0 },
+  );
 }
 
 export class CloudBaseJobRunner {
@@ -258,7 +267,24 @@ export class CloudBaseJobRunner {
 
   private async generateMessage(job: JobRow, workDir: string): Promise<void> {
     if (!job.messageId || !job.voiceProfileId) throw new Error('GENERATE_MESSAGE job is incomplete');
-    const message = one(await this.runtime.rpc<{
+    const totalStartedAt = Date.now();
+    const stages: Record<string, number> = {};
+    let activeStage = 'load_input';
+    let mode = 'UNKNOWN';
+    let outputTextLength = 0;
+    let audioDurationMs = 0;
+    let audioBytes = 0;
+    const measure = async <T>(stage: string, operation: () => Promise<T>): Promise<T> => {
+      activeStage = stage;
+      const startedAt = Date.now();
+      try {
+        return await operation();
+      } finally {
+        stages[stage] = Date.now() - startedAt;
+      }
+    };
+    try {
+      const message = one(await measure('load_input', () => this.runtime.rpc<{
       jobId: string;
       userId: string;
       voiceId: string;
@@ -276,61 +302,126 @@ export class CloudBaseJobRunner {
       background: string;
       relationshipNote: string;
       providerVoiceIdEncrypted: string;
-      history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string }>;
-    } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId }));
-    let outputText = message.inputText;
-    if (message.mode === 'CHAT') {
-      const context = compileVoiceChatMessages({
-        voiceName: message.voiceName,
-        ageYears: message.ageYears,
-        gender: message.gender,
-        relationshipType: message.relationshipType,
-        relationshipLabel: message.relationshipLabel,
-        userAddress: message.userAddress,
-        userLifeStage: message.userLifeStage,
-        background: message.background,
-        relationshipNote: message.relationshipNote,
-        history: message.history,
-        currentInput: message.inputText,
+        history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string }>;
+      } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
+      mode = message.mode;
+      let outputText = message.inputText;
+      if (message.mode === 'CHAT') {
+        const context = compileVoiceChatMessages({
+          voiceName: message.voiceName,
+          ageYears: message.ageYears,
+          gender: message.gender,
+          relationshipType: message.relationshipType,
+          relationshipLabel: message.relationshipLabel,
+          userAddress: message.userAddress,
+          userLifeStage: message.userLifeStage,
+          background: message.background,
+          relationshipNote: message.relationshipNote,
+          history: message.history,
+          currentInput: message.inputText,
+        });
+        console.info('voice chat context compiled', {
+          promptVersion: 'voice-chat-context-v1',
+          modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
+          voiceId: message.voiceId,
+          conversationId: message.conversationId,
+          currentMessageId: message.messageId,
+          relationshipType: message.relationshipType,
+          historyCount: context.includedMessageIds.length,
+          contextHash: context.contextHash,
+        });
+        outputText = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
+        if (hasForbiddenAssistantIdentityDisclosure(outputText)) {
+          throw new ContentBlockedError('IDENTITY_DISCLOSURE_BLOCKED');
+        }
+      } else {
+        stages.chat_reply = 0;
+      }
+      outputTextLength = Array.from(outputText).length;
+      await measure('content_safety', async () => {
+        const safety = evaluateContentSafety(outputText);
+        if (!safety.safe) throw new ContentBlockedError(safety.reason || 'OUTPUT_CONTENT_BLOCKED');
       });
-      console.info('voice chat context compiled', {
-        promptVersion: 'voice-chat-context-v1',
-        modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
-        voiceId: message.voiceId,
-        conversationId: message.conversationId,
-        currentMessageId: message.messageId,
-        relationshipType: message.relationshipType,
-        historyCount: context.includedMessageIds.length,
-        contextHash: context.contextHash,
-      });
-      outputText = await this.chatProvider.reply(context.messages);
-    }
-    const safety = evaluateContentSafety(outputText);
-    if (!safety.safe) throw new ContentBlockedError(safety.reason || 'OUTPUT_CONTENT_BLOCKED');
-    const audioPath = path.join(workDir, 'generated.wav');
-    await fs.writeFile(audioPath, await this.voiceProvider.synthesize(decryptProviderId(message.providerVoiceIdEncrypted), outputText));
-    await embedAigcMetadata(audioPath, job.messageId);
-    const [probe, hash] = await Promise.all([probeWav(audioPath), sha256(audioPath)]);
-    const objectKey = `generated/${job.userId}/${job.voiceProfileId}/${job.messageId}.wav`;
-    const storedObjectKey = await this.runtime.uploadFile(this.audioBucket, objectKey, audioPath, 'audio/wav');
-    let completed = false;
-    try {
-      await this.runtime.rpc('rpc_message_complete_success', {
-        pUserId: job.userId,
-        pVoiceId: job.voiceProfileId,
-        pMessageId: job.messageId,
-        pOutputText: outputText,
-        pGenerationCost: this.generationPointCost,
-        pObjectKey: storedObjectKey,
-        pMimeType: 'audio/wav',
-        pBytes: probe.bytes,
-        pDurationMs: probe.durationMs,
-        pSha256: hash,
-      });
-      completed = true;
-      await this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId });
+      if (message.mode === 'CHAT') {
+        await measure('publish_text', () => this.runtime.rpc('rpc_message_publish_text', {
+          pJobId: job.id,
+          pWorkerId: this.workerId,
+          pUserId: job.userId,
+          pMessageId: job.messageId,
+          pOutputText: outputText,
+        }));
+      } else {
+        stages.publish_text = 0;
+      }
+      const audioPath = path.join(workDir, 'generated.wav');
+      const audio = await measure('voice_synthesis_download', () => this.voiceProvider.synthesize(
+        decryptProviderId(message.providerVoiceIdEncrypted),
+        outputText,
+        { jobId: job.id, messageId: job.messageId || '' },
+      ));
+      await measure('write_audio', () => fs.writeFile(audioPath, audio));
+      await measure('embed_metadata', () => embedAigcMetadata(audioPath, job.messageId || ''));
+      const [probe, hash] = await measure('inspect_audio', () => Promise.all([probeWav(audioPath), sha256(audioPath)]));
+      audioDurationMs = probe.durationMs;
+      audioBytes = probe.bytes;
+      const objectKey = `generated/${job.userId}/${job.voiceProfileId}/${job.messageId}.wav`;
+      const storedObjectKey = await measure('upload_audio', () => this.runtime.uploadFile(this.audioBucket, objectKey, audioPath, 'audio/wav'));
+      let completed = false;
+      try {
+        await measure('complete_message', () => this.runtime.rpc('rpc_message_complete_success', {
+          pUserId: job.userId,
+          pVoiceId: job.voiceProfileId,
+          pMessageId: job.messageId,
+          pOutputText: outputText,
+          pGenerationCost: this.generationPointCost,
+          pObjectKey: storedObjectKey,
+          pMimeType: 'audio/wav',
+          pBytes: probe.bytes,
+          pDurationMs: probe.durationMs,
+          pSha256: hash,
+        }));
+        completed = true;
+        await measure('mark_job_succeeded', () => this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId }));
+      } catch (error) {
+        if (!completed) await this.deleteObject(this.audioBucket, storedObjectKey).catch(() => undefined);
+        throw error;
+      }
+      console.info('message_generation_timing', JSON.stringify({
+        event: 'message_generation_timing',
+        status: 'SUCCEEDED',
+        jobId: job.id,
+        messageId: job.messageId,
+        mode,
+        attempt: job.attempts,
+        outputTextLength,
+        audioDurationMs,
+        audioBytes,
+        stages,
+        ...slowestStage(stages),
+        totalMs: Date.now() - totalStartedAt,
+        overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+      }));
     } catch (error) {
-      if (!completed) await this.deleteObject(this.audioBucket, storedObjectKey).catch(() => undefined);
+      if (error instanceof Error) {
+        Object.assign(error, { generationStage: activeStage, generationStages: { ...stages } });
+      }
+      console.error('message_generation_timing', JSON.stringify({
+        event: 'message_generation_timing',
+        status: 'FAILED',
+        jobId: job.id,
+        messageId: job.messageId,
+        mode,
+        attempt: job.attempts,
+        failedStage: activeStage,
+        outputTextLength,
+        audioDurationMs,
+        audioBytes,
+        stages,
+        ...slowestStage(stages),
+        totalMs: Date.now() - totalStartedAt,
+        overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+        error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+      }));
       throw error;
     }
   }
@@ -407,19 +498,25 @@ export class CloudBaseJobRunner {
       }
       const message = error instanceof Error ? error.message : String(error);
       const quality = error instanceof ReferenceQualityError ? error : null;
+      const generationStage = job.type === 'GENERATE_MESSAGE'
+        ? String((error as Error & { generationStage?: string })?.generationStage || '')
+        : '';
+      const generationErrorCode = generationStage
+        ? `MESSAGE_${generationStage.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}_FAILED`.slice(0, 100)
+        : 'JOB_FAILED';
       const terminal = Boolean(quality) || job.attempts >= job.maxAttempts;
       if (terminal && job.messageId && job.type === 'GENERATE_MESSAGE') {
         await this.runtime.rpc('rpc_message_complete_failure', {
           pUserId: job.userId,
           pMessageId: job.messageId,
-          pErrorCode: quality?.code || 'PROVIDER_FAILED',
+          pErrorCode: quality?.code || generationErrorCode,
           pErrorMessage: message.slice(0, 500),
         });
       }
       await this.runtime.rpc('rpc_job_mark_failed_or_retry', {
         pJobId: job.id,
         pWorkerId: this.workerId,
-        pErrorCode: quality?.code || 'JOB_FAILED',
+        pErrorCode: quality?.code || generationErrorCode,
         pErrorMessage: message.slice(0, 1000),
         pRetryable: !terminal,
         pRetryDelaySeconds: 10,

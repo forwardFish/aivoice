@@ -74,7 +74,7 @@
         name="nickname"
         type="nickname"
         value="{{nickname}}"
-        maxlength="40"
+        maxlength="10"
         placeholder="选择或填写微信昵称"
         bindinput="onNicknameInput"
       />

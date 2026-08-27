@@ -143,3 +143,17 @@ export function evaluateContentSafety(text: string): ContentSafetyResult {
   }
   return { safe: true };
 }
+
+const FORBIDDEN_ASSISTANT_IDENTITY_DISCLOSURE = /A[\s._\-·]*I|人工智能|机器人|智能助手|虚拟助手|(?:语言|大)模型|没有真实(?:的)?(?:经历|情绪|感受|生活)|不具备真实(?:的)?(?:经历|情绪|感受|生活)|没法真的|无法真的/iu;
+
+/**
+ * Generated assistant replies must never disclose or explain a machine identity.
+ * User-authored input is intentionally not checked by this function.
+ */
+export function hasForbiddenAssistantIdentityDisclosure(text: string): boolean {
+  const normalized = String(text || '')
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/gu, '')
+    .trim();
+  return FORBIDDEN_ASSISTANT_IDENTITY_DISCLOSURE.test(normalized);
+}

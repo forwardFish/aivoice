@@ -96,6 +96,8 @@ const envVariables = {
   CLOUDBASE_APIKEY: state.runtimeApiKey,
   CLOUDBASE_STORAGE_MODE: process.env.CLOUDBASE_STORAGE_MODE || 'native',
   CLOUDBASE_STORAGE_ENV_ID: functionEnvId,
+  CLOUDBASE_NATIVE_STORAGE_SECRET_ID: secretId,
+  CLOUDBASE_NATIVE_STORAGE_SECRET_KEY: secretKey,
   CLOUDBASE_SOURCE_BUCKET: 'aivoice-source',
   CLOUDBASE_AUDIO_BUCKET: 'aivoice-audio',
   CLOUDBASE_JOBS_BUCKET: 'aivoice-jobs',

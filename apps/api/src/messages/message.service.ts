@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { evaluateContentSafety } from '@aivoice/contracts';
+import { evaluateContentSafety, hasForbiddenAssistantIdentityDisclosure } from '@aivoice/contracts';
 import { and, desc, eq, gt, inArray } from 'drizzle-orm';
 import { DatabaseService } from '../db/database.service.js';
 import { invokeWorkerAsync } from '../db/cloudbase-worker-invoker.js';
@@ -59,6 +59,18 @@ function errorText(error: unknown): string {
     return [record.code, record.message, record.details, record.hint].filter(Boolean).join(' ');
   }
   return error.message;
+}
+
+const IDENTITY_BLOCKED_COPY = '这条回复未通过身份表达检查，已隐藏。';
+
+function visibleAssistantOutput(message: Pick<CloudMessageRow, 'mode' | 'status' | 'outputText' | 'errorCode'>) {
+  const blocked = message.mode === 'CHAT' && hasForbiddenAssistantIdentityDisclosure(message.outputText || '');
+  return {
+    blocked,
+    status: blocked ? 'BLOCKED' as const : message.status,
+    text: blocked ? IDENTITY_BLOCKED_COPY : message.outputText,
+    errorCode: blocked ? 'IDENTITY_DISCLOSURE_BLOCKED' : message.errorCode,
+  };
 }
 
 @Injectable()
@@ -127,7 +139,15 @@ export class MessageService {
     }
     if (!input.idempotencyKey.trim()) throw new ConflictException('Idempotency-Key is required');
     if (this.database.isCloudBase) {
+      const totalStartedAt = Date.now();
+      let activeStage = 'create_message';
+      let createMessageMs = 0;
+      let lookupJobMs = 0;
+      let dispatchWorkerMs = 0;
+      let messageId = '';
+      let jobId = '';
       try {
+        const createStartedAt = Date.now();
         const raw = await this.database.requireCloud().rpc<
           MessageCreateRpcResult | MessageCreateRpcResult[]
         >('rpc_message_create', {
@@ -138,8 +158,10 @@ export class MessageService {
           pInputText: text,
           pGenerationCost: loadPointsConfig().generationCost,
         });
+        createMessageMs = Date.now() - createStartedAt;
         const result = firstRpcRow(raw);
         if (!result) throw new Error('CloudBase did not return the created message');
+        messageId = result.messageId;
         if (result.errorCode === 'POINTS_EXHAUSTED') {
           const config = loadPointsConfig();
           throw new HttpException({
@@ -149,18 +171,57 @@ export class MessageService {
             purchaseOption: config.product,
           }, 402);
         }
-        let jobId = result.jobId;
+        jobId = result.jobId || '';
         if (!jobId && result.status === 'PROCESSING') {
+          activeStage = 'lookup_job';
+          const lookupStartedAt = Date.now();
           const job = await this.database.requireCloud().selectOne<{ id: string }>('jobs', {
             select: 'id',
             filters: { messageId: result.messageId, type: 'GENERATE_MESSAGE', status: { in: ['QUEUED', 'PROCESSING'] } },
             order: [{ column: 'createdAt', ascending: false }],
           });
-          jobId = job?.id;
+          jobId = job?.id || '';
+          lookupJobMs = Date.now() - lookupStartedAt;
         }
+        activeStage = 'dispatch_worker';
+        const dispatchStartedAt = Date.now();
         await this.triggerJob(jobId);
+        dispatchWorkerMs = Date.now() - dispatchStartedAt;
+        console.info('message_dispatch_timing', JSON.stringify({
+          event: 'message_dispatch_timing',
+          status: 'SUCCEEDED',
+          messageId: result.messageId,
+          jobId: jobId || '',
+          mode: input.mode,
+          idempotent: Boolean(result.idempotent),
+          createMessageMs,
+          lookupJobMs,
+          dispatchWorkerMs,
+          slowestStage: createMessageMs >= lookupJobMs && createMessageMs >= dispatchWorkerMs
+            ? 'create_message'
+            : lookupJobMs >= dispatchWorkerMs ? 'lookup_job' : 'dispatch_worker',
+          slowestStageMs: Math.max(createMessageMs, lookupJobMs, dispatchWorkerMs),
+          totalMs: Date.now() - totalStartedAt,
+          overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+        }));
         return { messageId: result.messageId, status: result.status };
       } catch (error) {
+        console.error('message_dispatch_timing', JSON.stringify({
+          event: 'message_dispatch_timing',
+          status: 'FAILED',
+          messageId,
+          jobId,
+          mode: input.mode,
+          failedStage: activeStage,
+          createMessageMs,
+          lookupJobMs,
+          dispatchWorkerMs,
+          slowestStage: activeStage,
+          slowestStageMs: Math.max(createMessageMs, lookupJobMs, dispatchWorkerMs),
+          totalMs: Date.now() - totalStartedAt,
+          overThreeSecondTarget: Date.now() - totalStartedAt > 3_000,
+          error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+        }));
         if (error instanceof HttpException) throw error;
         return this.rethrowCloud(error, input.userId);
       }
@@ -254,15 +315,16 @@ export class MessageService {
         filters: { messageId, kind: 'GENERATED_AUDIO', status: 'READY', deletedAt: null },
         order: [{ column: 'createdAt', ascending: false }],
       });
+      const visible = visibleAssistantOutput(message);
       return {
         id: message.id,
         mode: message.mode,
-        status: message.status,
+        status: visible.status,
         inputText: message.inputText,
-        outputText: message.outputText,
-        errorCode: message.errorCode,
+        outputText: visible.text,
+        errorCode: visible.errorCode,
         errorMessage: message.errorMessage,
-        audio: audio ? {
+        audio: !visible.blocked && audio ? {
           mediaId: audio.id,
           url: await this.media.signedUrl(audio.id, userId),
           durationMs: audio.durationMs,
@@ -282,15 +344,16 @@ export class MessageService {
         eq(mediaAssets.status, 'READY'),
       ),
     });
+    const visible = visibleAssistantOutput(message);
     return {
       id: message.id,
       mode: message.mode,
-      status: message.status,
+      status: visible.status,
       inputText: message.inputText,
-      outputText: message.outputText,
-      errorCode: message.errorCode,
+      outputText: visible.text,
+      errorCode: visible.errorCode,
       errorMessage: message.errorMessage,
-      audio: audio ? { mediaId: audio.id, url: await this.media.signedUrl(audio.id, userId), durationMs: audio.durationMs } : null,
+      audio: !visible.blocked && audio ? { mediaId: audio.id, url: await this.media.signedUrl(audio.id, userId), durationMs: audio.durationMs } : null,
       createdAt: message.createdAt,
       readyAt: message.readyAt,
     };
@@ -334,6 +397,7 @@ export class MessageService {
         conversationId: conversation.id,
         messages: (await Promise.all(rows.map(async (row) => {
           const audio = audioByMessage.get(row.id);
+          const visible = visibleAssistantOutput(row);
           const userMessage = {
             id: `${row.id}-user`,
             role: 'USER' as const,
@@ -346,14 +410,14 @@ export class MessageService {
             id: row.id,
             role: 'ASSISTANT' as const,
             mode: row.mode,
-            status: row.status,
-            text: row.outputText,
-            audio: audio ? {
+            status: visible.status,
+            text: visible.text,
+            audio: !visible.blocked && audio ? {
               mediaId: audio.id,
               url: await this.media.signedUrl(audio.id, userId),
               durationMs: audio.durationMs,
             } : null,
-            failureCode: row.errorCode,
+            failureCode: visible.errorCode,
             createdAt: row.createdAt,
           };
           return row.mode === 'CHAT' ? [userMessage, assistantMessage] : [assistantMessage];
@@ -394,6 +458,7 @@ export class MessageService {
       conversationId: conversation.id,
       messages: (await Promise.all(rows.map(async (row) => {
         const audio = audioByMessage.get(row.id);
+        const visible = visibleAssistantOutput(row);
         const userMessage = {
           id: `${row.id}-user`,
           role: 'USER' as const,
@@ -406,14 +471,14 @@ export class MessageService {
           id: row.id,
           role: 'ASSISTANT' as const,
           mode: row.mode,
-          status: row.status,
-          text: row.outputText,
-          audio: audio ? {
+          status: visible.status,
+          text: visible.text,
+          audio: !visible.blocked && audio ? {
             mediaId: audio.id,
             url: await this.media.signedUrl(audio.id, userId),
             durationMs: audio.durationMs,
           } : null,
-          failureCode: row.errorCode,
+          failureCode: visible.errorCode,
           createdAt: row.createdAt,
         };
         return row.mode === 'CHAT' ? [userMessage, assistantMessage] : [assistantMessage];

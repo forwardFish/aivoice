@@ -6,6 +6,7 @@ const CREATION_SESSION_KEY = 'nashide_ta_creation_session'
 const POST_LOGIN_ROUTE_KEY = 'nashide_ta_post_login_route'
 const WORKBENCH_DRAFT_PREFIX = 'nashide_ta_workbench_draft:'
 const REPLY_FEEDBACK_PREFIX = 'nashide_ta_reply_feedback:'
+const GENERATION_TIMINGS_KEY = 'nashide_ta_generation_timings'
 
 export interface CreationSession {
   voiceId: string
@@ -33,6 +34,34 @@ export interface ReplyFeedback {
   verdict: 'LIKE' | 'DISLIKE'
   reason?: string
   updatedAt: number
+}
+
+export interface GenerationTimingRecord {
+  event: 'message_delivery_timing'
+  status: 'READY' | 'FAILED' | 'CANCELLED'
+  messageId: string
+  mode: 'chat' | 'exact'
+  firstTextMs: number
+  totalMs: number
+  pollCount: number
+  pollRequestMs: number
+  completedAt: number
+  [key: string]: unknown
+}
+
+export function appendGenerationTiming(record: GenerationTimingRecord): void {
+  const current = wx.getStorageSync(GENERATION_TIMINGS_KEY)
+  const rows = Array.isArray(current) ? current : []
+  wx.setStorageSync(GENERATION_TIMINGS_KEY, [...rows.slice(-19), record])
+}
+
+export function getGenerationTimings(): GenerationTimingRecord[] {
+  const current = wx.getStorageSync(GENERATION_TIMINGS_KEY)
+  return Array.isArray(current) ? current : []
+}
+
+export function clearGenerationTimings(): void {
+  wx.removeStorageSync(GENERATION_TIMINGS_KEY)
 }
 
 export function getToken(): string {
@@ -210,7 +239,7 @@ export function clearLocalProjectData(): void {
     const info = wx.getStorageInfoSync()
     const keys = Array.isArray(info && info.keys) ? info.keys : []
     keys.forEach((key: string) => {
-      if (key === TOKEN_KEY || key === USER_KEY || key === CREATION_SESSION_KEY || key === POST_LOGIN_ROUTE_KEY || key.startsWith(WORKBENCH_DRAFT_PREFIX) || key.startsWith(REPLY_FEEDBACK_PREFIX) || key.startsWith(PENDING_ORDER_PREFIX)) {
+      if (key === TOKEN_KEY || key === USER_KEY || key === CREATION_SESSION_KEY || key === POST_LOGIN_ROUTE_KEY || key === GENERATION_TIMINGS_KEY || key.startsWith(WORKBENCH_DRAFT_PREFIX) || key.startsWith(REPLY_FEEDBACK_PREFIX) || key.startsWith(PENDING_ORDER_PREFIX)) {
         wx.removeStorageSync(key)
       }
     })

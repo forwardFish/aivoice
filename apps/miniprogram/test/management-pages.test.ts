@@ -25,6 +25,10 @@ test('account profile resolves and retries persistence for the selected WeChat a
   assert.match(source, /resolveProfileAvatarSource\(source\)/)
   assert.match(source, /itemList:\s*\['更换头像', '修改昵称'\]/)
   assert.match(source, /const localAvatarUrl = await chooseFallbackAvatar\(\)/)
+  assert.match(markup, /maxlength="10"/)
+  assert.match(markup, /bindtap="saveNickname"/)
+  assert.match(source, /const NICKNAME_MAX_LENGTH = 10/)
+  assert.match(source, /limitNickname\(this\.data\.nicknameDraft\)/)
 })
 
 test('voice profile submit posts the server canonical consent text returned by profile save', async () => {

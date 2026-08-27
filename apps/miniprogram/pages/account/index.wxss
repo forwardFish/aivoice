@@ -12,21 +12,28 @@
 .account-aurora { position: absolute; border-radius: 50%; pointer-events: none; }
 .aurora-top { width: 390rpx; height: 330rpx; right: -150rpx; top: 30rpx; background: radial-gradient(circle, rgba(189, 174, 255, 0.18), transparent 67%); }
 .aurora-middle { width: 430rpx; height: 360rpx; left: -210rpx; top: 650rpx; background: radial-gradient(circle, rgba(212, 205, 255, 0.18), transparent 68%); }
-.account-state { position: relative; z-index: 2; margin-top: 28rpx; overflow: hidden; border-radius: 34rpx; }
 .account-content { position: relative; z-index: 2; }
 
 .account-hero { height: 250rpx; position: relative; }
 .profile-avatar { width: 124rpx; height: 124rpx; position: absolute; left: 10rpx; top: 31rpx; z-index: 3; border-radius: 50%; overflow: hidden; border: 4rpx solid rgba(255, 255, 255, 0.96); background: #efedff; box-shadow: 0 14rpx 34rpx rgba(63, 62, 98, 0.14); }
 .profile-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #f4f2ff, #e7e3fa); }
 .profile-avatar.fallback image { width: 112rpx; height: 112rpx; }
-.profile-copy { position: absolute; left: 164rpx; top: 47rpx; z-index: 4; }
+.profile-copy { position: absolute; left: 164rpx; right: 230rpx; top: 47rpx; z-index: 4; }
 .profile-name { display: block; max-width: 260rpx; overflow: hidden; color: #111b3c; font-size: 36rpx; line-height: 1.2; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
 .wechat-profile-row { margin-top: 17rpx; display: flex; align-items: center; gap: 10rpx; color: #7f87a0; font-size: 22rpx; }
 .wechat-profile-row image { width: 29rpx; height: 25rpx; opacity: 0.5; filter: grayscale(1) brightness(0.72); }
 
-.edit-profile-button { width:170rpx; min-width:170rpx; min-height:49rpx; margin:23rpx 0 0; padding:0 10rpx; border-radius:25rpx; display:flex; align-items:center; justify-content:center; gap:5rpx; color:var(--action-secondary-text); background:var(--action-secondary-bg); border:2rpx solid var(--action-secondary-border); font-size:21rpx; font-weight:630; white-space:nowrap; box-shadow:none; }
-.edit-profile-button image { flex: 0 0 auto; width: 43rpx; height: 43rpx; margin-left: -4rpx; }
+.edit-profile-button { width: 156rpx !important; min-width: 156rpx; max-width: 156rpx; min-height: 54rpx; margin: 23rpx 0 0; padding: 0 12rpx; border-radius: 999rpx; display: flex; align-items: center; justify-content: center; gap: 4rpx; color: var(--action-secondary-text); background: var(--action-secondary-bg); border: 2rpx solid var(--action-secondary-border); font-size: 21rpx; font-weight: 630; white-space: nowrap; box-shadow: none; box-sizing: border-box; }
+.edit-profile-button image { flex: 0 0 auto; width: 30rpx; height: 30rpx; margin-left: 0; }
+.edit-profile-label { display: block; max-width: 168rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .identity-visual { width: 250rpx; height: 230rpx; position: absolute; right: -10rpx; top: 2rpx; opacity: 0.94; }
+
+.account-notice { margin: 10rpx 0 20rpx; padding: 22rpx 24rpx; border-radius: 28rpx; display: flex; align-items: center; justify-content: space-between; gap: 20rpx; background: rgba(255, 245, 235, 0.92); border: 2rpx solid rgba(255, 211, 171, 0.9); box-shadow: 0 14rpx 30rpx rgba(122, 84, 35, 0.08); }
+.account-notice-disabled { opacity: 0.72; }
+.account-notice-copy { flex: 1; min-width: 0; }
+.account-notice-title { display: block; color: #6e3f12; font-size: 25rpx; font-weight: 700; }
+.account-notice-desc { display: block; margin-top: 6rpx; color: #9b6a3f; font-size: 21rpx; line-height: 1.45; }
+.account-notice-action { flex: 0 0 auto; color: #c46a19; font-size: 22rpx; font-weight: 700; }
 
 .account-summary { min-height: 190rpx; padding: 30rpx 27rpx; border-radius: 34rpx; display: flex; align-items: stretch; background: rgba(255, 255, 255, 0.58); border: 2rpx solid rgba(255, 255, 255, 0.86); box-shadow: 0 19rpx 48rpx rgba(69, 69, 108, 0.07); }
 .summary-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: 20rpx; }
@@ -60,14 +67,28 @@
 .logout-button { min-height: 86rpx; margin-top: 28rpx; border-radius: 25rpx; }
 .version-note { display: block; margin-top: 22rpx; color: #a0a5b5; font-size: 20rpx; text-align: center; }
 
+.nickname-editor-backdrop { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 40rpx; background: rgba(20, 22, 35, 0.46); }
+.nickname-editor { width: 100%; overflow: hidden; border-radius: 28rpx; background: #ffffff; box-shadow: 0 28rpx 80rpx rgba(28, 28, 52, 0.2); }
+.nickname-editor-title { display: block; padding: 36rpx 32rpx 24rpx; color: #141a32; font-size: 32rpx; font-weight: 700; text-align: center; }
+.nickname-input-shell { margin: 0 32rpx 32rpx; min-height: 82rpx; padding: 0 22rpx; border: 2rpx solid #e3e1ef; border-radius: 18rpx; display: flex; align-items: center; gap: 14rpx; background: #fafaff; box-sizing: border-box; }
+.nickname-input { flex: 1; min-width: 0; height: 80rpx; color: #151b35; font-size: 28rpx; }
+.nickname-count { flex: 0 0 auto; color: #9298ad; font-size: 22rpx; }
+.nickname-editor-actions { min-height: 96rpx; border-top: 1rpx solid #ecebf3; display: flex; }
+.nickname-editor-action { width: 50%; min-height: 96rpx; margin: 0; border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 29rpx; font-weight: 650; background: #ffffff; }
+.nickname-cancel { color: #20263c; border-right: 1rpx solid #ecebf3; }
+.nickname-save { color: var(--action-secondary-text); }
+.nickname-editor-action[disabled] { color: #a5a9b7; background: #f7f7fa; }
+
 button::after { border: 0; }
 
 @media (max-height: 740px) {
   .account-screen { padding-bottom: calc(195rpx + env(safe-area-inset-bottom)); }
   .account-hero { height: 220rpx; }
   .profile-avatar { width: 108rpx; height: 108rpx; top: 22rpx; }
-  .profile-copy { left: 145rpx; top: 32rpx; }
+  .profile-copy { left: 145rpx; right: 205rpx; top: 32rpx; }
   .profile-name { font-size: 32rpx; }
+  .edit-profile-button { width: 146rpx !important; min-width: 146rpx; max-width: 146rpx; min-height: 50rpx; margin-top: 18rpx; }
+  .edit-profile-label { max-width: 152rpx; }
   .identity-visual { width: 210rpx; height: 198rpx; right: -8rpx; top: 1rpx; }
   .account-summary { min-height: 168rpx; padding: 24rpx; }
   .summary-icon { width: 64rpx; height: 64rpx; }

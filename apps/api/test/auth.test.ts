@@ -1,5 +1,8 @@
+import 'reflect-metadata';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { validate } from 'class-validator';
+import { ProfileDto } from '../src/auth/auth.dto.js';
 import { AuthService } from '../src/auth/auth.service.js';
 import { WechatCodeExchanger } from '../src/auth/wechat-code-exchanger.js';
 import type { DatabaseService } from '../src/db/database.service.js';
@@ -8,6 +11,14 @@ function restoreEnv(name: string, value: string | undefined): void {
   if (value === undefined) delete process.env[name];
   else process.env[name] = value;
 }
+
+test('profile nickname accepts at most ten characters', async () => {
+  const valid = Object.assign(new ProfileDto(), { nickname: '1234567890' });
+  const invalid = Object.assign(new ProfileDto(), { nickname: '12345678901' });
+
+  assert.equal((await validate(valid)).length, 0);
+  assert.ok((await validate(invalid)).some((error) => error.property === 'nickname'));
+});
 
 test('production forbids mock login and real code2Session never exposes session_key', async () => {
   const previous = {
@@ -87,7 +98,7 @@ test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or 
 
   const result = await new AuthService(database, exchanger).login({
     code: 'wx-code',
-    profile: { nickname: '云端用户', avatarUrl: 'https://example.test/avatar.png' },
+    profile: { nickname: '云端用户1234567890', avatarUrl: 'https://example.test/avatar.png' },
   });
 
   assert.equal(result.user.id, 'user-cloud');
@@ -97,6 +108,7 @@ test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or 
     'rpc_auth_login_wechat',
     'rpc_auth_issue_session',
   ]);
+  assert.equal(calls[0]?.args.pNickname, '云端用户123456');
   assert.equal(calls[0]?.args.pSignupBonusPoints, 10);
   assert.equal(typeof calls[1]?.args.pTokenHash, 'string');
 });

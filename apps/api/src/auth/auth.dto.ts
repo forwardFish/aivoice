@@ -4,7 +4,7 @@ import { IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator
 export class ProfileDto {
   @IsOptional()
   @IsString()
-  @MaxLength(40)
+  @MaxLength(10)
   nickname?: string;
 
   @IsOptional()

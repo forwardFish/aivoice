@@ -68,7 +68,7 @@
               <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
                 <text class="message-text">{{item.text}}</text>
                 <audio-player wx:if="{{item.showAudio}}" class="message-audio" src="{{item.audioUrl}}" durationMs="{{item.durationMs || 0}}" compact="{{true}}" bubble="{{true}}" durationOnly="{{true}}"></audio-player>
-                <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '正在生成 AI 回复' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
+                <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '声音生成中…' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' && item.text ? '声音生成失败，文字已保留，未扣积分' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
               </view>
               <text wx:if="{{item.isUser && item.timeText}}" class="message-time">{{item.timeText}}</text>
             </view>
@@ -82,11 +82,12 @@
               </view>
               <image class="message-avatar user-message-avatar" src="{{userAvatar}}" mode="aspectFill"></image>
             </view>
-            <view class="message-row assistant-row pending-row">
+            <view id="pending-assistant" class="message-row assistant-row pending-row">
               <view class="message-avatar assistant-message-avatar">{{voiceInitial}}</view>
               <view class="message-stack assistant-stack">
                 <view class="message-bubble assistant-bubble">
-                  <view class="typing-wave"><text class="typing-wave-bar wave-one"></text><text class="typing-wave-bar wave-two"></text><text class="typing-wave-bar wave-three"></text><text class="typing-wave-bar wave-four"></text></view>
+                  <text wx:if="{{pendingReplyText}}" class="message-text">{{pendingReplyText}}</text>
+                  <view wx:else class="typing-wave"><text class="typing-wave-bar wave-one"></text><text class="typing-wave-bar wave-two"></text><text class="typing-wave-bar wave-three"></text><text class="typing-wave-bar wave-four"></text></view>
                   <text class="message-tag">{{generationStatusText}}</text>
                 </view>
               </view>
@@ -100,22 +101,25 @@
             <view class="composer-leading" aria-label="语音输入入口">
               <image class="composer-leading-icon" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
             </view>
-            <input
-              class="composer-input"
-              type="text"
-              value="{{chatText}}"
-              placeholder="{{chatInputFocused ? '' : '输入想说的话…'}}"
-              maxlength="200"
-              adjust-position="{{false}}"
-              hold-keyboard="{{true}}"
-              show-confirm-bar="{{false}}"
-              confirm-type="send"
-              bindfocus="onChatFocus"
-              bindinput="onChatInput"
-              bindblur="onChatBlur"
-              bindconfirm="sendChat"
-              disabled="{{sending}}"
-            />
+            <view class="composer-input-shell">
+              <input
+                class="composer-input"
+                type="text"
+                value="{{chatText}}"
+                placeholder="{{chatInputFocused ? '' : '输入想说的话…'}}"
+                placeholder-class="composer-input-placeholder"
+                maxlength="200"
+                adjust-position="{{false}}"
+                hold-keyboard="{{true}}"
+                show-confirm-bar="{{false}}"
+                confirm-type="send"
+                bindfocus="onChatFocus"
+                bindinput="onChatInput"
+                bindblur="onChatBlur"
+                bindconfirm="sendChat"
+                disabled="{{sending}}"
+              />
+            </view>
             <button class="primary-button send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
           </view>
         </view>

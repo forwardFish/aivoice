@@ -9,6 +9,7 @@ test('login profile actions use compact native buttons with visible sibling spac
 
   assert.match(wxml, /<button[^>]*class="ui-form-action secondary-button"[^>]*bindtap="closeProfileSheet"[^>]*>取消<\/button>/)
   assert.match(wxml, /<button[^>]*class="ui-form-action primary-button"[^>]*bindtap="confirmProfileLogin"/)
+  assert.match(wxml, /type="nickname"[\s\S]*maxlength="10"/)
   assert.doesNotMatch(wxml, /<app-button\b/)
   assert.doesNotMatch(pageJson, /"app-button"\s*:/)
   assert.match(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*flex/s)
@@ -73,6 +74,9 @@ test('login waits for avatar and nickname before using real wx.login code', asyn
   instance.submitLogin()
   assert.equal(instance.data.showProfileSheet, true)
   assert.equal(loginCalled, false)
+
+  instance.onNicknameInput({ detail: { value: '123456789012' } })
+  assert.equal(instance.data.nickname, '1234567890')
 
   await instance.confirmProfileLogin({ detail: { value: { nickname: '测试用户' } } })
   assert.equal(loginCalled, false)

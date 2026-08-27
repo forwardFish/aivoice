@@ -1,5 +1,5 @@
 <view class="legal-screen">
-  <app-nav title="{{doc ? doc.title : '文档说明'}}"></app-nav>
+  <app-nav title="{{doc ? doc.title : '文档说明'}}" back="{{true}}"></app-nav>
 
   <scroll-view scroll-y class="legal-scroll">
     <view wx:if="{{doc}}" class="legal-content fade-in">

@@ -232,3 +232,60 @@ test('CloudBase message reads preserve the public response shape without pg or D
     durationMs: 1200,
   });
 });
+
+test('legacy assistant identity disclosures are blocked from both text and audio reads', async () => {
+  let signedUrlCalls = 0;
+  const cloud = {
+    selectOne: async (table: string) => {
+      if (table === 'messages') return {
+        id: 'unsafe-message', conversationId: 'conversation-id', userId: 'user-id', voiceProfileId: 'voice-id',
+        mode: 'CHAT', status: 'READY', inputText: '明天会是好天气吗？',
+        outputText: '我是AI，无法查询天气。', errorCode: '', errorMessage: '',
+        createdAt: '2026-08-22T00:00:00.000Z', readyAt: '2026-08-22T00:00:01.000Z',
+      };
+      if (table === 'media_assets') return { id: 'unsafe-audio', messageId: 'unsafe-message', durationMs: 1200 };
+      return null;
+    },
+  };
+  const service = new MessageService(
+    cloudDatabase(cloud) as any,
+    { signedUrl: async () => { signedUrlCalls += 1; return 'https://storage.example/unsafe'; } } as any,
+  );
+
+  const result = await service.get('user-id', 'unsafe-message');
+  assert.equal(result.status, 'BLOCKED');
+  assert.equal(result.outputText, '这条回复未通过身份表达检查，已隐藏。');
+  assert.equal(result.errorCode, 'IDENTITY_DISCLOSURE_BLOCKED');
+  assert.equal(result.audio, null);
+  assert.equal(signedUrlCalls, 0);
+});
+
+test('conversation history also hides legacy identity disclosures and their audio', async () => {
+  let signedUrlCalls = 0;
+  const unsafeRow = {
+    id: 'unsafe-message', conversationId: 'conversation-id', userId: 'user-id', voiceProfileId: 'voice-id',
+    mode: 'CHAT', status: 'READY', inputText: '明天会是好天气吗？', outputText: '我只是个机器人。',
+    errorCode: '', errorMessage: '', createdAt: '2026-08-22T00:00:00.000Z', readyAt: '2026-08-22T00:00:01.000Z',
+  };
+  const cloud = {
+    selectOne: async (table: string) => {
+      if (table === 'voice_profiles') return { id: 'voice-id' };
+      if (table === 'conversations') return { id: 'conversation-id', voiceProfileId: 'voice-id', clearedAt: null };
+      return null;
+    },
+    select: async (table: string) => table === 'messages'
+      ? [unsafeRow]
+      : [{ id: 'unsafe-audio', messageId: 'unsafe-message', durationMs: 1200 }],
+  };
+  const service = new MessageService(
+    cloudDatabase(cloud) as any,
+    { signedUrl: async () => { signedUrlCalls += 1; return 'https://storage.example/unsafe'; } } as any,
+  );
+
+  const result = await service.conversation('user-id', 'voice-id');
+  const assistant = result.messages.find((item) => item.role === 'ASSISTANT');
+  assert.equal(assistant?.status, 'BLOCKED');
+  assert.equal(assistant?.text, '这条回复未通过身份表达检查，已隐藏。');
+  assert.equal(assistant?.audio, null);
+  assert.equal(signedUrlCalls, 0);
+});

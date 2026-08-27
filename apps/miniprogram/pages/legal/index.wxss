@@ -1,14 +1,24 @@
 .legal-screen {
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(180deg, #f6f5ff 0%, #eef4ff 100%);
 }
 
+.legal-screen > app-nav {
+  flex: 0 0 auto;
+}
+
 .legal-scroll {
-  height: calc(100vh - 88rpx);
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 .legal-content {
-  padding: 28rpx 24rpx 40rpx;
+  padding: 28rpx 24rpx calc(56rpx + env(safe-area-inset-bottom));
 }
 
 .hero-card,
