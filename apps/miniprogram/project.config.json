@@ -28,6 +28,10 @@
       {
         "type": "suffix",
         "value": ".tmp.png"
+      },
+      {
+        "type": "file",
+        "value": "assets/ui/points-bag.png"
       }
     ]
   },
