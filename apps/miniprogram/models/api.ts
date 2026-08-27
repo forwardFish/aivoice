@@ -75,6 +75,7 @@ export interface VoiceSummary {
   userAddress?: string
   ageYears?: number
   gender?: VoiceGender
+  userAgeYears?: number
   userLifeStage?: UserLifeStage
   background?: string
   relationshipNote?: string

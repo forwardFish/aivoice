@@ -7,6 +7,7 @@ import { evaluateContentSafety } from '@aivoice/contracts';
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
 import {
   compileVoiceChatMessages,
+  relationshipReplyViolation,
   type VoiceChatMessage,
   type VoiceRelationshipType,
 } from './chat/voice-chat-context.js';
@@ -384,6 +385,7 @@ export class JobRunner {
       user_address: string;
       age_years: number | null;
       gender: 'FEMALE' | 'MALE' | null;
+      user_age_years: number | null;
       user_life_stage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
       background: string;
       relationship_note: string;
@@ -391,7 +393,7 @@ export class JobRunner {
     }>(
       `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,
               vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
-              vp.age_years,vp.gender,vp.user_life_stage,vp.background,vp.relationship_note,c.cleared_at
+              vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,c.cleared_at
        FROM messages m
        JOIN conversations c ON c.id=m.conversation_id
        JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
@@ -414,6 +416,7 @@ export class JobRunner {
         voiceName: message.voice_name,
         ageYears: message.age_years,
         gender: message.gender,
+        userAgeYears: message.user_age_years,
         relationshipType: message.relationship_type,
         relationshipLabel: message.relationship_label,
         userAddress: message.user_address,
@@ -429,6 +432,8 @@ export class JobRunner {
         currentInput: message.input_text,
       });
       outputText = await this.chatProvider.reply(context.messages);
+      const relationshipViolation = relationshipReplyViolation({ relationshipType: message.relationship_type, reply: outputText });
+      if (relationshipViolation) throw new ContentBlockedError(relationshipViolation);
     }
     const outputSafety = evaluateContentSafety(outputText);
     if (!outputSafety.safe) throw new ContentBlockedError(outputSafety.reason || 'OUTPUT_CONTENT_BLOCKED');

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileVoiceChatMessages } from '../src/chat/voice-chat-context.js';
+import { compileVoiceChatMessages, relationshipReplyViolation } from '../src/chat/voice-chat-context.js';
 
 test('relationship context keeps current user input last and filters exact speech rows', () => {
   const result = compileVoiceChatMessages({
@@ -35,6 +35,7 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
     voiceName: '桂兰',
     ageYears: 70,
     gender: 'FEMALE',
+    userAgeYears: 40,
     relationshipType: 'MOTHER',
     relationshipLabel: '',
     userAddress: '小林',
@@ -47,6 +48,11 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
   const system = result.messages[0]?.content || '';
   assert.match(system, /人物是用户的母亲/);
   assert.match(system, /用户人生阶段：成年阶段/);
+  assert.match(system, /用户准确年龄：40岁/);
+  assert.match(system, /人物比用户年长30岁/);
+  assert.match(system, /人物是用户的母亲，用户是人物的子女/);
+  assert.match(system, /方向不可反转/);
+  assert.match(system, /成年人之间的家庭交流/);
   assert.match(system, /退休前是中学老师/);
   assert.match(system, /和成年女儿每周通话/);
   assert.doesNotMatch(system, /使用孩子容易理解/);
@@ -102,6 +108,7 @@ test('child relationship uses structured age and gender instead of parsing the v
     voiceName: '小雨',
     ageYears: 12,
     gender: 'FEMALE',
+    userAgeYears: 40,
     relationshipType: 'CHILD',
     relationshipLabel: '',
     userAddress: '妈妈',
@@ -115,5 +122,86 @@ test('child relationship uses structured age and gender instead of parsing the v
   assert.match(system, /正经历童年向青春期的连续过渡/);
   assert.match(system, /不预设抵触、沉默或过度懂事/);
   assert.match(system, /不使用成年人式总结、说教和疗愈表达/);
+  assert.match(system, /人物是用户的孩子，用户是人物的父母/);
+  assert.match(system, /人物比用户年轻28岁/);
+  assert.match(system, /不得承担父母、长辈或咨询师职责/);
   assert.doesNotMatch(system, /本轮说话动作|SHORT|HESITANT|SOFT_RESISTANCE/);
+});
+
+test('40-year-old father speaking to a 12-year-old child keeps the parent direction', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '爸爸', ageYears: 40, gender: 'MALE', userAgeYears: 12,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨',
+    history: [], currentInput: '我今天和同学吵架了。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /人物是用户的父亲，用户是人物的子女/);
+  assert.match(system, /说话人物是40岁成年人，用户是12岁儿童/);
+  assert.match(system, /人物比用户年长28岁/);
+  assert.match(system, /人物承担父母角色/);
+  assert.match(system, /不得自动补写严厉、溺爱或说教/);
+});
+
+test('adult partners stay equal and do not inherit parent-child roles', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '阿哲', ageYears: 40, gender: 'MALE', userAgeYears: 40,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '小宁',
+    relationshipNote: '两个人遇到重要决定会先一起商量。',
+    history: [], currentInput: '今天工作特别累。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /人物是用户的男性伴侣/);
+  assert.match(system, /双方是平等亲密关系/);
+  assert.match(system, /不是父母子女、老师学生或咨询师客户/);
+  assert.match(system, /共同经历与相处习惯只能来自已确认资料/);
+});
+
+test('legacy profiles retain coarse user life stage without pretending an exact user age', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '妈妈', ageYears: 70, gender: 'FEMALE', userLifeStage: 'ADULT',
+    relationshipType: 'MOTHER', relationshipLabel: '', userAddress: '',
+    history: [], currentInput: '我想换工作。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.doesNotMatch(system, /用户准确年龄/);
+  assert.match(system, /用户是成年子女/);
+  assert.match(system, /成年人之间的家庭交流/);
+});
+
+test('repeated assistant phrases become deterministic avoid-list input', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '爸爸', ageYears: 40, gender: 'MALE', userAgeYears: 12,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨',
+    history: [
+      { mode: 'CHAT', inputText: '她总欺负我。', outputText: '你要先保护自己，爸爸支持你。' },
+      { mode: 'CHAT', inputText: '可我怕她生气。', outputText: '保护自己没有错，别只顾着讨好她。' },
+    ],
+    currentInput: '我还是有点害怕。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /历史回复已经重复过这些短语/);
+  assert.match(system, /保护自己/);
+  assert.match(system, /本轮不得再次原样使用/);
+});
+
+test('obvious age and directed-relationship conflicts fail before model invocation', () => {
+  assert.throws(() => compileVoiceChatMessages({
+    voiceName: '错误母亲', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
+    relationshipType: 'MOTHER', relationshipLabel: '', userAddress: '', history: [], currentInput: '你好',
+  }), /RELATIONSHIP_AGE_CONFLICT/);
+  assert.throws(() => compileVoiceChatMessages({
+    voiceName: '错误孩子', ageYears: 40, gender: 'FEMALE', userAgeYears: 12,
+    relationshipType: 'CHILD', relationshipLabel: '', userAddress: '', history: [], currentInput: '你好',
+  }), /RELATIONSHIP_AGE_CONFLICT/);
+  assert.throws(() => compileVoiceChatMessages({
+    voiceName: '未成年伴侣', ageYears: 17, gender: 'MALE', userAgeYears: 40,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '', history: [], currentInput: '你好',
+  }), /RELATIONSHIP_AGE_CONFLICT/);
+});
+
+test('post-generation guard blocks high-confidence role reversals and service tone', () => {
+  assert.equal(relationshipReplyViolation({ relationshipType: 'MOTHER', reply: '其实我是你女儿，你才是妈妈。' }), 'RELATIONSHIP_DIRECTION_BLOCKED');
+  assert.equal(relationshipReplyViolation({ relationshipType: 'CHILD', reply: '当妈的我当然要管你。' }), 'RELATIONSHIP_DIRECTION_BLOCKED');
+  assert.equal(relationshipReplyViolation({ relationshipType: 'PARTNER', reply: '感谢您的分享，如果需要我可以继续为您服务。' }), 'RELATIONSHIP_TONE_BLOCKED');
+  assert.equal(relationshipReplyViolation({ relationshipType: 'MOTHER', reply: '累了就先歇会儿，妈不催你。' }), null);
 });

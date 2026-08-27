@@ -75,11 +75,9 @@
           <text class="settings-profile-label">TA 怎么称呼你</text>
           <text class="settings-profile-caption">可选，填写后 AI 对话会更自然。</text>
           <input class="settings-profile-input" value="{{userAddress}}" placeholder="如：小林、小名" maxlength="10" bindinput="onUserAddressInput" />
-          <text class="settings-profile-label">你现在处于什么阶段</text>
-          <text class="settings-profile-caption">用于区分父母面对未成年孩子或成年子女。</text>
-          <view class="settings-relationship-grid">
-            <view wx:for="{{lifeStageOptions}}" wx:key="key" class="settings-relationship-chip {{userLifeStage === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectUserLifeStage">{{item.title}}</view>
-          </view>
+          <text class="settings-profile-label">你的准确年龄</text>
+          <text class="settings-profile-caption">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
+          <input class="settings-profile-input" type="number" value="{{userAgeYears}}" placeholder="请输入你自己的年龄" maxlength="3" bindinput="onUserAgeInput" />
         </view>
         <view class="settings-profile-block">
           <text class="settings-profile-label">补充 TA 的基本情况</text>

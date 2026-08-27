@@ -118,6 +118,7 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     userAddress: stringOr(raw.userAddress ?? raw.user_address) || undefined,
     ageYears: raw.ageYears == null && raw.age_years == null ? undefined : numberOr(raw.ageYears ?? raw.age_years),
     gender: ['FEMALE', 'MALE'].includes(String(raw.gender || '')) ? raw.gender : undefined,
+    userAgeYears: raw.userAgeYears == null && raw.user_age_years == null ? undefined : numberOr(raw.userAgeYears ?? raw.user_age_years),
     userLifeStage: ['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(String(raw.userLifeStage ?? raw.user_life_stage ?? ''))
       ? (raw.userLifeStage ?? raw.user_life_stage)
       : undefined,

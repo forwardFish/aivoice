@@ -84,12 +84,17 @@
             <text class="relationship-other-count">{{userAddress.length}}/10</text>
           </view>
           <view class="user-address-heading">
-            <text class="user-address-label">你现在处于什么阶段？</text>
+            <text class="user-address-label">你的准确年龄</text>
           </view>
-          <text class="user-address-help">用于区分父母面对未成年孩子或成年子女。</text>
-          <view class="relationship-grid">
-            <view wx:for="{{lifeStageOptions}}" wx:key="key" class="relationship-option {{userLifeStage === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectUserLifeStage">{{item.title}}</view>
-          </view>
+          <text class="user-address-help">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
+          <input
+            class="relationship-other-input"
+            type="number"
+            value="{{userAgeYears}}"
+            placeholder="请输入你自己的年龄"
+            maxlength="3"
+            bindinput="onUserAgeInput"
+          />
         </view>
       </view>
 

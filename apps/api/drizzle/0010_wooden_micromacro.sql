@@ -1,0 +1,2 @@
+ALTER TABLE "voice_profiles" ADD COLUMN "user_age_years" integer;--> statement-breakpoint
+ALTER TABLE "voice_profiles" ADD CONSTRAINT "voice_profiles_user_age_years_valid" CHECK ("voice_profiles"."user_age_years" IS NULL OR ("voice_profiles"."user_age_years" >= 0 AND "voice_profiles"."user_age_years" <= 120));

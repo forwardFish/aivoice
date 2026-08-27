@@ -101,14 +101,11 @@ Page({
     userAddress: '',
     ageYears: '',
     gender: '' as VoiceGender | '',
+    userAgeYears: '',
     userLifeStage: '' as UserLifeStage | '',
     background: '',
     relationshipNote: '',
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
-    lifeStageOptions: [
-      { key: 'CHILD', title: '儿童' }, { key: 'TEEN', title: '青少年' },
-      { key: 'ADULT', title: '成年人' }, { key: 'OLDER_ADULT', title: '老年人' }
-    ],
     savedRelationshipType: '' as RelationshipType | '',
     savedRelationshipOther: '',
     savedUserAddress: '',
@@ -156,6 +153,7 @@ Page({
         userAddress: voice.userAddress || '',
         ageYears: voice.ageYears == null ? '' : String(voice.ageYears),
         gender: voice.gender || '',
+        userAgeYears: voice.userAgeYears == null ? '' : String(voice.userAgeYears),
         userLifeStage: voice.userLifeStage || '',
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',
@@ -184,10 +182,13 @@ Page({
     if (gender !== 'FEMALE' && gender !== 'MALE') return
     this.setData({ gender, errorMessage: '', successMessage: '' })
   },
-  selectUserLifeStage(event: any) {
-    const userLifeStage = String(event.currentTarget.dataset.key || '') as UserLifeStage
-    if (!['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(userLifeStage)) return
-    this.setData({ userLifeStage, errorMessage: '', successMessage: '' })
+  onUserAgeInput(event: any) {
+    const userAgeYears = String(event.detail.value || '').replace(/\D/g, '').slice(0, 3)
+    const parsed = Number(userAgeYears)
+    const userLifeStage = Number.isInteger(parsed) && parsed >= 0 && parsed <= 120
+      ? parsed < 13 ? 'CHILD' : parsed < 18 ? 'TEEN' : parsed < 65 ? 'ADULT' : 'OLDER_ADULT'
+      : ''
+    this.setData({ userAgeYears, userLifeStage, errorMessage: '', successMessage: '' })
   },
   onBackgroundInput(event: any) {
     this.setData({ background: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
@@ -251,8 +252,19 @@ Page({
       toast('请填写你与 TA 的关系')
       return
     }
-    if (this.data.relationshipType !== 'SELF' && !this.data.userLifeStage) {
-      toast('请选择你现在所处的人生阶段')
+    const userAgeYears = this.data.relationshipType === 'SELF' ? ageYears : Number(this.data.userAgeYears)
+    if (!Number.isInteger(userAgeYears) || userAgeYears < 0 || userAgeYears > 120) {
+      toast('请填写你自己的准确年龄')
+      return
+    }
+    const parentRole = ['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER'].includes(this.data.relationshipType)
+    if ((parentRole && (ageYears < 18 || ageYears <= userAgeYears))
+      || (this.data.relationshipType === 'CHILD' && (userAgeYears < 18 || ageYears >= userAgeYears))) {
+      toast('双方年龄与所选亲属关系不一致')
+      return
+    }
+    if (this.data.relationshipType === 'PARTNER' && (ageYears < 18 || userAgeYears < 18)) {
+      toast('伴侣关系要求双方均为成年人')
       return
     }
     this.setData({ saving: true, errorMessage: '', successMessage: '' })
@@ -265,6 +277,7 @@ Page({
         userAddress: String(this.data.userAddress || '').trim(),
         ageYears,
         gender: this.data.gender,
+        userAgeYears,
         userLifeStage: this.data.relationshipType === 'SELF' ? undefined : this.data.userLifeStage || undefined,
         background: String(this.data.background || '').trim(),
         relationshipNote: String(this.data.relationshipNote || '').trim()
@@ -278,6 +291,7 @@ Page({
         userAddress: voice.userAddress || '',
         ageYears: voice.ageYears == null ? String(ageYears) : String(voice.ageYears),
         gender: voice.gender || this.data.gender,
+        userAgeYears: voice.userAgeYears == null ? String(userAgeYears) : String(voice.userAgeYears),
         userLifeStage: voice.userLifeStage || this.data.userLifeStage,
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',

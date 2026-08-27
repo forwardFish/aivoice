@@ -53,15 +53,12 @@ Page({
     userAddress: '',
     ageYears: '',
     gender: '' as VoiceGender | '',
+    userAgeYears: '',
     userLifeStage: '' as UserLifeStage | '',
     background: '',
     relationshipNote: '',
     relationshipOptions: [] as RelationshipOption[],
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
-    lifeStageOptions: [
-      { key: 'CHILD', title: '儿童' }, { key: 'TEEN', title: '青少年' },
-      { key: 'ADULT', title: '成年人' }, { key: 'OLDER_ADULT', title: '老年人' }
-    ],
     consentText: '',
     confirmed: false,
     submitting: false,
@@ -105,10 +102,14 @@ Page({
     if (gender !== 'FEMALE' && gender !== 'MALE') return
     this.setData({ gender, errorMessage: '' })
   },
-  selectUserLifeStage(event: any) {
-    const userLifeStage = String(event.currentTarget.dataset.key || '') as UserLifeStage
-    if (!['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(userLifeStage)) return
-    this.setData({ userLifeStage, errorMessage: '' })
+  onUserAgeInput(event: any) {
+    const userAgeYears = String(event.detail.value || '').replace(/\D/g, '').slice(0, 3)
+    const parsed = Number(userAgeYears)
+    this.setData({
+      userAgeYears,
+      userLifeStage: Number.isInteger(parsed) && parsed >= 0 && parsed <= 120 ? lifeStageForAge(parsed) : '',
+      errorMessage: ''
+    })
   },
   onBackgroundInput(event: any) {
     this.setData({ background: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '' })
@@ -188,9 +189,24 @@ Page({
       this.setData({ errorMessage: '请填写你与 TA 的关系。' })
       return
     }
+    const userAgeYears = this.data.relationshipType === 'SELF' ? ageYears : Number(this.data.userAgeYears)
+    if (!Number.isInteger(userAgeYears) || userAgeYears < 0 || userAgeYears > 120) {
+      this.setData({ errorMessage: '请填写你自己的准确年龄。' })
+      return
+    }
+    const parentRole = ['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER'].includes(this.data.relationshipType)
+    if ((parentRole && (ageYears < 18 || ageYears <= userAgeYears))
+      || (this.data.relationshipType === 'CHILD' && (userAgeYears < 18 || ageYears >= userAgeYears))) {
+      this.setData({ errorMessage: '双方年龄与所选亲属关系不一致，请检查后重试。' })
+      return
+    }
+    if (this.data.relationshipType === 'PARTNER' && (ageYears < 18 || userAgeYears < 18)) {
+      this.setData({ errorMessage: '伴侣关系要求双方均为成年人。' })
+      return
+    }
     const userLifeStage = this.data.relationshipType === 'SELF'
       ? lifeStageForAge(ageYears)
-      : this.data.userLifeStage
+      : lifeStageForAge(userAgeYears)
     if (!userLifeStage) {
       this.setData({ errorMessage: '请选择你现在所处的人生阶段。' })
       return
@@ -209,6 +225,7 @@ Page({
         userAddress: String(this.data.userAddress || '').trim(),
         ageYears,
         gender: this.data.gender,
+        userAgeYears,
         userLifeStage,
         background: String(this.data.background || '').trim(),
         relationshipNote: String(this.data.relationshipNote || '').trim()

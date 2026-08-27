@@ -140,7 +140,7 @@ try {
     pStartMs: 0,
     pEndMs: 20_000,
   });
-  await client.rpc('rpc_voice_update_profile_v4', {
+  await client.rpc('rpc_voice_update_profile_v5', {
     pUserId: evidence.userId,
     pVoiceId: evidence.voiceId,
     pName: '妈妈',
@@ -151,6 +151,7 @@ try {
     pAgeYears: 70,
     pGender: 'FEMALE',
     pUserLifeStage: 'ADULT',
+    pUserAgeYears: 40,
     pBackground: '退休前是中学老师，现在参加社区合唱活动。',
     pRelationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
   });

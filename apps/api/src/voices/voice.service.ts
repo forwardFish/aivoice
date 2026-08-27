@@ -22,6 +22,7 @@ interface VoiceRow {
   userAddress: string;
   ageYears: number | null;
   gender: string | null;
+  userAgeYears: number | null;
   userLifeStage: string | null;
   background: string;
   relationshipNote: string;
@@ -88,7 +89,10 @@ export class VoiceService {
       ['SOURCE_VIDEO_REQUIRED', 'source video is required'],
       ['AGE_YEARS_INVALID', 'age must be 0-120'],
       ['GENDER_INVALID', 'gender is invalid'],
+      ['USER_AGE_YEARS_INVALID', 'user age must be 0-120'],
       ['USER_LIFE_STAGE_INVALID', 'user life stage is invalid'],
+      ['PARTNER_REQUIRES_ADULTS', 'partner relationship requires adults'],
+      ['RELATIONSHIP_AGE_CONFLICT', 'relationship ages conflict'],
     ];
     const alias = conflictAliases.find(([code]) => message.includes(code));
     if (alias) {
@@ -145,6 +149,7 @@ export class VoiceService {
       userAddress: voice.userAddress,
       ageYears: voice.ageYears,
       gender: voice.gender,
+      userAgeYears: voice.userAgeYears,
       userLifeStage: voice.userLifeStage,
       background: voice.background,
       relationshipNote: voice.relationshipNote,
@@ -302,6 +307,7 @@ export class VoiceService {
     userAddress?: string;
     ageYears?: number;
     gender?: 'FEMALE' | 'MALE';
+    userAgeYears?: number;
     userLifeStage?: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT';
     background?: string;
     relationshipNote?: string;
@@ -313,18 +319,34 @@ export class VoiceService {
     const userAddress = String(input.userAddress || '').trim().slice(0, 10);
     const ageYears = Number.isInteger(input.ageYears) ? Number(input.ageYears) : null;
     const gender = input.gender === 'FEMALE' || input.gender === 'MALE' ? input.gender : null;
-    const userLifeStage = ['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(String(input.userLifeStage || ''))
+    const userAgeYears = Number.isInteger(input.userAgeYears) ? Number(input.userAgeYears) : null;
+    const derivedUserLifeStage = userAgeYears === null
+      ? null
+      : userAgeYears < 13 ? 'CHILD' : userAgeYears < 18 ? 'TEEN' : userAgeYears < 65 ? 'ADULT' : 'OLDER_ADULT';
+    const userLifeStage = derivedUserLifeStage || (['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'].includes(String(input.userLifeStage || ''))
       ? input.userLifeStage || null
-      : null;
+      : null);
     const background = String(input.background || '').trim().slice(0, 300);
     const relationshipNote = String(input.relationshipNote || '').trim().slice(0, 300);
     if (ageYears !== null && (ageYears < 0 || ageYears > 120)) throw new ConflictException('age must be 0-120');
+    if (userAgeYears !== null && (userAgeYears < 0 || userAgeYears > 120)) throw new ConflictException('user age must be 0-120');
+    const userIsMinor = userAgeYears !== null
+      ? userAgeYears < 18
+      : userLifeStage === 'CHILD' || userLifeStage === 'TEEN';
+    const parentRole = ['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER'].includes(String(relationshipType || ''));
+    if (parentRole && ageYears !== null && ageYears < 18) throw new ConflictException('relationship ages conflict');
+    if (parentRole && ageYears !== null && userAgeYears !== null && ageYears <= userAgeYears) throw new ConflictException('relationship ages conflict');
+    if (relationshipType === 'CHILD' && userIsMinor) throw new ConflictException('relationship ages conflict');
+    if (relationshipType === 'CHILD' && ageYears !== null && userAgeYears !== null && ageYears >= userAgeYears) throw new ConflictException('relationship ages conflict');
+    if (relationshipType === 'PARTNER' && ((ageYears !== null && ageYears < 18) || userIsMinor)) {
+      throw new ConflictException('partner relationship requires adults');
+    }
     if (relationshipType === 'OTHER' && input.relationshipType && !relationshipLabel) {
       throw new ConflictException('custom relationship label is required');
     }
     if (this.database.isCloudBase) {
       try {
-        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v4', {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v5', {
           pUserId: userId,
           pVoiceId: voiceId,
           pName: cleanName,
@@ -334,6 +356,7 @@ export class VoiceService {
           pUserAddress: userAddress,
           pAgeYears: ageYears,
           pGender: gender,
+          pUserAgeYears: userAgeYears,
           pUserLifeStage: userLifeStage,
           pBackground: background,
           pRelationshipNote: relationshipNote,
@@ -354,6 +377,7 @@ export class VoiceService {
       userAddress,
       ageYears,
       gender,
+      userAgeYears,
       userLifeStage,
       background,
       relationshipNote,

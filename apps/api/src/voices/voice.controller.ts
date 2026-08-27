@@ -59,6 +59,7 @@ export class VoiceController {
       userAddress: body.userAddress,
       ageYears: body.ageYears,
       gender: body.gender,
+      userAgeYears: body.userAgeYears,
       userLifeStage: body.userLifeStage,
       background: body.background,
       relationshipNote: body.relationshipNote,

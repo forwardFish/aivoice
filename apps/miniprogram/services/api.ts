@@ -575,6 +575,7 @@ export async function saveVoiceProfile(voiceId: string, input: {
   userAddress?: string
   ageYears?: number
   gender?: import('../models/api').VoiceGender
+  userAgeYears?: number
   userLifeStage?: import('../models/api').UserLifeStage
   background?: string
   relationshipNote?: string

@@ -22,6 +22,7 @@ import {
 import { DashscopeChatProvider } from './providers/dashscope-chat.js';
 import {
   compileVoiceChatMessages,
+  relationshipReplyViolation,
   type VoiceChatMessage,
   type VoiceRelationshipType,
 } from './chat/voice-chat-context.js';
@@ -298,6 +299,7 @@ export class CloudBaseJobRunner {
       userAddress: string;
       ageYears: number | null;
       gender: 'FEMALE' | 'MALE' | null;
+      userAgeYears: number | null;
       userLifeStage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
       background: string;
       relationshipNote: string;
@@ -311,6 +313,7 @@ export class CloudBaseJobRunner {
           voiceName: message.voiceName,
           ageYears: message.ageYears,
           gender: message.gender,
+          userAgeYears: message.userAgeYears,
           relationshipType: message.relationshipType,
           relationshipLabel: message.relationshipLabel,
           userAddress: message.userAddress,
@@ -331,6 +334,8 @@ export class CloudBaseJobRunner {
           contextHash: context.contextHash,
         });
         outputText = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
+        const relationshipViolation = relationshipReplyViolation({ relationshipType: message.relationshipType, reply: outputText });
+        if (relationshipViolation) throw new ContentBlockedError(relationshipViolation);
         if (hasForbiddenAssistantIdentityDisclosure(outputText)) {
           throw new ContentBlockedError('IDENTITY_DISCLOSURE_BLOCKED');
         }

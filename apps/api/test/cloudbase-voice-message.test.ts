@@ -13,6 +13,7 @@ const voice = {
   userAddress: '',
   ageYears: null,
   gender: null,
+  userAgeYears: null,
   userLifeStage: null,
   background: '',
   relationshipNote: '',
@@ -49,7 +50,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     selectOne: async (table: string) => table === 'voice_profiles' ? relatedVoice : null,
     rpc: async (name: string, args: Record<string, unknown>) => {
       calls.push({ name, args });
-      if (name === 'rpc_voice_update_profile_v4') return { ...relatedVoice, userAddress: '小林' };
+      if (name === 'rpc_voice_update_profile_v5') return { ...relatedVoice, userAddress: '小林', userAgeYears: 40 };
       throw new Error(`unexpected rpc ${name}`);
     },
   };
@@ -67,13 +68,14 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     userAddress: '小林',
     ageYears: 70,
     gender: 'FEMALE',
+    userAgeYears: 40,
     userLifeStage: 'ADULT',
     background: '退休前是中学老师，现在参加社区合唱活动。',
     relationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
   });
 
   assert.equal(result.relationshipType, 'MOTHER');
-  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v4');
+  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v5');
   assert.deepEqual(calls[0]?.args, {
     pUserId: 'user-id',
     pVoiceId: 'voice-id',
@@ -84,6 +86,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     pUserAddress: '小林',
     pAgeYears: 70,
     pGender: 'FEMALE',
+    pUserAgeYears: 40,
     pUserLifeStage: 'ADULT',
     pBackground: '退休前是中学老师，现在参加社区合唱活动。',
     pRelationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
@@ -231,6 +234,42 @@ test('CloudBase message reads preserve the public response shape without pg or D
     url: 'https://storage.example/audio',
     durationMs: 1200,
   });
+});
+
+test('partner relationship rejects either participant being under 18', async () => {
+  const service = new VoiceService(
+    cloudDatabase({ selectOne: async () => voice }) as any,
+    { getQuota: async () => ({}) } as any,
+    { latestAsset: async () => null } as any,
+  );
+  await assert.rejects(service.updateProfile('user-id', 'voice-id', {
+    name: '小雨', permissionType: 'OTHER', relationshipType: 'PARTNER',
+    ageYears: 17, gender: 'FEMALE', userAgeYears: 40,
+  }), /partner relationship requires adults/);
+  await assert.rejects(service.updateProfile('user-id', 'voice-id', {
+    name: '小雨', permissionType: 'OTHER', relationshipType: 'PARTNER',
+    ageYears: 40, gender: 'FEMALE', userAgeYears: 17,
+  }), /partner relationship requires adults/);
+  await assert.rejects(service.updateProfile('user-id', 'voice-id', {
+    name: '小雨', permissionType: 'OTHER', relationshipType: 'PARTNER',
+    ageYears: 40, gender: 'FEMALE', userLifeStage: 'TEEN',
+  }), /partner relationship requires adults/);
+});
+
+test('directed parent and child relationships reject impossible age order', async () => {
+  const service = new VoiceService(
+    cloudDatabase({ selectOne: async () => voice }) as any,
+    { getQuota: async () => ({}) } as any,
+    { latestAsset: async () => null } as any,
+  );
+  await assert.rejects(service.updateProfile('user-id', 'voice-id', {
+    name: '错误母亲', permissionType: 'OTHER', relationshipType: 'MOTHER',
+    ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
+  }), /relationship ages conflict/);
+  await assert.rejects(service.updateProfile('user-id', 'voice-id', {
+    name: '错误孩子', permissionType: 'OTHER', relationshipType: 'CHILD',
+    ageYears: 40, gender: 'FEMALE', userAgeYears: 12,
+  }), /relationship ages conflict/);
 });
 
 test('legacy assistant identity disclosures are blocked from both text and audio reads', async () => {

@@ -49,6 +49,12 @@ export class UpdateVoiceProfileDto {
   gender?: 'FEMALE' | 'MALE';
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(120)
+  userAgeYears?: number;
+
+  @IsOptional()
   @IsIn(['CHILD', 'TEEN', 'ADULT', 'OLDER_ADULT'])
   userLifeStage?: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT';
 

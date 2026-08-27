@@ -90,6 +90,7 @@ test('voice profile submit posts the server canonical consent text returned by p
       userAddress: '小林',
       ageYears: '70',
       gender: 'FEMALE',
+      userAgeYears: '40',
       userLifeStage: 'ADULT',
       background: '退休前是中学老师。',
       relationshipNote: '和成年女儿每周通话。',
@@ -112,6 +113,7 @@ test('voice profile submit posts the server canonical consent text returned by p
     userAddress: '小林',
     ageYears: 70,
     gender: 'FEMALE',
+    userAgeYears: 40,
     userLifeStage: 'ADULT',
     background: '退休前是中学老师。',
     relationshipNote: '和成年女儿每周通话。'
@@ -133,6 +135,8 @@ test('voice relationship fields use native form controls and readable typography
   assert.match(wxml, /<label[\s\S]*<radio[^>]*value="\{\{item\.key\}\}"/)
   assert.match(wxml, /TA 平时怎么称呼你？/)
   assert.match(wxml, /例如：小林、妈妈、宝贝/)
+  assert.match(wxml, /你的准确年龄/)
+  assert.match(wxml, /bindinput="onUserAgeInput"/)
   assert.match(style, /grid-template-columns:\s*repeat\(3,/)
   assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)
   assert.doesNotMatch(wxml, /class="relationship-chip/)
