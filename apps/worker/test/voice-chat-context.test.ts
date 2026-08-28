@@ -18,7 +18,7 @@ test('relationship context keeps current user input last and filters exact speec
   assert.equal(result.messages[0]?.role, 'system');
   assert.match(result.messages[0]?.content || '', /人物是用户的母亲/);
   assert.match(result.messages[0]?.content || '', /任何回复都禁止出现“AI”/);
-  assert.match(result.messages[0]?.content || '', /用户询问身份时/);
+  assert.match(result.messages[0]?.content || '', /用户直接询问身份时/);
   assert.match(result.messages[0]?.content || '', /对用户称呼：小林/);
   assert.match(result.messages[0]?.content || '', /连续会话首次回复/);
   assert.deepEqual(result.includedMessageIds, ['chat-1']);
@@ -42,6 +42,8 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
     userLifeStage: 'ADULT',
     background: '退休前是中学老师，现在参加社区合唱活动。',
     relationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
+    personalityNote: '遇到大事先问清具体条件，担心时会说得直接。',
+    speechHabitNote: '句子不长，习惯先问一件具体的事。',
     history: [],
     currentInput: '最近过得怎么样？',
   });
@@ -55,6 +57,9 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
   assert.match(system, /成年人之间的家庭交流/);
   assert.match(system, /退休前是中学老师/);
   assert.match(system, /和成年女儿每周通话/);
+  assert.match(system, /长期性格：遇到大事先问清具体条件/);
+  assert.match(system, /说话习惯：句子不长/);
+  assert.doesNotMatch(system, /你是一个使用私有声音生成回复的简短对话助手/);
   assert.doesNotMatch(system, /使用孩子容易理解/);
 });
 
@@ -182,6 +187,80 @@ test('repeated assistant phrases become deterministic avoid-list input', () => {
   assert.match(system, /历史回复已经重复过这些短语/);
   assert.match(system, /保护自己/);
   assert.match(system, /本轮不得再次原样使用/);
+});
+
+test('recent interaction state and causal turn ids enter the structured prompt', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'current-message',
+    voiceName: '小雨', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
+    relationshipType: 'CHILD', relationshipLabel: '', userAddress: '妈妈',
+    history: [{
+      messageId: 'previous-message', mode: 'CHAT', inputText: '你怎么又不说话？', outputText: '你先别一直问，我等会儿再说。',
+      interactionState: {
+        version: 2,
+        carryAffect: { emotion: 'ANNOYED', intensity: 1, cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'previous-message:USER', quote: '又不说话' }, emotionEvidence: '别一直问', remainingTurns: 1 },
+        action: { stance: 'SET_BOUNDARY', currentWant: '晚点再聊', cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'previous-message:USER', quote: '又不说话' }, remainingTurns: 1, requestDecision: { kind: 'NONE' } },
+        createdAt: new Date().toISOString(),
+      },
+    }],
+    currentInput: '好，那我不问了。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /<previous_interaction_state>/);
+  assert.match(system, /"emotion":"ANNOYED"/);
+  assert.match(system, /previous-message:USER USER/);
+  assert.match(system, /current-message:USER USER/);
+  assert.equal(result.currentTurn.id, 'current-message:USER');
+  assert.equal(result.previousInteractionState?.carryAffect?.emotion, 'ANNOYED');
+});
+
+test('structured prompt ends with a dynamic stance whitelist and forced request policy', () => {
+  const asked = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'cooldown-current',
+    voiceName: '妈妈', ageYears: 70, gender: 'FEMALE', userAgeYears: 40,
+    relationshipType: 'MOTHER', relationshipLabel: '', userAddress: '小林',
+    history: [{
+      messageId: 'asked-before', mode: 'CHAT', inputText: '最近怎么样？', outputText: '是工作太累，还是别的原因？',
+      interactionState: { version: 2, carryAffect: null, action: { stance: 'ASK', currentWant: '了解原因', cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'asked-before:USER', quote: '最近怎么样' }, requestDecision: { kind: 'NONE' } }, createdAt: new Date().toISOString() },
+    }],
+    currentInput: '主要是领导总改口。',
+  });
+  const askedSystem = asked.messages[0]?.content || '';
+  assert.match(askedSystem, /questionPolicy=FORBIDDEN/);
+  assert.match(askedSystem, /本轮台词最终自然化检查/);
+  assert.match(askedSystem, /不得自行构造“是A还是B”/);
+  assert.doesNotMatch(askedSystem, /allowedActionStances=[^\n]*ASK/);
+  assert.equal(asked.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
+
+  const plan = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'plan-current',
+    voiceName: '爸爸', ageYears: 40, gender: 'MALE', userAgeYears: 12,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨', history: [],
+    currentInput: '爸，我明天不想去了。',
+  });
+  const planSystem = plan.messages[0]?.content || '';
+  assert.match(planSystem, /requestPolicy=FORCE_LOW_CURRENT/);
+  assert.match(planSystem, /forcedRequestTurnId=plan-current:USER/);
+  assert.match(planSystem, /forcedRequestQuote=我明天不想去了/);
+  assert.equal(plan.runtimeDialogueControl.requestPolicy, 'FORCE_LOW_CURRENT');
+
+  const carriedBoundary = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'boundary-next',
+    voiceName: '爸爸', ageYears: 40, gender: 'MALE', userAgeYears: 12,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨',
+    history: [{
+      messageId: 'boundary', mode: 'CHAT', inputText: '你别问那么多，反正我不去。', outputText: '行，那明天先不去。',
+      interactionState: { version: 2, carryAffect: null, action: { stance: 'ACCEPT', currentWant: '明天不去', cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'boundary:USER', quote: '反正我不去' }, requestDecision: { kind: 'REQUEST', load: 'LOW', basis: { source: 'CURRENT_REQUEST', turnId: 'boundary:USER', evidence: '反正我不去' } } }, createdAt: new Date().toISOString() },
+    }],
+    currentInput: '有人把我的话传出去了，我不想见她。',
+  });
+  assert.equal(carriedBoundary.runtimeDialogueControl.noMoreQuestionsActive, true);
+  assert.equal(carriedBoundary.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
+  assert.match(carriedBoundary.messages[0]?.content || '', /noMoreQuestionsActive=true/);
 });
 
 test('obvious age and directed-relationship conflicts fail before model invocation', () => {

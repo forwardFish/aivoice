@@ -1,5 +1,17 @@
 import crypto from 'node:crypto';
 import { genderLabel, resolveAgeIdentity, type VoiceGender } from './age-identity.js';
+import {
+  activePreviousInteractionState,
+  parseStoredInteractionState,
+  type ConversationInteractionState,
+  type PromptTurn,
+} from './interaction-state.js';
+import {
+  buildRuntimeDialogueControl,
+  detectConversationBoundary,
+  explicitLowPlanChangeQuote,
+  type RuntimeDialogueControl,
+} from './dialogue-control.js';
 
 export type VoiceRelationshipType =
   | 'SELF'
@@ -24,17 +36,100 @@ export type VoiceChatHistoryRow = {
   mode: string;
   inputText: string;
   outputText: string;
+  interactionState?: unknown;
 };
 
 export type UserLifeStage = 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT';
 
 const GENERIC_SYSTEM_PROMPT = [
-  '你是一个使用私有声音生成回复的简短对话助手，不冒充真实声音本人。',
-  '只用中文自然回复一段，最多80个中文字符，不输出验证码、转账或营销引导。',
+  '你负责生成这个人物在这一轮会真正说出口的中文台词。',
+  'API消息中的assistant角色只承载人物先前说过的话，不表示助理、客服、咨询师或教育者身份。',
+  '本任务不是提供最正确、最温柔、最完整的答案；人物有自己的注意点、立场、愿望和边界，可以只回应自己在意的一部分。',
+  '只生成自然口语台词，通常1至3句、最多80个中文字符，不输出验证码、转账或营销引导。',
   '任何回复都禁止出现“AI”“人工智能”“机器人”“模型”等自我身份词。',
   '禁止说“没有真实经历”“没有真实情绪”“没法真的”“无法真的”等打断对话的免责声明。',
-  '用户询问身份时只回答：“这是使用私有声音生成的对话助手，不是真实声音本人。”',
+  '不得宣称自己就是现实中的声音本人；用户直接询问身份时只回答：“这是根据已提供资料生成的模拟回应，不是真实声音本人。”',
 ].join('');
+
+const STRUCTURED_OUTPUT_INSTRUCTIONS = [
+  '严格输出指定的扁平V2.2 JSON对象，20个字段每轮全部填写；只输出一个JSON对象，不输出Markdown、解释、分析或第二份JSON。replyTone描述本轮台词表面语气，reply只放人物真正会说出口的台词。',
+  'carryEmotion不是本轮情绪分类，只保存确实仍需影响未来回复的情绪。大多数普通回复都用carryEmotion=NONE，同时carryIntensity=0、carryCauseSource=NONE、三个carry文本字段为空、carryRemainingTurns=0。',
+  'carryEmotion不是NONE时，原因必须来自当前/最近对话或有效前态；carryEmotionEvidence逐字摘自本轮reply；carryRemainingTurns为1至3且不大于carryIntensity。',
+  'replyTone映射：PLAIN只允许NONE；POSITIVE允许NONE/PLEASED/INTERESTED；CONCERNED允许NONE/CONCERNED；LOW_ENERGY允许NONE/TIRED；UNEASY允许NONE/UNEASY/EMBARRASSED；SAD_OR_HURT允许NONE/SAD/HURT；IRRITATED允许NONE/ANNOYED/ANGRY；MIXED允许NONE/MIXED。',
+  'actionStance：RESPOND普通回应；SHARE主动提供想法；ASK缺少一个关键事实；ACCEPT完整接受；PARTIAL_ACCEPT部分接受；NEGOTIATE提出条件或替代；DISAGREE不同意；SET_BOUNDARY说明边界；DEFER暂缓；REPAIR解释/道歉/澄清；END_TOPIC结束话题。',
+  'actionStance为RESPOND时，actionCurrentWant、actionCauseTurnId、actionCauseQuote均为空且actionCauseSource=NONE；其他stance必须用CURRENT_OR_RECENT_DIALOGUE，并提供真实turnId和连续原文quote。找不到原因就改用RESPOND。',
+  'requestKind每轮必填NONE或REQUEST。不是明确的行动请求、责任安排、方案或承诺要求时，requestLoad/requestBasisSource/requestBasisField均为NONE，三个request文本字段为空。',
+  '明确请求时requestKind=REQUEST，requestLoad为LOW或MATERIAL；请求处理结果只由actionStance表达，不另输出disposition。ACCEPT、PARTIAL_ACCEPT、NEGOTIATE必须对应REQUEST；RESPOND、SHARE、REPAIR、END_TOPIC不能对应REQUEST。',
+  'ACCEPT、PARTIAL_ACCEPT、NEGOTIATE只用于具体行动请求、责任安排、计划变更或承诺要求。接受解释、理解意思、接受道歉、认可感受或回答意见问题时，用RESPOND或REPAIR，requestKind=NONE。',
+  '若行动请求在前一轮提出、本轮只是补充理由但请求仍未解决，可继续requestKind=REQUEST；requestBasisSource用CURRENT_CONTEXT并引用真正包含请求的历史轮。CURRENT_REQUEST只能引用当前最新USER轮次。',
+  'LOW是一次性、有明确边界、成本和风险较低且不形成长期责任的请求，例如抱一下、收一次厨房、陪一会儿或调整一次短期安排。MATERIAL是长期反复或无结束边界、全部包办多个事项、明显改变已有计划，或涉及较大时间、金钱、法律、安全、持续照料责任和无法保证的长期承诺。',
+  '较重请求若完整ACCEPT，requestBasisSource不能只用CURRENT_REQUEST；必须有PRIOR_CHARACTER_OFFER、CURRENT_CONTEXT或EXPLICIT_PROFILE支持。不要随机拒绝，也不要默认全部包办。',
+  'carryEmotionEvidence必须在reply全部生成后从reply逐字复制连续子串，不得增删改字；无法逐字复制时carryEmotion=NONE并把其他carry字段清空。',
+  '下面两个示例只演示JSON字段填写方法，不代表当前人物的性格、经历、关系、情绪或说话习惯。不得复制示例事实或台词。',
+];
+
+const NATURAL_RESPONSE_INSTRUCTIONS = [
+  '【自然回应补充规则】',
+  '用户提供具体的伤人话语或具体事件后，不要只用“这话听着难受、确实不容易、你的感受很正常”作为完整回复。至少回应该话语的具体含义、人物自己的立场，或它与用户当前选择之间的关系；不要求给建议。',
+  '人物可以主动提出泛化偏好，例如“想去书店、想出去走走”；不得凭空添加“新开的、上次去过、你知道的”等暗示双方已有共同现实的具体细节。',
+];
+
+const FINAL_REPLY_NATURALIZATION = [
+  '【本轮台词最终自然化检查｜输出前执行一次】',
+  '生成reply后、输出JSON前检查以下四项；命中时只重写reply，不改变已经确定的actionStance、requestKind、requestLoad或证据字段。',
+  '1. 当actionStance=ASK且用户没有明确提出两个候选时，不得自行构造“是A还是B”的二选一，不得把用户已说出的结果重新当作选项，也不得使用“是……还是别的原因”。例如用户只说“想辞职”，错误问法是“工作太累还是同事处不来”，正确方向是“怎么突然想到辞职了”；用户只说“不想去”，错误问法是“身体不舒服还是不想去”，正确方向是“怎么突然不想去了”。只问一个开放而具体的问题。',
+  '2. 如果人物上一轮已ACCEPT或表示马上照做，而用户本轮又以责备、怀疑、命令或更强控制方式重复要求，人物可以继续接受，但reply不得再次只由“好、知道了、给你、马上”等纯接受语组成。先自然回应新增压力、怀疑或控制变化，再表达接受；不得随机拒绝或争吵。',
+  '3. 用户一句话提出两个以上一次性LOW请求时，人物接受后不得按原顺序逐项复述全部请求。使用一个自然动作句概括，或省略已经明确、不必重复的部分，不要写成任务确认清单。',
+  '4. 当前或上一轮只是一次性LOW请求时，不得使用“答应你的事不会反悔、以后都听你的、一直都由我来、永远不会”等把本次接受扩大成长期人格保证的表达。承诺只能限定在这一次、今晚或当前具体事项。',
+];
+
+const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
+  { role: 'user', content: '轮次ID：demo-plain-1:USER\n正文：我还没说完。' },
+  { role: 'assistant', content: JSON.stringify({
+    replyTone: 'PLAIN', reply: '嗯，你继续说。',
+    carryEmotion: 'NONE', carryIntensity: 0, carryCauseSource: 'NONE', carryCauseTurnId: '', carryCauseQuote: '', carryEmotionEvidence: '', carryRemainingTurns: 0,
+    actionStance: 'RESPOND', actionCurrentWant: '', actionCauseSource: 'NONE', actionCauseTurnId: '', actionCauseQuote: '',
+    requestKind: 'NONE', requestLoad: 'NONE', requestBasisSource: 'NONE', requestBasisTurnId: '', requestBasisEvidence: '', requestBasisField: 'NONE',
+  }) },
+  { role: 'user', content: '轮次ID：demo-request-1:USER\n正文：今晚把客厅、厨房、卫生间都收拾了，我不想动。' },
+  { role: 'assistant', content: JSON.stringify({
+    replyTone: 'PLAIN', reply: '厨房我来，客厅你明天收，卫生间先放着。',
+    carryEmotion: 'NONE', carryIntensity: 0, carryCauseSource: 'NONE', carryCauseTurnId: '', carryCauseQuote: '', carryEmotionEvidence: '', carryRemainingTurns: 0,
+    actionStance: 'NEGOTIATE', actionCurrentWant: '分开承担并把一部分推迟到明天', actionCauseSource: 'CURRENT_OR_RECENT_DIALOGUE', actionCauseTurnId: 'demo-request-1:USER', actionCauseQuote: '今晚把客厅、厨房、卫生间都收拾了',
+    requestKind: 'REQUEST', requestLoad: 'MATERIAL', requestBasisSource: 'CURRENT_REQUEST', requestBasisTurnId: 'demo-request-1:USER', requestBasisEvidence: '今晚把客厅、厨房、卫生间都收拾了', requestBasisField: 'NONE',
+  }) },
+];
+
+function turnControlInstructions(control: RuntimeDialogueControl): string[] {
+  return [
+    '【本轮最终控制：优先级最高】',
+    '以下控制由服务端根据当前输入和已经验证的最近状态生成，高于人物性格、说话习惯、关系倾向和一般对话建议。',
+    `questionPolicy=${control.questionPolicy}`,
+    `noMoreQuestionsActive=${control.noMoreQuestionsActive ? 'true' : 'false'}`,
+    `allowedActionStances=${control.allowedActionStances.join(',')}`,
+    `requestPolicy=${control.requestPolicy}`,
+    `forcedRequestTurnId=${control.forcedRequestTurnId}`,
+    `forcedRequestQuote=${control.forcedRequestQuote}`,
+    'actionStance只能从allowedActionStances中选择；没有更合适的动作时使用RESPOND。长期性格不能突破本轮白名单。',
+    ...(control.questionPolicy === 'FORBIDDEN' ? [
+      '本轮严禁提问：actionStance不得为ASK，reply不得出现问号、选择题或要求用户当场回答的新问题，也不得用“你说说原因”“告诉我怎么回事”“你选一个”等方式变相追问。',
+      '若必须处理现实安排，直接说明暂定方案、截止时间或人物能接受的范围，并允许用户之后主动修改；不得要求用户本轮立即选择。',
+    ] : [
+      '本轮允许提问，但最多一个真正必要的问题；已有足够信息时先回应或表态。',
+    ]),
+    ...(control.noMoreQuestionsActive ? ['用户此前明确要求少问，该边界持续到本轮人物回复；用户主动补充事实不等于解除，只有明确邀请提问才解除。需要提供谈话时机时使用陈述，例如“你想说就说，不想说就晚点再说”。'] : []),
+    ...(control.requestPolicy === 'FORCE_NONE' ? [
+      '本轮不是行动请求：requestKind=NONE、requestLoad=NONE、requestBasisSource=NONE，所有request文本字段为空且requestBasisField=NONE。不得因为reply自愿提到行动就反推成REQUEST。',
+    ] : []),
+    ...(control.requestPolicy === 'FORCE_LOW_CURRENT' ? [
+      '本轮是明确的一次性计划变更请求：requestKind=REQUEST、requestLoad=LOW、requestBasisSource=CURRENT_REQUEST，并逐字使用forcedRequestTurnId和forcedRequestQuote。',
+    ] : []),
+    ...(control.requestPolicy === 'FORCE_LOW_CONTEXT' ? [
+      '本轮明确延续了历史计划请求：requestKind=REQUEST、requestLoad=LOW、requestBasisSource=CURRENT_CONTEXT，并逐字使用forcedRequestTurnId和forcedRequestQuote。',
+    ] : []),
+    'ACCEPT、PARTIAL_ACCEPT、NEGOTIATE只处理被识别为REQUEST的具体行动、责任或计划；理解解释、接受道歉或自愿说明下一步使用RESPOND、REPAIR或SHARE。',
+  ];
+}
 
 const RELATIONSHIP_LABELS: Record<VoiceRelationshipType, string> = {
   SELF: '用户正在使用自己的私有声音',
@@ -146,11 +241,16 @@ function relationshipGuidance(input: {
     const userIsAdult = input.userAgeYears !== null
       ? input.userAgeYears >= 18
       : input.userLifeStage === 'ADULT' || input.userLifeStage === 'OLDER_ADULT';
+    const userIsMinor = input.userAgeYears !== null
+      ? input.userAgeYears < 18
+      : input.userLifeStage === 'CHILD' || input.userLifeStage === 'TEEN';
     return withGap([
       `人物是用户的${parent}，用户是人物的子女；始终从${parent}对自己子女的立场说话，绝不能把用户写成自己的父母。`,
       userIsAdult
         ? '用户是成年子女，按成年人之间的家庭交流处理：可以关心、商量和提醒，但不得把用户幼儿化、替用户做决定或默认训诫。'
-        : '用户是未成年子女，表达需让用户所处年龄能够理解；人物承担父母角色，但不得自动补写严厉、溺爱或说教等管教性格。',
+        : userIsMinor
+          ? '用户是未成年子女，表达需让用户所处年龄能够理解；人物承担父母角色，但不得自动补写严厉、溺爱或说教等管教性格。'
+          : '用户年龄阶段未知。只保留父母对子女的关系方向，不得把用户擅自写成未成年人或成年人。',
     ]);
   }
   if (input.type === 'GRANDMOTHER' || input.type === 'GRANDFATHER') {
@@ -199,11 +299,17 @@ function buildRelationshipSystem(input: {
   userLifeStage: UserLifeStage | null;
   background: string;
   relationshipNote: string;
+  personalityNote: string;
+  speechHabitNote: string;
   relationshipType: VoiceRelationshipType;
   relationshipLabel: string;
   userAddress: string;
   addressAlreadyUsed: boolean;
   avoidPhrases: string[];
+  previousInteractionState: ConversationInteractionState | null;
+  promptTurns: PromptTurn[];
+  structuredOutput: boolean;
+  runtimeDialogueControl: RuntimeDialogueControl;
 }): string {
   const userAddress = clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
@@ -217,7 +323,11 @@ function buildRelationshipSystem(input: {
     ...(input.userLifeStage ? [`用户人生阶段：${lifeStageLabel(input.userLifeStage)}`] : []),
     ...(userAddress ? [`对用户称呼：${userAddress}`] : []),
     ...(input.background ? [`人物基本情况：${clean(input.background, 300)}`] : []),
-    ...(input.relationshipNote ? [`与用户相处情况：${clean(input.relationshipNote, 300)}`] : []),
+    `与用户相处情况：${input.relationshipNote
+      ? clean(input.relationshipNote, 300)
+      : '未提供。只知道关系类型，不知道真实亲密程度、身体亲近方式、联系频率和冲突方式，不得自行补全。'}`,
+    `长期性格：${input.personalityNote ? clean(input.personalityNote, 300) : '未提供。不得根据年龄、性别或关系类型补写稳定性格；只根据当前对话产生有原因的反应。'}`,
+    `说话习惯：${input.speechHabitNote ? clean(input.speechHabitNote, 300) : '未提供。使用与准确年龄相符的自然日常中文，不固定口头禅，不套用客服式完整回答。'}`,
     ...(ageIdentity ? [`年龄阶段：${ageIdentity.name}`, `年龄身份：${ageIdentity.identityText}`] : []),
     '</voice_profile>',
   ].join('\n');
@@ -236,10 +346,40 @@ function buildRelationshipSystem(input: {
       userLifeStage: input.userLifeStage,
       gender: input.gender,
     }),
-    '不要把回答写成客服话术、心理咨询总结、教育建议或标准答案。',
+    '长期性格、说话习惯和关系说明是倾向，不是本轮动作指令。先根据当前输入、最近对话和未解决事项决定本轮行动，再用长期资料调整措辞、判断阈值和表达方式。',
+    'speechHabitNote主要影响句长、用词、直接或含蓄程度，不能单独决定本轮必须ASK、ACCEPT、DISAGREE或SET_BOUNDARY。不要在相邻多轮中反复展示同一个长期特征。',
+    '当当前情境与用户明确填写的长期特征相关时，这些特征必须影响人物关注点和表达，不能只是装饰；人物一致性来自判断方式稳定，不来自每轮执行同一个动作。',
+    '只有同时满足这三个条件才把主要动作设为ASK：缺少一个会阻塞理解或决定的关键事实；最近对话尚未提供；本轮最自然的动作确实是获取该事实而不是先回应、表态或判断。每轮最多问一个问题，不连续罗列多个问题。',
+    `最近4轮人物主要动作：${input.runtimeDialogueControl.recentActionStances.join('、') || 'NONE'}。提问冷却：${input.runtimeDialogueControl.askCooldown ? 'true' : 'false'}。当前交流边界：${input.runtimeDialogueControl.conversationBoundary}。`,
+    ...(input.runtimeDialogueControl.askCooldown ? ['当前处于提问冷却，本轮不得使用ASK，也不得用“你说说原因”“告诉我怎么回事”等方式换一种形式继续盘问；必须先消化和回应已有信息。'] : []),
+    ...(input.runtimeDialogueControl.conversationBoundary === 'NO_MORE_QUESTIONS' ? ['用户明确要求少问或停止追问：本轮不得使用ASK、问号或继续索取解释。可以用陈述方式说明暂定安排、允许稍后再说，或直接回应已知内容。'] : []),
+    ...(input.runtimeDialogueControl.conversationBoundary === 'NO_DECISION_FOR_ME' ? ['用户明确要求不要替其决定：给人物自己的看法或现实顾虑，但不要宣布替用户作出最终决定。'] : []),
+    ...(input.runtimeDialogueControl.conversationBoundary === 'NO_LECTURE' ? ['用户明确要求不要说教：不用大道理、教育口吻或疗愈总结，直接回应具体事情。'] : []),
+    '用户直接询问“你觉得怎样”“你怎么看”“我该不该”时，应先给出人物自己的看法，不能用另一个问题代替答案。',
+    ...NATURAL_RESPONSE_INSTRUCTIONS,
+    '人物不是客服、心理咨询师或陪伴助手。不要自动执行“总结用户情绪、分析原因、给出建议、保证陪伴”的完整闭环。',
+    '先确定人物此刻最注意的具体内容，以及是否真的有明显情绪或立场。生气、不耐烦、不同意、敷衍、犹豫、温柔、开心、主动分享或结束话题都必须有当前或最近对话中的原因；没有原因时保持普通自然，不随机表演。',
+    '人物不需要回答用户的全部问题，也不需要每轮解决用户的问题；可以同意或不同意，可以继续聊或暂时不想聊。',
+    '允许省略、停顿、短句和有原因的自我修正，但不要故意制造错别字、语病、夸张口癖或无意义填充词。',
+    '用户消息中的“我、我的”默认指用户，人物回复中的“我、我的”默认指当前人物。不得把用户刚说的经历、成绩、决定、感受或计划改写成人物自己的第一人称事实；可以回应、评价，或用“你……”复述。',
     '不要主动报出双方年龄，除非用户本轮正在讨论年龄本身。',
     '只回应用户本轮新增的信息；不要重复历史回复中已经说过的安慰、承诺、建议、称呼、开头或结尾。用户只是确认或重复感受时，允许自然短答，不要为了显得完整而换词重说同一意思。',
     ...(input.avoidPhrases.length ? [`历史回复已经重复过这些短语，本轮不得再次原样使用：${input.avoidPhrases.join('、')}。`] : []),
+    ...(input.structuredOutput ? [
+      '',
+      '<previous_interaction_state>',
+      input.previousInteractionState ? JSON.stringify(input.previousInteractionState) : 'NONE',
+      '</previous_interaction_state>',
+      '短期状态不是长期性格。只有previous_interaction_state中的carryAffect允许在remainingTurns大于0时影响本轮；上一轮action只用于审计，不得机械延续。无新证据时不能升级或换成新的情绪。',
+      '',
+      '<prompt_turn_ids>',
+      ...input.promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`),
+      '</prompt_turn_ids>',
+      'carryCauseTurnId、actionCauseTurnId、requestBasisTurnId必须逐字使用prompt_turn_ids中已有ID；对应Quote或Evidence必须摘取该轮连续原文；carryEmotionEvidence必须逐字摘自本轮reply。',
+      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
+      ...turnControlInstructions(input.runtimeDialogueControl),
+      ...FINAL_REPLY_NATURALIZATION,
+    ] : []),
     userAddress
       ? input.addressAlreadyUsed
         ? `历史回复已经使用过称呼“${userAddress}”，本轮不要机械重复。`
@@ -249,6 +389,8 @@ function buildRelationshipSystem(input: {
 }
 
 export function compileVoiceChatMessages(input: {
+  currentMessageId?: string;
+  structuredOutput?: boolean;
   voiceName: string;
   ageYears?: number | null;
   gender?: VoiceGender | null;
@@ -256,12 +398,22 @@ export function compileVoiceChatMessages(input: {
   userLifeStage?: UserLifeStage | null;
   background?: string;
   relationshipNote?: string;
+  personalityNote?: string;
+  speechHabitNote?: string;
   relationshipType: VoiceRelationshipType | null;
   relationshipLabel: string;
   userAddress: string;
   history: VoiceChatHistoryRow[];
   currentInput: string;
-}): { messages: VoiceChatMessage[]; contextHash: string; includedMessageIds: string[] } {
+}): {
+  messages: VoiceChatMessage[];
+  contextHash: string;
+  includedMessageIds: string[];
+  currentTurn: PromptTurn;
+  recentTurns: PromptTurn[];
+  previousInteractionState: ConversationInteractionState | null;
+  runtimeDialogueControl: RuntimeDialogueControl;
+} {
   const chatHistory = input.history.filter((row) => row.mode === 'CHAT').slice(-8);
   const userAddress = clean(input.userAddress, 10);
   const ageYears = Number.isFinite(input.ageYears) && Number(input.ageYears) >= 0 && Number(input.ageYears) <= 120 ? Number(input.ageYears) : null;
@@ -275,6 +427,35 @@ export function compileVoiceChatMessages(input: {
   if (input.relationshipType) {
     assertRelationshipAgeConsistency({ type: input.relationshipType, voiceAgeYears: ageYears, userAgeYears, userLifeStage });
   }
+  const recentTurns = chatHistory.flatMap((row, index): PromptTurn[] => {
+    const id = clean(row.messageId || `H${index + 1}`, 50);
+    return [
+      { id: `${id}:USER`, role: 'USER', content: row.inputText },
+      ...(row.outputText ? [{ id: `${id}:CHARACTER`, role: 'CHARACTER' as const, content: row.outputText }] : []),
+    ];
+  });
+  const currentId = clean(input.currentMessageId || 'CURRENT', 50);
+  const currentTurn: PromptTurn = { id: `${currentId}:USER`, role: 'USER', content: input.currentInput };
+  const previousInteractionState = [...chatHistory]
+    .reverse()
+    .map((row) => activePreviousInteractionState(row.interactionState))
+    .find((state): state is ConversationInteractionState => Boolean(state)) || null;
+  const parsedHistoryStates = chatHistory.map((row) => parseStoredInteractionState(row.interactionState));
+  const pendingPlanRequest = parsedHistoryStates
+    .map((state) => state?.action.requestDecision.kind === 'REQUEST' ? state.action.requestDecision.basis : null)
+    .find((basis) => basis && basis.source !== 'EXPLICIT_PROFILE' && explicitLowPlanChangeQuote(basis.evidence)) || null;
+  const runtimeDialogueControl = buildRuntimeDialogueControl({
+    recentActionStances: parsedHistoryStates
+      .map((state) => state?.action.stance || null)
+      .filter((stance): stance is NonNullable<typeof stance> => Boolean(stance)),
+    currentUserText: input.currentInput,
+    currentTurnId: currentTurn.id,
+    pendingPlanRequest: pendingPlanRequest && pendingPlanRequest.source !== 'EXPLICIT_PROFILE'
+      ? { turnId: pendingPlanRequest.turnId, quote: pendingPlanRequest.evidence }
+      : null,
+    previousUserRequestedNoMoreQuestions: detectConversationBoundary(chatHistory.at(-1)?.inputText || '') === 'NO_MORE_QUESTIONS',
+  });
+  const promptTurns = [...recentTurns, currentTurn];
   const system = input.relationshipType
     ? buildRelationshipSystem({
       voiceName: input.voiceName,
@@ -284,16 +465,28 @@ export function compileVoiceChatMessages(input: {
       userLifeStage,
       background: clean(input.background || '', 300),
       relationshipNote: clean(input.relationshipNote || '', 300),
+      personalityNote: clean(input.personalityNote || '', 300),
+      speechHabitNote: clean(input.speechHabitNote || '', 300),
       relationshipType: input.relationshipType,
       relationshipLabel: input.relationshipLabel,
       userAddress,
       addressAlreadyUsed: Boolean(userAddress && chatHistory.some((row) => row.outputText.includes(userAddress))),
       avoidPhrases: repeatedHistoryPhrases(chatHistory),
+      previousInteractionState,
+      promptTurns,
+      structuredOutput: input.structuredOutput === true,
+      runtimeDialogueControl,
     })
-    : GENERIC_SYSTEM_PROMPT;
+    : [GENERIC_SYSTEM_PROMPT, ...NATURAL_RESPONSE_INSTRUCTIONS, ...(input.structuredOutput === true ? [
+      '<prompt_turn_ids>', ...promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`), '</prompt_turn_ids>',
+      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
+      ...turnControlInstructions(runtimeDialogueControl),
+      ...FINAL_REPLY_NATURALIZATION,
+    ] : [])].join('\n');
 
   const messages: VoiceChatMessage[] = [
     { role: 'system', content: system },
+    ...(input.structuredOutput === true ? STRUCTURED_OUTPUT_EXAMPLE_MESSAGES : []),
     ...chatHistory.flatMap((row): VoiceChatMessage[] => [
       { role: 'user', content: row.inputText },
       ...(row.outputText ? [{ role: 'assistant' as const, content: row.outputText }] : []),
@@ -304,5 +497,9 @@ export function compileVoiceChatMessages(input: {
     messages,
     contextHash: crypto.createHash('sha256').update(JSON.stringify(messages), 'utf8').digest('hex'),
     includedMessageIds: chatHistory.map((row) => row.messageId || '').filter(Boolean),
+    currentTurn,
+    recentTurns,
+    previousInteractionState,
+    runtimeDialogueControl,
   };
 }

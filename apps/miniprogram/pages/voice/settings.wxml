@@ -80,6 +80,16 @@
           <input class="settings-profile-input" type="number" value="{{userAgeYears}}" placeholder="请输入你自己的年龄" maxlength="3" bindinput="onUserAgeInput" />
         </view>
         <view class="settings-profile-block">
+          <text class="settings-profile-label">TA 平时是什么性格</text>
+          <text class="settings-profile-caption">可选，只填写你明确知道的长期特点，不写今天的情绪。</text>
+          <textarea class="settings-profile-input" value="{{personalityNote}}" placeholder="例如：担心时说话会变直接，但听完会调整看法" maxlength="300" auto-height bindinput="onPersonalityNoteInput" />
+        </view>
+        <view class="settings-profile-block">
+          <text class="settings-profile-label">TA 平时怎么说话</text>
+          <text class="settings-profile-caption">可选，填写句长、直接或含蓄、常用表达等。</text>
+          <textarea class="settings-profile-input" value="{{speechHabitNote}}" placeholder="例如：句子不长，先问具体事情，很少说大道理" maxlength="300" auto-height bindinput="onSpeechHabitNoteInput" />
+        </view>
+        <view class="settings-profile-block">
           <text class="settings-profile-label">补充 TA 的基本情况</text>
           <text class="settings-profile-caption">可选，例如退休前做什么、现在平时做什么、生活在哪里。</text>
           <textarea class="settings-profile-input" value="{{background}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onBackgroundInput" />

@@ -67,6 +67,16 @@ export class UpdateVoiceProfileDto {
   @IsString()
   @MaxLength(300)
   relationshipNote = '';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  personalityNote = '';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  speechHabitNote = '';
 }
 
 export class ConfirmConsentDto {

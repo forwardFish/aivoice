@@ -102,6 +102,8 @@ export const voiceProfiles = pgTable('voice_profiles', {
   userLifeStage: text('user_life_stage'),
   background: text('background').notNull().default(''),
   relationshipNote: text('relationship_note').notNull().default(''),
+  personalityNote: text('personality_note').notNull().default(''),
+  speechHabitNote: text('speech_habit_note').notNull().default(''),
   status: voiceStatus('status').notNull().default('DRAFT'),
   clipStartMs: integer('clip_start_ms'),
   clipEndMs: integer('clip_end_ms'),
@@ -129,6 +131,8 @@ export const voiceProfiles = pgTable('voice_profiles', {
   check('voice_profiles_user_life_stage_valid', sql`${table.userLifeStage} IS NULL OR ${table.userLifeStage} IN ('CHILD','TEEN','ADULT','OLDER_ADULT')`),
   check('voice_profiles_background_length', sql`char_length(${table.background}) <= 300`),
   check('voice_profiles_relationship_note_length', sql`char_length(${table.relationshipNote}) <= 300`),
+  check('voice_profiles_personality_note_length', sql`char_length(${table.personalityNote}) <= 300`),
+  check('voice_profiles_speech_habit_note_length', sql`char_length(${table.speechHabitNote}) <= 300`),
 ]);
 
 export const mediaAssets = pgTable('media_assets', {
@@ -191,6 +195,7 @@ export const messages = pgTable('messages', {
   status: messageStatus('status').notNull().default('PENDING'),
   inputText: text('input_text').notNull(),
   outputText: text('output_text').notNull().default(''),
+  interactionState: jsonb('interaction_state').notNull().default({}),
   errorCode: text('error_code').notNull().default(''),
   errorMessage: text('error_message').notNull().default(''),
   readyAt: timestamp('ready_at', { withTimezone: true }),
@@ -198,6 +203,7 @@ export const messages = pgTable('messages', {
 }, (table) => [
   uniqueIndex('messages_user_idempotency_unique').on(table.userId, table.idempotencyKey),
   index('messages_voice_status_time_idx').on(table.voiceProfileId, table.status, table.createdAt),
+  check('messages_interaction_state_object', sql`jsonb_typeof(${table.interactionState}) = 'object'`),
 ]);
 
 export const orders = pgTable('orders', {

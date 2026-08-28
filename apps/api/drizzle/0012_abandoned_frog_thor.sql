@@ -1,0 +1,1 @@
+ALTER TABLE "messages" ADD CONSTRAINT "messages_interaction_state_object" CHECK (jsonb_typeof("messages"."interaction_state") = 'object');

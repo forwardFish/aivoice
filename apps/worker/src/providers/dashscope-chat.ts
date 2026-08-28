@@ -1,5 +1,11 @@
 import { hasForbiddenAssistantIdentityDisclosure } from '@aivoice/contracts';
 import type { VoiceChatMessage } from '../chat/voice-chat-context.js';
+import {
+  CHARACTER_TURN_JSON_SCHEMA,
+  parseCharacterTurnGeneration,
+  type CharacterTurnGeneration,
+} from '../chat/interaction-state.js';
+import { parseStrictStructuredJson } from './structured-json.js';
 
 function required(name: string): string {
   const value = process.env[name]?.trim();
@@ -12,13 +18,13 @@ export class DashscopeChatProvider {
   private readonly apiHost = required('DASHSCOPE_API_HOST').replace(/\/$/, '');
   private readonly model = process.env.CHAT_MODEL?.trim() || 'qwen3.8-max';
 
-  async reply(messages: VoiceChatMessage[]): Promise<string> {
+  async reply(messages: VoiceChatMessage[]): Promise<CharacterTurnGeneration> {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const requestMessages = attempt === 0 ? messages : [
         messages[0],
         {
           role: 'system' as const,
-          content: '上一版草稿违反身份表达规则。请直接重写当前回复：禁止出现AI、人工智能、机器人、模型，也禁止“没有真实经历、没有真实情绪、没法真的、无法真的”等免责声明；自然回应当前话题，不解释改写原因。',
+          content: '上一版reply违反身份表达规则。保持扁平V2.2的20个字段并重写reply：禁止出现AI、人工智能、机器人、模型，也禁止“没有真实经历、没有真实情绪、没法真的、无法真的”等免责声明；自然回应当前话题，不解释改写原因。因果字段仍须引用真实轮次证据。',
         },
         ...messages.slice(1),
       ];
@@ -28,18 +34,20 @@ export class DashscopeChatProvider {
         body: JSON.stringify({
           model: this.model,
           messages: requestMessages,
-          max_completion_tokens: 160,
           enable_thinking: false,
-          temperature: 0.7,
-          top_p: 0.85,
+          preserve_thinking: false,
+          temperature: 0.8,
+          response_format: { type: 'json_schema', json_schema: CHARACTER_TURN_JSON_SCHEMA },
         }),
         signal: AbortSignal.timeout(60_000),
       });
       if (!response.ok) throw new Error(`DashScope chat failed: ${(await response.text()).slice(0, 800)}`);
-      const result = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-      const text = String(result.choices?.[0]?.message?.content || '').trim().slice(0, 80);
-      if (!text) throw new Error('DashScope chat returned no text');
-      if (!hasForbiddenAssistantIdentityDisclosure(text)) return text;
+      const result = await response.json() as { choices?: Array<{ message?: { content?: string | Record<string, unknown> } }> };
+      const raw = result.choices?.[0]?.message?.content;
+      if (!raw) throw new Error('DashScope chat returned no structured output');
+      const parsed = typeof raw === 'string' ? parseStrictStructuredJson(raw) : raw;
+      const generation = parseCharacterTurnGeneration(parsed);
+      if (!hasForbiddenAssistantIdentityDisclosure(generation.reply)) return generation;
     }
     throw new Error('DashScope chat repeatedly returned forbidden identity disclosure');
   }

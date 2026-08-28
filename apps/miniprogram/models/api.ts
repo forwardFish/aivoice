@@ -79,6 +79,8 @@ export interface VoiceSummary {
   userLifeStage?: UserLifeStage
   background?: string
   relationshipNote?: string
+  personalityNote?: string
+  speechHabitNote?: string
   avatarUrl?: string
   stageLabel?: string
   conversationStyle?: ConversationStyle

@@ -63,6 +63,8 @@ export class VoiceController {
       userLifeStage: body.userLifeStage,
       background: body.background,
       relationshipNote: body.relationshipNote,
+      personalityNote: body.personalityNote,
+      speechHabitNote: body.speechHabitNote,
     });
   }
 

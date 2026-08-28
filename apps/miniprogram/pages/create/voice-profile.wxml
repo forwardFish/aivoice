@@ -110,6 +110,18 @@
         <textarea class="relationship-other-input" value="{{relationshipNote}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
       </view>
 
+      <view wx:if="{{permissionType}}" class="field-block">
+        <text class="field-label">TA 平时是什么性格</text>
+        <text class="user-address-help">可选，只填写你明确知道的长期特点。不要写今天的情绪。</text>
+        <textarea class="relationship-other-input" value="{{personalityNote}}" placeholder="例如：遇到大事先问清楚；担心时会说得直接，但听完会调整看法" maxlength="300" auto-height bindinput="onPersonalityNoteInput" />
+      </view>
+
+      <view wx:if="{{permissionType}}" class="field-block">
+        <text class="field-label">TA 平时怎么说话</text>
+        <text class="user-address-help">可选，填写句长、直接或含蓄、常用表达等；不会机械重复口头禅。</text>
+        <textarea class="relationship-other-input" value="{{speechHabitNote}}" placeholder="例如：句子不长，先问具体事情；很少说大道理，偶尔说“你先别急”" maxlength="300" auto-height bindinput="onSpeechHabitNoteInput" />
+      </view>
+
       <view wx:if="{{permissionType}}" class="consent-box" bindtap="toggleConfirmed">
         <view class="check-box {{confirmed ? 'checked' : ''}}"><text wx:if="{{confirmed}}">✓</text></view>
         <view class="consent-copy">

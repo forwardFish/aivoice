@@ -94,6 +94,8 @@ test('voice profile submit posts the server canonical consent text returned by p
       userLifeStage: 'ADULT',
       background: '退休前是中学老师。',
       relationshipNote: '和成年女儿每周通话。',
+      personalityNote: '遇到大事先问清具体情况。',
+      speechHabitNote: '句子不长，先问具体事情。',
       consentText: 'LOCAL FALLBACK OTHER',
       confirmed: true
     },
@@ -116,7 +118,9 @@ test('voice profile submit posts the server canonical consent text returned by p
     userAgeYears: 40,
     userLifeStage: 'ADULT',
     background: '退休前是中学老师。',
-    relationshipNote: '和成年女儿每周通话。'
+    relationshipNote: '和成年女儿每周通话。',
+    personalityNote: '遇到大事先问清具体情况。',
+    speechHabitNote: '句子不长，先问具体事情。'
   })
   assert.deepEqual(consentRequestBody, {
     consentVersion: 'voice-consent-v-test',
@@ -137,6 +141,8 @@ test('voice relationship fields use native form controls and readable typography
   assert.match(wxml, /例如：小林、妈妈、宝贝/)
   assert.match(wxml, /你的准确年龄/)
   assert.match(wxml, /bindinput="onUserAgeInput"/)
+  assert.match(wxml, /TA 平时是什么性格/)
+  assert.match(wxml, /TA 平时怎么说话/)
   assert.match(style, /grid-template-columns:\s*repeat\(3,/)
   assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)
   assert.doesNotMatch(wxml, /class="relationship-chip/)

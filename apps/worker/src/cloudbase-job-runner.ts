@@ -26,6 +26,14 @@ import {
   type VoiceChatMessage,
   type VoiceRelationshipType,
 } from './chat/voice-chat-context.js';
+import {
+  legacyCharacterTurnGeneration,
+  normalizeInteractionStateDetailed,
+  type CharacterTurnGeneration,
+  type ConversationInteractionState,
+} from './chat/interaction-state.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak } from './chat/human-likeness.js';
+import { validateQuestionBehavior } from './chat/dialogue-control.js';
 
 type JobType = 'PROCESS_VOICE' | 'GENERATE_MESSAGE' | 'DELETE_VOICE' | 'DELETE_ACCOUNT';
 
@@ -48,7 +56,7 @@ interface VoiceProviderPort {
 }
 
 interface ChatProviderPort {
-  reply(messages: VoiceChatMessage[]): Promise<string>;
+  reply(messages: VoiceChatMessage[]): Promise<string | CharacterTurnGeneration>;
 }
 
 interface SpeakerDiarizationPort {
@@ -273,6 +281,12 @@ export class CloudBaseJobRunner {
     let activeStage = 'load_input';
     let mode = 'UNKNOWN';
     let outputTextLength = 0;
+    let interactionState: ConversationInteractionState | null = null;
+    let interactionStateAccepted = true;
+    let interactionStateResetReason: string | null = null;
+    let interactionStateIssues: string[] = [];
+    let softQualitySignals: string[] = [];
+    const hardRuleHits: string[] = [];
     let audioDurationMs = 0;
     let audioBytes = 0;
     const measure = async <T>(stage: string, operation: () => Promise<T>): Promise<T> => {
@@ -303,13 +317,17 @@ export class CloudBaseJobRunner {
       userLifeStage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
       background: string;
       relationshipNote: string;
+      personalityNote: string;
+      speechHabitNote: string;
       providerVoiceIdEncrypted: string;
-        history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string }>;
+        history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string; interactionState?: unknown }>;
       } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
       mode = message.mode;
       let outputText = message.inputText;
       if (message.mode === 'CHAT') {
         const context = compileVoiceChatMessages({
+          structuredOutput: true,
+          currentMessageId: message.messageId,
           voiceName: message.voiceName,
           ageYears: message.ageYears,
           gender: message.gender,
@@ -320,11 +338,13 @@ export class CloudBaseJobRunner {
           userLifeStage: message.userLifeStage,
           background: message.background,
           relationshipNote: message.relationshipNote,
+          personalityNote: message.personalityNote,
+          speechHabitNote: message.speechHabitNote,
           history: message.history,
           currentInput: message.inputText,
         });
         console.info('voice chat context compiled', {
-          promptVersion: 'voice-chat-context-v1',
+          promptVersion: 'voice-chat-human-v2',
           modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
           voiceId: message.voiceId,
           conversationId: message.conversationId,
@@ -333,10 +353,63 @@ export class CloudBaseJobRunner {
           historyCount: context.includedMessageIds.length,
           contextHash: context.contextHash,
         });
-        outputText = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
+        const providerResult = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
+        const generation = typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
+        outputText = generation.reply;
+        const normalizedState = normalizeInteractionStateDetailed({
+          candidate: generation.interactionState,
+          replyTone: generation.replyTone,
+          reply: outputText,
+          currentTurn: context.currentTurn,
+          recentTurns: context.recentTurns,
+          previousState: context.previousInteractionState,
+          control: context.runtimeDialogueControl,
+          profile: {
+            personalityNote: message.personalityNote || null,
+            speechHabitNote: message.speechHabitNote || null,
+            relationshipNote: message.relationshipNote || null,
+          },
+        });
+        interactionState = normalizedState.state;
+        interactionStateAccepted = normalizedState.accepted;
+        interactionStateResetReason = normalizedState.resetReason;
+        interactionStateIssues = normalizedState.issues;
+        const controlViolation = normalizedState.issues.find((issue) => ['ACTION_STANCE_NOT_ALLOWED', 'REQUEST_ONLY_STANCE_UNDER_FORCE_NONE', 'FORCED_REQUEST_STANCE_INVALID'].includes(issue));
+        if (controlViolation) {
+          hardRuleHits.push(controlViolation);
+          throw new ContentBlockedError(controlViolation);
+        }
+        const questionIssues = validateQuestionBehavior(outputText, normalizedState.state.action, context.runtimeDialogueControl);
+        softQualitySignals = [
+          ...assessHumanLikenessSignals(outputText, message.history.map((row) => row.outputText).filter(Boolean)),
+          ...normalizedState.qualityFlags,
+          ...questionIssues,
+        ];
+        const leakViolation = hardReplyLeak(outputText);
+        if (leakViolation) {
+          hardRuleHits.push(leakViolation);
+          throw new ContentBlockedError(leakViolation);
+        }
         const relationshipViolation = relationshipReplyViolation({ relationshipType: message.relationshipType, reply: outputText });
-        if (relationshipViolation) throw new ContentBlockedError(relationshipViolation);
+        if (relationshipViolation) {
+          hardRuleHits.push(relationshipViolation);
+          throw new ContentBlockedError(relationshipViolation);
+        }
+        if (detectSpeakerFactOwnershipViolation({
+          currentUserText: message.inputText,
+          reply: outputText,
+          subjectBackground: message.background || null,
+          recentCharacterReplies: message.history.map((row) => row.outputText).filter(Boolean),
+        })) {
+          hardRuleHits.push('SPEAKER_FACT_OWNERSHIP_VIOLATION');
+          throw new ContentBlockedError('SPEAKER_FACT_OWNERSHIP_VIOLATION');
+        }
+        if (questionIssues.length) {
+          hardRuleHits.push(questionIssues[0]);
+          throw new ContentBlockedError(questionIssues[0]);
+        }
         if (hasForbiddenAssistantIdentityDisclosure(outputText)) {
+          hardRuleHits.push('IDENTITY_DISCLOSURE_BLOCKED');
           throw new ContentBlockedError('IDENTITY_DISCLOSURE_BLOCKED');
         }
       } else {
@@ -348,12 +421,13 @@ export class CloudBaseJobRunner {
         if (!safety.safe) throw new ContentBlockedError(safety.reason || 'OUTPUT_CONTENT_BLOCKED');
       });
       if (message.mode === 'CHAT') {
-        await measure('publish_text', () => this.runtime.rpc('rpc_message_publish_text', {
+        await measure('publish_text', () => this.runtime.rpc('rpc_message_publish_text_v2', {
           pJobId: job.id,
           pWorkerId: this.workerId,
           pUserId: job.userId,
           pMessageId: job.messageId,
           pOutputText: outputText,
+          pInteractionState: interactionState || {},
         }));
       } else {
         stages.publish_text = 0;
@@ -373,7 +447,7 @@ export class CloudBaseJobRunner {
       const storedObjectKey = await measure('upload_audio', () => this.runtime.uploadFile(this.audioBucket, objectKey, audioPath, 'audio/wav'));
       let completed = false;
       try {
-        await measure('complete_message', () => this.runtime.rpc('rpc_message_complete_success', {
+        await measure('complete_message', () => this.runtime.rpc('rpc_message_complete_success_v2', {
           pUserId: job.userId,
           pVoiceId: job.voiceProfileId,
           pMessageId: job.messageId,
@@ -384,6 +458,7 @@ export class CloudBaseJobRunner {
           pBytes: probe.bytes,
           pDurationMs: probe.durationMs,
           pSha256: hash,
+          pInteractionState: interactionState || {},
         }));
         completed = true;
         await measure('mark_job_succeeded', () => this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId }));
@@ -398,6 +473,16 @@ export class CloudBaseJobRunner {
         messageId: job.messageId,
         mode,
         attempt: job.attempts,
+        promptVersion: 'voice-chat-human-v2',
+        personaVersion: 'explicit-persona-v1',
+        generationParamsHash: crypto.createHash('sha256').update('qwen3.8-max|temperature=0.8|max=320|thinking=false|history=8').digest('hex'),
+        parsedSuccessfully: true,
+        hardRuleHits,
+        softQualitySignals,
+        interactionStateAccepted,
+        interactionStateResetReason,
+        interactionStateIssues,
+        replyLength: outputTextLength,
         outputTextLength,
         audioDurationMs,
         audioBytes,

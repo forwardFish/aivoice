@@ -124,6 +124,8 @@ export function normalizeVoice(input: unknown): VoiceDetail {
       : undefined,
     background: stringOr(raw.background) || undefined,
     relationshipNote: stringOr(raw.relationshipNote ?? raw.relationship_note) || undefined,
+    personalityNote: stringOr(raw.personalityNote ?? raw.personality_note) || undefined,
+    speechHabitNote: stringOr(raw.speechHabitNote ?? raw.speech_habit_note) || undefined,
     avatarUrl: stringOr(raw.avatarUrl ?? raw.avatar_url) || undefined,
     stageLabel: stringOr(raw.stageLabel ?? raw.stage_label) || undefined,
     conversationStyle: raw.conversationStyle ?? raw.conversation_style,

@@ -26,6 +26,8 @@ interface VoiceRow {
   userLifeStage: string | null;
   background: string;
   relationshipNote: string;
+  personalityNote: string;
+  speechHabitNote: string;
   status: VoiceStatus;
   clipStartMs: number | null;
   clipEndMs: number | null;
@@ -62,6 +64,15 @@ function errorText(error: unknown): string {
     return [record.code, record.message, record.details, record.hint].filter(Boolean).join(' ');
   }
   return error.message;
+}
+
+function normalizeExplicitProfileText(value: string | null | undefined): string {
+  const normalized = String(value || '').normalize('NFKC')
+    .replace(/[\u0000-\u001F\u007F]/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim();
+  if (Array.from(normalized).length > 300) throw new ConflictException('explicit persona field must be at most 300 characters');
+  return normalized;
 }
 
 @Injectable()
@@ -153,6 +164,8 @@ export class VoiceService {
       userLifeStage: voice.userLifeStage,
       background: voice.background,
       relationshipNote: voice.relationshipNote,
+      personalityNote: voice.personalityNote,
+      speechHabitNote: voice.speechHabitNote,
       status: voice.status,
       clipStartMs: voice.clipStartMs,
       clipEndMs: voice.clipEndMs,
@@ -311,6 +324,8 @@ export class VoiceService {
     userLifeStage?: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT';
     background?: string;
     relationshipNote?: string;
+    personalityNote?: string;
+    speechHabitNote?: string;
   }) {
     const cleanName = input.name.trim().slice(0, 40);
     if (!cleanName) throw new ConflictException('voice name is required');
@@ -328,6 +343,8 @@ export class VoiceService {
       : null);
     const background = String(input.background || '').trim().slice(0, 300);
     const relationshipNote = String(input.relationshipNote || '').trim().slice(0, 300);
+    const personalityNote = normalizeExplicitProfileText(input.personalityNote);
+    const speechHabitNote = normalizeExplicitProfileText(input.speechHabitNote);
     if (ageYears !== null && (ageYears < 0 || ageYears > 120)) throw new ConflictException('age must be 0-120');
     if (userAgeYears !== null && (userAgeYears < 0 || userAgeYears > 120)) throw new ConflictException('user age must be 0-120');
     const userIsMinor = userAgeYears !== null
@@ -346,7 +363,7 @@ export class VoiceService {
     }
     if (this.database.isCloudBase) {
       try {
-        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v5', {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v6', {
           pUserId: userId,
           pVoiceId: voiceId,
           pName: cleanName,
@@ -360,6 +377,8 @@ export class VoiceService {
           pUserLifeStage: userLifeStage,
           pBackground: background,
           pRelationshipNote: relationshipNote,
+          pPersonalityNote: personalityNote,
+          pSpeechHabitNote: speechHabitNote,
         });
         if (!firstRpcRow(result)) throw new NotFoundException('voice not found');
         const voice = await this.ownedVoice(userId, voiceId);
@@ -381,6 +400,8 @@ export class VoiceService {
       userLifeStage,
       background,
       relationshipNote,
+      personalityNote,
+      speechHabitNote,
       updatedAt: new Date(),
     }).where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId))).returning();
     return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[input.permissionType] };

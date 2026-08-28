@@ -105,6 +105,8 @@ Page({
     userLifeStage: '' as UserLifeStage | '',
     background: '',
     relationshipNote: '',
+    personalityNote: '',
+    speechHabitNote: '',
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
     savedRelationshipType: '' as RelationshipType | '',
     savedRelationshipOther: '',
@@ -157,6 +159,8 @@ Page({
         userLifeStage: voice.userLifeStage || '',
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',
+        personalityNote: voice.personalityNote || '',
+        speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
         savedUserAddress: voice.userAddress || '',
@@ -195,6 +199,12 @@ Page({
   },
   onRelationshipNoteInput(event: any) {
     this.setData({ relationshipNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
+  },
+  onPersonalityNoteInput(event: any) {
+    this.setData({ personalityNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
+  },
+  onSpeechHabitNoteInput(event: any) {
+    this.setData({ speechHabitNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
   },
   toggleRelationship() {
     this.setData({ showRelationship: !this.data.showRelationship })
@@ -280,7 +290,9 @@ Page({
         userAgeYears,
         userLifeStage: this.data.relationshipType === 'SELF' ? undefined : this.data.userLifeStage || undefined,
         background: String(this.data.background || '').trim(),
-        relationshipNote: String(this.data.relationshipNote || '').trim()
+        relationshipNote: String(this.data.relationshipNote || '').trim(),
+        personalityNote: String(this.data.personalityNote || '').trim(),
+        speechHabitNote: String(this.data.speechHabitNote || '').trim()
       })
       this.setData({
         saving: false,
@@ -295,6 +307,8 @@ Page({
         userLifeStage: voice.userLifeStage || this.data.userLifeStage,
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',
+        personalityNote: voice.personalityNote || '',
+        speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || this.data.relationshipType,
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
         savedUserAddress: voice.userAddress || '',

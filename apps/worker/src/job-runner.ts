@@ -11,6 +11,14 @@ import {
   type VoiceChatMessage,
   type VoiceRelationshipType,
 } from './chat/voice-chat-context.js';
+import {
+  legacyCharacterTurnGeneration,
+  normalizeInteractionStateDetailed,
+  type CharacterTurnGeneration,
+  type ConversationInteractionState,
+} from './chat/interaction-state.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak } from './chat/human-likeness.js';
+import { validateQuestionBehavior } from './chat/dialogue-control.js';
 import { WorkerDatabase } from './db.js';
 import { recoverExpiredLeases } from './lease-recovery.js';
 import { embedAigcMetadata } from './media/aigc.js';
@@ -38,7 +46,7 @@ interface VoiceProviderPort {
 }
 
 interface ChatProviderPort {
-  reply(messages: VoiceChatMessage[]): Promise<string>;
+  reply(messages: VoiceChatMessage[]): Promise<string | CharacterTurnGeneration>;
 }
 
 interface JobRunnerDependencies {
@@ -307,6 +315,7 @@ export class JobRunner {
     outputText: string;
     audioPath: string;
     objectKey: string;
+    interactionState: ConversationInteractionState | null;
   }): Promise<void> {
     const probe = await probeWav(input.audioPath);
     const hash = await sha256(input.audioPath);
@@ -348,7 +357,7 @@ export class JobRunner {
          VALUES ($1,$2,$3,$4,'GENERATED_AUDIO','READY',$5,'audio/wav',$6,$7,$8,NOW(),NOW())`,
         [randomUUID(), input.job.user_id, input.job.voice_profile_id, input.job.message_id, input.objectKey, probe.bytes, probe.durationMs, hash],
       );
-      await client.query(`UPDATE messages SET status='READY',output_text=$1,ready_at=NOW(),updated_at=NOW() WHERE id=$2`, [input.outputText, input.job.message_id]);
+      await client.query(`UPDATE messages SET status='READY',output_text=$1,interaction_state=$2::jsonb,ready_at=NOW(),updated_at=NOW() WHERE id=$3`, [input.outputText, JSON.stringify(input.interactionState || {}), input.job.message_id]);
       await client.query(
         `INSERT INTO point_ledgers
          (id,user_id,voice_profile_id,message_id,type,amount,balance_after,request_key,created_at)
@@ -389,11 +398,14 @@ export class JobRunner {
       user_life_stage: 'CHILD' | 'TEEN' | 'ADULT' | 'OLDER_ADULT' | null;
       background: string;
       relationship_note: string;
+      personality_note: string;
+      speech_habit_note: string;
       cleared_at: Date | null;
     }>(
       `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,
               vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
-              vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,c.cleared_at
+              vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,
+              vp.personality_note,vp.speech_habit_note,c.cleared_at
        FROM messages m
        JOIN conversations c ON c.id=m.conversation_id
        JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
@@ -404,15 +416,18 @@ export class JobRunner {
     const message = result.rows[0];
     if (!message) throw new Error('message or ready voice model not found');
     let outputText = message.input_text;
+    let interactionState: ConversationInteractionState | null = null;
     if (message.mode === 'CHAT') {
-      const historyResult = await this.database.pool.query<{ id: string; mode: string; input_text: string; output_text: string }>(
-        `SELECT id,mode,input_text,output_text FROM messages
+      const historyResult = await this.database.pool.query<{ id: string; mode: string; input_text: string; output_text: string; interaction_state: unknown }>(
+        `SELECT id,mode,input_text,output_text,interaction_state FROM messages
          WHERE conversation_id=$1 AND status='READY' AND mode='CHAT'
            AND ($2::timestamptz IS NULL OR created_at>$2)
          ORDER BY created_at DESC,id DESC LIMIT 8`,
         [message.conversation_id, message.cleared_at],
       );
       const context = compileVoiceChatMessages({
+        structuredOutput: true,
+        currentMessageId: job.message_id,
         voiceName: message.voice_name,
         ageYears: message.age_years,
         gender: message.gender,
@@ -423,17 +438,57 @@ export class JobRunner {
         userLifeStage: message.user_life_stage,
         background: message.background,
         relationshipNote: message.relationship_note,
+        personalityNote: message.personality_note,
+        speechHabitNote: message.speech_habit_note,
         history: historyResult.rows.reverse().map((row) => ({
           messageId: row.id,
           mode: row.mode,
           inputText: row.input_text,
           outputText: row.output_text,
+          interactionState: row.interaction_state,
         })),
         currentInput: message.input_text,
       });
-      outputText = await this.chatProvider.reply(context.messages);
+      const providerResult = await this.chatProvider.reply(context.messages);
+      const generation = typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
+      outputText = generation.reply;
+      const normalizedState = normalizeInteractionStateDetailed({
+        candidate: generation.interactionState,
+        replyTone: generation.replyTone,
+        reply: outputText,
+        currentTurn: context.currentTurn,
+        recentTurns: context.recentTurns,
+        previousState: context.previousInteractionState,
+        control: context.runtimeDialogueControl,
+        profile: {
+          personalityNote: message.personality_note || null,
+          speechHabitNote: message.speech_habit_note || null,
+          relationshipNote: message.relationship_note || null,
+        },
+      });
+      interactionState = normalizedState.state;
+      const controlViolation = normalizedState.issues.find((issue) => ['ACTION_STANCE_NOT_ALLOWED', 'REQUEST_ONLY_STANCE_UNDER_FORCE_NONE', 'FORCED_REQUEST_STANCE_INVALID'].includes(issue));
+      if (controlViolation) throw new ContentBlockedError(controlViolation);
+      const questionIssues = validateQuestionBehavior(outputText, normalizedState.state.action, context.runtimeDialogueControl);
+      const leakViolation = hardReplyLeak(outputText);
+      if (leakViolation) throw new ContentBlockedError(leakViolation);
       const relationshipViolation = relationshipReplyViolation({ relationshipType: message.relationship_type, reply: outputText });
       if (relationshipViolation) throw new ContentBlockedError(relationshipViolation);
+      if (detectSpeakerFactOwnershipViolation({
+        currentUserText: message.input_text,
+        reply: outputText,
+        subjectBackground: message.background || null,
+        recentCharacterReplies: historyResult.rows.map((row) => row.output_text).filter(Boolean),
+      })) throw new ContentBlockedError('SPEAKER_FACT_OWNERSHIP_VIOLATION');
+      if (questionIssues.length) throw new ContentBlockedError(questionIssues[0]);
+      console.info('character_generation_quality', JSON.stringify({
+        event: 'character_generation_quality', promptVersion: 'voice-chat-human-v2', personaVersion: 'explicit-persona-v1',
+        model: process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
+        hardRuleHits: [], softQualitySignals: [...assessHumanLikenessSignals(outputText, historyResult.rows.map((row) => row.output_text).filter(Boolean)), ...normalizedState.qualityFlags, ...questionIssues],
+        interactionStateAccepted: normalizedState.accepted, interactionStateResetReason: normalizedState.resetReason,
+        interactionStateIssues: normalizedState.issues,
+        replyLength: Array.from(outputText).length,
+      }));
     }
     const outputSafety = evaluateContentSafety(outputText);
     if (!outputSafety.safe) throw new ContentBlockedError(outputSafety.reason || 'OUTPUT_CONTENT_BLOCKED');
@@ -445,7 +500,7 @@ export class JobRunner {
     try {
       await fs.writeFile(audioPath, audio);
       await embedAigcMetadata(audioPath, job.message_id);
-      await this.completeGeneratedMessage({ job, outputText, audioPath, objectKey });
+      await this.completeGeneratedMessage({ job, outputText, audioPath, objectKey, interactionState });
     } catch (error) {
       await fs.unlink(audioPath).catch(() => undefined);
       throw error;

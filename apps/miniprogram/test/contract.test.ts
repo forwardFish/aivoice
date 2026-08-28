@@ -24,6 +24,8 @@ test('normalizes the implemented backend voice lifecycle and permission values',
     userLifeStage: 'ADULT',
     background: '退休前是中学老师。',
     relationshipNote: '和成年女儿每周通话。',
+    personalityNote: '遇到大事先问清具体情况。',
+    speechHabitNote: '句子不长，先问具体事情。',
     acceptedAt: null,
     previewRetryCount: 0,
     points: { availablePoints: 0, trialEligibility: 'ELIGIBLE' }
@@ -38,6 +40,8 @@ test('normalizes the implemented backend voice lifecycle and permission values',
   assert.equal(previewReady.userLifeStage, 'ADULT')
   assert.equal(previewReady.background, '退休前是中学老师。')
   assert.equal(previewReady.relationshipNote, '和成年女儿每周通话。')
+  assert.equal(previewReady.personalityNote, '遇到大事先问清具体情况。')
+  assert.equal(previewReady.speechHabitNote, '句子不长，先问具体事情。')
   assert.equal(previewReady.freeRetryRemaining, 1)
 
   const accepted = normalizeVoice({ ...previewReady, status: 'READY', acceptedAt: new Date().toISOString() })

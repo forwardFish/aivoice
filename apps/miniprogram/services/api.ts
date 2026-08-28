@@ -579,6 +579,8 @@ export async function saveVoiceProfile(voiceId: string, input: {
   userLifeStage?: import('../models/api').UserLifeStage
   background?: string
   relationshipNote?: string
+  personalityNote?: string
+  speechHabitNote?: string
 }): Promise<VoiceDetail> {
   const raw = await requestRaw<any>({
     path: `/voices/${encodeURIComponent(voiceId)}/profile`,

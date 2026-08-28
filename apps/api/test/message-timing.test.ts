@@ -41,3 +41,16 @@ test('job retry diagnostics survive a later successful attempt', () => {
   assert.match(migration, /'attempt',v_job\.attempts[\s\S]*'errorCode'[\s\S]*'errorMessage'[\s\S]*'recordedAt'/);
   assert.doesNotMatch(migration, /point_accounts|point_ledgers|balance/);
 });
+
+test('human-likeness migration persists explicit persona and internal interaction state', () => {
+  const migration = fs.readFileSync(new URL('../cloudbase/0014_human_likeness.sql', import.meta.url), 'utf8');
+
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS personality_note text/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS speech_habit_note text/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS interaction_state jsonb/);
+  assert.match(migration, /CREATE OR REPLACE FUNCTION rpc_voice_update_profile_v6/);
+  assert.match(migration, /CREATE OR REPLACE FUNCTION rpc_message_publish_text_v2/);
+  assert.match(migration, /CREATE OR REPLACE FUNCTION rpc_message_complete_success_v2/);
+  assert.match(migration, /'interactionState',h\.interaction_state/);
+  assert.match(migration, /GRANT EXECUTE ON FUNCTION rpc_message_publish_text_v2[\s\S]*TO worker_rpc_role/);
+});

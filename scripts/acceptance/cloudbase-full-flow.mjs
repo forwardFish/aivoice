@@ -140,7 +140,7 @@ try {
     pStartMs: 0,
     pEndMs: 20_000,
   });
-  await client.rpc('rpc_voice_update_profile_v5', {
+  await client.rpc('rpc_voice_update_profile_v6', {
     pUserId: evidence.userId,
     pVoiceId: evidence.voiceId,
     pName: '妈妈',
@@ -154,6 +154,8 @@ try {
     pUserAgeYears: 40,
     pBackground: '退休前是中学老师，现在参加社区合唱活动。',
     pRelationshipNote: '和成年女儿每周通话，遇到大事会一起商量。',
+    pPersonalityNote: '遇到大事先问清具体情况，担心时说话会变直接。',
+    pSpeechHabitNote: '句子不长，习惯先问一件具体的事。',
   });
   evidence.relationshipType = 'MOTHER';
   evidence.userAddress = '小林';

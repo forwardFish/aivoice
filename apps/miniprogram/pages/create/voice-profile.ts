@@ -57,6 +57,8 @@ Page({
     userLifeStage: '' as UserLifeStage | '',
     background: '',
     relationshipNote: '',
+    personalityNote: '',
+    speechHabitNote: '',
     relationshipOptions: [] as RelationshipOption[],
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
     consentText: '',
@@ -116,6 +118,12 @@ Page({
   },
   onRelationshipNoteInput(event: any) {
     this.setData({ relationshipNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '' })
+  },
+  onPersonalityNoteInput(event: any) {
+    this.setData({ personalityNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '' })
+  },
+  onSpeechHabitNoteInput(event: any) {
+    this.setData({ speechHabitNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '' })
   },
   selectRelationship(event: any) {
     const relationshipType = String(event.currentTarget.dataset.key || '') as RelationshipType
@@ -228,7 +236,9 @@ Page({
         userAgeYears,
         userLifeStage,
         background: String(this.data.background || '').trim(),
-        relationshipNote: String(this.data.relationshipNote || '').trim()
+        relationshipNote: String(this.data.relationshipNote || '').trim(),
+        personalityNote: String(this.data.personalityNote || '').trim(),
+        speechHabitNote: String(this.data.speechHabitNote || '').trim()
       })
       if (!savedProfile.consentVersion || !savedProfile.consentText) {
         throw new Error('服务端未返回当前授权文本，请稍后重试。')
