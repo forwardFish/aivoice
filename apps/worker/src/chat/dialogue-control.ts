@@ -27,6 +27,10 @@ export type RuntimeDialogueControl = TurnGenerationControl & {
 
 const QUESTION_INVITATION = /(?:你问吧|可以问|你可以问|有什么想问|你想问什么|还有什么要问)/u;
 const REASK_DIRECTIVE = /(?:你|那你)(?:先)?(?:说说|讲讲|告诉我)|说说原因|讲讲原因|到底怎么回事/u;
+const COMPOUND_QUESTION_INTENT_PATTERNS = [
+  /(?:怎么|为什么|哪里|哪儿|什么时候|几点|多少)[^。！？?]{0,30}(?:是不是|有没有|要不要|能不能|会不会)/u,
+  /(?:怎么|为什么|哪里|哪儿|什么时候|几点|多少|什么)[^。！？?]{0,30}(?:怎么|为什么|哪里|哪儿|什么时候|几点|多少|什么)/u,
+] as const;
 const FORBIDDEN_QUESTION_LIKE_PATTERNS = [
   /(?:是[^，。！？]{0,20}还是[^，。！？]{0,20})/u,
   /(?:你|那你)(?:先)?(?:说说|讲讲|告诉我)/u,
@@ -212,6 +216,7 @@ export function validateQuestionBehavior(reply: string, action: TurnActionState,
   const issues: string[] = [];
   const questionMarks = Array.from(reply).filter((character) => character === '？' || character === '?').length;
   if (questionMarks > 1) issues.push('MULTIPLE_QUESTIONS_IN_ONE_REPLY');
+  if (COMPOUND_QUESTION_INTENT_PATTERNS.some((pattern) => pattern.test(reply))) issues.push('MULTIPLE_QUESTION_INTENTS');
   if (control.questionPolicy === 'FORBIDDEN' && (action.stance === 'ASK' || REASK_DIRECTIVE.test(reply) || violatesStatementOnlyPolicy(reply))) {
     issues.push(control.noMoreQuestionsActive ? 'EXPLICIT_QUESTION_BOUNDARY_VIOLATION' : 'ASK_COOLDOWN_VIOLATION');
   }

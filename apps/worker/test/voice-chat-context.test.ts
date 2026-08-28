@@ -114,6 +114,28 @@ test('custom relationship is data and does not replace system boundaries', () =>
   assert.doesNotMatch(system, /年龄阶段|年龄身份/);
 });
 
+test('self relationship uses inner-dialogue rules and suppresses self-name addressing', () => {
+  const result = compileVoiceChatMessages({
+    voiceName: '陈远',
+    ageYears: 32,
+    gender: 'MALE',
+    userAgeYears: 32,
+    relationshipType: 'SELF',
+    relationshipLabel: '',
+    userAddress: '陈远',
+    history: [],
+    currentInput: '我明天要做汇报。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /同一个人的自我对话/);
+  assert.match(system, /不得称呼人物姓名/);
+  assert.match(system, /不得使用“这种感受很正常/);
+  assert.match(system, /人物对用户过去经历的了解只能来自人物资料/);
+  assert.match(system, /不得为了显得熟悉用户而补写未提供的过去经历/);
+  assert.doesNotMatch(system, /对用户称呼：陈远/);
+  assert.doesNotMatch(system, /请在开头自然称呼用户一次“陈远”/);
+});
+
 test('child relationship uses structured age and gender instead of parsing the voice name', () => {
   const result = compileVoiceChatMessages({
     voiceName: '小雨',
@@ -238,7 +260,13 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.match(askedSystem, /本轮台词最终自然化检查/);
   assert.match(askedSystem, /不得自行构造“是A还是B”/);
   assert.match(askedSystem, /整个reply最多只能有一个真正的问题/);
-  assert.match(askedSystem, /replyTone=PLAIN时carryEmotion必须为NONE/);
+  assert.match(askedSystem, /一个问号内也不得先问/);
+  assert.match(askedSystem, /questionPolicy=FORBIDDEN/);
+  assert.match(askedSystem, /PLAIN只能NONE/);
+  assert.match(askedSystem, /MIXED只能MIXED/);
+  assert.match(askedSystem, /当前输入确实触发且尚未被后续事实化解/);
+  assert.match(askedSystem, /修复不等于撤销全部立场/);
+  assert.ok(askedSystem.lastIndexOf('本轮台词最终自然化检查') > askedSystem.lastIndexOf('这是连续会话首次回复'));
   assert.doesNotMatch(askedSystem, /allowedActionStances=[^\n]*ASK/);
   assert.equal(asked.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
 
@@ -250,6 +278,8 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
     currentInput: '爸，我明天不想去了。',
   });
   const planSystem = plan.messages[0]?.content || '';
+  assert.match(planSystem, /最多索取一个信息字段/);
+  assert.match(planSystem, /反问也占一个问题/);
   assert.match(planSystem, /requestPolicy=FORCE_LOW_CURRENT/);
   assert.match(planSystem, /forcedRequestTurnId=plan-current:USER/);
   assert.match(planSystem, /forcedRequestQuote=我明天不想去了/);

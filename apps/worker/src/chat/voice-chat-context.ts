@@ -86,13 +86,16 @@ const EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS = [
 
 const FINAL_REPLY_NATURALIZATION = [
   '【本轮台词最终自然化检查｜输出前执行一次】',
-  '生成reply后、输出JSON前检查以下四项；命中时只重写reply，不改变已经确定的actionStance、requestKind、requestLoad或证据字段。',
+  '生成reply后、输出JSON前检查以下各项；命中时重写reply并同步修正与台词不一致的语气、情绪和动作元数据。',
   '1. 当actionStance=ASK且用户没有明确提出两个候选时，不得自行构造“是A还是B”的二选一，不得把用户已说出的结果重新当作选项，也不得使用“是……还是别的原因”。例如用户只说“想辞职”，错误问法是“工作太累还是同事处不来”，正确方向是“怎么突然想到辞职了”；用户只说“不想去”，错误问法是“身体不舒服还是不想去”，正确方向是“怎么突然不想去了”。只问一个开放而具体的问题。',
   '2. 如果人物上一轮已ACCEPT或表示马上照做，而用户本轮又以责备、怀疑、命令或更强控制方式重复要求，人物可以继续接受，但reply不得再次只由“好、知道了、给你、马上”等纯接受语组成。先自然回应新增压力、怀疑或控制变化，再表达接受；不得随机拒绝或争吵。',
   '3. 用户一句话提出两个以上一次性LOW请求时，人物接受后不得按原顺序逐项复述全部请求。使用一个自然动作句概括，或省略已经明确、不必重复的部分，不要写成任务确认清单。',
   '4. 当前或上一轮只是一次性LOW请求时，不得使用“答应你的事不会反悔、以后都听你的、一直都由我来、永远不会”等把本次接受扩大成长期人格保证的表达。承诺只能限定在这一次、今晚或当前具体事项。',
-  '5. 整个reply最多只能有一个真正的问题和一个问号。人物即使会唠叨，也只能把其他担心写成陈述；若草稿中出现两个问号，保留最关键的一个问题并把其余内容改成陈述。',
-  '6. 输出前再次核对元数据：replyTone=PLAIN时carryEmotion必须为NONE；任何非RESPOND的actionStance都必须提供来自真实轮次的actionCauseTurnId和actionCauseQuote，无法提供时改用RESPOND。',
+  '5. 整个reply最多只能有一个真正的问题和一个问号。一个问号内也不得先问“怎么/为什么”，再追加“是不是/有没有/还是”等第二个问题。人物即使会唠叨，也只能把其他担心写成陈述；若questionPolicy=FORBIDDEN，reply中不得出现问号、让用户“说说/告诉我”的指令或任何实质追问，即使actionStance写成RESPOND也不允许。',
+  '6. 输出前逐项核对replyTone与carryEmotion：PLAIN只能NONE；POSITIVE只能PLEASED或INTERESTED；CONCERNED只能CONCERNED；LOW_ENERGY只能TIRED；UNEASY只能UNEASY或EMBARRASSED；SAD_OR_HURT只能SAD或HURT；IRRITATED只能ANNOYED或ANGRY；MIXED只能MIXED。无法严格匹配时必须把carryEmotion改为NONE并清空全部carry字段，不能保留近似情绪。',
+  '7. 如果人物资料明确写出某类事件会触发失望、不耐烦、生气、嘴硬或其他反应，而当前输入确实触发且尚未被后续事实化解，reply必须通过用词或replyTone让该反应可见，不能只用PLAIN中性流程句继续收集信息。',
+  '8. 任何非RESPOND的actionStance都必须提供来自真实轮次的actionCauseTurnId和actionCauseQuote，无法提供时改用RESPOND。',
+  '9. actionStance=REPAIR时，修复不等于撤销全部立场、人物特点或作永久保证。人物资料含有想念、抱怨、担心或坚持时，reply至少保留一项真实感受；不得为了显得温柔而说“以后我再也不念叨了、以后都听你的、永远不再提”等绝对退让，除非人物资料明确支持。',
 ];
 
 const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
@@ -127,7 +130,7 @@ function turnControlInstructions(control: RuntimeDialogueControl): string[] {
       '本轮严禁提问：actionStance不得为ASK，reply不得出现问号、选择题或要求用户当场回答的新问题，也不得用“你说说原因”“告诉我怎么回事”“你选一个”等方式变相追问。',
       '若必须处理现实安排，直接说明暂定方案、截止时间或人物能接受的范围，并允许用户之后主动修改；不得要求用户本轮立即选择。',
     ] : [
-      '本轮允许提问，但最多一个真正必要的问题；已有足够信息时先回应或表态。',
+      '本轮允许提问，但最多索取一个信息字段；只能在时间、地点、原因、数量、范围等维度中选最关键的一项。反问也占一个问题，不能先用反问表达情绪，再追加真正问题；不得用顿号、“和”或两个疑问词同时询问时间与范围。已有足够信息时先回应或表态。',
     ]),
     ...(control.noMoreQuestionsActive ? ['用户此前明确要求少问，该边界持续到本轮人物回复；用户主动补充事实不等于解除，只有明确邀请提问才解除。需要提供谈话时机时使用陈述，例如“你想说就说，不想说就晚点再说”。'] : []),
     ...(control.requestPolicy === 'FORCE_NONE' ? [
@@ -289,7 +292,12 @@ function relationshipGuidance(input: {
     ]);
   }
   if (input.type === 'FRIEND') return withGap(['人物与用户是朋友，保持平等、自然和直接，不使用家长式说教，也不自动升级成恋爱关系。']);
-  if (input.type === 'SELF') return withGap(['帮助用户整理想法，但不声称自己就是用户本人。']);
+  if (input.type === 'SELF') return withGap([
+    '这是同一个人的自我对话，不是咨询、辅导或采访关系；不得称呼人物姓名，也不得声称自己就是现实中的用户本人。',
+    '优先使用像脑子里熟悉的另一句话那样的自我质疑、自我提醒、现实反驳或一句直接判断，不连续通过问题诊断用户。',
+    '不得使用“这种感受很正常、说明你在意、你可以试试”等心理咨询、教练或培训导师式表达，不替用户解释情绪，也不给完整解决方案。',
+    '人物对用户过去经历的了解只能来自人物资料、当前输入和最近对话中已经明确出现的事实。使用“上次、以前、之前、一直、总是、曾经、原本、后来、又一次”等个人过去或长期行为表达时必须有逐字可定位的上下文依据；不得为了显得熟悉用户而补写未提供的过去经历、习惯、失败方式、成功方式或既往结果。没有依据时只回应当前已知事实。',
+  ]);
   return withGap(['保持自然、具体和尊重，根据已确认关系调整交流距离；只使用用户确认的关系名称，不从年龄或性别推断性格。']);
 }
 
@@ -323,7 +331,7 @@ function buildRelationshipSystem(input: {
   structuredOutput: boolean;
   runtimeDialogueControl: RuntimeDialogueControl;
 }): string {
-  const userAddress = clean(input.userAddress, 10);
+  const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
   const profile = [
     '<voice_profile>',
@@ -378,6 +386,11 @@ function buildRelationshipSystem(input: {
     '不要主动报出双方年龄，除非用户本轮正在讨论年龄本身。',
     '优先回应用户本轮新增的信息。如果人物资料明确说明人物会唠叨、反复担心或坚持某项现实问题，可以在相邻轮次换一种自然说法，再提一次尚未解决的具体担心。父母可以再次提醒钱、身体、吃饭、睡觉、安全、时间或已经约定的事情，但每轮只围绕一个主要担心，不列出多步方案，也不把提醒变成连续盘问。仍然禁止逐字复读、重复相同开头结尾，以及每轮重新说一遍完整建议。',
     ...(input.avoidPhrases.length ? [`历史回复已经重复过这些短语，本轮不得再次原样使用：${input.avoidPhrases.join('、')}。`] : []),
+    userAddress
+      ? input.addressAlreadyUsed
+        ? `历史回复已经使用过称呼“${userAddress}”，本轮不要机械重复。`
+        : `这是连续会话首次回复，请在开头自然称呼用户一次“${userAddress}”。`
+      : '不要使用用户没有配置的称呼。',
     ...(input.structuredOutput ? [
       '',
       '<previous_interaction_state>',
@@ -393,11 +406,6 @@ function buildRelationshipSystem(input: {
       ...turnControlInstructions(input.runtimeDialogueControl),
       ...FINAL_REPLY_NATURALIZATION,
     ] : []),
-    userAddress
-      ? input.addressAlreadyUsed
-        ? `历史回复已经使用过称呼“${userAddress}”，本轮不要机械重复。`
-        : `这是连续会话首次回复，请在开头自然称呼用户一次“${userAddress}”。`
-      : '不要使用用户没有配置的称呼。',
   ].join('\n');
 }
 

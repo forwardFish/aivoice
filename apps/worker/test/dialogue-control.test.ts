@@ -27,6 +27,13 @@ test('dialogue control removes ASK after a question and blocks disguised re-aski
   assert.deepEqual(validateQuestionBehavior('老改口确实磨人，你先把退路想好。', action('RESPOND'), control), []);
 });
 
+test('question validation rejects compound intents even when there is only one question mark', () => {
+  const control = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '我胃不舒服。', currentTurnId: 'current:USER' });
+  assert.deepEqual(validateQuestionBehavior('怎么胃不舒服了，是不是最近没好好吃饭？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('你具体几点搬、要帮什么忙？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('周六具体几点开始？', action('ASK'), control), []);
+});
+
 test('an explicit no-question boundary forbids choice questions but an invitation can reopen one question', () => {
   const blocked = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '你别问那么多，我现在不想解释。', currentTurnId: 'current:USER' });
   assert.equal(blocked.questionPolicy, 'FORBIDDEN');
