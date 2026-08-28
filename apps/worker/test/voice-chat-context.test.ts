@@ -59,6 +59,12 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
   assert.match(system, /和成年女儿每周通话/);
   assert.match(system, /长期性格：遇到大事先问清具体条件/);
   assert.match(system, /说话习惯：句子不长/);
+  assert.match(system, /明确人物特点优先于中性默认/);
+  assert.match(system, /明确资料说明人物会唠叨/);
+  assert.match(system, /明确资料说明人物容易发脾气/);
+  assert.match(system, /人物资料中明确提供的特点可以在相邻多轮持续表现/);
+  assert.match(system, /不得自动具体化为正在打游戏/);
+  assert.doesNotMatch(system, /不要在相邻多轮中反复展示同一个长期特征/);
   assert.doesNotMatch(system, /你是一个使用私有声音生成回复的简短对话助手/);
   assert.doesNotMatch(system, /使用孩子容易理解/);
 });
@@ -231,6 +237,8 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.match(askedSystem, /questionPolicy=FORBIDDEN/);
   assert.match(askedSystem, /本轮台词最终自然化检查/);
   assert.match(askedSystem, /不得自行构造“是A还是B”/);
+  assert.match(askedSystem, /整个reply最多只能有一个真正的问题/);
+  assert.match(askedSystem, /replyTone=PLAIN时carryEmotion必须为NONE/);
   assert.doesNotMatch(askedSystem, /allowedActionStances=[^\n]*ASK/);
   assert.equal(asked.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
 

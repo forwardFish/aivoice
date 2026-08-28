@@ -367,6 +367,11 @@ export function normalizeInteractionStateDetailed(input: {
   let action: TurnActionState = { ...input.candidate.action };
   const needsCause = ACTIONS_REQUIRING_CAUSE.has(action.stance) || action.currentWant !== null;
   if (!needsCause) action = respond();
+  else if (action.stance === 'SHARE' && action.currentWant === null && !action.cause) {
+    issues.push('ACTION_SHARE_WITHOUT_CAUSE_CANONICALIZED');
+    qualityFlags.push('ACTION_SHARE_WITHOUT_CAUSE_CANONICALIZED');
+    action = respond();
+  }
   else {
     const canonical = canonicalizeDialogueEvidence(action.cause, turns);
     if (!canonical) {

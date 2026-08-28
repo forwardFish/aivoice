@@ -13,6 +13,7 @@ const action = (stance: 'RESPOND' | 'ASK') => ({ stance, currentWant: null, caus
 
 test('dialogue control detects explicit conversational boundaries', () => {
   assert.equal(detectConversationBoundary('你别问那么多，我现在不想解释。'), 'NO_MORE_QUESTIONS');
+  assert.equal(detectConversationBoundary('你别一直问，我就是不想见那个人。'), 'NO_MORE_QUESTIONS');
   assert.equal(detectConversationBoundary('别替我决定，我只是想听意见。'), 'NO_DECISION_FOR_ME');
   assert.equal(detectConversationBoundary('先别讲大道理。'), 'NO_LECTURE');
   assert.equal(detectConversationBoundary('你觉得怎样？'), 'NONE');
@@ -72,6 +73,9 @@ test('high-confidence bounded action requests are forced low without broad seman
   assert.equal(explicitLowActionRequestQuote('你每次都说两分钟，手机给我。'), '手机给我');
   assert.equal(explicitLowActionRequestQuote('小雨，饭好了，先别看了。'), '先别看了');
   assert.equal(explicitLowActionRequestQuote('行，抱一下。厨房也你收。'), '抱一下');
+  assert.equal(explicitLowActionRequestQuote('小雨，饭好了，先把手机放下。'), '先把手机放下');
+  assert.equal(explicitLowActionRequestQuote('你别一口气念这么多，我还没决定。'), '别一口气念这么多');
+  assert.equal(explicitLowActionRequestQuote('你别一上来就发火，我又不是故意的。'), '别一上来就发火');
   const phone = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '你每次都说两分钟，手机给我。', currentTurnId: 'phone:USER' });
   assert.equal(phone.requestPolicy, 'FORCE_LOW_CURRENT');
   assert.equal(phone.forcedRequestQuote, '手机给我');
@@ -82,6 +86,16 @@ test('a clear fatigue disclosure remains non-request even when the character may
   const tired = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '我今天累死了，回去什么都不想动。', currentTurnId: 'tired:USER' });
   assert.equal(tired.requestPolicy, 'FORCE_NONE');
   assert.ok(!tired.allowedActionStances.includes('ACCEPT'));
+});
+
+test('an explicit stop-firing request outranks the same message repair explanation, while a user offer stays non-request', () => {
+  const stopFiring = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '你别一上来就发火，我又不是故意的。', currentTurnId: 'anger:USER' });
+  assert.equal(stopFiring.requestPolicy, 'FORCE_LOW_CURRENT');
+  assert.equal(stopFiring.forcedRequestQuote, '别一上来就发火');
+
+  const foodOffer = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '我现在出发，顺路给你带点吃的。', currentTurnId: 'offer:USER' });
+  assert.equal(foodOffer.requestPolicy, 'FORCE_NONE');
+  assert.ok(!foodOffer.allowedActionStances.includes('ACCEPT'));
 });
 
 test('a continued plan uses historical evidence while repair and opinion turns force no request', () => {
@@ -101,4 +115,6 @@ test('a continued plan uses historical evidence while repair and opinion turns f
 
   const opinion = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '你是不是觉得我在逃避？', currentTurnId: 'm5:USER' });
   assert.equal(opinion.requestPolicy, 'FORCE_NONE');
+  const reassurance = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '那明天你会不会又临时逼我去？', currentTurnId: 'm6:USER' });
+  assert.equal(reassurance.requestPolicy, 'FORCE_NONE');
 });

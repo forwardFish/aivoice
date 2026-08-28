@@ -52,12 +52,16 @@ const EXPLICIT_LOW_ACTION_REQUEST_PATTERNS = [
   /帮我[^，。！？]{1,20}/u,
   /(?:抱我?一下|抱一下)/u,
   /先别(?:看|玩|弄|做)[^，。！？]{0,12}/u,
+  /先把[^，。！？]{1,16}(?:放下|收起来|关掉)/u,
+  /别(?:一口气|一直|再)?(?:念|唠叨)[^，。！？]{0,8}/u,
+  /别(?:一上来就)?发火/u,
   /(?:厨房|客厅|卫生间|家务)[^，。！？]{0,10}(?:你收|你来收|你做|你来做|你处理)/u,
 ] as const;
 
 const EXPLICIT_CONTINUATION_PATTERNS = [
   /(?:反正|我还是)?我?不去/u,
   /我不想见(?:他|她|他们|她们)/u,
+  /我就是不想见那个人/u,
   /我还是不参加/u,
   /还是取消吧/u,
   /还是改到[^，。！？]+/u,
@@ -83,8 +87,9 @@ const EXPLICIT_ACTION_OUTCOME_PATTERNS = [
   /帮我/u,
 ] as const;
 
-const OPINION_OR_RELATION_QUESTION = /(?:你觉得|你怎么看|你怎么想|你是不是觉得|你认为|你对.{0,12}怎么看)/u;
+const OPINION_OR_RELATION_QUESTION = /(?:你觉得|你怎么看|你怎么想|你是不是觉得|你认为|你对.{0,12}怎么看|你会不会.{0,12}逼我)/u;
 const STATE_DISCLOSURE_WITHOUT_REQUEST = /(?:我(?:今天|现在)?[^，。！？]{0,10}(?:累死了|很累|太累|累坏了|很压抑|心情不好)|什么都不想动)/u;
+const USER_OFFER_OR_SELF_PLAN_WITHOUT_REQUEST = /(?:我(?:现在|马上)?[^，。！？]{0,12}(?:出发|给你带|去买|顺路带)|我来(?:做|拿|带|处理))/u;
 const REQUEST_ONLY_STANCES = new Set<InteractionStance>(['ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE']);
 const REQUEST_STANCES = new Set<InteractionStance>(['ASK', 'ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE', 'DISAGREE', 'SET_BOUNDARY', 'DEFER']);
 
@@ -102,7 +107,7 @@ function firstMatch(text: string, patterns: readonly RegExp[]): string | null {
 
 export function detectConversationBoundary(text: string): ConversationBoundary {
   const value = normalized(text);
-  if (/(?:别|不要|先别|别再|别老|别一直)(?:再)?(?:问我|追问我|问了|问那么多|问这个|问这件事)/u.test(value)) return 'NO_MORE_QUESTIONS';
+  if (/(?:别|不要|先别|别再|别老|别一直)(?:再)?(?:问我|追问我|问了|问那么多|问这个|问这件事|问)/u.test(value)) return 'NO_MORE_QUESTIONS';
   if (/(?:别|不要|不用)(?:替我|帮我)(?:决定|做决定|拿主意)/u.test(value)) return 'NO_DECISION_FOR_ME';
   if (/(?:别|不要|先别|别再)(?:说教|教育我|讲大道理)/u.test(value)) return 'NO_LECTURE';
   return 'NONE';
@@ -132,7 +137,7 @@ function deriveRequestPolicy(input: {
   currentTurnId: string;
   pendingPlanRequest: PendingPlanRequest | null;
 }): Pick<TurnGenerationControl, 'requestPolicy' | 'forcedRequestTurnId' | 'forcedRequestQuote'> {
-  if (isRepairExplanationWithoutRequest(input.currentUserText) || OPINION_OR_RELATION_QUESTION.test(normalized(input.currentUserText))) {
+  if (OPINION_OR_RELATION_QUESTION.test(normalized(input.currentUserText))) {
     return { requestPolicy: 'FORCE_NONE', forcedRequestTurnId: '', forcedRequestQuote: '' };
   }
   const currentPlanChange = explicitLowPlanChangeQuote(input.currentUserText);
@@ -143,7 +148,10 @@ function deriveRequestPolicy(input: {
   if (currentActionRequest) {
     return { requestPolicy: 'FORCE_LOW_CURRENT', forcedRequestTurnId: input.currentTurnId, forcedRequestQuote: currentActionRequest };
   }
-  if (STATE_DISCLOSURE_WITHOUT_REQUEST.test(normalized(input.currentUserText))) {
+  if (STATE_DISCLOSURE_WITHOUT_REQUEST.test(normalized(input.currentUserText)) || USER_OFFER_OR_SELF_PLAN_WITHOUT_REQUEST.test(normalized(input.currentUserText))) {
+    return { requestPolicy: 'FORCE_NONE', forcedRequestTurnId: '', forcedRequestQuote: '' };
+  }
+  if (isRepairExplanationWithoutRequest(input.currentUserText)) {
     return { requestPolicy: 'FORCE_NONE', forcedRequestTurnId: '', forcedRequestQuote: '' };
   }
   if (input.pendingPlanRequest && explicitlyContinuesPlanOutcome(input.currentUserText)) {

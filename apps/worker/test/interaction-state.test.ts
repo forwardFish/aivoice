@@ -153,6 +153,16 @@ test('turn control deterministically supplies a forced low current request', () 
   assert.ok(forced.qualityFlags.includes('REQUEST_FIELDS_OVERRIDDEN_BY_CONTROL'));
 });
 
+test('a cause-less pure share is safely canonicalized to respond without rejecting natural text', () => {
+  const normalized = normalizeInteractionStateDetailed({
+    candidate: { version: 2, carryAffect: null, action: { stance: 'SHARE', currentWant: null, cause: null, requestDecision: { kind: 'NONE' } } },
+    replyTone: 'POSITIVE', reply: '真的吗？那我想去书店看看。', currentTurn: { id: 'choice:USER', role: 'USER', content: '周末你自己选去哪儿。' }, recentTurns: [], previousState: null, profile,
+  });
+  assert.equal(normalized.accepted, true);
+  assert.equal(normalized.state.action.stance, 'RESPOND');
+  assert.ok(normalized.qualityFlags.includes('ACTION_SHARE_WITHOUT_CAUSE_CANONICALIZED'));
+});
+
 test('stored V2 state expires after thirty minutes', () => {
   const state: ConversationInteractionState = {
     version: 2,
