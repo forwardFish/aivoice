@@ -63,6 +63,35 @@ export function detectSpeakerFactOwnershipViolation(input: {
   return userFacts.some((fact) => unquotedReply.includes(fact) && !knownCharacterText.includes(fact));
 }
 
+const SELF_PERSONAL_HISTORY_MARKER = /上次|以前|之前|一直|总是|曾经|原本|后来|又一次/gu;
+
+export function sanitizeSelfUnsupportedPersonalHistory(input: {
+  relationshipType: string | null;
+  reply: string;
+  currentUserText: string;
+  recentUserInputs: readonly string[];
+  subjectBackground: string | null;
+}): { reply: string; removed: boolean } {
+  const reply = String(input.reply || '').trim();
+  if (input.relationshipType !== 'SELF' || !reply) return { reply, removed: false };
+  const knownFacts = [input.subjectBackground || '', ...input.recentUserInputs, input.currentUserText].join(' ');
+  const unsupportedMarkers = [...reply.matchAll(SELF_PERSONAL_HISTORY_MARKER)]
+    .map((match) => match[0])
+    .filter((marker) => !knownFacts.includes(marker));
+  if (!unsupportedMarkers.length) return { reply, removed: false };
+
+  const segments = reply.match(/[^，。！？；,!?;]+[，。！？；,!?;]?/gu) || [reply];
+  const kept = segments.filter((segment) => !unsupportedMarkers.some((marker) => segment.includes(marker)));
+  let sanitized = kept.join('').trim().replace(/^[，。！？；,!?;]+|[，,；; ]+$/gu, '');
+  if (!sanitized) {
+    const firstMarkerIndex = Math.min(...unsupportedMarkers.map((marker) => reply.indexOf(marker)).filter((index) => index >= 0));
+    sanitized = reply.slice(0, firstMarkerIndex).trim().replace(/[，,；; ]+$/gu, '');
+  }
+  if (!sanitized) sanitized = '先看眼前这件事。';
+  else if (!/[。！？!?]$/u.test(sanitized)) sanitized += '。';
+  return { reply: sanitized, removed: true };
+}
+
 export function hardReplyLeak(reply: string): string | null {
   if (/interactionState|causeTurnId|causeEvidence|remainingTurns|prompt_turn_ids|previous_interaction_state/iu.test(reply)) {
     return 'INTERNAL_STATE_LEAK_BLOCKED';

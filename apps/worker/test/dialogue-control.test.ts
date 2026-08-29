@@ -16,6 +16,7 @@ test('dialogue control detects explicit conversational boundaries', () => {
   assert.equal(detectConversationBoundary('你别一直问，我就是不想见那个人。'), 'NO_MORE_QUESTIONS');
   assert.equal(detectConversationBoundary('别替我决定，我只是想听意见。'), 'NO_DECISION_FOR_ME');
   assert.equal(detectConversationBoundary('先别讲大道理。'), 'NO_LECTURE');
+  assert.equal(detectConversationBoundary('你别又跟我说深呼吸、列提纲那些套话。'), 'NO_COACHING');
   assert.equal(detectConversationBoundary('你觉得怎样？'), 'NONE');
 });
 
@@ -31,7 +32,28 @@ test('question validation rejects compound intents even when there is only one q
   const control = buildRuntimeDialogueControl({ recentActionStances: [], currentUserText: '我胃不舒服。', currentTurnId: 'current:USER' });
   assert.deepEqual(validateQuestionBehavior('怎么胃不舒服了，是不是最近没好好吃饭？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('你具体几点搬、要帮什么忙？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('你具体几点搬、要帮到哪一步？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('时间是什么、地址在哪里？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('东西多不多、需要几个人？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('周六具体几点开始？', action('ASK'), control), []);
+});
+
+test('coaching rejection forbids questions and methods for the current and following character reply', () => {
+  const current = buildRuntimeDialogueControl({
+    recentActionStances: ['RESPOND'], currentUserText: '你别又跟我说深呼吸、列提纲那些套话。', currentTurnId: 'self-3:USER',
+  });
+  assert.equal(current.conversationBoundary, 'NO_COACHING');
+  assert.equal(current.noCoachingActive, true);
+  assert.equal(current.questionPolicy, 'FORBIDDEN');
+  assert.equal(current.requestPolicy, 'FORCE_NONE');
+  assert.ok(!current.allowedActionStances.includes('ASK'));
+
+  const following = buildRuntimeDialogueControl({
+    recentActionStances: ['RESPOND'], currentUserText: '我就是怕领导当场追问。', currentTurnId: 'self-4:USER', previousUserRequestedNoCoaching: true,
+  });
+  assert.equal(following.noCoachingActive, true);
+  assert.equal(following.questionPolicy, 'FORBIDDEN');
+  assert.ok(!following.allowedActionStances.includes('ASK'));
 });
 
 test('an explicit no-question boundary forbids choice questions but an invitation can reopen one question', () => {

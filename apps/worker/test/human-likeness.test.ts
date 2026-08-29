@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, trigramJaccard } from '../src/chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, trigramJaccard } from '../src/chat/human-likeness.js';
 
 test('human-likeness signals flag compound counselor templates without blocking natural emotion', () => {
   assert.deepEqual(
@@ -28,4 +28,28 @@ test('speaker fact ownership guard blocks copied user facts without misreading q
   assert.equal(detectSpeakerFactOwnershipViolation({ currentUserText: '我今天拿了第一名！', reply: '真的？你拿第一名了？', subjectBackground: '正在读六年级。', recentCharacterReplies: [] }), false);
   assert.equal(detectSpeakerFactOwnershipViolation({ currentUserText: '他说“我不去了”，然后就走了。', reply: '他说不去了？', subjectBackground: null, recentCharacterReplies: [] }), false);
   assert.equal(detectSpeakerFactOwnershipViolation({ currentUserText: '我们明天一起去看看吧。', reply: '行，明天一起去。', subjectBackground: null, recentCharacterReplies: [] }), false);
+});
+
+test('self history sanitizer removes unsupported past claims without changing supported or non-self replies', () => {
+  assert.deepEqual(sanitizeSelfUnsupportedPersonalHistory({
+    relationshipType: 'SELF',
+    reply: '烦也得讲，上次不也是拖到最后一刻才弄完的。',
+    currentUserText: '我明天又要做汇报，现在一想到就烦。',
+    recentUserInputs: [],
+    subjectBackground: '最近需要完成一次工作汇报。',
+  }), { reply: '烦也得讲。', removed: true });
+  assert.deepEqual(sanitizeSelfUnsupportedPersonalHistory({
+    relationshipType: 'SELF',
+    reply: '上次准备过，这次别拿结果否定自己。',
+    currentUserText: '上次我明明准备了，开口还是说乱了。',
+    recentUserInputs: [],
+    subjectBackground: null,
+  }), { reply: '上次准备过，这次别拿结果否定自己。', removed: false });
+  assert.deepEqual(sanitizeSelfUnsupportedPersonalHistory({
+    relationshipType: 'FRIEND',
+    reply: '你上次也是这么说的。',
+    currentUserText: '这次我真不是故意的。',
+    recentUserInputs: [],
+    subjectBackground: null,
+  }), { reply: '你上次也是这么说的。', removed: false });
 });

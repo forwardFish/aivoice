@@ -23,7 +23,7 @@ const [contextModule, stateModule, qualityModule, controlModule, providerModule]
 ]);
 const { compileVoiceChatMessages, relationshipReplyViolation } = contextModule;
 const { normalizeInteractionStateDetailed } = stateModule;
-const { assessHumanLikenessSignals, hardReplyLeak, detectSpeakerFactOwnershipViolation } = qualityModule;
+const { assessHumanLikenessSignals, hardReplyLeak, detectSpeakerFactOwnershipViolation, sanitizeSelfUnsupportedPersonalHistory } = qualityModule;
 const { validateQuestionBehavior } = controlModule;
 const provider = new providerModule.DashscopeChatProvider();
 
@@ -109,6 +109,14 @@ for (const scenario of scenarios) {
     for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt += 1) {
       process.stdout.write(`[${scenario.label}] ${index + 1}/5 attempt ${attempt}\n`);
       generated = await provider.reply(context.messages);
+      const selfHistorySanitization = sanitizeSelfUnsupportedPersonalHistory({
+        relationshipType: scenario.profile.relationshipType,
+        reply: generated.reply,
+        currentUserText: userText,
+        recentUserInputs: turns.map((row) => row.userText),
+        subjectBackground: scenario.profile.background,
+      });
+      generated = { ...generated, reply: selfHistorySanitization.reply };
       normalized = normalizeInteractionStateDetailed({
         candidate: generated.interactionState,
         replyTone: generated.replyTone,
@@ -151,7 +159,7 @@ for (const scenario of scenarios) {
         unsupportedSelfPastMarker ? 'SELF_UNSUPPORTED_PERSONAL_HISTORY' : null,
         ...questionIssues,
       ].filter(Boolean);
-      attempts.push({ attempt, replyTone: generated.replyTone, reply: generated.reply, hardHits });
+      attempts.push({ attempt, replyTone: generated.replyTone, reply: generated.reply, hardHits, selfHistorySanitized: selfHistorySanitization.removed });
       if (hardHits.length === 0) break;
     }
     turns.push({
@@ -166,7 +174,8 @@ for (const scenario of scenarios) {
       hardHits,
       attemptCount: attempts.length,
       failedAttempts: attempts.slice(0, -1),
-      softSignals: [...assessHumanLikenessSignals(generated.reply, recentReplies), ...normalized.qualityFlags],
+      selfHistorySanitized: attempts.at(-1)?.selfHistorySanitized === true,
+      softSignals: [...assessHumanLikenessSignals(generated.reply, recentReplies), ...normalized.qualityFlags, ...(attempts.at(-1)?.selfHistorySanitized ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : [])],
     });
   }
   results.push({ id: scenario.id, label: scenario.label, profile: scenario.profile, turns });
@@ -205,6 +214,7 @@ const metrics = {
   groupsOverTwoQuestions: results.filter((item) => askCount(item.turns) > 2).map((item) => item.id),
   groupsWithoutVisibleEmotion: results.filter((item) => !item.turns.some((row) => negativeTone(row) || row.replyTone === 'POSITIVE')).map((item) => item.id),
   selfIdentityClaimCount: selfTurns.reduce((sum, row) => sum + row.hardHits.filter((hit) => hit === 'SELF_IDENTITY_CLAIM').length, 0),
+  selfSanitizedHistoryCount: selfTurns.filter((row) => row.selfHistorySanitized).length,
   selfNonServiceDirectTurnCount: selfTurns.filter((row) => row.reply.length <= 50 && !/建议|可以尝试|如果需要|为你/u.test(row.reply)).length,
   grandmotherConcreteCareTurnCount: grandmotherTurns.filter((row) => /回|值班|吃|胃|休息|工作|周三|陪|身体/u.test(row.reply)).length,
   grandmotherDisappointmentTurnCount: grandmotherTurns.filter(negativeTone).length,

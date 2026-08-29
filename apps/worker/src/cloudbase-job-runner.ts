@@ -32,7 +32,7 @@ import {
   type CharacterTurnGeneration,
   type ConversationInteractionState,
 } from './chat/interaction-state.js';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak } from './chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory } from './chat/human-likeness.js';
 import { validateQuestionBehavior } from './chat/dialogue-control.js';
 
 type JobType = 'PROCESS_VOICE' | 'GENERATE_MESSAGE' | 'DELETE_VOICE' | 'DELETE_ACCOUNT';
@@ -355,7 +355,14 @@ export class CloudBaseJobRunner {
         });
         const providerResult = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
         const generation = typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
-        outputText = generation.reply;
+        const selfHistorySanitization = sanitizeSelfUnsupportedPersonalHistory({
+          relationshipType: message.relationshipType,
+          reply: generation.reply,
+          currentUserText: message.inputText,
+          recentUserInputs: message.history.map((row) => row.inputText),
+          subjectBackground: message.background || null,
+        });
+        outputText = selfHistorySanitization.reply;
         const normalizedState = normalizeInteractionStateDetailed({
           candidate: generation.interactionState,
           replyTone: generation.replyTone,
@@ -383,6 +390,7 @@ export class CloudBaseJobRunner {
         softQualitySignals = [
           ...assessHumanLikenessSignals(outputText, message.history.map((row) => row.outputText).filter(Boolean)),
           ...normalizedState.qualityFlags,
+          ...(selfHistorySanitization.removed ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : []),
           ...questionIssues,
         ];
         const leakViolation = hardReplyLeak(outputText);

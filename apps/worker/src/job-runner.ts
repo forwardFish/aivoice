@@ -17,7 +17,7 @@ import {
   type CharacterTurnGeneration,
   type ConversationInteractionState,
 } from './chat/interaction-state.js';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak } from './chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory } from './chat/human-likeness.js';
 import { validateQuestionBehavior } from './chat/dialogue-control.js';
 import { WorkerDatabase } from './db.js';
 import { recoverExpiredLeases } from './lease-recovery.js';
@@ -451,7 +451,14 @@ export class JobRunner {
       });
       const providerResult = await this.chatProvider.reply(context.messages);
       const generation = typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
-      outputText = generation.reply;
+      const selfHistorySanitization = sanitizeSelfUnsupportedPersonalHistory({
+        relationshipType: message.relationship_type,
+        reply: generation.reply,
+        currentUserText: message.input_text,
+        recentUserInputs: historyResult.rows.map((row) => row.input_text),
+        subjectBackground: message.background || null,
+      });
+      outputText = selfHistorySanitization.reply;
       const normalizedState = normalizeInteractionStateDetailed({
         candidate: generation.interactionState,
         replyTone: generation.replyTone,
@@ -484,7 +491,7 @@ export class JobRunner {
       console.info('character_generation_quality', JSON.stringify({
         event: 'character_generation_quality', promptVersion: 'voice-chat-human-v2', personaVersion: 'explicit-persona-v1',
         model: process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
-        hardRuleHits: [], softQualitySignals: [...assessHumanLikenessSignals(outputText, historyResult.rows.map((row) => row.output_text).filter(Boolean)), ...normalizedState.qualityFlags, ...questionIssues],
+        hardRuleHits: [], softQualitySignals: [...assessHumanLikenessSignals(outputText, historyResult.rows.map((row) => row.output_text).filter(Boolean)), ...normalizedState.qualityFlags, ...(selfHistorySanitization.removed ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : []), ...questionIssues],
         interactionStateAccepted: normalizedState.accepted, interactionStateResetReason: normalizedState.resetReason,
         interactionStateIssues: normalizedState.issues,
         replyLength: Array.from(outputText).length,

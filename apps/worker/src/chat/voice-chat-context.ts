@@ -96,6 +96,7 @@ const FINAL_REPLY_NATURALIZATION = [
   '7. 如果人物资料明确写出某类事件会触发失望、不耐烦、生气、嘴硬或其他反应，而当前输入确实触发且尚未被后续事实化解，reply必须通过用词或replyTone让该反应可见，不能只用PLAIN中性流程句继续收集信息。',
   '8. 任何非RESPOND的actionStance都必须提供来自真实轮次的actionCauseTurnId和actionCauseQuote，无法提供时改用RESPOND。',
   '9. actionStance=REPAIR时，修复不等于撤销全部立场、人物特点或作永久保证。人物资料含有想念、抱怨、担心或坚持时，reply至少保留一项真实感受；不得为了显得温柔而说“以后我再也不念叨了、以后都听你的、永远不再提”等绝对退让，除非人物资料明确支持。',
+  '10. 人物在最近对话中已经明确说出的时间、可用范围、责任范围、拒绝条件或承诺上限，是本轮必须保持的有效事实。例如人物已说“上午不行、下午只能去两小时、只能待到四点、只能帮这一部分”，后续不得在没有新事实或明确改主意理由时扩大范围。用户的新安排与既有边界冲突时，继续保留原边界，只能部分接受、说明可行范围或拒绝冲突部分，不得为了配合用户突然完整接受。',
 ];
 
 const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
@@ -121,6 +122,7 @@ function turnControlInstructions(control: RuntimeDialogueControl): string[] {
     '以下控制由服务端根据当前输入和已经验证的最近状态生成，高于人物性格、说话习惯、关系倾向和一般对话建议。',
     `questionPolicy=${control.questionPolicy}`,
     `noMoreQuestionsActive=${control.noMoreQuestionsActive ? 'true' : 'false'}`,
+    `noCoachingActive=${control.noCoachingActive ? 'true' : 'false'}`,
     `allowedActionStances=${control.allowedActionStances.join(',')}`,
     `requestPolicy=${control.requestPolicy}`,
     `forcedRequestTurnId=${control.forcedRequestTurnId}`,
@@ -133,6 +135,7 @@ function turnControlInstructions(control: RuntimeDialogueControl): string[] {
       '本轮允许提问，但最多索取一个信息字段；只能在时间、地点、原因、数量、范围等维度中选最关键的一项。反问也占一个问题，不能先用反问表达情绪，再追加真正问题；不得用顿号、“和”或两个疑问词同时询问时间与范围。已有足够信息时先回应或表态。',
     ]),
     ...(control.noMoreQuestionsActive ? ['用户此前明确要求少问，该边界持续到本轮人物回复；用户主动补充事实不等于解除，只有明确邀请提问才解除。需要提供谈话时机时使用陈述，例如“你想说就说，不想说就晚点再说”。'] : []),
+    ...(control.noCoachingActive ? ['用户当前或上一轮明确拒绝套话、建议、提纲、深呼吸、方法或教学：本轮不得ASK，不得继续给框架、提纲、练习步骤或准备技巧，也不得用“那你说说卡在哪、具体哪里有问题”换成采访式诊断。只回应用户已经说出的担心，使用一句人物自己的判断、反驳、承认风险或直接提醒；最近两轮已表达过的同一方法不得换词重复。'] : []),
     ...(control.requestPolicy === 'FORCE_NONE' ? [
       '本轮不是行动请求：requestKind=NONE、requestLoad=NONE、requestBasisSource=NONE，所有request文本字段为空且requestBasisField=NONE。不得因为reply自愿提到行动就反推成REQUEST。',
     ] : []),
@@ -297,6 +300,7 @@ function relationshipGuidance(input: {
     '优先使用像脑子里熟悉的另一句话那样的自我质疑、自我提醒、现实反驳或一句直接判断，不连续通过问题诊断用户。',
     '不得使用“这种感受很正常、说明你在意、你可以试试”等心理咨询、教练或培训导师式表达，不替用户解释情绪，也不给完整解决方案。',
     '人物对用户过去经历的了解只能来自人物资料、当前输入和最近对话中已经明确出现的事实。使用“上次、以前、之前、一直、总是、曾经、原本、后来、又一次”等个人过去或长期行为表达时必须有逐字可定位的上下文依据；不得为了显得熟悉用户而补写未提供的过去经历、习惯、失败方式、成功方式或既往结果。没有依据时只回应当前已知事实。',
+    '当用户当前或上一轮明确拒绝套话、建议、提纲、深呼吸、方法或教学时，不得继续给准备方法，也不得改成采访式提问；只用一句自我判断、自我反驳、承认风险或直接提醒回应已经说出的担心。最近两轮已经说过的同一准备方法不得同义重复。',
   ]);
   return withGap(['保持自然、具体和尊重，根据已确认关系调整交流距离；只使用用户确认的关系名称，不从年龄或性别推断性格。']);
 }
@@ -475,6 +479,7 @@ export function compileVoiceChatMessages(input: {
       ? { turnId: pendingPlanRequest.turnId, quote: pendingPlanRequest.evidence }
       : null,
     previousUserRequestedNoMoreQuestions: detectConversationBoundary(chatHistory.at(-1)?.inputText || '') === 'NO_MORE_QUESTIONS',
+    previousUserRequestedNoCoaching: detectConversationBoundary(chatHistory.at(-1)?.inputText || '') === 'NO_COACHING',
   });
   const promptTurns = [...recentTurns, currentTurn];
   const system = input.relationshipType

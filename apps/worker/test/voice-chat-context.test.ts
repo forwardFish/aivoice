@@ -132,6 +132,7 @@ test('self relationship uses inner-dialogue rules and suppresses self-name addre
   assert.match(system, /不得使用“这种感受很正常/);
   assert.match(system, /人物对用户过去经历的了解只能来自人物资料/);
   assert.match(system, /不得为了显得熟悉用户而补写未提供的过去经历/);
+  assert.match(system, /不得继续给准备方法/);
   assert.doesNotMatch(system, /对用户称呼：陈远/);
   assert.doesNotMatch(system, /请在开头自然称呼用户一次“陈远”/);
 });
@@ -266,6 +267,8 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.match(askedSystem, /MIXED只能MIXED/);
   assert.match(askedSystem, /当前输入确实触发且尚未被后续事实化解/);
   assert.match(askedSystem, /修复不等于撤销全部立场/);
+  assert.match(askedSystem, /人物在最近对话中已经明确说出的时间、可用范围/);
+  assert.match(askedSystem, /不得为了配合用户突然完整接受/);
   assert.ok(askedSystem.lastIndexOf('本轮台词最终自然化检查') > askedSystem.lastIndexOf('这是连续会话首次回复'));
   assert.doesNotMatch(askedSystem, /allowedActionStances=[^\n]*ASK/);
   assert.equal(asked.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
