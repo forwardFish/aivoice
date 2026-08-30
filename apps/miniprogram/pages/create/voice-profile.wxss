@@ -25,6 +25,25 @@
   margin-top: 36rpx;
 }
 
+.field-caption {
+  display: block;
+  margin-top: 8rpx;
+  color: #8a91a6;
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.gender-grid {
+  margin-top: 16rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.gender-option {
+  min-height: 78rpx;
+}
+
 .permission-heading {
   display: flex;
   align-items: center;

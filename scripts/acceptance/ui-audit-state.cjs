@@ -38,21 +38,21 @@ async function main() {
         voices: [
           {
             id: 'ui-ready', name: '小雨', displayName: '小雨', status: 'READY', group: 'READY',
-            displayAvatar: '/assets/avatars/child-girl-01.png', avatarSize: 154,
+            displayAvatar: '/assets/avatars/age-06-08-female.webp', avatarSize: 154,
             statusLabel: '可使用', statusTone: 'ready', primaryAction: '继续对话',
             isReady: true, isDisabled: false, showProgress: false, progress: 0,
             progressStage: '', metaLabel: '', metaText: '最近使用 2026-08-21'
           },
           {
             id: 'ui-processing', name: '奶奶', displayName: '奶奶', status: 'PROCESSING', group: 'PROCESSING',
-            displayAvatar: '/assets/avatars/grandma-01.png', avatarSize: 144,
+            displayAvatar: '/assets/avatars/age-65-79-female.webp', avatarSize: 144,
             statusLabel: '正在创建', statusTone: 'processing', primaryAction: '查看进度',
             isReady: false, isDisabled: false, showProgress: true, progress: 68,
             progressStage: '正在创建声音模型…', metaLabel: '', metaText: ''
           },
           {
             id: 'ui-draft', name: '爷爷', displayName: '爷爷', status: 'DRAFT', group: 'DRAFT',
-            displayAvatar: '/assets/avatars/grandpa-01.png', avatarSize: 144,
+            displayAvatar: '/assets/avatars/age-65-79-male.webp', avatarSize: 144,
             statusLabel: '创建未完成', statusTone: 'draft', primaryAction: '继续创建',
             isReady: false, isDisabled: false, showProgress: false, progress: 0,
             progressStage: '', metaLabel: '', metaText: '今天 16:20'
@@ -94,7 +94,7 @@ async function main() {
       await page.waitFor(1200)
       await page.setData({
         state: 'success', mode: 'chat', showModeChooser: false, voiceName: '小雨', voiceInitial: '小',
-        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 49 积分', sending: false,
+        voiceAvatar: '/assets/avatars/age-06-08-female.webp', pointsText: '剩余 49 积分', sending: false,
         chatMessages: [], chatText: '', scrollTarget: '', errorMessage: ''
       })
     }
@@ -104,7 +104,7 @@ async function main() {
       await page.waitFor(1200)
       await page.setData({
         state: 'success', mode: 'chat', showModeChooser: false, voiceName: '小雨', voiceInitial: '雨',
-        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 0 积分', sending: false,
+        voiceAvatar: '/assets/avatars/age-06-08-female.webp', pointsText: '剩余 0 积分', sending: false,
         chatMessages: [
           { id: 'ui-user', isUser: true, isAssistant: false, text: '你最近在学校开心吗？', status: 'READY', mode: 'CHAT', showAudio: false },
           { id: 'ui-assistant', isUser: false, isAssistant: true, text: '开心呀！今天老师夸我画画得很好，还给了我一颗小星星。', status: 'READY', mode: 'CHAT', showAudio: false, audioUrl: '', durationMs: 0, tag: 'AI回复', initial: '雨', feedbackVerdict: '' }
@@ -119,7 +119,7 @@ async function main() {
       await page.waitFor(1200)
       await page.setData({
         state: 'success', mode: 'exact', showModeChooser: false, voiceName: '小雨', voiceInitial: '雨',
-        voiceAvatar: '/assets/avatars/child-girl-01.png', pointsText: '剩余 0 积分', sending: false,
+        voiceAvatar: '/assets/avatars/age-06-08-female.webp', pointsText: '剩余 0 积分', sending: false,
         exactText: '祝妈妈生日快乐，永远年轻漂亮！', exactCount: 14,
         exactResults: [{ id: 'ui-exact', text: '祝妈妈生日快乐，永远年轻漂亮！', status: 'READY', showAudio: false, audioUrl: '', durationMs: 0 }],
         errorMessage: ''
@@ -139,8 +139,24 @@ async function main() {
       evidenceKind = 'CONTROLLED_TEST_STATE'
       page = await miniProgram.reLaunch('/pages/create/voice-profile?voiceId=ui-audit')
       await page.setData({
-        voiceId: 'ui-audit', name: '妈妈', permissionType: 'OTHER', relationshipType: 'MOTHER',
-        relationshipOther: '', userAddress: '小林', confirmed: true,
+        voiceId: 'ui-audit',
+        name: '妈妈',
+        ageYears: '70',
+        gender: 'FEMALE',
+        permissionType: 'OTHER',
+        relationshipType: 'MOTHER',
+        relationshipOptions: [
+          { key: 'MOTHER', title: '妈妈' },
+          { key: 'FATHER', title: '爸爸' },
+          { key: 'GRANDMOTHER', title: '奶奶' },
+          { key: 'GRANDFATHER', title: '爷爷' },
+          { key: 'PARTNER', title: '伴侣' },
+          { key: 'FRIEND', title: '朋友' },
+          { key: 'OTHER', title: '其他' }
+        ],
+        relationshipOther: '',
+        userAddress: '小林',
+        confirmed: true,
         consentText: '我已取得声音本人明确同意，并获得其声音克隆和 AI 合成使用授权。',
         submitting: false, errorMessage: ''
       })
@@ -186,7 +202,7 @@ async function main() {
       evidenceKind = 'CONTROLLED_TEST_STATE'
       page = await miniProgram.reLaunch('/pages/create/preview?voiceId=ui-audit')
       await page.setData({
-        voiceId: 'ui-audit', state: 'success', voiceName: '小雨', voiceInitial: '雨', avatarUrl: '/assets/avatars/child-girl-01.png',
+        voiceId: 'ui-audit', state: 'success', voiceName: '小雨', voiceInitial: '雨', avatarUrl: '/assets/avatars/age-06-08-female.webp',
         audioUrl: '', previewText: '妈妈，今天过得怎么样？', durationMs: 3000,
         playCompleted: stateName === 'preview', previewPlaying: false, playbackPrompted: false,
         accepting: false, retrying: false, trialEligible: true,

@@ -90,12 +90,6 @@ test('voice profile submit posts the server canonical consent text returned by p
       userAddress: '小林',
       ageYears: '70',
       gender: 'FEMALE',
-      userAgeYears: '40',
-      userLifeStage: 'ADULT',
-      background: '退休前是中学老师。',
-      relationshipNote: '和成年女儿每周通话。',
-      personalityNote: '遇到大事先问清具体情况。',
-      speechHabitNote: '句子不长，先问具体事情。',
       consentText: 'LOCAL FALLBACK OTHER',
       confirmed: true
     },
@@ -103,6 +97,11 @@ test('voice profile submit posts the server canonical consent text returned by p
       Object.assign(this.data, patch)
     }
   }
+
+  instance.onAgeInput({ detail: { value: '70岁' } })
+  instance.selectGender({ currentTarget: { dataset: { key: 'FEMALE' } } })
+  assert.equal(instance.data.ageYears, '70')
+  assert.equal(instance.data.gender, 'FEMALE')
 
   await instance.submit()
 
@@ -114,13 +113,7 @@ test('voice profile submit posts the server canonical consent text returned by p
     relationshipLabel: '',
     userAddress: '小林',
     ageYears: 70,
-    gender: 'FEMALE',
-    userAgeYears: 40,
-    userLifeStage: 'ADULT',
-    background: '退休前是中学老师。',
-    relationshipNote: '和成年女儿每周通话。',
-    personalityNote: '遇到大事先问清具体情况。',
-    speechHabitNote: '句子不长，先问具体事情。'
+    gender: 'FEMALE'
   })
   assert.deepEqual(consentRequestBody, {
     consentVersion: 'voice-consent-v-test',
@@ -135,14 +128,24 @@ test('voice relationship fields use native form controls and readable typography
   const style = readFileSync(new URL('../pages/create/voice-profile.wxss', import.meta.url), 'utf8')
   const source = readFileSync(new URL('../pages/create/voice-profile.ts', import.meta.url), 'utf8')
 
+  assert.match(wxml, /TA 的年龄/)
+  assert.match(wxml, /0—120 岁，填写准确年龄/)
+  assert.match(wxml, /TA 的性别/)
+  assert.match(wxml, /仅用于年龄身份和默认头像/)
+  assert.match(wxml, /class="gender-grid"/)
   assert.match(wxml, /<radio-group[^>]*bindchange="onRelationshipRadioChange"/)
   assert.match(wxml, /<label[\s\S]*<radio[^>]*value="\{\{item\.key\}\}"/)
   assert.match(wxml, /TA 平时怎么称呼你？/)
   assert.match(wxml, /例如：小林、妈妈、宝贝/)
-  assert.match(wxml, /你的准确年龄/)
-  assert.match(wxml, /bindinput="onUserAgeInput"/)
   assert.doesNotMatch(wxml, /TA 平时是什么性格/)
-  assert.match(wxml, /TA 平时怎么说话/)
+  assert.doesNotMatch(wxml, /你的准确年龄/)
+  assert.doesNotMatch(wxml, /bindinput="onUserAgeInput"/)
+  assert.doesNotMatch(wxml, /补充 TA 的基本情况/)
+  assert.doesNotMatch(wxml, /补充你们平时怎样相处/)
+  assert.doesNotMatch(wxml, /TA 平时怎么说话/)
+  assert.match(style, /\.field-caption\s*\{[^}]*font-size:\s*21rpx/s)
+  assert.match(style, /\.gender-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s)
+  assert.match(style, /\.gender-option\s*\{[^}]*min-height:\s*78rpx/s)
   assert.match(style, /grid-template-columns:\s*repeat\(3,/)
   assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)
   assert.doesNotMatch(wxml, /class="relationship-chip/)

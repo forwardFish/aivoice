@@ -17,6 +17,7 @@ test('home page consumes provided visual assets and custom tabbar shell', () => 
   assert.match(appConfig, /"custom"\s*:\s*true/)
   assert.match(homeMarkup, /home-hero-card\.png/)
   assert.match(homeMarkup, /arrow-circle\.png/)
+  assert.equal((homeMarkup.match(/home-arrow-hidden/g) || []).length, 3)
   assert.match(homeMarkup, /waveform\.png/)
   assert.match(homeMarkup, /play-circle\.png/)
   assert.match(homeMarkup, /more-plain\.png/)
@@ -95,11 +96,27 @@ test('guest protected tab click records the target and opens login before switch
 })
 
 test('default voice avatars and real duration labels follow provided assets', () => {
-  assert.equal(resolveVoiceAvatar({ name: '小雨·5岁' }), '/assets/avatars/child-girl-01.png')
-  assert.equal(resolveVoiceAvatar({ name: '奶奶' }), '/assets/avatars/grandma-01.png')
-  assert.equal(resolveVoiceAvatar({ name: '爷爷' }), '/assets/avatars/grandpa-01.png')
-  assert.equal(resolveVoiceAvatar({ name: '妈妈' }), '/assets/avatars/woman-01.png')
-  assert.equal(resolveVoiceAvatar({ name: '爸爸' }), '/assets/avatars/man-01.png')
+  const cases = [
+    [1, 'FEMALE', 'age-00-02-female.webp'], [2, 'MALE', 'age-00-02-male.webp'],
+    [4, 'FEMALE', 'age-03-05-female.webp'], [5, 'MALE', 'age-03-05-male.webp'],
+    [7, 'FEMALE', 'age-06-08-female.webp'], [8, 'MALE', 'age-06-08-male.webp'],
+    [10, 'FEMALE', 'age-09-12-female.webp'], [12, 'MALE', 'age-09-12-male.webp'],
+    [15, 'FEMALE', 'age-13-17-female.webp'], [17, 'MALE', 'age-13-17-male.webp'],
+    [24, 'FEMALE', 'age-18-29-female.webp'], [29, 'MALE', 'age-18-29-male.webp'],
+    [40, 'FEMALE', 'age-30-49-female.webp'], [49, 'MALE', 'age-30-49-male.webp'],
+    [57, 'FEMALE', 'age-50-64-female.webp'], [64, 'MALE', 'age-50-64-male.webp'],
+    [70, 'FEMALE', 'age-65-79-female.webp'], [79, 'MALE', 'age-65-79-male.webp'],
+    [85, 'FEMALE', 'age-80-plus-female.webp'], [95, 'MALE', 'age-80-plus-male.webp']
+  ] as const
+  for (const [ageYears, gender, fileName] of cases) {
+    assert.equal(resolveVoiceAvatar({ name: '普通昵称', ageYears, gender }), `/assets/avatars/${fileName}`)
+  }
+  assert.equal(resolveVoiceAvatar({ name: '小雨·5岁' }), '/assets/avatars/age-06-08-female.webp')
+  assert.equal(resolveVoiceAvatar({ name: '普通昵称', ageYears: 12, gender: 'FEMALE', avatarUrl: 'cloud://custom/avatar.png' }), 'cloud://custom/avatar.png')
+  assert.equal(resolveVoiceAvatar({ name: '奶奶' }), '/assets/avatars/age-65-79-female.webp')
+  assert.equal(resolveVoiceAvatar({ name: '爷爷' }), '/assets/avatars/age-65-79-male.webp')
+  assert.equal(resolveVoiceAvatar({ name: '妈妈' }), '/assets/avatars/age-30-49-female.webp')
+  assert.equal(resolveVoiceAvatar({ name: '爸爸' }), '/assets/avatars/age-30-49-male.webp')
   assert.equal(resolveVoiceDurationLabel({ clipStartMs: 5000, clipEndMs: 25000 }), '00:20')
   assert.equal(resolveVoiceDurationLabel({ clipStartMs: 5000, clipEndMs: 5000 }), '')
 })

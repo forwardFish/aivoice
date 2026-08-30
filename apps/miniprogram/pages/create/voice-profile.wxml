@@ -15,13 +15,15 @@
 
       <view class="field-block">
         <text class="field-label">TA 的年龄</text>
+        <text class="field-caption">0—120 岁，填写准确年龄。</text>
         <input class="field-input" type="number" value="{{ageYears}}" placeholder="请输入准确年龄" maxlength="3" bindinput="onAgeInput" />
       </view>
 
       <view class="field-block">
         <text class="field-label">TA 的性别</text>
-        <view class="relationship-grid">
-          <view wx:for="{{genderOptions}}" wx:key="key" class="relationship-option {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
+        <text class="field-caption">仅用于年龄身份和默认头像。</text>
+        <view class="gender-grid">
+          <view wx:for="{{genderOptions}}" wx:key="key" class="relationship-option gender-option {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
         </view>
       </view>
 
@@ -83,37 +85,7 @@
             />
             <text class="relationship-other-count">{{userAddress.length}}/10</text>
           </view>
-          <view class="user-address-heading">
-            <text class="user-address-label">你的准确年龄</text>
-          </view>
-          <text class="user-address-help">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
-          <input
-            class="relationship-other-input"
-            type="number"
-            value="{{userAgeYears}}"
-            placeholder="请输入你自己的年龄"
-            maxlength="3"
-            bindinput="onUserAgeInput"
-          />
         </view>
-      </view>
-
-      <view wx:if="{{permissionType}}" class="field-block">
-        <text class="field-label">补充 TA 的基本情况</text>
-        <text class="user-address-help">可选，例如退休前做什么、现在平时做什么、生活在哪里。</text>
-        <textarea class="relationship-other-input" value="{{background}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onBackgroundInput" />
-      </view>
-
-      <view wx:if="{{permissionType && relationshipType !== 'SELF'}}" class="field-block">
-        <text class="field-label">补充你们平时怎样相处</text>
-        <text class="user-address-help">可选，例如经常联系、偶尔联系、遇到大事会商量。</text>
-        <textarea class="relationship-other-input" value="{{relationshipNote}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
-      </view>
-
-      <view wx:if="{{permissionType}}" class="field-block">
-        <text class="field-label">TA 平时怎么说话</text>
-        <text class="user-address-help">可选，填写句长、直接或含蓄、常用表达等；不会机械重复口头禅。</text>
-        <textarea class="relationship-other-input" value="{{speechHabitNote}}" placeholder="例如：句子不长，先问具体事情；很少说大道理，偶尔说“你先别急”" maxlength="300" auto-height bindinput="onSpeechHabitNoteInput" />
       </view>
 
       <view wx:if="{{permissionType}}" class="consent-box" bindtap="toggleConfirmed">

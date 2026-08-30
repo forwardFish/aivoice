@@ -74,7 +74,7 @@ Page({
     errorMessage: '',
     voiceName: '这个声音',
     voiceInitial: '声',
-    voiceAvatar: '/assets/avatars/woman-01.png',
+    voiceAvatar: '/assets/avatars/age-30-49-female.webp',
     userAvatar: '/assets/ui/user-outline.png',
     points: {
       availablePoints: 0
@@ -215,6 +215,10 @@ Page({
   },
   chooseAnotherMode() {
     this.setData({ showModeChooser: true })
+  },
+  onVoiceAvatarError() {
+    if (!this.data.voiceAvatar) return
+    this.setData({ voiceAvatar: '' })
   },
   openSettings() {
     if (!this.data.voiceId) return

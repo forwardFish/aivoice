@@ -51,7 +51,16 @@
         <scroll-view class="messages-scroll" scroll-y="{{true}}" scroll-into-view="{{scrollTarget}}" enhanced="{{true}}" show-scrollbar="{{false}}">
           <view wx:if="{{chatMessages.length === 0 && !sending}}" class="chat-empty">
             <view class="assistant-avatar-shell">
-              <view class="assistant-avatar">{{voiceInitial}}</view>
+              <view class="assistant-avatar {{voiceAvatar ? 'has-image' : ''}}">
+                <image
+                  wx:if="{{voiceAvatar}}"
+                  class="assistant-avatar-image"
+                  src="{{voiceAvatar}}"
+                  mode="aspectFill"
+                  binderror="onVoiceAvatarError"
+                ></image>
+                <text wx:else>{{voiceInitial}}</text>
+              </view>
             </view>
             <text class="empty-title">从一句简单的话开始</text>
             <text class="empty-copy">这是使用“{{voiceName}}”声音输出的 AI 助手，不是真实声音本人。</text>
@@ -63,7 +72,14 @@
           </view>
 
           <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'user-row' : 'assistant-row'}}">
-            <view wx:if="{{item.isAssistant}}" class="message-avatar assistant-message-avatar">{{voiceInitial}}</view>
+            <image
+              wx:if="{{item.isAssistant && voiceAvatar}}"
+              class="message-avatar assistant-message-avatar assistant-message-avatar-image"
+              src="{{voiceAvatar}}"
+              mode="aspectFill"
+              binderror="onVoiceAvatarError"
+            ></image>
+            <view wx:elif="{{item.isAssistant}}" class="message-avatar assistant-message-avatar assistant-message-avatar-fallback">{{voiceInitial}}</view>
             <view class="message-stack {{item.isUser ? 'user-stack' : 'assistant-stack'}}">
               <view class="message-bubble {{item.isUser ? 'user-bubble' : 'assistant-bubble'}}">
                 <text class="message-text">{{item.text}}</text>
@@ -83,7 +99,14 @@
               <image class="message-avatar user-message-avatar" src="{{userAvatar}}" mode="aspectFill"></image>
             </view>
             <view id="pending-assistant" class="message-row assistant-row pending-row">
-              <view class="message-avatar assistant-message-avatar">{{voiceInitial}}</view>
+              <image
+                wx:if="{{voiceAvatar}}"
+                class="message-avatar assistant-message-avatar assistant-message-avatar-image"
+                src="{{voiceAvatar}}"
+                mode="aspectFill"
+                binderror="onVoiceAvatarError"
+              ></image>
+              <view wx:else class="message-avatar assistant-message-avatar assistant-message-avatar-fallback">{{voiceInitial}}</view>
               <view class="message-stack assistant-stack">
                 <view class="message-bubble assistant-bubble">
                   <text wx:if="{{pendingReplyText}}" class="message-text">{{pendingReplyText}}</text>

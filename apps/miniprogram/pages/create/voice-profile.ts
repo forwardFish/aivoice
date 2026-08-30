@@ -197,28 +197,17 @@ Page({
       this.setData({ errorMessage: '请填写你与 TA 的关系。' })
       return
     }
-    const userAgeYears = this.data.relationshipType === 'SELF' ? ageYears : Number(this.data.userAgeYears)
-    if (!Number.isInteger(userAgeYears) || userAgeYears < 0 || userAgeYears > 120) {
-      this.setData({ errorMessage: '请填写你自己的准确年龄。' })
-      return
-    }
     const parentRole = ['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER'].includes(this.data.relationshipType)
-    if ((parentRole && (ageYears < 18 || ageYears <= userAgeYears))
-      || (this.data.relationshipType === 'CHILD' && (userAgeYears < 18 || ageYears >= userAgeYears))) {
-      this.setData({ errorMessage: '双方年龄与所选亲属关系不一致，请检查后重试。' })
+    if (parentRole && ageYears < 18) {
+      this.setData({ errorMessage: '父母或祖辈人物应填写成年年龄，请检查后重试。' })
       return
     }
-    if (this.data.relationshipType === 'PARTNER' && (ageYears < 18 || userAgeYears < 18)) {
-      this.setData({ errorMessage: '伴侣关系要求双方均为成年人。' })
+    if (this.data.relationshipType === 'PARTNER' && ageYears < 18) {
+      this.setData({ errorMessage: '伴侣人物应填写成年年龄，请检查后重试。' })
       return
     }
-    const userLifeStage = this.data.relationshipType === 'SELF'
-      ? lifeStageForAge(ageYears)
-      : lifeStageForAge(userAgeYears)
-    if (!userLifeStage) {
-      this.setData({ errorMessage: '请选择你现在所处的人生阶段。' })
-      return
-    }
+    const userAgeYears = this.data.relationshipType === 'SELF' ? ageYears : undefined
+    const userLifeStage = this.data.relationshipType === 'SELF' ? lifeStageForAge(ageYears) : undefined
     if (!this.data.confirmed) {
       this.setData({ errorMessage: '请先勾选“声音使用确认”。' })
       return
@@ -233,12 +222,8 @@ Page({
         userAddress: String(this.data.userAddress || '').trim(),
         ageYears,
         gender: this.data.gender,
-        userAgeYears,
-        userLifeStage,
-        background: String(this.data.background || '').trim(),
-        relationshipNote: String(this.data.relationshipNote || '').trim(),
-        personalityNote: String(this.data.personalityNote || '').trim(),
-        speechHabitNote: String(this.data.speechHabitNote || '').trim()
+        ...(userAgeYears === undefined ? {} : { userAgeYears }),
+        ...(userLifeStage === undefined ? {} : { userLifeStage })
       })
       if (!savedProfile.consentVersion || !savedProfile.consentText) {
         throw new Error('服务端未返回当前授权文本，请稍后重试。')
