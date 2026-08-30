@@ -4,6 +4,7 @@ import test from 'node:test';
 
 test('production worker records every message generation stage with correlation ids', () => {
   const runner = fs.readFileSync(new URL('../src/cloudbase-job-runner.ts', import.meta.url), 'utf8');
+  const quality = fs.readFileSync(new URL('../src/chat/generation-quality.ts', import.meta.url), 'utf8');
   const provider = fs.readFileSync(new URL('../src/providers/aliyun-cosyvoice.ts', import.meta.url), 'utf8');
 
   assert.match(runner, /message_generation_timing/);
@@ -25,7 +26,9 @@ test('production worker records every message generation stage with correlation 
   assert.match(runner, /failedStage:\s*activeStage/);
   assert.match(runner, /generationStage:\s*activeStage/);
   assert.match(runner, /MESSAGE_\$\{generationStage[\s\S]*_FAILED/);
-  assert.match(runner, /hasForbiddenAssistantIdentityDisclosure\(outputText\)[\s\S]*IDENTITY_DISCLOSURE_BLOCKED/);
+  assert.match(quality, /hasForbiddenAssistantIdentityDisclosure\(outputText\)[\s\S]*IDENTITY_DISCLOSURE_BLOCKED/);
+  assert.match(runner, /chat_reply_retry/);
+  assert.match(runner, /maxAttempts:\s*1/);
   assert.match(runner, /slowestStage\(stages\)/);
   assert.match(runner, /overThreeSecondTarget/);
   assert.match(runner, /jobId:\s*job\.id[\s\S]*messageId:\s*job\.messageId/);

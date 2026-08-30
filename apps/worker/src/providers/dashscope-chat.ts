@@ -17,9 +17,11 @@ export class DashscopeChatProvider {
   private readonly apiKey = required('DASHSCOPE_API_KEY');
   private readonly apiHost = required('DASHSCOPE_API_HOST').replace(/\/$/, '');
   private readonly model = process.env.CHAT_MODEL?.trim() || 'qwen3.8-max';
+  private readonly temperature = 0.65;
 
-  async reply(messages: VoiceChatMessage[]): Promise<CharacterTurnGeneration> {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+  async reply(messages: VoiceChatMessage[], options: { maxAttempts?: 1 | 2; temperature?: number } = {}): Promise<CharacterTurnGeneration> {
+    const maxAttempts = options.maxAttempts || 2;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       const requestMessages = attempt === 0 ? messages : [
         messages[0],
         {
@@ -36,7 +38,7 @@ export class DashscopeChatProvider {
           messages: requestMessages,
           enable_thinking: false,
           preserve_thinking: false,
-          temperature: 0.8,
+          temperature: options.temperature ?? this.temperature,
           response_format: { type: 'json_schema', json_schema: CHARACTER_TURN_JSON_SCHEMA },
         }),
         signal: AbortSignal.timeout(60_000),

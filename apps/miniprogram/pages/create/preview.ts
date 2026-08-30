@@ -11,6 +11,9 @@ import { ensureAuthenticated } from '../../utils/navigation'
 import { clearCreationSession } from '../../utils/storage'
 import { voiceInitial } from '../../utils/format'
 
+// Launch switch: keep the page available while allowing a release to bypass it.
+const SHOW_PERSONALITY_GUIDE_AFTER_ACCEPT = true
+
 function hasTrialEligibility(value?: TrialEligibility): boolean {
   return value === 'ELIGIBLE' || value === 'AVAILABLE' || value === 'UNUSED'
 }
@@ -141,7 +144,10 @@ Page({
       await acceptVoicePreview(this.data.voiceId)
       clearCreationSession()
       this.setData({ accepting: false })
-      wx.redirectTo({ url: `/pages/voice/workbench?voiceId=${encodeURIComponent(this.data.voiceId)}&choose=1` })
+      const nextPath = SHOW_PERSONALITY_GUIDE_AFTER_ACCEPT
+        ? `/pages/create/personality-guide?voiceId=${encodeURIComponent(this.data.voiceId)}`
+        : `/pages/voice/workbench?voiceId=${encodeURIComponent(this.data.voiceId)}&choose=1`
+      wx.redirectTo({ url: nextPath })
     } catch (error: any) {
       this.setData({ accepting: false, errorMessage: error.message || '暂时无法使用这个声音，请重试。' })
     }

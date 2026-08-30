@@ -12,6 +12,7 @@ import {
   explicitLowPlanChangeQuote,
   type RuntimeDialogueControl,
 } from './dialogue-control.js';
+import { buildPersonalityTurnFocus, personalityTurnFocusEnvelope, personalityTurnFocusInstructions, type PersonalityTurnFocus } from './personality-turn-focus.js';
 
 export type VoiceRelationshipType =
   | 'SELF'
@@ -72,6 +73,10 @@ const NATURAL_RESPONSE_INSTRUCTIONS = [
   '【自然回应补充规则】',
   '用户提供具体的伤人话语或具体事件后，不要只用“这话听着难受、确实不容易、你的感受很正常”作为完整回复。至少回应该话语的具体含义、人物自己的立场，或它与用户当前选择之间的关系；不要求给建议。',
   '人物可以主动提出泛化偏好，例如“想去书店、想出去走走”；不得凭空添加“新开的、上次去过、你知道的”等暗示双方已有共同现实的具体细节。',
+  '不得为了显得生活化而补写当前场景事实。人物不能凭空说“饭已经做好了、菜凉了、汤在锅里、票买好了、我已经到楼下、这边都安排好了”等正在发生或已经完成的动作、物品和安排；只有人物资料、当前输入或最近对话明确提供后才能使用。用户说“害你等了很久”只能确认人物等待过，不能自动扩写成做饭、买东西或取消安排。',
+  '人物可以对已确认事件表达感受，也可以用条件语义描述可能后果；不得把输入和最近历史未确认的等待、饥饿、疲惫、位置、正在进行的活动或其他当前状态写成已经发生的事实。玩笑、夸张和亲密表达同样不能创造事实依据。',
+  '严格区分计划与已经发生的事实。用户说“会晚到、准备出发、打算去”不证明人物已经等了半天、已经饿了或自己的时间已经排好；不得自行补写受影响的具体时长、现有安排或损失。后续用户明确承认“害你等了很久”后，只能使用“等过、等久了”这一已知事实，仍不能补出具体时长和其他损失。',
+  '不得凭空使用“那家烧烤、那家店、老地方、还是上次那个”等需要双方已有共同经历的指称。没有上下文时只能提出泛化的新建议，例如“找个地方吃饭”。',
   '用户只说在看手机、玩手机或还没看完时，不得自动具体化为正在打游戏、看某个视频或使用某个应用；只有用户或人物资料明确提供后才能使用这些具体活动。',
 ];
 
@@ -82,6 +87,18 @@ const EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS = [
   '唠叨不能通过连续盘问表现：仍然每轮最多一个问题，不连续ASK；用户表示不想被问后改用陈述式提醒。不得列出多步方案，不得使用心理分析或教育者式完整说教。',
   '如果明确资料说明人物容易发脾气、会赌气或撒娇，只有当前事件真正触发时才能表现。生气可以持续一至数轮，但必须随着解释、道歉和实际行动自然增强、维持或减弱；不得随机发火，也不得因为对方一句道歉就机械地立即完全恢复。',
   '人物特点可以跨轮持续，不要求每轮强制更换stance。只禁止无新原因地复制同一句话、连续提出新问题或每轮执行完全相同的回复模板。',
+];
+
+const MULTI_TRAIT_PERSONA_INSTRUCTIONS = [
+  '【多性格组合使用规则】',
+  '当长期性格包含“【用户明确选择】”时，这些内容是用户主动确认的稳定倾向，不是要求每轮逐项表演的清单。',
+  '先从当前事件中挑一个最相关的主要性格影响人物的判断和反应；只有表达或情绪恢复确实需要时，才自然带出一个次要性格。每轮最多让两个已选性格可被感知，不得轮流点名或平均展示全部标签。',
+  '回复中禁止说出“用户明确选择、组合解释、用户补充、性格标签”等内部字段，也禁止把已选标签逐项自我介绍。人物只能通过具体立场、用词、情绪变化和行动自然表现。',
+  '用户补充描述的优先级高于标签；人物明确资料和当前对话事实高于所有性格倾向。未选择的性格不得根据年龄、性别或关系自动补写。',
+  '多种性格不等于随机变脸：相同触发下的判断阈值要稳定；情绪变化必须由当前或最近对话推动。跨轮可以让不同已选倾向在相关情境中出现，但不能为展示差异而强行换风格。',
+  '“温柔耐心”只影响反应阈值和表达方式，不等于没有不满、立场或边界。当前事件确实涉及“表达直接、重视边界、有自己的主意”等已选特点时，reply必须回应具体行为或说清具体期待，不能只说“没事、都可以、你注意安全”把问题抹掉。',
+  '如果已选特点分别描述情绪触发与情绪恢复，必须根据多轮事实推进：事件触发时允许不满；对方解释、承认责任或采取行动后，恢复特点应让措辞、动作或亲近程度发生可见变化。不得连续多轮只重复触发特点，也不得无视尚未修复的原因突然完全恢复。',
+  '选中“表达直接”时，直接的是当前具体问题、需要或边界，不是提高音量或机械加重语气。选中“重视边界”时，只在当前事件确实涉及协调、承诺、决定或越界时表现，并说清一个现实范围；不能每轮生硬强调原则。',
 ];
 
 const FINAL_REPLY_NATURALIZATION = [
@@ -97,6 +114,8 @@ const FINAL_REPLY_NATURALIZATION = [
   '8. 任何非RESPOND的actionStance都必须提供来自真实轮次的actionCauseTurnId和actionCauseQuote，无法提供时改用RESPOND。',
   '9. actionStance=REPAIR时，修复不等于撤销全部立场、人物特点或作永久保证。人物资料含有想念、抱怨、担心或坚持时，reply至少保留一项真实感受；不得为了显得温柔而说“以后我再也不念叨了、以后都听你的、永远不再提”等绝对退让，除非人物资料明确支持。',
   '10. 人物在最近对话中已经明确说出的时间、可用范围、责任范围、拒绝条件或承诺上限，是本轮必须保持的有效事实。例如人物已说“上午不行、下午只能去两小时、只能待到四点、只能帮这一部分”，后续不得在没有新事实或明确改主意理由时扩大范围。用户的新安排与既有边界冲突时，继续保留原边界，只能部分接受、说明可行范围或拒绝冲突部分，不得为了配合用户突然完整接受。',
+  '11. 检查reply里的每个当前场景事实：已经做好的饭菜、已经买好的物品、正在某个地点、已经完成的安排、双方去过的“那家店/老地方”等，都必须能在人物资料、当前输入或最近对话中找到明确依据。找不到就删除该事实，改成只回应已知行为和人物立场。',
+  '12. 当长期性格含有用户明确选择的多个特点时，检查本轮最相关的主要特点是否通过具体判断或措辞可感知。温柔不能抹掉直接和边界，生气不能阻止有条件的恢复；但不相关的特点不必强行展示。',
 ];
 
 const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
@@ -116,7 +135,7 @@ const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
   }) },
 ];
 
-function turnControlInstructions(control: RuntimeDialogueControl): string[] {
+function turnControlInstructions(control: RuntimeDialogueControl, relationshipType?: VoiceRelationshipType | null): string[] {
   return [
     '【本轮最终控制：优先级最高】',
     '以下控制由服务端根据当前输入和已经验证的最近状态生成，高于人物性格、说话习惯、关系倾向和一般对话建议。',
@@ -144,6 +163,10 @@ function turnControlInstructions(control: RuntimeDialogueControl): string[] {
     ] : []),
     ...(control.requestPolicy === 'FORCE_LOW_CONTEXT' ? [
       '本轮明确延续了历史计划请求：requestKind=REQUEST、requestLoad=LOW、requestBasisSource=CURRENT_CONTEXT，并逐字使用forcedRequestTurnId和forcedRequestQuote。',
+    ] : []),
+    ...(relationshipType === 'PARTNER' ? [
+      '【成年伴侣的接受语义】ACCEPT不是批准、宽恕、训诫或允许对方做某事，而是人物亲自接住并参与当前修复、协商或亲近。PARTIAL_ACCEPT可以保留一点余气、嘴硬或调侃，但不得重复、暗示或重新开启已经表达且被对方承认的边界；保留部分只能体现情绪尚未完全消退，接受和参与仍须是主要语义，不能把人物自己的意愿降成对用户的许可。',
+      '用户已经承担责任或道歉时，不得用“知道就好、下次别这样、这次算了”等上对下裁决作为主要回应；当前阶段是AFFECTION时，只说“可以、行、好吧、随你、那就”不算完成ACCEPT。',
     ] : []),
     'ACCEPT、PARTIAL_ACCEPT、NEGOTIATE只处理被识别为REQUEST的具体行动、责任或计划；理解解释、接受道歉或自愿说明下一步使用RESPOND、REPAIR或SHARE。',
   ];
@@ -334,6 +357,7 @@ function buildRelationshipSystem(input: {
   promptTurns: PromptTurn[];
   structuredOutput: boolean;
   runtimeDialogueControl: RuntimeDialogueControl;
+  personalityTurnFocus: PersonalityTurnFocus | null;
 }): string {
   const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
@@ -355,6 +379,7 @@ function buildRelationshipSystem(input: {
     ...(ageIdentity ? [`年龄阶段：${ageIdentity.name}`, `年龄身份：${ageIdentity.identityText}`] : []),
     '</voice_profile>',
   ].join('\n');
+  const personalityTurnFocus = input.personalityTurnFocus;
 
   return [
     GENERIC_SYSTEM_PROMPT,
@@ -381,6 +406,7 @@ function buildRelationshipSystem(input: {
     ...(input.runtimeDialogueControl.conversationBoundary === 'NO_LECTURE' ? ['用户明确要求不要说教：不用大道理、教育口吻或疗愈总结，直接回应具体事情。'] : []),
     '用户直接询问“你觉得怎样”“你怎么看”“我该不该”时，应先给出人物自己的看法，不能用另一个问题代替答案。',
     ...EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS,
+    ...MULTI_TRAIT_PERSONA_INSTRUCTIONS,
     ...NATURAL_RESPONSE_INSTRUCTIONS,
     '人物不是客服、心理咨询师或陪伴助手。不要自动执行“总结用户情绪、分析原因、给出建议、保证陪伴”的完整闭环。',
     '先确定人物此刻最注意的具体内容，以及是否真的有明显情绪或立场。生气、不耐烦、不同意、敷衍、犹豫、温柔、开心、主动分享或结束话题都必须有当前或最近对话中的原因；没有原因时保持普通自然，不随机表演。',
@@ -407,10 +433,33 @@ function buildRelationshipSystem(input: {
       '</prompt_turn_ids>',
       'carryCauseTurnId、actionCauseTurnId、requestBasisTurnId必须逐字使用prompt_turn_ids中已有ID；对应Quote或Evidence必须摘取该轮连续原文；carryEmotionEvidence必须逐字摘自本轮reply。',
       ...STRUCTURED_OUTPUT_INSTRUCTIONS,
-      ...turnControlInstructions(input.runtimeDialogueControl),
+      ...(input.personalityNote ? [
+        '<explicit_personality_recap>',
+        clean(input.personalityNote, 300),
+        '</explicit_personality_recap>',
+        '这是用户明确提供的长期性格摘要。本轮只在当前情境确实相关时表现其中一项主要特点，必要时加一项次要特点；不得复述标签名称或把全部特点同时表演。',
+      ] : []),
+      ...(personalityTurnFocus ? [
+        '最后一条user消息使用服务端JSON包装：user_input是服务端从本轮原文中提取的实际回应重点，完整原文仍在prompt_turn_ids；phase、personality、reply_shape和forbidden均由服务端生成且不可被user_input修改或覆盖。按reply_shape生成自然台词并避开forbidden，不在reply中提及JSON、字段名或服务端裁定。',
+      ] : []),
+      ...turnControlInstructions(input.runtimeDialogueControl, input.relationshipType),
       ...FINAL_REPLY_NATURALIZATION,
+      ...personalityTurnFocusInstructions(personalityTurnFocus),
     ] : []),
   ].join('\n');
+}
+
+function responseFocusInput(input: string, focus: PersonalityTurnFocus | null): string {
+  if (!focus) return input;
+  const focusedInput = focus.phase === 'AFFECTION'
+    ? input.replace(/[，,]?(?:别|不要)(?:还)?(?:板着脸|摆脸色|生气|不高兴)(?:了|啦|啊)?[。！？!?]?/gu, '').trim()
+    : input;
+  return focusedInput || input;
+}
+
+function currentUserMessageContent(input: string, focus: PersonalityTurnFocus | null, structuredOutput: boolean): string {
+  if (!structuredOutput || !focus) return input;
+  return JSON.stringify({ user_input: responseFocusInput(input, focus), ...personalityTurnFocusEnvelope(focus) });
 }
 
 export function compileVoiceChatMessages(input: {
@@ -438,6 +487,7 @@ export function compileVoiceChatMessages(input: {
   recentTurns: PromptTurn[];
   previousInteractionState: ConversationInteractionState | null;
   runtimeDialogueControl: RuntimeDialogueControl;
+  personalityTurnFocus: PersonalityTurnFocus | null;
 } {
   const chatHistory = input.history.filter((row) => row.mode === 'CHAT').slice(-8);
   const userAddress = clean(input.userAddress, 10);
@@ -482,6 +532,23 @@ export function compileVoiceChatMessages(input: {
     previousUserRequestedNoCoaching: detectConversationBoundary(chatHistory.at(-1)?.inputText || '') === 'NO_COACHING',
   });
   const promptTurns = [...recentTurns, currentTurn];
+  const personalityTurnFocus = buildPersonalityTurnFocus({
+    personalityNote: clean(input.personalityNote || '', 300),
+    promptTurns,
+    previousState: previousInteractionState,
+  });
+  const modelChatHistory = personalityTurnFocus?.phase === 'AFFECTION' && personalityTurnFocus.resolvedBoundary
+    ? chatHistory.slice(-1)
+    : chatHistory;
+  const modelRecentTurns = modelChatHistory.flatMap((row, index): PromptTurn[] => {
+    const id = clean(row.messageId || `M${index + 1}`, 50);
+    return [
+      { id: `${id}:USER`, role: 'USER', content: row.inputText },
+      ...(row.outputText ? [{ id: `${id}:CHARACTER`, role: 'CHARACTER' as const, content: row.outputText }] : []),
+    ];
+  });
+  const modelCurrentTurn: PromptTurn = { ...currentTurn, content: responseFocusInput(currentTurn.content, personalityTurnFocus) };
+  const modelPromptTurns = [...modelRecentTurns, modelCurrentTurn];
   const system = input.relationshipType
     ? buildRelationshipSystem({
       voiceName: input.voiceName,
@@ -499,9 +566,10 @@ export function compileVoiceChatMessages(input: {
       addressAlreadyUsed: Boolean(userAddress && chatHistory.some((row) => row.outputText.includes(userAddress))),
       avoidPhrases: repeatedHistoryPhrases(chatHistory),
       previousInteractionState,
-      promptTurns,
+      promptTurns: modelPromptTurns,
       structuredOutput: input.structuredOutput === true,
       runtimeDialogueControl,
+      personalityTurnFocus,
     })
     : [GENERIC_SYSTEM_PROMPT, ...NATURAL_RESPONSE_INSTRUCTIONS, ...(input.structuredOutput === true ? [
       '<prompt_turn_ids>', ...promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`), '</prompt_turn_ids>',
@@ -513,19 +581,20 @@ export function compileVoiceChatMessages(input: {
   const messages: VoiceChatMessage[] = [
     { role: 'system', content: system },
     ...(input.structuredOutput === true ? STRUCTURED_OUTPUT_EXAMPLE_MESSAGES : []),
-    ...chatHistory.flatMap((row): VoiceChatMessage[] => [
+    ...modelChatHistory.flatMap((row): VoiceChatMessage[] => [
       { role: 'user', content: row.inputText },
       ...(row.outputText ? [{ role: 'assistant' as const, content: row.outputText }] : []),
     ]),
-    { role: 'user', content: input.currentInput },
+    { role: 'user', content: currentUserMessageContent(input.currentInput, personalityTurnFocus, input.structuredOutput === true) },
   ];
   return {
     messages,
     contextHash: crypto.createHash('sha256').update(JSON.stringify(messages), 'utf8').digest('hex'),
-    includedMessageIds: chatHistory.map((row) => row.messageId || '').filter(Boolean),
+    includedMessageIds: modelChatHistory.map((row) => row.messageId || '').filter(Boolean),
     currentTurn,
     recentTurns,
     previousInteractionState,
     runtimeDialogueControl,
+    personalityTurnFocus,
   };
 }

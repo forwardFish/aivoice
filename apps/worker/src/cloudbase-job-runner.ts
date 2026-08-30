@@ -15,6 +15,7 @@ import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
 import { inspectReferenceQuality, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
 import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
+import { buildSpeechSynthesisPlan } from './speech-instruction.js';
 import {
   AliyunSpeakerDiarizationProvider,
   type SpeakerDiarizationReport,
@@ -32,8 +33,16 @@ import {
   type CharacterTurnGeneration,
   type ConversationInteractionState,
 } from './chat/interaction-state.js';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory } from './chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, sanitizeUnsupportedPresentSceneClaims } from './chat/human-likeness.js';
 import { validateQuestionBehavior } from './chat/dialogue-control.js';
+import { personalityTurnFocusReplyViolation, resolvedBoundaryReplyViolation } from './chat/personality-turn-focus.js';
+import {
+  evaluateCharacterGenerationQuality,
+  chatTemperatureForFocus,
+  GenerationQualityError,
+  qualityRetryMessages,
+  withOneQualityRetry,
+} from './chat/generation-quality.js';
 
 type JobType = 'PROCESS_VOICE' | 'GENERATE_MESSAGE' | 'DELETE_VOICE' | 'DELETE_ACCOUNT';
 
@@ -51,12 +60,12 @@ interface JobRow {
 interface VoiceProviderPort {
   readonly targetModel: string;
   enroll(referencePath: string, prefix: string): Promise<string>;
-  synthesize(voiceId: string, text: string, correlation?: { jobId?: string; messageId?: string }): Promise<Buffer>;
+  synthesize(voiceId: string, text: string, options?: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean }): Promise<Buffer>;
   deleteVoice(voiceId: string): Promise<void>;
 }
 
 interface ChatProviderPort {
-  reply(messages: VoiceChatMessage[]): Promise<string | CharacterTurnGeneration>;
+  reply(messages: VoiceChatMessage[], options?: { maxAttempts?: 1 | 2; temperature?: number }): Promise<string | CharacterTurnGeneration>;
 }
 
 interface SpeakerDiarizationPort {
@@ -324,6 +333,8 @@ export class CloudBaseJobRunner {
       } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
       mode = message.mode;
       let outputText = message.inputText;
+      let speechTone: import('./chat/interaction-state.js').ReplyTone = 'PLAIN';
+      let generationParamsDescriptor = JSON.stringify({ mode: message.mode });
       if (message.mode === 'CHAT') {
         const context = compileVoiceChatMessages({
           structuredOutput: true,
@@ -343,6 +354,15 @@ export class CloudBaseJobRunner {
           history: message.history,
           currentInput: message.inputText,
         });
+        const chatTemperature = chatTemperatureForFocus(context.personalityTurnFocus);
+        generationParamsDescriptor = JSON.stringify({
+          model: process.env.CHAT_MODEL?.trim() || 'qwen3.8-max',
+          temperature: chatTemperature,
+          enableThinking: false,
+          structuredOutput: true,
+          maxQualityAttempts: 2,
+          historyMessageCount: context.includedMessageIds.length,
+        });
         console.info('voice chat context compiled', {
           promptVersion: 'voice-chat-human-v2',
           modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
@@ -353,73 +373,61 @@ export class CloudBaseJobRunner {
           historyCount: context.includedMessageIds.length,
           contextHash: context.contextHash,
         });
-        const providerResult = await measure('chat_reply', () => this.chatProvider.reply(context.messages));
-        const generation = typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
-        const selfHistorySanitization = sanitizeSelfUnsupportedPersonalHistory({
-          relationshipType: message.relationshipType,
-          reply: generation.reply,
-          currentUserText: message.inputText,
-          recentUserInputs: message.history.map((row) => row.inputText),
-          subjectBackground: message.background || null,
-        });
-        outputText = selfHistorySanitization.reply;
-        const normalizedState = normalizeInteractionStateDetailed({
-          candidate: generation.interactionState,
-          replyTone: generation.replyTone,
-          reply: outputText,
-          currentTurn: context.currentTurn,
-          recentTurns: context.recentTurns,
-          previousState: context.previousInteractionState,
-          control: context.runtimeDialogueControl,
-          profile: {
-            personalityNote: message.personalityNote || null,
-            speechHabitNote: message.speechHabitNote || null,
-            relationshipNote: message.relationshipNote || null,
-          },
-        });
-        interactionState = normalizedState.state;
-        interactionStateAccepted = normalizedState.accepted;
-        interactionStateResetReason = normalizedState.resetReason;
-        interactionStateIssues = normalizedState.issues;
-        const controlViolation = normalizedState.issues.find((issue) => ['ACTION_STANCE_NOT_ALLOWED', 'REQUEST_ONLY_STANCE_UNDER_FORCE_NONE', 'FORCED_REQUEST_STANCE_INVALID'].includes(issue));
-        if (controlViolation) {
-          hardRuleHits.push(controlViolation);
-          throw new ContentBlockedError(controlViolation);
+        let quality;
+        try {
+          quality = await withOneQualityRetry({
+            generate: async (attempt, previousReasons) => {
+              const requestMessages = attempt === 1 ? context.messages : qualityRetryMessages(context.messages, previousReasons);
+              const providerResult = await measure(attempt === 1 ? 'chat_reply' : 'chat_reply_retry', () => this.chatProvider.reply(requestMessages, {
+                maxAttempts: 1,
+                temperature: chatTemperature,
+              }));
+              return typeof providerResult === 'string' ? legacyCharacterTurnGeneration(providerResult) : providerResult;
+            },
+            evaluate: (generation) => evaluateCharacterGenerationQuality({
+              generation,
+              currentUserText: message.inputText,
+              relationshipType: message.relationshipType,
+              subjectBackground: message.background || null,
+              recentUserInputs: message.history.map((row) => row.inputText),
+              recentCharacterReplies: message.history.map((row) => row.outputText).filter(Boolean),
+              currentTurn: context.currentTurn,
+              recentTurns: context.recentTurns,
+              previousState: context.previousInteractionState,
+              control: context.runtimeDialogueControl,
+              personalityTurnFocus: context.personalityTurnFocus,
+              profile: {
+                personalityNote: message.personalityNote || null,
+                speechHabitNote: message.speechHabitNote || null,
+                relationshipNote: message.relationshipNote || null,
+              },
+            }),
+            onRetry: (reasons) => console.info('character_generation_quality_retry', JSON.stringify({
+              event: 'character_generation_quality_retry', messageId: message.messageId, attempt: 2, reasons,
+            })),
+          });
+        } catch (error) {
+          if (error instanceof GenerationQualityError) {
+            const reason = error.reasons[0] || 'GENERATION_QUALITY_REJECTED';
+            hardRuleHits.push(reason);
+            throw new ContentBlockedError(reason);
+          }
+          throw error;
         }
-        const questionIssues = validateQuestionBehavior(outputText, normalizedState.state.action, context.runtimeDialogueControl);
-        softQualitySignals = [
-          ...assessHumanLikenessSignals(outputText, message.history.map((row) => row.outputText).filter(Boolean)),
-          ...normalizedState.qualityFlags,
-          ...(selfHistorySanitization.removed ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : []),
-          ...questionIssues,
-        ];
-        const leakViolation = hardReplyLeak(outputText);
-        if (leakViolation) {
-          hardRuleHits.push(leakViolation);
-          throw new ContentBlockedError(leakViolation);
-        }
-        const relationshipViolation = relationshipReplyViolation({ relationshipType: message.relationshipType, reply: outputText });
-        if (relationshipViolation) {
-          hardRuleHits.push(relationshipViolation);
-          throw new ContentBlockedError(relationshipViolation);
-        }
-        if (detectSpeakerFactOwnershipViolation({
-          currentUserText: message.inputText,
-          reply: outputText,
-          subjectBackground: message.background || null,
-          recentCharacterReplies: message.history.map((row) => row.outputText).filter(Boolean),
-        })) {
-          hardRuleHits.push('SPEAKER_FACT_OWNERSHIP_VIOLATION');
-          throw new ContentBlockedError('SPEAKER_FACT_OWNERSHIP_VIOLATION');
-        }
-        if (questionIssues.length) {
-          hardRuleHits.push(questionIssues[0]);
-          throw new ContentBlockedError(questionIssues[0]);
-        }
-        if (hasForbiddenAssistantIdentityDisclosure(outputText)) {
-          hardRuleHits.push('IDENTITY_DISCLOSURE_BLOCKED');
-          throw new ContentBlockedError('IDENTITY_DISCLOSURE_BLOCKED');
-        }
+        outputText = quality.outputText;
+        speechTone = quality.replyTone;
+        interactionState = quality.interactionState;
+        interactionStateAccepted = quality.interactionStateAccepted;
+        interactionStateResetReason = quality.interactionStateResetReason;
+        interactionStateIssues = quality.interactionStateIssues;
+        softQualitySignals = quality.qualitySignals;
+        console.info('character_generation_quality', JSON.stringify({
+          event: 'character_generation_quality', promptVersion: 'voice-chat-human-v2', personaVersion: 'explicit-persona-v1',
+          model: process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
+          hardRuleHits: [], softQualitySignals, interactionStateAccepted, interactionStateResetReason,
+          interactionStateIssues, qualityAttemptCount: quality.attemptCount, firstAttemptReasons: quality.firstAttemptReasons,
+          replyLength: Array.from(outputText).length,
+        }));
       } else {
         stages.chat_reply = 0;
       }
@@ -441,10 +449,19 @@ export class CloudBaseJobRunner {
         stages.publish_text = 0;
       }
       const audioPath = path.join(workDir, 'generated.wav');
+      const speechPlan = buildSpeechSynthesisPlan(speechTone, outputText);
       const audio = await measure('voice_synthesis_download', () => this.voiceProvider.synthesize(
         decryptProviderId(message.providerVoiceIdEncrypted),
-        outputText,
-        { jobId: job.id, messageId: job.messageId || '' },
+        speechPlan.text,
+        {
+          jobId: job.id,
+          messageId: job.messageId || '',
+          instruction: speechPlan.instruction,
+          rate: speechPlan.rate,
+          pitch: speechPlan.pitch,
+          volume: speechPlan.volume,
+          enableSsml: speechPlan.enableSsml,
+        },
       ));
       await measure('write_audio', () => fs.writeFile(audioPath, audio));
       await measure('embed_metadata', () => embedAigcMetadata(audioPath, job.messageId || ''));
@@ -483,7 +500,7 @@ export class CloudBaseJobRunner {
         attempt: job.attempts,
         promptVersion: 'voice-chat-human-v2',
         personaVersion: 'explicit-persona-v1',
-        generationParamsHash: crypto.createHash('sha256').update('qwen3.8-max|temperature=0.8|max=320|thinking=false|history=8').digest('hex'),
+        generationParamsHash: crypto.createHash('sha256').update(generationParamsDescriptor).digest('hex'),
         parsedSuccessfully: true,
         hardRuleHits,
         softQualitySignals,

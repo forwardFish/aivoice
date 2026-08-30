@@ -141,7 +141,7 @@ test('voice relationship fields use native form controls and readable typography
   assert.match(wxml, /例如：小林、妈妈、宝贝/)
   assert.match(wxml, /你的准确年龄/)
   assert.match(wxml, /bindinput="onUserAgeInput"/)
-  assert.match(wxml, /TA 平时是什么性格/)
+  assert.doesNotMatch(wxml, /TA 平时是什么性格/)
   assert.match(wxml, /TA 平时怎么说话/)
   assert.match(style, /grid-template-columns:\s*repeat\(3,/)
   assert.match(style, /\.relationship-option\s*\{[^}]*min-height:\s*78rpx[^}]*font-size:\s*26rpx/s)

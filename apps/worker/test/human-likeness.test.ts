@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, trigramJaccard } from '../src/chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, sanitizeUnsupportedPresentSceneClaims, trigramJaccard } from '../src/chat/human-likeness.js';
 
 test('human-likeness signals flag compound counselor templates without blocking natural emotion', () => {
   assert.deepEqual(
@@ -19,7 +19,13 @@ test('human-likeness signals detect pure acknowledgements and repeated structure
 
 test('hard reply leak blocks internal state and assistant identity but allows justified anger', () => {
   assert.equal(hardReplyLeak('{"interactionState":{"emotion":"ANGRY"}}'), 'INTERNAL_STATE_LEAK_BLOCKED');
+  assert.equal(hardReplyLeak('<explicit_personality_recap>温柔耐心</explicit_personality_recap>'), 'INTERNAL_STATE_LEAK_BLOCKED');
+  assert.equal(hardReplyLeak('{"current_user_input":"抱一下","server_turn_focus":{"authoritative":true}}'), 'INTERNAL_STATE_LEAK_BLOCKED');
+  assert.equal(hardReplyLeak('{"user_input":"抱一下","reply_shape":"主动回应"}'), 'INTERNAL_STATE_LEAK_BLOCKED');
   assert.equal(hardReplyLeak('我是你的对话助手。'), 'ASSISTANT_IDENTITY_BLOCKED');
+  assert.equal(hardReplyLeak('按照用户明确选择的性格标签，我会嘴硬心软。'), 'PERSONALITY_PROFILE_LEAK_BLOCKED');
+  assert.equal(hardReplyLeak('我这个人就是温柔耐心，也重视边界。'), 'PERSONALITY_LABEL_RECITATION_BLOCKED');
+  assert.equal(hardReplyLeak('我就是想直接说清楚，别让彼此猜。'), null);
   assert.equal(hardReplyLeak('你都第三遍催了，我听见了，别一直说。'), null);
 });
 
@@ -52,4 +58,69 @@ test('self history sanitizer removes unsupported past claims without changing su
     recentUserInputs: [],
     subjectBackground: null,
   }), { reply: '你上次也是这么说的。', removed: false });
+});
+
+test('present-scene sanitizer removes only unsupported factual clauses', () => {
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '不是故意就不能早点说吗，我等消息等半天了。',
+    currentUserText: '我又不是故意的。', recentUserInputs: ['我今晚会晚一个小时到。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '不是故意就不能早点说吗。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '先找个地方吃饭吧，等久了有点饿。',
+    currentUserText: '到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '先找个地方吃饭吧。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '胃不舒服就先喝点粥。',
+    currentUserText: '我胃不太舒服。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '胃不舒服就先喝点粥。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我知道你不是故意的，但等的时候确实难受啊，下次记得提前发个消息就行。',
+    currentUserText: '你别一上来就不高兴，我又不是故意的。', recentUserInputs: ['我今晚会晚一个小时到。'], recentCharacterReplies: ['不然我干等着多难受。'], subjectBackground: null,
+  }), { reply: '我知道你不是故意的，下次记得提前发个消息就行。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先让我抱够再说，然后找个地方吃饭，饿得能把你吃了。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先让我抱够再说，然后找个地方吃饭。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先让我捏捏脸出口气，然后找个地方吃饭，我都快饿扁了。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先让我捏捏脸出口气，然后找个地方吃饭。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先找个地方吃饭，我都快饿扁了。',
+    currentUserText: '到了以后怎么安排？', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+    allowPlayfulEmbellishment: true,
+  }), { reply: '到了先找个地方吃饭，我都快饿扁了。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '临时才说确实打乱了我的安排，我都等饿了。',
+    currentUserText: '我会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+    allowLowRiskConversationalEmbellishment: true,
+  }), { reply: '临时才说确实打乱了我的安排，我都等饿了。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先让我捏捏脸出出气，然后随便找个地方吃饭，饿过劲儿了不想折腾。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先让我捏捏脸出出气，然后随便找个地方吃饭。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '晚到没关系，但下次别忙完才想起来说一声，我这边没法安排。',
+    currentUserText: '我今晚会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '晚到没关系，但下次别忙完才想起来说一声。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我知道你不是故意的，但临时变动确实打乱了我的安排。',
+    currentUserText: '我又不是故意的。', recentUserInputs: ['我会晚一个小时到。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '我知道你不是故意的。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '下次早点说，不然我会一直干等。',
+    currentUserText: '我今晚会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '下次早点说，不然我会一直干等。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我没说你故意，是你临时才说，我这边就只能干等。',
+    currentUserText: '我又不是故意的。', recentUserInputs: ['我会晚一个小时到。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '我没说你故意，是你临时才说。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我知道你不是故意的，但晚到才说确实让我干等了一个小时。',
+    currentUserText: '我又不是故意的。', recentUserInputs: ['我会晚一个小时到。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '我知道你不是故意的。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '先去喝点东西吧，谁让你害我站了一个小时。',
+    currentUserText: '到了以后怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '先去喝点东西吧。', removed: true });
 });

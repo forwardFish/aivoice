@@ -62,6 +62,14 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
   assert.match(system, /明确人物特点优先于中性默认/);
   assert.match(system, /明确资料说明人物会唠叨/);
   assert.match(system, /明确资料说明人物容易发脾气/);
+  assert.match(system, /多性格组合使用规则/);
+  assert.match(system, /每轮最多让两个已选性格可被感知/);
+  assert.match(system, /用户补充描述的优先级高于标签/);
+  assert.match(system, /未选择的性格不得根据年龄、性别或关系自动补写/);
+  assert.match(system, /温柔耐心”只影响反应阈值和表达方式/);
+  assert.match(system, /恢复特点应让措辞、动作或亲近程度发生可见变化/);
+  assert.match(system, /不能凭空说“饭已经做好了、菜凉了/);
+  assert.match(system, /不得为了显得生活化而补写当前场景事实/);
   assert.match(system, /人物资料中明确提供的特点可以在相邻多轮持续表现/);
   assert.match(system, /不得自动具体化为正在打游戏/);
   assert.doesNotMatch(system, /不要在相邻多轮中反复展示同一个长期特征/);
@@ -250,6 +258,7 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
     currentMessageId: 'cooldown-current',
     voiceName: '妈妈', ageYears: 70, gender: 'FEMALE', userAgeYears: 40,
     relationshipType: 'MOTHER', relationshipLabel: '', userAddress: '小林',
+    personalityNote: '温柔耐心，但会直接说清一个具体担心。',
     history: [{
       messageId: 'asked-before', mode: 'CHAT', inputText: '最近怎么样？', outputText: '是工作太累，还是别的原因？',
       interactionState: { version: 2, carryAffect: null, action: { stance: 'ASK', currentWant: '了解原因', cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'asked-before:USER', quote: '最近怎么样' }, requestDecision: { kind: 'NONE' } }, createdAt: new Date().toISOString() },
@@ -268,6 +277,10 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.match(askedSystem, /当前输入确实触发且尚未被后续事实化解/);
   assert.match(askedSystem, /修复不等于撤销全部立场/);
   assert.match(askedSystem, /人物在最近对话中已经明确说出的时间、可用范围/);
+  assert.match(askedSystem, /检查reply里的每个当前场景事实/);
+  assert.match(askedSystem, /<explicit_personality_recap>/);
+  assert.match(askedSystem, /本轮只在当前情境确实相关时表现其中一项主要特点/);
+  assert.ok(askedSystem.lastIndexOf('<explicit_personality_recap>') > askedSystem.lastIndexOf('<prompt_turn_ids>'));
   assert.match(askedSystem, /不得为了配合用户突然完整接受/);
   assert.ok(askedSystem.lastIndexOf('本轮台词最终自然化检查') > askedSystem.lastIndexOf('这是连续会话首次回复'));
   assert.doesNotMatch(askedSystem, /allowedActionStances=[^\n]*ASK/);
@@ -302,6 +315,79 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.equal(carriedBoundary.runtimeDialogueControl.noMoreQuestionsActive, true);
   assert.equal(carriedBoundary.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
   assert.match(carriedBoundary.messages[0]?.content || '', /noMoreQuestionsActive=true/);
+});
+
+test('partner affection prompt lets runtime choose the action and personality own the final semantics', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'partner-affection',
+    voiceName: '小宁', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】喜欢亲近：愿意主动恢复靠近；嘴硬心软：缓和时仍留一点别扭。',
+    history: [], currentInput: '到了先抱一下，别还板着脸了。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.equal(result.personalityTurnFocus?.phase, 'AFFECTION');
+  assert.equal(result.personalityTurnFocus?.primary.label, '喜欢亲近');
+  assert.match(system, /成年伴侣的接受语义/);
+  assert.match(system, /ACCEPT不是批准、宽恕、训诫或允许/);
+  assert.match(system, /不得重复、暗示或重新开启已经表达且被对方承认的边界/);
+  assert.match(system, /primary必须决定reply的核心意愿和主要语义/);
+  assert.ok(system.lastIndexOf('【本轮最终控制：优先级最高】') < system.lastIndexOf('<personality_turn_focus>'));
+  assert.ok(system.lastIndexOf('本轮台词最终自然化检查') < system.lastIndexOf('<personality_turn_focus>'));
+  assert.match(system, /本区块为最终语义裁决/);
+  assert.match(system, /phase、personality、reply_shape和forbidden均由服务端生成/);
+  const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');
+  assert.equal(wrappedCurrent.user_input, '到了先抱一下');
+  assert.equal(wrappedCurrent.phase, 'AFFECTION');
+  assert.deepEqual(wrappedCurrent.personality, { primary: '喜欢亲近', secondary: '嘴硬心软' });
+  assert.match(wrappedCurrent.reply_shape, /主动参与亲近/);
+  assert.ok(wrappedCurrent.forbidden.some((item: string) => item.startsWith('LEXICAL_ECHO_OF_BACKGROUND_GUESS：')));
+  assert.ok(wrappedCurrent.forbidden.some((item: string) => item.startsWith('PASSIVE_PERMISSION：')));
+});
+
+test('structured current user wrapper applies to non-affection personality phases', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'partner-trigger',
+    voiceName: '小宁', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】脾气来得快：遇到临时变化会不满；表达直接：会点明问题。',
+    history: [], currentInput: '我今晚会晚一个小时到，刚才忙忘了跟你说。',
+  });
+  const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');
+  assert.equal(wrappedCurrent.user_input, '我今晚会晚一个小时到，刚才忙忘了跟你说。');
+  assert.equal(wrappedCurrent.phase, 'TRIGGER');
+  assert.equal(wrappedCurrent.personality.primary, '脾气来得快');
+  assert.match(wrappedCurrent.reply_shape, /回应已经发生的行为/);
+  assert.ok(wrappedCurrent.forbidden.some((item: string) => item.startsWith('INVENTED_LOSS_OR_SCHEDULE：')));
+});
+
+test('resolved affection context omits the finished conflict from model history', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 't5',
+    voiceName: '小宁', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】脾气来得快：有触发才不满；表达直接：点明问题；重视边界：说清期待；嘴硬心软：用行动缓和。',
+    history: [
+      { messageId: 't1', mode: 'CHAT', inputText: '我今晚会晚一个小时到，刚才忙忘了跟你说。', outputText: '下次记得提前说一声。' },
+      { messageId: 't2', mode: 'CHAT', inputText: '我又不是故意的。', outputText: '不是故意也会有影响。' },
+      { messageId: 't3', mode: 'CHAT', inputText: '确实是我没提前说，怪我。', outputText: '行吧。' },
+      { messageId: 't4', mode: 'CHAT', inputText: '我现在出发，到了以后怎么安排？', outputText: '到了先去吃饭。' },
+    ],
+    currentInput: '到了先抱一下，别还板着脸了。',
+  });
+  assert.equal(result.personalityTurnFocus?.resolvedBoundary, true);
+  assert.equal(result.personalityTurnFocus?.primary.label, '表达直接');
+  assert.deepEqual(result.includedMessageIds, ['t4']);
+  const system = result.messages[0]?.content || '';
+  assert.doesNotMatch(system, /我今晚会晚一个小时到/);
+  assert.doesNotMatch(system, /别还板着脸/);
+  const modelHistoryText = result.messages.slice(3, -1).map((message) => message.content).join('\n');
+  assert.doesNotMatch(modelHistoryText, /我又不是故意|怪我|下次记得提前说/);
+  const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');
+  assert.equal(wrappedCurrent.user_input, '到了先抱一下');
 });
 
 test('obvious age and directed-relationship conflicts fail before model invocation', () => {

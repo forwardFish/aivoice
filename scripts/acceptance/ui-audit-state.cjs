@@ -144,6 +144,30 @@ async function main() {
         consentText: '我已取得声音本人明确同意，并获得其声音克隆和 AI 合成使用授权。',
         submitting: false, errorMessage: ''
       })
+    } else if (stateName === 'personality-guide') {
+      evidenceKind = 'CONTROLLED_TEST_STATE'
+      page = await miniProgram.reLaunch('/pages/create/personality-guide?voiceId=ui-audit')
+      await page.waitFor(500)
+      await page.setData({
+        voiceId: 'ui-audit', state: 'ready', saving: false,
+        hasRecommendations: true,
+        selectedTagIds: ['HARD_MOUTH_SOFT_HEART', 'LIKES_CLOSENESS', 'RECOVERS_FAST'],
+        traitOptions: [
+          { id: 'HARD_MOUTH_SOFT_HEART', label: '嘴硬心软', selected: true },
+          { id: 'LIKES_CLOSENESS', label: '喜欢亲近', selected: true },
+          { id: 'QUICK_TEMPER', label: '脾气来得快', selected: false },
+          { id: 'DIRECT', label: '表达直接', selected: false },
+          { id: 'VALUES_BOUNDARY', label: '重视边界', selected: false },
+          { id: 'WARM_PATIENT', label: '温柔耐心', selected: false },
+          { id: 'PLAYFUL', label: '爱开玩笑', selected: false },
+          { id: 'RECOVERS_FAST', label: '情绪退得快', selected: true },
+          { id: 'SHOWS_CARE_BY_ACTION', label: '用行动关心', selected: false },
+          { id: 'VALUES_RESPECT', label: '在意被尊重', selected: false },
+          { id: 'DISLIKES_LECTURING', label: '不爱讲大道理', selected: false },
+          { id: 'PRACTICAL', label: '务实看现实', selected: false }
+        ],
+        description: '', descriptionCount: 0, maxDescriptionLength: 80, errorMessage: ''
+      })
     } else if (stateName === 'progress') {
       evidenceKind = 'CONTROLLED_TEST_STATE'
       page = await miniProgram.reLaunch('/pages/create/progress?voiceId=ui-audit')

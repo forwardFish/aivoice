@@ -111,7 +111,7 @@ class AliyunProviderTests(unittest.TestCase):
             self.assertEqual(enrollment_payload["model"], "voice-enrollment")
             self.assertEqual(
                 enrollment_payload["input"]["target_model"],
-                "cosyvoice-v3.5-flash",
+                "cosyvoice-v3.5-plus",
             )
             self.assertTrue(enrollment_payload["input"]["url"].startswith("oss://"))
             registry_text = (root / "registry.json").read_text(encoding="utf-8")

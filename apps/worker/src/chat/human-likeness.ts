@@ -64,6 +64,19 @@ export function detectSpeakerFactOwnershipViolation(input: {
 }
 
 const SELF_PERSONAL_HISTORY_MARKER = /上次|以前|之前|一直|总是|曾经|原本|后来|又一次/gu;
+const PERSONALITY_LABEL_WORDS = [
+  '喜欢自己尝试', '需要熟悉节奏', '依赖熟悉的人', '注意容易转移', '开心会马上分享', '好奇爱问', '情绪写在脸上',
+  '在意公平', '被催容易顶嘴', '熟了才放得开', '会照顾小伙伴',
+  '有自己的主意', '在意被尊重', '被误解会解释', '温柔耐心', '脾气来得快', '情绪退得快', '需要慢慢消气',
+  '嘴硬心软', '表达直接', '不太爱明说', '喜欢亲近', '不喜欢身体接触', '爱开玩笑', '很讲义气', '重视边界',
+  '用行动关心', '关心生活小事', '爱念叨但心软', '不爱讲大道理', '务实看现实', '做事有原则', '重视经验',
+  '有矛盾当场说', '冲突后先静一静',
+] as const;
+
+function selfListsMultiplePersonalityLabels(reply: string): boolean {
+  if (!/(?:我就是|我这个人|我这人|我的性格|我平时(?:就是|比较))/u.test(reply)) return false;
+  return PERSONALITY_LABEL_WORDS.filter((label) => reply.includes(label)).length >= 2;
+}
 
 export function sanitizeSelfUnsupportedPersonalHistory(input: {
   relationshipType: string | null;
@@ -92,10 +105,49 @@ export function sanitizeSelfUnsupportedPersonalHistory(input: {
   return { reply: sanitized, removed: true };
 }
 
+export function sanitizeUnsupportedPresentSceneClaims(input: {
+  reply: string;
+  currentUserText: string;
+  recentUserInputs: readonly string[];
+  recentCharacterReplies: readonly string[];
+  subjectBackground: string | null;
+  allowPlayfulEmbellishment?: boolean;
+  allowLowRiskConversationalEmbellishment?: boolean;
+}): { reply: string; removed: boolean } {
+  const reply = String(input.reply || '').trim();
+  if (!reply) return { reply, removed: false };
+  if (input.allowLowRiskConversationalEmbellishment) return { reply, removed: false };
+  const known = [input.subjectBackground || '', ...input.recentUserInputs, ...input.recentCharacterReplies, input.currentUserText].join(' ');
+  const authoritativeKnown = [input.subjectBackground || '', ...input.recentUserInputs, input.currentUserText].join(' ');
+  const unsupportedPatterns: RegExp[] = [];
+  const exactDurationActivity = /(?:等|干等|站|坐|待).{0,5}(?:一|两|二|三|四|五|六|七|八|九|十|\d+)(?:个)?小时/u;
+  const supportedExactDurationActivity = /(?:等|干等|站|坐|待).{0,5}(?:一|两|二|三|四|五|六|七|八|九|十|\d+)(?:个)?小时/u.test(authoritativeKnown);
+  if (!input.allowPlayfulEmbellishment && !supportedExactDurationActivity) unsupportedPatterns.push(exactDurationActivity);
+  if (!input.allowPlayfulEmbellishment && !/(?:饿|没吃|吃不上|肚子空)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:饿死我|我有点饿|我饿了|等饿了|等久了有点饿|都等饿了|饿得.{0,8}|(?:快|都|要)?饿(?:扁|瘪|坏|慌)了?|饿过劲(?:儿)?了?|肚子(?:都)?饿)/u);
+  if (!/(?:等你|等消息|等待|等了|干等)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:在|一直)?(?:这儿|这里|这边)?(?:干)?等(?:你|消息)?(?:的?时候|着|了)?(?:确实|真的?|挺|很|多)?(?:不舒服|难受|烦|着急)|我等(?:着|的时候|消息)|(?:只能|只好)(?:在)?干等|干等(?:着|了)?(?:挺|很|有点)?(?:不舒服|难受|烦|着急)?/u);
+  if (!/(?:半天|一晚上|一整天|几个小时)/u.test(known)) unsupportedPatterns.push(/(?:等消息)?等(?:了)?半天|等了一晚上|等了一整天/u);
+  if (!/(?:饭|菜|汤|粥).{0,8}(?:做|煮|热|凉|准备)/u.test(known)) unsupportedPatterns.push(/(?:饭|菜|汤|粥).{0,8}(?:做好|煮好|热着|凉了|在锅里)/u);
+  if (!/(?:安排好|排好|空出时间|已有安排)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我这边|我的)?(?:时间|事情)?.{0,5}(?:都安排好|都排好|已经安排好|已经排好|空出来了|没法(?:再)?安排(?:别的)?)|(?:打乱|影响)了?(?:我|我的|这边的)?安排/u);
+  if (!input.allowPlayfulEmbellishment && !/(?:那家|老地方|上次那)/u.test(known)) unsupportedPatterns.push(/(?:那家(?:店|餐厅|饭店|烧烤|火锅|咖啡)|老地方|上次那家)/u);
+  if (!unsupportedPatterns.length || !unsupportedPatterns.some((pattern) => pattern.test(reply))) return { reply, removed: false };
+
+  const segments = reply.match(/[^，。！？；,!?;]+[，。！？；,!?;]?/gu) || [reply];
+  const conditionalOrFuture = /(?:如果|要是|不然|否则|免得|可能|将会|会让|会一直|准备|打算|想要)/u;
+  const kept = segments.filter((segment) => conditionalOrFuture.test(segment) || !unsupportedPatterns.some((pattern) => pattern.test(segment)));
+  let sanitized = kept.join('').trim().replace(/^[，。！？；,!?;]+|[，,；; ]+$/gu, '');
+  if (!sanitized) return { reply, removed: false };
+  if (!/[。！？!?]$/u.test(sanitized)) sanitized += '。';
+  return { reply: sanitized, removed: sanitized !== reply };
+}
+
 export function hardReplyLeak(reply: string): string | null {
-  if (/interactionState|causeTurnId|causeEvidence|remainingTurns|prompt_turn_ids|previous_interaction_state/iu.test(reply)) {
+  if (/interactionState|causeTurnId|causeEvidence|remainingTurns|prompt_turn_ids|previous_interaction_state|explicit_personality_recap|personality_turn_focus|server_turn_focus|current_user_input|user_input|reply_shape|phase=|primary=|secondary=/iu.test(reply)) {
     return 'INTERNAL_STATE_LEAK_BLOCKED';
   }
+  if (/用户明确选择|组合解释|用户补充(?:，优先于标签)?|性格标签|PERSONALITY_V1/iu.test(reply)) {
+    return 'PERSONALITY_PROFILE_LEAK_BLOCKED';
+  }
+  if (selfListsMultiplePersonalityLabels(reply)) return 'PERSONALITY_LABEL_RECITATION_BLOCKED';
   if (/[{[]\s*"?(?:emotion|stance|currentWant|causeSource)"?\s*:/u.test(reply)) return 'INTERNAL_STATE_LEAK_BLOCKED';
   if (/我是.{0,8}(?:助手|客服|咨询师)|作为(?:助手|客服|咨询师)/u.test(reply)) return 'ASSISTANT_IDENTITY_BLOCKED';
   if (/我(?:就是|确实是)现实中的/u.test(reply)) return 'REAL_PERSON_IMPERSONATION_BLOCKED';

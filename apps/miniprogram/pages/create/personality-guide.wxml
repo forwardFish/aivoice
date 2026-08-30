@@ -1,0 +1,72 @@
+<view class="guide-screen screen">
+  <app-nav title="人物性格" back="{{true}}"></app-nav>
+
+  <view wx:if="{{state === 'loading'}}" class="guide-state">
+    <page-state mode="loading" title="正在准备性格引导" description="马上就能进入对话，先把人物感觉补准确一点。"></page-state>
+  </view>
+
+  <view wx:elif="{{state === 'error'}}" class="guide-state glass-card">
+    <page-state mode="error" title="性格页暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadGuide"></page-state>
+  </view>
+
+  <view wx:else class="guide-content fade-in">
+    <view class="hero-block">
+      <text class="page-title guide-title">TA 平时是什么性格？</text>
+      <text wx:if="{{editMode}}" class="page-subtitle guide-subtitle">只保存你主动选择的特点，最多 4 项</text>
+      <text wx:else class="page-subtitle guide-subtitle">根据年龄和关系推荐，仅供选择，不会自动认定</text>
+    </view>
+
+    <view class="guide-card glass-card">
+      <view wx:if="{{hasRecommendations && !editMode}}" class="section-row">
+        <text class="section-title">可多选，只保存你主动选择的特点</text>
+        <text class="section-caption">最多 4 项</text>
+      </view>
+
+      <view wx:if="{{hasRecommendations}}" class="trait-grid">
+        <view
+          wx:for="{{traitOptions}}"
+          wx:key="id"
+          class="trait-chip {{item.selected ? 'is-selected' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="toggleTrait"
+        >
+          <text class="trait-label">{{item.label}}</text>
+          <text wx:if="{{item.selected}}" class="trait-check">✓</text>
+        </view>
+      </view>
+
+      <text wx:else class="no-traits-note">该年龄暂不推荐对话型性格标签，可直接补充或跳过</text>
+
+      <view class="description-block">
+        <view class="description-heading">
+          <text class="field-label description-label">再补一句</text>
+          <text class="description-optional">可选</text>
+        </view>
+        <view class="description-wrap">
+          <textarea
+            class="description-input"
+            value="{{description}}"
+            placeholder="例如：她平时脾气有点急，但哄一下很快就好了。"
+            maxlength="{{maxDescriptionLength}}"
+            auto-height
+            bindinput="onDescriptionInput"
+          />
+          <text class="description-count">{{descriptionCount}}/{{maxDescriptionLength}}</text>
+        </view>
+      </view>
+
+      <text wx:if="{{errorMessage}}" class="guide-error">{{errorMessage}}</text>
+    </view>
+
+    <view class="footer-block safe-bottom">
+      <view class="action-stack {{editMode ? 'action-stack-single' : ''}}">
+        <button class="action-button action-save {{saving ? 'button-disabled' : ''}}" bindtap="saveAndContinue" disabled="{{saving}}">
+          <block wx:if="{{saving}}">保存中…</block>
+          <block wx:elif="{{editMode}}">保存修改</block>
+          <block wx:else>保存并继续</block>
+        </button>
+        <button wx:if="{{!editMode}}" class="action-button action-skip" bindtap="skipGuide" disabled="{{saving}}">暂时跳过</button>
+      </view>
+    </view>
+  </view>
+</view>

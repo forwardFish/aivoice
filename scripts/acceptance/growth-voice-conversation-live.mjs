@@ -23,7 +23,7 @@ const secretEnv = readEnv(process.env.AIVOICE_ALIYUN_ENV_FILE || 'D:/lyh/secrets
 const apiKey = String(secretEnv.DASHSCOPE_API_KEY || baseEnv.DASHSCOPE_API_KEY || '').trim();
 const apiHost = String(baseEnv.DASHSCOPE_API_HOST || 'https://dashscope.aliyuncs.com').trim().replace(/\/$/, '');
 const chatModel = String(baseEnv.CHAT_MODEL || 'qwen3.8-max').trim();
-const voiceModel = String(baseEnv.AIVOICE_TARGET_MODEL || 'cosyvoice-v3.5-flash').trim();
+const voiceModel = String(baseEnv.AIVOICE_TARGET_MODEL || 'cosyvoice-v3.5-plus').trim();
 
 if (!apiKey) throw new Error('DASHSCOPE_API_KEY is missing');
 if (!fs.existsSync(registryPath)) throw new Error(`Encrypted voice registry is missing: ${registryPath}`);

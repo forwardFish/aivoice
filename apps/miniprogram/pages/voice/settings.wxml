@@ -62,6 +62,11 @@
         <view class="info-trailing"><text class="info-value">{{relationshipType ? '已设置' : '未设置'}}</text><text class="arrow {{showRelationship ? 'is-open' : ''}}">›</text></view>
       </view>
 
+      <view wx:if="{{relationshipOptions.length}}" class="info-row personality-entry" bindtap="openPersonality">
+        <view class="info-copy"><text class="info-title">人物性格</text></view>
+        <view class="info-trailing"><text class="info-value">{{personalityConfigured ? '已设置' : '未设置'}}</text><text class="arrow">›</text></view>
+      </view>
+
       <view wx:if="{{relationshipOptions.length && showRelationship}}" class="dialogue-profile-block">
         <view class="dialogue-profile-heading">
           <text class="dialogue-profile-title">TA 是你的谁</text>
@@ -78,11 +83,6 @@
           <text class="settings-profile-label">你的准确年龄</text>
           <text class="settings-profile-caption">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
           <input class="settings-profile-input" type="number" value="{{userAgeYears}}" placeholder="请输入你自己的年龄" maxlength="3" bindinput="onUserAgeInput" />
-        </view>
-        <view class="settings-profile-block">
-          <text class="settings-profile-label">TA 平时是什么性格</text>
-          <text class="settings-profile-caption">可选，只填写你明确知道的长期特点，不写今天的情绪。</text>
-          <textarea class="settings-profile-input" value="{{personalityNote}}" placeholder="例如：担心时说话会变直接，但听完会调整看法" maxlength="300" auto-height bindinput="onPersonalityNoteInput" />
         </view>
         <view class="settings-profile-block">
           <text class="settings-profile-label">TA 平时怎么说话</text>

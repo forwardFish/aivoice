@@ -38,7 +38,7 @@ async function responseError(response: Response): Promise<string> {
 export class AliyunCosyVoiceProvider {
   private readonly apiKey = required('DASHSCOPE_API_KEY');
   private readonly apiHost = trustedAliyunUrl(required('DASHSCOPE_API_HOST')).toString().replace(/\/$/, '');
-  readonly targetModel = process.env.AIVOICE_TARGET_MODEL?.trim() || 'cosyvoice-v3.5-flash';
+  readonly targetModel = process.env.AIVOICE_TARGET_MODEL?.trim() || 'cosyvoice-v3.5-plus';
 
   private headers(extra: Record<string, string> = {}): Record<string, string> {
     return {
@@ -128,7 +128,7 @@ export class AliyunCosyVoiceProvider {
   async synthesize(
     voiceId: string,
     text: string,
-    correlation: { jobId?: string; messageId?: string } = {},
+    options: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean } = {},
   ): Promise<Buffer> {
     const totalStartedAt = Date.now();
     let requestMs = 0;
@@ -147,6 +147,11 @@ export class AliyunCosyVoiceProvider {
             sample_rate: 24000,
             language_hints: ['zh'],
             seed: 0,
+            ...(options.instruction ? { instruction: options.instruction } : {}),
+            ...(options.rate !== undefined ? { rate: options.rate } : {}),
+            ...(options.pitch !== undefined ? { pitch: options.pitch } : {}),
+            ...(options.volume !== undefined ? { volume: options.volume } : {}),
+            ...(options.enableSsml ? { enable_ssml: true } : {}),
           },
         }),
         signal: AbortSignal.timeout(120_000),
@@ -164,8 +169,9 @@ export class AliyunCosyVoiceProvider {
       console.info('cosyvoice_synthesis_timing', JSON.stringify({
         event: 'cosyvoice_synthesis_timing',
         status: 'SUCCEEDED',
-        jobId: correlation.jobId || '',
-        messageId: correlation.messageId || '',
+        jobId: options.jobId || '',
+        messageId: options.messageId || '',
+        instructionApplied: Boolean(options.instruction),
         textLength: Array.from(text).length,
         requestMs,
         downloadMs,
@@ -180,8 +186,9 @@ export class AliyunCosyVoiceProvider {
       console.error('cosyvoice_synthesis_timing', JSON.stringify({
         event: 'cosyvoice_synthesis_timing',
         status: 'FAILED',
-        jobId: correlation.jobId || '',
-        messageId: correlation.messageId || '',
+        jobId: options.jobId || '',
+        messageId: options.messageId || '',
+        instructionApplied: Boolean(options.instruction),
         textLength: Array.from(text).length,
         requestMs,
         downloadMs,

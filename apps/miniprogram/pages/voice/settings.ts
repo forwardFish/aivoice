@@ -106,6 +106,7 @@ Page({
     background: '',
     relationshipNote: '',
     personalityNote: '',
+    personalityConfigured: false,
     speechHabitNote: '',
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
     savedRelationshipType: '' as RelationshipType | '',
@@ -160,6 +161,7 @@ Page({
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',
         personalityNote: voice.personalityNote || '',
+        personalityConfigured: Boolean(String(voice.personalityNote || '').trim()),
         speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
@@ -200,14 +202,15 @@ Page({
   onRelationshipNoteInput(event: any) {
     this.setData({ relationshipNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
   },
-  onPersonalityNoteInput(event: any) {
-    this.setData({ personalityNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
-  },
   onSpeechHabitNoteInput(event: any) {
     this.setData({ speechHabitNote: Array.from(String(event.detail.value || '')).slice(0, 300).join(''), errorMessage: '', successMessage: '' })
   },
   toggleRelationship() {
     this.setData({ showRelationship: !this.data.showRelationship })
+  },
+  openPersonality() {
+    if (!this.data.voiceId) return
+    wx.navigateTo({ url: `/pages/create/personality-guide?voiceId=${encodeURIComponent(this.data.voiceId)}&mode=edit` })
   },
   selectRelationship(event: any) {
     const relationshipType = String(event.currentTarget.dataset.key || '') as RelationshipType
@@ -308,6 +311,7 @@ Page({
         background: voice.background || '',
         relationshipNote: voice.relationshipNote || '',
         personalityNote: voice.personalityNote || '',
+        personalityConfigured: Boolean(String(voice.personalityNote || '').trim()),
         speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || this.data.relationshipType,
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',

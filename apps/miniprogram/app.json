@@ -7,6 +7,7 @@
     "pages/create/voice-profile",
     "pages/create/progress",
     "pages/create/preview",
+    "pages/create/personality-guide",
     "pages/voice/workbench",
     "pages/purchase/index",
     "pages/voices/index",

@@ -171,6 +171,7 @@
 
 .info-row-first { margin-top: 18rpx; }
 .relationship-toggle { border-top: 1rpx solid rgba(233, 235, 244, 0.9); }
+.personality-entry { border-top: 1rpx solid rgba(233, 235, 244, 0.9); }
 .relationship-toggle .arrow { transition: transform 160ms ease; }
 .relationship-toggle .arrow.is-open { transform: rotate(90deg); }
 

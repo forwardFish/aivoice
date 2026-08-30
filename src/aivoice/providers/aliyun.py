@@ -24,7 +24,7 @@ class AliyunCosyVoiceProvider:
         api_key: str,
         api_host: str,
         workspace_id: str,
-        target_model: str = "cosyvoice-v3.5-flash",
+        target_model: str = "cosyvoice-v3.5-plus",
         preprocess: bool = True,
         registry_path: Path | None = None,
         session: requests.Session | None = None,
@@ -61,7 +61,7 @@ class AliyunCosyVoiceProvider:
             api_key=os.getenv("DASHSCOPE_API_KEY", ""),
             api_host=os.getenv("DASHSCOPE_API_HOST", ""),
             workspace_id=os.getenv("DASHSCOPE_WORKSPACE_ID", ""),
-            target_model=os.getenv("AIVOICE_TARGET_MODEL", "cosyvoice-v3.5-flash"),
+            target_model=os.getenv("AIVOICE_TARGET_MODEL", "cosyvoice-v3.5-plus"),
             preprocess=preprocess,
         )
 

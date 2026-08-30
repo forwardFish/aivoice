@@ -1,0 +1,232 @@
+.guide-screen {
+  min-height: 100vh;
+  padding-bottom: calc(42rpx + env(safe-area-inset-bottom));
+}
+
+.guide-state {
+  margin-top: 34rpx;
+  overflow: hidden;
+}
+
+.guide-content {
+  min-height: calc(100vh - 108rpx);
+  padding-top: 28rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-block {
+  padding: 0 6rpx;
+  text-align: center;
+}
+
+.guide-title {
+  display: block;
+  margin-top: 12rpx;
+}
+
+.guide-subtitle {
+  display: block;
+  max-width: 650rpx;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.guide-card {
+  margin-top: 34rpx;
+  padding: 30rpx 28rpx 28rpx;
+  border-radius: 32rpx;
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.trait-grid {
+  margin-top: 22rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.no-traits-note {
+  display: block;
+  padding: 22rpx 4rpx 8rpx;
+  color: #737b94;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+.trait-chip {
+  min-height: 90rpx;
+  padding: 0 22rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(217, 221, 235, 0.96);
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14rpx;
+  box-shadow: 0 10rpx 24rpx rgba(54, 60, 92, 0.04);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.trait-chip.is-selected {
+  border-color: rgba(101, 82, 245, 0.48);
+  background: linear-gradient(145deg, #efecff 0%, #faf8ff 100%);
+  box-shadow: 0 16rpx 32rpx rgba(101, 82, 245, 0.12);
+  transform: translateY(-2rpx);
+}
+
+.trait-label {
+  color: #26304a;
+  font-size: 27rpx;
+  line-height: 1.32;
+  font-weight: 620;
+}
+
+.trait-chip.is-selected .trait-label {
+  color: #5f50e6;
+}
+
+.trait-check {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #6552f5;
+  color: #ffffff;
+  font-size: 20rpx;
+  flex: 0 0 auto;
+}
+
+.description-block {
+  margin-top: 30rpx;
+  padding-top: 26rpx;
+  border-top: 1rpx solid rgba(230, 232, 243, 0.94);
+}
+
+.description-heading {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.description-label {
+  margin-bottom: 0;
+}
+
+.description-optional {
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: #f0effa;
+  color: #858ca2;
+  font-size: 20rpx;
+}
+
+.description-wrap {
+  position: relative;
+  margin-top: 16rpx;
+}
+
+.description-input {
+  width: 100%;
+  min-height: 180rpx;
+  padding: 24rpx 24rpx 60rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(101, 82, 245, 0.20);
+  background: rgba(249, 248, 255, 0.96);
+  color: #11172d;
+  font-size: 27rpx;
+  line-height: 1.64;
+  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.56);
+}
+
+.description-count {
+  position: absolute;
+  right: 20rpx;
+  bottom: 18rpx;
+  color: #9ea4b8;
+  font-size: 20rpx;
+}
+
+.guide-error {
+  display: block;
+  margin-top: 20rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 18rpx;
+  color: #c9515b;
+  background: #fff0f1;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.footer-block {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 28rpx;
+}
+
+.action-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.action-stack-single {
+  gap: 0;
+}
+
+.action-button {
+  width: 100% !important;
+  min-width: 100%;
+  max-width: 100%;
+  margin: 0 !important;
+  min-height: 96rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 29rpx;
+  font-weight: 680;
+  box-sizing: border-box;
+}
+
+.action-skip {
+  color: #11172d;
+  background: #ffffff;
+  border: 1rpx solid rgba(224, 227, 238, 0.98);
+  box-shadow: 0 14rpx 30rpx rgba(50, 56, 88, 0.06);
+}
+
+.action-save {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--action-primary-start) 0%, var(--action-primary-end) 100%);
+  box-shadow: 0 16rpx 34rpx rgba(101, 82, 245, 0.24);
+}
+
+.action-save.button-disabled,
+.action-save[disabled] {
+  color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, var(--action-disabled-start) 0%, var(--action-disabled-end) 100%);
+}
+
+@media (max-height: 740px) {
+  .guide-content {
+    padding-top: 18rpx;
+  }
+
+  .guide-card {
+    margin-top: 26rpx;
+  }
+
+  .trait-chip {
+    min-height: 84rpx;
+  }
+}
