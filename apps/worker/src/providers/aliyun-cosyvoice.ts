@@ -36,6 +36,8 @@ async function responseError(response: Response): Promise<string> {
 }
 
 export class AliyunCosyVoiceProvider {
+  readonly providerName = 'aliyun-cosyvoice';
+  readonly referenceMode = 'REGISTERED_VOICE' as const;
   private readonly apiKey = required('DASHSCOPE_API_KEY');
   private readonly apiHost = trustedAliyunUrl(required('DASHSCOPE_API_HOST')).toString().replace(/\/$/, '');
   readonly targetModel = process.env.AIVOICE_TARGET_MODEL?.trim() || 'cosyvoice-v3.5-plus';
@@ -105,7 +107,7 @@ export class AliyunCosyVoiceProvider {
       url,
       language_hints: ['zh'],
       max_prompt_audio_length: 20,
-      enable_preprocess: true,
+      enable_preprocess: process.env.AIVOICE_ENROLL_PREPROCESS?.trim() === 'false' ? false : true,
       enable_volume_normalization: 'false',
     });
     const voiceId = String(result.output?.voice_id || '');
@@ -135,6 +137,7 @@ export class AliyunCosyVoiceProvider {
     let downloadMs = 0;
     try {
       const requestStartedAt = Date.now();
+      const qwenAudio = this.targetModel.startsWith('qwen-audio-');
       const response = await fetch(`${this.apiHost}/api/v1/services/audio/tts/SpeechSynthesizer`, {
         method: 'POST',
         headers: this.headers(),
@@ -147,7 +150,7 @@ export class AliyunCosyVoiceProvider {
             sample_rate: 24000,
             language_hints: ['zh'],
             seed: 0,
-            ...(options.instruction ? { instruction: options.instruction } : {}),
+            ...(options.instruction ? (qwenAudio ? { instructions: options.instruction } : { instruction: options.instruction }) : {}),
             ...(options.rate !== undefined ? { rate: options.rate } : {}),
             ...(options.pitch !== undefined ? { pitch: options.pitch } : {}),
             ...(options.volume !== undefined ? { volume: options.volume } : {}),

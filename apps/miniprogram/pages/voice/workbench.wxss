@@ -423,6 +423,25 @@
   text-align: right;
 }
 
+.reply-feedback {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.reply-feedback-action {
+  min-height: 36rpx;
+  padding: 0 4rpx;
+  color: #8a90a5;
+  font-size: 20rpx;
+  line-height: 36rpx;
+}
+
+.reply-feedback-action.selected {
+  color: #6d59f6;
+}
+
 .pending-user-row { margin-bottom:12rpx; }
 
 .typing-wave {

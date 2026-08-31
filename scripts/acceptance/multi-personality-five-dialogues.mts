@@ -215,7 +215,7 @@ const report = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
   model: process.env.CHAT_MODEL,
-  temperature: 0.65,
+  temperature: { standard: 0.55, playful: 0.72 },
   status: automaticPrecheckPass ? 'AUTOMATIC_PRECHECK_PASS' : 'AUTOMATIC_PRECHECK_FAIL',
   fixedProfile: commonProfile,
   fixedUserTurns,
@@ -223,7 +223,7 @@ const report = {
   sameTurnComparisons,
   scenarios,
   humanAcceptanceRequired: true,
-  humanAcceptanceTarget: 'Each personality >=97/100; selected-trait restoration >=29/30, relationship realism >=19/20, emotion causality >=19/20, oral naturalness >=14/15, non-assistant tone >=14/15.'
+  humanAcceptanceTarget: 'Each personality >=98/100; selected-trait restoration >=29/30, relationship realism =20/20, emotion causality =20/20, oral naturalness >=14/15, non-assistant tone >=14/15; no one-vote veto item.'
 }
 
 await fsp.mkdir(outputRoot, { recursive: true })
@@ -232,7 +232,7 @@ await fsp.writeFile(path.join(outputRoot, 'review.md'), [
   '# 同年龄同关系五种多性格 · 真实文字模型验收候选', '',
   `- 模型：${report.model}`,
   `- 自动预检：${report.status}`,
-  '- 说明：自动预检只检查硬规则和跨人物差异，不能替代97分人工评审。', '',
+  '- 说明：自动预检只检查硬规则和跨人物差异，不能替代98分人工评审。', '',
   ...scenarios.flatMap(scenario => [
     `## ${scenario.label}`, '',
     `- 已选标签：${scenario.selectedTagIds.join('、')}`,

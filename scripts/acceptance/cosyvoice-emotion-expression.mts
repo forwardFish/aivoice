@@ -9,6 +9,10 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const outputRoot = path.resolve(process.env.AIVOICE_EMOTION_OUTPUT
   || path.join(projectRoot, 'work/acceptance/cosyvoice-emotion-expression'))
 const explicitReference = String(process.env.AIVOICE_EMOTION_REFERENCE || '').trim()
+const observedTranscriptionPath = String(process.env.AIVOICE_OBSERVED_TRANSCRIPTION || '').trim()
+const toneCorrection = String(process.env.AIVOICE_TONE_CORRECTION || '').trim()
+const personalityNote = String(process.env.AIVOICE_EMOTION_PERSONALITY_NOTE || '').trim()
+const instructionOnly = process.env.AIVOICE_EMOTION_INSTRUCTION_ONLY === '1'
 if (!explicitReference) {
   throw new Error('AIVOICE_EMOTION_REFERENCE is required; use a consented real-person 8-20 second WAV, never an AI-designed or previously synthesized voice')
 }
@@ -22,11 +26,47 @@ process.env.AIVOICE_TARGET_MODEL = String(process.env.AIVOICE_TARGET_MODEL || 'c
 if (!process.env.DASHSCOPE_API_KEY) throw new Error('DASHSCOPE_API_KEY is missing')
 if (!fs.existsSync(referencePath)) throw new Error(`emotion reference is missing: ${referencePath}`)
 
-const [{ AliyunCosyVoiceProvider }, { buildSpeechSynthesisPlan }, { probeWav }] = await Promise.all([
+const [
+  { AliyunCosyVoiceProvider },
+  { buildSpeechSynthesisPlan },
+  { probeWav },
+  { inspectReferenceQuality, inspectSentenceFinalProsody },
+  { evaluateSpeakerDiarization },
+  { observedPersonEvidenceFromQualityReport, speechPlanBaselineWithCorrections },
+  { buildEmotionExpressionPlan },
+] = await Promise.all([
   import('../../apps/worker/dist/providers/aliyun-cosyvoice.js'),
   import('../../apps/worker/dist/speech-instruction.js'),
-  import('../../apps/worker/dist/media/ffmpeg.js')
+  import('../../apps/worker/dist/media/ffmpeg.js'),
+  import('../../apps/worker/dist/media/quality.js'),
+  import('../../apps/worker/dist/providers/aliyun-speaker-diarization.js'),
+  import('../../apps/worker/dist/observed-person-evidence.js'),
+  import('../../apps/worker/dist/emotion-expression.js'),
 ])
+
+let observedEvidence = null
+let speechBaseline = null
+if (observedTranscriptionPath) {
+  const resolvedTranscription = path.resolve(observedTranscriptionPath)
+  if (!fs.existsSync(resolvedTranscription)) throw new Error(`observed transcription is missing: ${resolvedTranscription}`)
+  const rawTranscription = JSON.parse(await fsp.readFile(resolvedTranscription, 'utf8'))
+  const diarization = evaluateSpeakerDiarization(rawTranscription)
+  const referenceQuality = await inspectReferenceQuality(referencePath)
+  const sentenceFinalProsody = await inspectSentenceFinalProsody(referencePath, diarization.segments)
+  const qualityReport = {
+    ...referenceQuality,
+    acousticEvidence: { ...referenceQuality.acousticEvidence, ...sentenceFinalProsody },
+    speakerDiarization: diarization,
+    ...(toneCorrection ? {
+      passiveCorrections: [{
+        reason: 'TONE_NOT_LIKE',
+        instruction: `用户明确纠正TA的语气：${toneCorrection}`,
+      }],
+    } : {}),
+  }
+  observedEvidence = observedPersonEvidenceFromQualityReport(qualityReport)
+  speechBaseline = speechPlanBaselineWithCorrections(observedEvidence, qualityReport)
+}
 
 const sameText = '你到了以后先过来找我，我们再慢慢说。'
 const cases = [
@@ -37,7 +77,8 @@ const cases = [
   { id: 'context-plain', group: 'contextual', tone: 'PLAIN', text: '我知道了，你路上慢一点，到家再说。' },
   { id: 'context-irritated', group: 'contextual', tone: 'IRRITATED', text: '你又没提前告诉我，我当然会有点不高兴。' },
   { id: 'context-mixed', group: 'contextual', tone: 'MIXED', text: '知道错就行，过来让我靠一会儿。' },
-  { id: 'context-positive', group: 'contextual', tone: 'POSITIVE', text: '你终于回来啦，快过来让我抱一下。' }
+  { id: 'context-positive', group: 'contextual', tone: 'POSITIVE', text: '你终于回来啦，快过来让我抱一下。' },
+  { id: 'context-sad-strong', group: 'contextual', tone: 'SAD_OR_HURT', text: '我真的忍不住哭了，有些话说不出来。' }
 ] as const
 const requestedCaseIds = new Set(String(process.env.AIVOICE_EMOTION_CASES || '').split(',').map(value => value.trim()).filter(Boolean))
 const selectedCases = requestedCaseIds.size ? cases.filter(testCase => requestedCaseIds.has(testCase.id)) : cases
@@ -52,24 +93,35 @@ const startedAt = Date.now()
 try {
   temporaryVoiceId = await provider.enroll(referencePath, prefix)
   for (const testCase of selectedCases) {
-    const speechPlan = buildSpeechSynthesisPlan(testCase.tone, testCase.text)
+    const emotionExpression = buildEmotionExpressionPlan({
+      replyTone: testCase.tone,
+      text: testCase.text,
+      interactionState: null,
+      personalityNote,
+    })
+    const speechPlan = buildSpeechSynthesisPlan(testCase.tone, testCase.text, speechBaseline, emotionExpression)
     const caseStartedAt = Date.now()
-    const audio = await provider.synthesize(temporaryVoiceId, speechPlan.text, {
+    const synthesisText = instructionOnly ? testCase.text : speechPlan.text
+    const audio = await provider.synthesize(temporaryVoiceId, synthesisText, {
       jobId: 'emotion-expression-acceptance',
       messageId: testCase.id,
       instruction: speechPlan.instruction,
-      rate: speechPlan.rate,
-      pitch: speechPlan.pitch,
-      volume: speechPlan.volume,
-      enableSsml: speechPlan.enableSsml
+      ...(instructionOnly ? {} : {
+        rate: speechPlan.rate,
+        pitch: speechPlan.pitch,
+        volume: speechPlan.volume,
+        enableSsml: speechPlan.enableSsml,
+      }),
     })
     const outputPath = path.join(outputRoot, `${testCase.id}.wav`)
     await fsp.writeFile(outputPath, audio)
     const probe = await probeWav(outputPath)
     generated.push({
       ...testCase,
+      emotionExpression,
       instruction: speechPlan.instruction,
-      synthesisText: speechPlan.text,
+      synthesisText,
+      instructionOnly,
       rate: speechPlan.rate,
       pitch: speechPlan.pitch,
       volume: speechPlan.volume,
@@ -93,6 +145,12 @@ const report = {
   model: provider.targetModel,
   referencePath,
   referenceDurationMs: (await probeWav(referencePath)).durationMs,
+  observedTranscriptionPath: observedTranscriptionPath ? path.resolve(observedTranscriptionPath) : null,
+  toneCorrection: toneCorrection || null,
+  personalityNote: personalityNote || null,
+  instructionOnly,
+  observedEvidence,
+  speechBaseline,
   temporaryVoiceDeleted,
   totalMs: Date.now() - startedAt,
   generated,

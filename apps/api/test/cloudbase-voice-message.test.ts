@@ -148,7 +148,7 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
     'rpc_voice_retry_preview',
     'rpc_voice_delete_request',
   ]);
-  assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.4');
+  assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.5');
   assert.match(String(calls[0].args.pConsentTextHash), /^[a-f0-9]{64}$/);
 });
 
@@ -240,6 +240,30 @@ test('CloudBase message reads preserve the public response shape without pg or D
     url: 'https://storage.example/audio',
     durationMs: 1200,
   });
+});
+
+test('CloudBase reply feedback persists a bounded server-authored correction without pg or Drizzle', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const cloud = {
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      return { recorded: true, correctionApplied: true };
+    },
+  };
+  const service = new VoiceService(
+    cloudDatabase(cloud) as any,
+    { getQuota: async () => ({}) } as any,
+    { latestAsset: async () => null } as any,
+  );
+
+  const result = await service.recordReplyFeedback('user-id', 'voice-id', {
+    messageId: 'message-id', verdict: 'DISLIKE', reason: 'TONE_NOT_LIKE', detail: '她生气时声音反而会更低',
+  });
+  assert.deepEqual(result, { recorded: true, correctionApplied: true });
+  assert.equal(calls[0]?.name, 'rpc_voice_record_feedback_v1');
+  assert.equal(calls[0]?.args.pInstruction, '用户明确纠正TA的语气：她生气时声音反而会更低');
+  assert.equal(calls[0]?.args.pVerdict, 'DISLIKE');
+  assert.match(String(calls[0]?.args.pRecordedAt), /^\d{4}-\d{2}-\d{2}T/);
 });
 
 test('partner relationship rejects either participant being under 18', async () => {

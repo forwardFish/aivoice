@@ -32,7 +32,7 @@ test('Qwen uses higher temperature only for active playful phases', () => {
     relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
     personalityNote: '【用户明确选择】表达直接：点明问题；重视边界：说清期待。', history: [], currentInput: '我今晚会晚一个小时到，刚才忙忘了跟你说。',
   });
-  assert.equal(chatTemperatureForFocus(playfulContext.personalityTurnFocus), 0.85);
+  assert.equal(chatTemperatureForFocus(playfulContext.personalityTurnFocus), 0.72);
   assert.equal(chatTemperatureForFocus(factualContext.personalityTurnFocus), 0.55);
 });
 
@@ -58,6 +58,17 @@ test('quality retry stops after the second rejected result', async () => {
   }), (error: unknown) => error instanceof GenerationQualityError
     && error.reasons[0] === 'AFFECTION_PASSIVE_PERMISSION');
   assert.equal(calls, 2);
+});
+
+test('quality retry accepts a nonempty deterministically sanitized second result without a third provider call', async () => {
+  let calls = 0;
+  const result = await withOneQualityRetry({
+    generate: async () => { calls += 1; return calls; },
+    evaluate: () => ({ retryReasons: ['UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED'], outputText: '到了先陪我走走。' }),
+  });
+  assert.equal(calls, 2);
+  assert.equal(result.attemptCount, 2);
+  assert.equal(result.outputText, '到了先陪我走走。');
 });
 
 test('unsupported current-state claims request a retry before audio generation', () => {
@@ -100,4 +111,13 @@ test('retry prompt preserves the original messages and adds only one correction 
   const affectionRetry = qualityRetryMessages(messages, ['AFFECTION_PASSIVE_PERMISSION']);
   assert.match(affectionRetry[1]?.content || '', /用第一人称表达自己的亲近意愿或主动动作/);
   assert.match(affectionRetry[1]?.content || '', /不能只说可以、行、好吧、随你/);
+  const currentStateRetry = qualityRetryMessages(messages, ['UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED']);
+  assert.match(currentStateRetry[1]?.content || '', /用户说将会晚到不等于人物已经在等待/);
+  assert.match(currentStateRetry[1]?.content || '', /我等的时候、让我干等、已经等累\/等饿/);
+  const modelishRetry = qualityRetryMessages(messages, ['MODELISH_BOUNDARY_TEMPLATE']);
+  assert.match(modelishRetry[1]?.content || '', /24岁伴侣会自然说出的第一人称感受或需要/);
+  const echoRetry = qualityRetryMessages(messages, ['AFFECTION_ECHO_ONLY']);
+  assert.match(echoRetry[1]?.content || '', /加入人物自己的简短参与、感受或当下动作/);
+  const questionRetry = qualityRetryMessages(messages, ['MULTIPLE_QUESTION_INTENTS']);
+  assert.match(questionRetry[1]?.content || '', /reply不出现问号/);
 });

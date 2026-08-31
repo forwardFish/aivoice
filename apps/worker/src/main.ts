@@ -11,6 +11,16 @@ config({
   quiet: true,
   override: true,
 });
+config({
+  path: process.env.AIVOICE_VOLCENGINE_ENV_FILE || 'D:/lyh/secrets/aivoice/byteplus.env',
+  quiet: true,
+  override: true,
+});
+config({
+  path: process.env.AIVOICE_DEEPSEEK_ENV_FILE || 'D:/lyh/secrets/aivoice/deepseek.env',
+  quiet: true,
+  override: true,
+});
 
 async function main(): Promise<void> {
   const database = new WorkerDatabase();

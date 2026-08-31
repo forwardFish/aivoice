@@ -49,7 +49,7 @@ export type CharacterGenerationQuality = {
 export function chatTemperatureForFocus(focus: PersonalityTurnFocus | null): number {
   if (!focus) return 0.55;
   const playful = focus.primary.label === '爱开玩笑' || focus.secondary?.label === '爱开玩笑';
-  return playful && ['REPAIR', 'DECISION', 'AFFECTION'].includes(focus.phase) ? 0.85 : 0.55;
+  return playful && ['REPAIR', 'DECISION', 'AFFECTION'].includes(focus.phase) ? 0.72 : 0.55;
 }
 
 export function evaluateCharacterGenerationQuality(input: {
@@ -97,7 +97,7 @@ export function evaluateCharacterGenerationQuality(input: {
   });
   const controlViolation = normalized.issues.find((issue) => PRODUCTION_BLOCKING_STATE_ISSUES.has(issue)) || null;
   const questionIssues = validateQuestionBehavior(outputText, normalized.state.action, input.control);
-  const personalityViolation = personalityTurnFocusReplyViolation(input.personalityTurnFocus, outputText);
+  const personalityViolation = personalityTurnFocusReplyViolation(input.personalityTurnFocus, outputText, input.recentCharacterReplies);
   const boundaryReopenViolation = resolvedBoundaryReplyViolation(input.personalityTurnFocus, [...input.recentTurns, input.currentTurn], outputText);
   const leakViolation = hardReplyLeak(outputText);
   const identityViolation = hasForbiddenAssistantIdentityDisclosure(outputText) ? 'IDENTITY_DISCLOSURE_BLOCKED' : null;
@@ -152,10 +152,23 @@ export class GenerationQualityError extends Error {
 const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   AFFECTION_PASSIVE_PERMISSION: '上一版只是允许对方亲近。重写时必须让人物用第一人称表达自己的亲近意愿或主动动作，明确人物也想靠近；不能只说可以、行、好吧、随你或给对方许可。',
   RESOLVED_BOUNDARY_REOPENED: '上一版重新开启了已经解决的冲突。重写时只回应当前新互动，不再提旧边界、迟到、认错、翻篇或惩罚条件。',
-  AUTHORITY_JUDGMENT: '上一版像上级评价对方认错。重写时平等接住解释或道歉，不评价态度是否合格。',
-  UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED: '上一版把未确认的当前状态写成事实。重写时保留自然口语，但不要声称已经发生具体位置、安排、损失或高风险事实。',
+  AUTHORITY_JUDGMENT: '上一版像上级评价对方认错。重写时不要再提“肯认、肯说、认错、知道”是否合格，也不要接“就行、就好、这次算了”；只表达人物自己的短暂余感，再自然推进一个当下回应。',
+  UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED: '上一版把未确认的当前状态写成事实。用户说将会晚到不等于人物已经在等待；不得声称“我等的时候、让我干等、已经等累/等饿”，也不得补写疲劳、饥饿、寒冷、位置、现有安排、当前活动或损失。可以只表达对晚告知的不满，或用条件/未来语义说明可能影响。',
   PURE_ACKNOWLEDGEMENT: '上一版只有敷衍确认。重写时加入人物自己的具体反应或一个自然推进。',
+  GENERIC_REPAIR_STAGE_PHRASE: '上一版直接用“翻篇、没事、不生气了”等词汇汇报修复阶段。保持人物已开始缓和，但要通过减少攻击、恢复普通交流、轻微调侃、小要求或具体选择表现变化，不要宣布阶段结束。',
+  REPEATED_SAME_GRIEVANCE: '上一版重复了人物上一轮已经说过的同一项指责和边界。直接回应用户本轮新增的辩解或信息，保留立场但不要再次复述等待、晚告知或下次提醒；增加一个新的个人判断或当前选择。',
+  MODELISH_BOUNDARY_TEMPLATE: '上一版用了“时间有变、我这边不好安排、影响安排”等公文化边界模板。保持人物的边界和现实期待不变，改成24岁伴侣会自然说出的第一人称感受或需要，不声称已有具体安排受损。',
+  AFFECTION_ECHO_ONLY: '上一版只是把用户的“到了先抱一下”换词复述。保持温和接受，但加入人物自己的简短参与、感受或当下动作，不需要变得热烈，也不要重新讲边界。',
+  MULTIPLE_QUESTION_INTENTS: '上一版包含复合提问或连续追问。本轮用户没有要求人物采访原因；改用陈述句表达一个不满和一个现实期待，reply不出现问号，也不要用“为什么、怎么、难吗”变相追问。',
+  QUICK_TRIGGER_QUESTION: '上一版把快速不满写成了反问。保留明确不满，但改为第一人称陈述和一个现实期待，不出现问号或“不能、难吗、为什么”等审问句式。',
+  MULTIPLE_NEXT_STEPS: '上一版同时塞入两个安排。本轮只保留人物最想做的一件事，不能用“然后、再、接着”追加第二项活动。',
+  PREMATURE_AFFECTION_REPAIR: '上一版在用户尚未邀请亲近时就主动把修复收束为拥抱或靠着。保持温柔和已经缓和，但先恢复普通交流或提出一个非身体亲近的现实下一步；把亲近留到用户真正邀请时再回应。',
 };
+
+const SAFE_SANITIZED_FALLBACK_REASONS = new Set([
+  'UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED',
+  'SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED',
+]);
 
 export async function withOneQualityRetry<TGeneration, TResult extends { retryReasons: string[] }>(input: {
   generate: (attempt: 1 | 2, previousReasons: string[]) => Promise<TGeneration>;
@@ -172,6 +185,10 @@ export async function withOneQualityRetry<TGeneration, TResult extends { retryRe
       await input.onRetry?.(firstAttemptReasons);
       continue;
     }
+    const sanitizedOutput = 'outputText' in result ? String((result as TResult & { outputText?: unknown }).outputText || '').trim() : '';
+    if (sanitizedOutput && result.retryReasons.every((reason) => SAFE_SANITIZED_FALLBACK_REASONS.has(reason))) {
+      return { ...result, attemptCount: attempt, firstAttemptReasons };
+    }
     throw new GenerationQualityError(result.retryReasons);
   }
   throw new GenerationQualityError(firstAttemptReasons);
@@ -183,7 +200,7 @@ export function qualityRetryMessages(messages: VoiceChatMessage[], reasons: stri
     messages[0],
     {
       role: 'system',
-      content: `上一版被服务端确定性质量检查拒绝：${reasons.join('、')}。${guidance.join(' ')}重新独立生成，不复用上一版措辞；严格执行本轮reply_shape和forbidden，保持人物身份、事实边界与扁平V2.2 JSON字段，不解释重试原因。`,
+      content: `上一版仅因以下确定性质量问题不合格：${reasons.join('、')}。${guidance.join(' ')}人物身份、已知事实、当前阶段、主次性格、本轮立场和其他已合格内容保持不变；只修正列出的失败项，不增加新事实，不改写成另一种人物。重新输出完整扁平V2.2 JSON，不解释重试原因。`,
     },
     ...messages.slice(1),
   ];

@@ -20,7 +20,11 @@ const localEnvPath = process.env.AIVOICE_RUNTIME_ENV_FILE || path.join(projectRo
 const baseLocalEnv = fs.existsSync(localEnvPath) ? parseDotEnv(fs.readFileSync(localEnvPath)) : {};
 const aliyunEnvPath = process.env.AIVOICE_ALIYUN_ENV_FILE || 'D:/lyh/secrets/aivoice/aliyun.env';
 const aliyunEnv = fs.existsSync(aliyunEnvPath) ? parseDotEnv(fs.readFileSync(aliyunEnvPath)) : {};
-const localEnv = { ...baseLocalEnv, ...aliyunEnv };
+const volcengineEnvPath = process.env.AIVOICE_VOLCENGINE_ENV_FILE || 'D:/lyh/secrets/aivoice/byteplus.env';
+const volcengineEnv = fs.existsSync(volcengineEnvPath) ? parseDotEnv(fs.readFileSync(volcengineEnvPath)) : {};
+const deepseekEnvPath = process.env.AIVOICE_DEEPSEEK_ENV_FILE || 'D:/lyh/secrets/aivoice/deepseek.env';
+const deepseekEnv = fs.existsSync(deepseekEnvPath) ? parseDotEnv(fs.readFileSync(deepseekEnvPath)) : {};
+const localEnv = { ...baseLocalEnv, ...aliyunEnv, ...volcengineEnv, ...deepseekEnv };
 const secretId = process.env.TENCENTCLOUD_SECRETID || credentials.TENCENTCLOUD_SECRETID;
 const secretKey = process.env.TENCENTCLOUD_SECRETKEY || credentials.TENCENTCLOUD_SECRETKEY;
 if (!secretId || !secretKey) throw new Error('Tencent Cloud deployment credentials are missing');
@@ -109,6 +113,16 @@ const envVariables = {
   DASHSCOPE_API_KEY: localEnv.DASHSCOPE_API_KEY || '',
   DASHSCOPE_API_HOST: localEnv.DASHSCOPE_API_HOST || '',
   DASHSCOPE_WORKSPACE_ID: localEnv.DASHSCOPE_WORKSPACE_ID || '',
+  AIVOICE_CHAT_PROVIDER: localEnv.AIVOICE_CHAT_PROVIDER || 'dashscope',
+  DEEPSEEK_API_KEY: localEnv.DEEPSEEK_API_KEY || '',
+  DEEPSEEK_API_HOST: localEnv.DEEPSEEK_API_HOST || 'https://api.deepseek.com',
+  DEEPSEEK_CHAT_MODEL: localEnv.DEEPSEEK_CHAT_MODEL || 'deepseek-chat',
+  AIVOICE_VOICE_PROVIDER: localEnv.AIVOICE_VOICE_PROVIDER || 'volcengine-seed-audio',
+  VOLCENGINE_SEED_AUDIO_API_KEY: localEnv.VOLCENGINE_SEED_AUDIO_API_KEY || localEnv.BYTEPLUS_SEED_AUDIO_API_KEY || '',
+  VOLCENGINE_SEED_AUDIO_BASE_URL: localEnv.VOLCENGINE_SEED_AUDIO_BASE_URL || 'https://openspeech.bytedance.com',
+  SEED_AUDIO_MODEL: localEnv.SEED_AUDIO_MODEL || 'seed-audio-1.0',
+  SEED_AUDIO_TIMEOUT_MS: localEnv.SEED_AUDIO_TIMEOUT_MS || '120000',
+  AIVOICE_SPEAKER_ANALYSIS_PROVIDER: localEnv.AIVOICE_SPEAKER_ANALYSIS_PROVIDER || 'aliyun',
   AIVOICE_TARGET_MODEL: localEnv.AIVOICE_TARGET_MODEL || 'cosyvoice-v3.5-plus',
   AIVOICE_SPEAKER_DIARIZATION_ENABLED: localEnv.AIVOICE_SPEAKER_DIARIZATION_ENABLED || 'true',
   AIVOICE_DIARIZATION_MODEL: localEnv.AIVOICE_DIARIZATION_MODEL || 'fun-asr',

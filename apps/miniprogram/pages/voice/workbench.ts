@@ -5,6 +5,7 @@ import {
   getMessage,
   getVoice,
   listProducts,
+  recordVoiceReplyFeedback,
   sendChatMessage,
   sendExactSpeech
 } from '../../services/api'
@@ -38,13 +39,15 @@ function pointsLabel(points: PointsBalanceResponse): string {
   return `剩余 ${points.availablePoints} 积分`
 }
 
-const DISLIKE_REASONS = [
+const DISLIKE_REASONS: ReadonlyArray<{ code: string; label: string; needsDetail?: boolean }> = [
   { code: 'SHORTER', label: 'TA会说得更简短' },
   { code: 'MORE_DIRECT', label: 'TA会说得更直接' },
   { code: 'WARMER', label: 'TA的语气会更温和' },
   { code: 'LESS_PREACHY', label: 'TA不会讲这么多道理' },
   { code: 'ASK_FIRST', label: 'TA会先问清楚再说' },
-  { code: 'WRONG_ADDRESS', label: 'TA不会这样称呼我' }
+  { code: 'WRONG_ADDRESS', label: 'TA不会这样称呼我' },
+  { code: 'WORDING_NOT_LIKE', label: '说话不像TA', needsDetail: true },
+  { code: 'TONE_NOT_LIKE', label: '语气不像TA', needsDetail: true }
 ] as const
 
 function messageView(message: ConversationMessage, initial: string, feedback?: { verdict?: string; reason?: string }): any {
@@ -267,18 +270,39 @@ Page({
       success: (result: { tapIndex: number }) => {
         const reason = DISLIKE_REASONS[Number(result.tapIndex)]
         if (!reason) return
+        if (reason.needsDetail) {
+          wx.showModal({
+            title: reason.label,
+            content: '可以补充一句具体差别，也可以直接记录。',
+            editable: true,
+            placeholderText: reason.code === 'TONE_NOT_LIKE' ? '例如：她生气时声音反而会更低' : '例如：她不会说“我理解你的感受”',
+            confirmText: '记录',
+            success: (modalResult: { confirm?: boolean; content?: string }) => {
+              if (!modalResult.confirm) return
+              this.saveReplyFeedback(messageId, 'DISLIKE', reason.code, String(modalResult.content || '').trim())
+              toast('已记录这次反馈')
+            }
+          })
+          return
+        }
         this.saveReplyFeedback(messageId, 'DISLIKE', reason.code)
         toast('已记录这次反馈')
       }
     })
   },
-  saveReplyFeedback(messageId: string, verdict: 'LIKE' | 'DISLIKE', reason = '') {
+  saveReplyFeedback(messageId: string, verdict: 'LIKE' | 'DISLIKE', reason = '', detail = '') {
     setReplyFeedback(this.data.voiceId, messageId, { verdict, ...(reason ? { reason } : {}) })
     this.setData({
       chatMessages: this.data.chatMessages.map((message: any) => message.id === messageId
         ? { ...message, feedbackVerdict: verdict, feedbackReason: reason }
         : message)
     })
+    void recordVoiceReplyFeedback(this.data.voiceId, {
+      messageId,
+      verdict,
+      ...(reason ? { reason } : {}),
+      ...(detail ? { detail: Array.from(detail).slice(0, 80).join('') } : {})
+    }).catch(() => toast('反馈已保存在本机，暂未同步'))
   },
   persistDraft(mode = this.data.mode, patch: Record<string, string> = {}) {
     const currentChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)

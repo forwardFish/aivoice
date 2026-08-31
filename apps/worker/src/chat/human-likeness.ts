@@ -116,26 +116,34 @@ export function sanitizeUnsupportedPresentSceneClaims(input: {
 }): { reply: string; removed: boolean } {
   const reply = String(input.reply || '').trim();
   if (!reply) return { reply, removed: false };
-  if (input.allowLowRiskConversationalEmbellishment) return { reply, removed: false };
   const known = [input.subjectBackground || '', ...input.recentUserInputs, ...input.recentCharacterReplies, input.currentUserText].join(' ');
   const authoritativeKnown = [input.subjectBackground || '', ...input.recentUserInputs, input.currentUserText].join(' ');
   const unsupportedPatterns: RegExp[] = [];
   const exactDurationActivity = /(?:等|干等|站|坐|待).{0,5}(?:一|两|二|三|四|五|六|七|八|九|十|\d+)(?:个)?小时/u;
   const supportedExactDurationActivity = /(?:等|干等|站|坐|待).{0,5}(?:一|两|二|三|四|五|六|七|八|九|十|\d+)(?:个)?小时/u.test(authoritativeKnown);
-  if (!input.allowPlayfulEmbellishment && !supportedExactDurationActivity) unsupportedPatterns.push(exactDurationActivity);
-  if (!input.allowPlayfulEmbellishment && !/(?:饿|没吃|吃不上|肚子空)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:饿死我|我有点饿|我饿了|等饿了|等久了有点饿|都等饿了|饿得.{0,8}|(?:快|都|要)?饿(?:扁|瘪|坏|慌)了?|饿过劲(?:儿)?了?|肚子(?:都)?饿)/u);
+  if (!supportedExactDurationActivity) unsupportedPatterns.push(exactDurationActivity);
+  if (!/(?:饿|没吃|吃不上|肚子空)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:饿死我|我(?:有点|都)?饿了|等饿了|等久了有点饿|都等饿了|饿得.{0,8}|(?:快|都|要)?饿(?:扁|瘪|坏|慌)了?|饿过劲(?:儿)?了?|肚子(?:都)?饿)/u);
+  if (!/(?:累|疲惫|困|没休息好)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:已经|都|有点|挺|很)?(?:等得|等到)?(?:有点|挺|很)?累(?:了)?|(?:我)?(?:已经|都|有点|挺|很)?疲惫(?:了)?/u);
   if (!/(?:等你|等消息|等待|等了|干等)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:在|一直)?(?:这儿|这里|这边)?(?:干)?等(?:你|消息)?(?:的?时候|着|了)?(?:确实|真的?|挺|很|多)?(?:不舒服|难受|烦|着急)|我等(?:着|的时候|消息)|(?:只能|只好)(?:在)?干等|干等(?:着|了)?(?:挺|很|有点)?(?:不舒服|难受|烦|着急)?/u);
   if (!/(?:半天|一晚上|一整天|几个小时)/u.test(known)) unsupportedPatterns.push(/(?:等消息)?等(?:了)?半天|等了一晚上|等了一整天/u);
   if (!/(?:饭|菜|汤|粥).{0,8}(?:做|煮|热|凉|准备)/u.test(known)) unsupportedPatterns.push(/(?:饭|菜|汤|粥).{0,8}(?:做好|煮好|热着|凉了|在锅里)/u);
   if (!/(?:安排好|排好|空出时间|已有安排)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我这边|我的)?(?:时间|事情)?.{0,5}(?:都安排好|都排好|已经安排好|已经排好|空出来了|没法(?:再)?安排(?:别的)?)|(?:打乱|影响)了?(?:我|我的|这边的)?安排/u);
-  if (!input.allowPlayfulEmbellishment && !/(?:那家|老地方|上次那)/u.test(known)) unsupportedPatterns.push(/(?:那家(?:店|餐厅|饭店|烧烤|火锅|咖啡)|老地方|上次那家)/u);
+  if (!/(?:准备好|没准备|来不及准备)/u.test(authoritativeKnown)) unsupportedPatterns.push(/我(?:有点|还|都)?没准备(?:好)?|我还没准备好/u);
+  if (!/(?:刚才|之前).{0,8}(?:坐|站|躺|忙|工作|开会|走|跑)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:刚才|之前)(?:一直|还在|都在)?(?:坐|站|躺|忙|工作|开会|走|跑)(?:着|了)?/u);
+  if (!/(?:总|老是|经常|每次).{0,12}(?:忘|不说|没说|不告诉|没告诉)/u.test(authoritativeKnown)) unsupportedPatterns.push(/你(?:总|老是|经常|每次)(?:会|是)?(?:忘|不说|没说|不告诉|没告诉).{0,8}/u);
+  // A casual shared-history embellishment ("老地方/上次那家") can be harmless in a
+  // partner conversation, but a specific nearby venue asserts the character's current
+  // location. Keep those two fact classes separate instead of letting the broad partner
+  // exception disable all location checks.
+  if (!/(?:旁边|附近)那家/u.test(known)) unsupportedPatterns.push(/(?:旁边|附近)那家(?:(?:小)?(?:店|餐厅|饭店|烧烤|火锅|咖啡))?/u);
+  if (!input.allowLowRiskConversationalEmbellishment && !input.allowPlayfulEmbellishment && !/(?:老地方|上次那)/u.test(known)) unsupportedPatterns.push(/(?:老地方|上次那家)/u);
   if (!unsupportedPatterns.length || !unsupportedPatterns.some((pattern) => pattern.test(reply))) return { reply, removed: false };
 
   const segments = reply.match(/[^，。！？；,!?;]+[，。！？；,!?;]?/gu) || [reply];
-  const conditionalOrFuture = /(?:如果|要是|不然|否则|免得|可能|将会|会让|会一直|准备|打算|想要)/u;
+  const conditionalOrFuture = /(?:如果|要是|不然|否则|免得|怕|可能|将会|会让|会一直|准备(?:去|要|出发|开始)|打算|想要)/u;
   const kept = segments.filter((segment) => conditionalOrFuture.test(segment) || !unsupportedPatterns.some((pattern) => pattern.test(segment)));
   let sanitized = kept.join('').trim().replace(/^[，。！？；,!?;]+|[，,；; ]+$/gu, '');
-  if (!sanitized) return { reply, removed: false };
+  if (!sanitized) return { reply: '', removed: true };
   if (!/[。！？!?]$/u.test(sanitized)) sanitized += '。';
   return { reply: sanitized, removed: sanitized !== reply };
 }

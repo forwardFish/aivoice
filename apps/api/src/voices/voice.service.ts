@@ -75,6 +75,28 @@ function normalizeExplicitProfileText(value: string | null | undefined): string 
   return normalized;
 }
 
+const REPLY_FEEDBACK_INSTRUCTIONS: Record<string, string> = {
+  SHORTER: '用户明确反馈：TA通常会说得更简短。',
+  MORE_DIRECT: '用户明确反馈：TA通常表达得更直接。',
+  WARMER: '用户明确反馈：TA的语气通常更温和。',
+  LESS_PREACHY: '用户明确反馈：TA很少讲大道理或完整说教。',
+  ASK_FIRST: '用户明确反馈：信息不足时，TA通常会先问清一件具体事情。',
+  WRONG_ADDRESS: '用户明确反馈：不要沿用该轮称呼方式，只使用资料中已确认的称呼。',
+};
+
+function feedbackDetail(value: unknown): string {
+  return Array.from(String(value || '').normalize('NFKC')
+    .replace(/[\u0000-\u001F\u007F]/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim()).slice(0, 80).join('');
+}
+
+function correctionInstruction(reason: string, detail: string): string {
+  if (reason === 'WORDING_NOT_LIKE' && detail) return `用户明确纠正TA的说话方式：${detail}`;
+  if (reason === 'TONE_NOT_LIKE' && detail) return `用户明确纠正TA的语气：${detail}`;
+  return REPLY_FEEDBACK_INSTRUCTIONS[reason] || '';
+}
+
 @Injectable()
 export class VoiceService {
   constructor(
@@ -405,6 +427,50 @@ export class VoiceService {
       updatedAt: new Date(),
     }).where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId))).returning();
     return { ...this.publicVoice(voice), consentVersion: CONSENT_VERSION, consentText: CONSENT_TEXT[input.permissionType] };
+  }
+
+  async recordReplyFeedback(userId: string, voiceId: string, input: {
+    messageId: string;
+    verdict: 'LIKE' | 'DISLIKE';
+    reason?: string;
+    detail?: string;
+  }) {
+    const messageId = String(input.messageId || '').trim().slice(0, 64);
+    const verdict = input.verdict === 'DISLIKE' ? 'DISLIKE' : 'LIKE';
+    const reason = verdict === 'DISLIKE' ? String(input.reason || '').trim() : '';
+    const detail = feedbackDetail(input.detail);
+    const instruction = verdict === 'DISLIKE' ? correctionInstruction(reason, detail) : '';
+    if (!messageId) throw new ConflictException('message id is required');
+    const recordedAt = new Date().toISOString();
+
+    if (this.database.isCloudBase) {
+      try {
+        const result = await this.database.requireCloud().rpc<Record<string, unknown> | Array<Record<string, unknown>>>('rpc_voice_record_feedback_v1', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+          pMessageId: messageId,
+          pVerdict: verdict,
+          pReason: reason,
+          pInstruction: instruction,
+          pRecordedAt: recordedAt,
+        });
+        return firstRpcRow(result);
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
+
+    const voice = await this.ownedVoice(userId, voiceId);
+    const report = voice.qualityReport && typeof voice.qualityReport === 'object'
+      ? voice.qualityReport as Record<string, unknown>
+      : {};
+    const existing = Array.isArray(report.passiveCorrections) ? report.passiveCorrections : [];
+    const entry = { messageId, verdict, reason, instruction, recordedAt };
+    const passiveCorrections = instruction ? [...existing, entry].slice(-8) : existing.slice(-8);
+    const qualityReport = { ...report, lastReplyFeedback: entry, passiveCorrections };
+    await this.database.db.update(voiceProfiles).set({ qualityReport, updatedAt: new Date() })
+      .where(and(eq(voiceProfiles.id, voiceId), eq(voiceProfiles.userId, userId)));
+    return { recorded: true, correctionApplied: Boolean(instruction) };
   }
 
   async confirmConsent(userId: string, voiceId: string, input: { version: string; text: string; confirmed: boolean }) {

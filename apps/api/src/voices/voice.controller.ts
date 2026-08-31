@@ -3,7 +3,7 @@ import { AuthGuard } from '../auth/auth.guard.js';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { AuthenticatedUser } from '../auth/auth.types.js';
-import { ConfirmConsentDto, CreateVoiceDto, UpdateClipDto, UpdateVoiceProfileDto } from './voice.dto.js';
+import { ConfirmConsentDto, CreateVoiceDto, UpdateClipDto, UpdateVoiceProfileDto, VoiceReplyFeedbackDto } from './voice.dto.js';
 import { VoiceService } from './voice.service.js';
 
 @Controller()
@@ -79,6 +79,15 @@ export class VoiceController {
       text: body.consentText,
       confirmed: body.confirmed,
     });
+  }
+
+  @Post('voices/:voiceId/reply-feedback')
+  replyFeedback(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('voiceId') voiceId: string,
+    @Body() body: VoiceReplyFeedbackDto,
+  ) {
+    return this.voices.recordReplyFeedback(user.id, voiceId, body);
   }
 
   @Post('voices/:voiceId/process')

@@ -26,8 +26,14 @@ import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
 import { cleanupUnpersistedReference, inspectReferenceQuality, ReferenceQualityError } from './media/quality.js';
 import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
+import { SeedAudioGenerationError } from './providers/volcengine-seed-audio.js';
+import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.js';
+import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
-import { DashscopeChatProvider } from './providers/dashscope-chat.js';
+import { buildEmotionExpressionPlan } from './emotion-expression.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections } from './observed-person-evidence.js';
+import { createChatProviderFromEnv } from './providers/chat-provider-factory.js';
+import type { ChatProviderPort } from './providers/chat-provider.js';
 import {
   evaluateCharacterGenerationQuality,
   chatTemperatureForFocus,
@@ -45,17 +51,6 @@ interface JobRow {
   attempts: number;
   max_attempts: number;
   payload: Record<string, unknown>;
-}
-
-interface VoiceProviderPort {
-  readonly targetModel: string;
-  enroll(referencePath: string, prefix: string): Promise<string>;
-  synthesize(voiceId: string, text: string, options?: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean }): Promise<Buffer>;
-  deleteVoice(voiceId: string): Promise<void>;
-}
-
-interface ChatProviderPort {
-  reply(messages: VoiceChatMessage[], options?: { maxAttempts?: 1 | 2; temperature?: number }): Promise<string | CharacterTurnGeneration>;
 }
 
 interface JobRunnerDependencies {
@@ -92,8 +87,8 @@ export class JobRunner {
   private stopping = false;
 
   constructor(private readonly database: WorkerDatabase, dependencies: JobRunnerDependencies = {}) {
-    this.voiceProvider = dependencies.voiceProvider || new AliyunCosyVoiceProvider();
-    this.chatProvider = dependencies.chatProvider || new DashscopeChatProvider();
+    this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
+    this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
     this.pointCost = generationPointCost();
   }
 
@@ -105,6 +100,15 @@ export class JobRunner {
     const resolved = path.resolve(this.mediaRoot, objectKey);
     if (!resolved.startsWith(this.mediaRoot + path.sep)) throw new Error('media path escaped storage root');
     return resolved;
+  }
+
+  private async deleteProviderBinding(providerBinding: string): Promise<void> {
+    if (!providerBinding || providerBinding.startsWith('reference/')) return;
+    if (!usesReferenceAudio(this.voiceProvider)) {
+      await this.voiceProvider.deleteVoice(providerBinding);
+      return;
+    }
+    await new AliyunCosyVoiceProvider().deleteVoice(providerBinding);
   }
 
   private async acquire(): Promise<JobRow | null> {
@@ -187,8 +191,9 @@ export class JobRunner {
   private async markFailed(job: JobRow, error: unknown): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     const qualityError = error instanceof ReferenceQualityError ? error : null;
-    const terminal = Boolean(qualityError) || job.attempts >= job.max_attempts;
-    const jobErrorCode = qualityError?.code || 'JOB_FAILED';
+    const seedAudioError = error instanceof SeedAudioGenerationError ? error : null;
+    const terminal = Boolean(qualityError) || error instanceof SeedAudioGenerationError || job.attempts >= job.max_attempts;
+    const jobErrorCode = qualityError?.code || seedAudioError?.code || 'JOB_FAILED';
     await this.database.pool.query(
       `UPDATE jobs SET status = $1::job_status,
        available_at = CASE WHEN $1::job_status = 'QUEUED'::job_status THEN NOW() + INTERVAL '10 seconds' ELSE available_at END,
@@ -201,14 +206,14 @@ export class JobRunner {
       await this.database.pool.query(
         `UPDATE voice_profiles SET status = 'FAILED', failure_code = $1, failure_message = $2, updated_at = NOW()
          WHERE id = $3`,
-        [qualityError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.voice_profile_id],
+        [qualityError?.code || seedAudioError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.voice_profile_id],
       );
     }
     if (terminal && job.message_id && job.type === 'GENERATE_MESSAGE') {
       await this.database.pool.query(
-        `UPDATE messages SET status = 'FAILED', error_code = 'PROVIDER_FAILED', error_message = $1, updated_at = NOW()
-         WHERE id = $2 AND status IN ('PENDING', 'PROCESSING')`,
-        [message.slice(0, 500), job.message_id],
+        `UPDATE messages SET status = 'FAILED', error_code = $1, error_message = $2, updated_at = NOW()
+         WHERE id = $3 AND status IN ('PENDING', 'PROCESSING')`,
+        [seedAudioError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.message_id],
       );
     }
   }
@@ -221,8 +226,13 @@ export class JobRunner {
       clip_end_ms: number;
       object_key: string;
       media_id: string;
+      age_years: number | null;
+      gender: 'FEMALE' | 'MALE' | null;
+      user_age_years: number | null;
+      relationship_type: VoiceRelationshipType | null;
     }>(
-      `SELECT v.user_id, v.clip_start_ms, v.clip_end_ms, m.object_key, m.id AS media_id
+      `SELECT v.user_id,v.clip_start_ms,v.clip_end_ms,v.age_years,v.gender,v.user_age_years,v.relationship_type,
+              m.object_key,m.id AS media_id
        FROM voice_profiles v
        JOIN media_assets m ON m.voice_profile_id = v.id AND m.kind = 'SOURCE_VIDEO' AND m.status = 'READY'
        WHERE v.id = $1 AND v.status IN ('QUEUED', 'PROCESSING')
@@ -241,7 +251,7 @@ export class JobRunner {
       startMs: row.clip_start_ms,
       endMs: row.clip_end_ms,
     });
-    let providerVoiceId = '';
+    let providerBinding = '';
     let referencePersisted = false;
     try {
       const referenceProbe = await probeWav(referencePath);
@@ -260,16 +270,29 @@ export class JobRunner {
         [job.voice_profile_id],
       );
       if (existing.rows[0]) {
-        await this.voiceProvider.deleteVoice(decryptProviderId(existing.rows[0].provider_voice_id_encrypted));
+        await this.deleteProviderBinding(decryptProviderId(existing.rows[0].provider_voice_id_encrypted));
         await this.database.pool.query(
           `UPDATE voice_models SET status='DELETED',deleted_at=NOW(),deletion_error='',updated_at=NOW()
            WHERE voice_profile_id=$1`,
           [job.voice_profile_id],
         );
       }
-      providerVoiceId = await this.voiceProvider.enroll(referencePath, `av${job.voice_profile_id.replaceAll('-', '').slice(0, 8)}`);
       const previewText = process.env.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。';
-      const previewBytes = await this.voiceProvider.synthesize(providerVoiceId, previewText);
+      providerBinding = usesReferenceAudio(this.voiceProvider)
+        ? referenceKey
+        : await this.voiceProvider.enroll(referencePath, `av${job.voice_profile_id.replaceAll('-', '').slice(0, 8)}`);
+      const previewBytes = await this.voiceProvider.synthesize(
+        usesReferenceAudio(this.voiceProvider) ? referencePath : providerBinding,
+        previewText,
+        {
+          jobId: job.id,
+          replyTone: 'PLAIN',
+          ageYears: row.age_years,
+          gender: row.gender,
+          userAgeYears: row.user_age_years,
+          relationshipType: row.relationship_type,
+        },
+      );
       const previewKey = path.join('preview', row.user_id, `${job.voice_profile_id}.wav`).replaceAll('\\', '/');
       const previewPath = this.safePath(previewKey);
       await fs.mkdir(path.dirname(previewPath), { recursive: true });
@@ -296,9 +319,15 @@ export class JobRunner {
         await client.query(
           `INSERT INTO voice_models
            (id, voice_profile_id, provider, target_model, provider_voice_id_encrypted, status, deletion_error, created_at, updated_at)
-           VALUES ($1,$2,'aliyun-cosyvoice',$3,$4,'READY','',NOW(),NOW())
-           ON CONFLICT (voice_profile_id) DO UPDATE SET provider='aliyun-cosyvoice',target_model=$3,provider_voice_id_encrypted=$4,status='READY',updated_at=NOW()`,
-          [randomUUID(), job.voice_profile_id, this.voiceProvider.targetModel, encryptProviderId(providerVoiceId)],
+            VALUES ($1,$2,$3,$4,$5,'READY','',NOW(),NOW())
+            ON CONFLICT (voice_profile_id) DO UPDATE SET provider=$3,target_model=$4,provider_voice_id_encrypted=$5,status='READY',updated_at=NOW()`,
+          [
+            randomUUID(),
+            job.voice_profile_id,
+            this.voiceProvider.providerName || 'aliyun-cosyvoice',
+            this.voiceProvider.targetModel,
+            encryptProviderId(providerBinding),
+          ],
         );
         await client.query(`UPDATE voice_profiles SET status='READY',failure_code='',failure_message='',updated_at=NOW() WHERE id=$1`, [job.voice_profile_id]);
         await client.query(`UPDATE media_assets SET status='DELETED',deleted_at=NOW(),updated_at=NOW() WHERE id=$1`, [row.media_id]);
@@ -312,7 +341,9 @@ export class JobRunner {
       }
       await fs.unlink(sourcePath).catch(() => undefined);
     } catch (error) {
-      if (providerVoiceId) await this.voiceProvider.deleteVoice(providerVoiceId).catch(() => undefined);
+      if (providerBinding && !usesReferenceAudio(this.voiceProvider)) {
+        await this.voiceProvider.deleteVoice(providerBinding).catch(() => undefined);
+      }
       throw error;
     } finally {
       await cleanupUnpersistedReference(referencePath, referencePersisted);
@@ -397,6 +428,7 @@ export class JobRunner {
       mode: 'CHAT' | 'EXACT_SPEECH';
       conversation_id: string;
       provider_voice_id_encrypted: string;
+      reference_object_key: string;
       voice_name: string;
       relationship_type: VoiceRelationshipType | null;
       relationship_label: string;
@@ -409,24 +441,37 @@ export class JobRunner {
       relationship_note: string;
       personality_note: string;
       speech_habit_note: string;
+      quality_report: unknown;
       cleared_at: Date | null;
     }>(
-      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,
+      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,ra.object_key AS reference_object_key,
               vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
               vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,
-              vp.personality_note,vp.speech_habit_note,c.cleared_at
+              vp.personality_note,vp.speech_habit_note,vp.quality_report,c.cleared_at
        FROM messages m
        JOIN conversations c ON c.id=m.conversation_id
        JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
        JOIN voice_models vm ON vm.voice_profile_id=m.voice_profile_id AND vm.status='READY'
+       JOIN media_assets ra ON ra.voice_profile_id=m.voice_profile_id AND ra.kind='REFERENCE_AUDIO'
+         AND ra.status='READY' AND ra.deleted_at IS NULL
        WHERE m.id=$1 AND m.user_id=$2`,
       [job.message_id, job.user_id],
     );
     const message = result.rows[0];
     if (!message) throw new Error('message or ready voice model not found');
+    const providerBinding = decryptProviderId(message.provider_voice_id_encrypted);
+    if (usesReferenceAudio(this.voiceProvider) && !providerBinding.startsWith('reference/')) {
+      throw new SeedAudioGenerationError(
+        'Existing voice must be recreated before Seed Audio use',
+        'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
+      );
+    }
+    const observedPersonEvidence = observedPersonEvidenceFromQualityReport(message.quality_report);
+    const persistedPersonCorrections = persistedPersonCorrectionsFromQualityReport(message.quality_report);
     let outputText = message.input_text;
     let speechTone: import('./chat/interaction-state.js').ReplyTone = 'PLAIN';
     let interactionState: ConversationInteractionState | null = null;
+    let personalityTurnFocus: import('./chat/personality-turn-focus.js').PersonalityTurnFocus | null = null;
     if (message.mode === 'CHAT') {
       const historyResult = await this.database.pool.query<{ id: string; mode: string; input_text: string; output_text: string; interaction_state: unknown }>(
         `SELECT id,mode,input_text,output_text,interaction_state FROM messages
@@ -450,6 +495,8 @@ export class JobRunner {
         relationshipNote: message.relationship_note,
         personalityNote: message.personality_note,
         speechHabitNote: message.speech_habit_note,
+        observedPersonEvidence,
+        persistedPersonCorrections,
         history: historyResult.rows.reverse().map((row) => ({
           messageId: row.id,
           mode: row.mode,
@@ -459,6 +506,7 @@ export class JobRunner {
         })),
         currentInput: message.input_text,
       });
+      personalityTurnFocus = context.personalityTurnFocus;
       let quality;
       try {
         quality = await withOneQualityRetry({
@@ -500,7 +548,8 @@ export class JobRunner {
       interactionState = quality.interactionState;
       console.info('character_generation_quality', JSON.stringify({
         event: 'character_generation_quality', promptVersion: 'voice-chat-human-v2', personaVersion: 'explicit-persona-v1',
-        model: process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
+        provider: this.chatProvider.providerName || 'dashscope',
+        model: this.chatProvider.modelName || process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
         hardRuleHits: [], softQualitySignals: quality.qualitySignals,
         interactionStateAccepted: quality.interactionStateAccepted, interactionStateResetReason: quality.interactionStateResetReason,
         interactionStateIssues: quality.interactionStateIssues,
@@ -510,9 +559,33 @@ export class JobRunner {
     }
     const outputSafety = evaluateContentSafety(outputText);
     if (!outputSafety.safe) throw new ContentBlockedError(outputSafety.reason || 'OUTPUT_CONTENT_BLOCKED');
-    const voiceId = decryptProviderId(message.provider_voice_id_encrypted);
-    const speechPlan = buildSpeechSynthesisPlan(speechTone, outputText);
-    const audio = await this.voiceProvider.synthesize(voiceId, speechPlan.text, {
+    if (message.mode === 'CHAT') {
+      await this.database.pool.query(
+        `UPDATE messages SET output_text=$1,interaction_state=$2::jsonb,updated_at=NOW()
+         WHERE id=$3 AND user_id=$4 AND status='PROCESSING'`,
+        [outputText, JSON.stringify(interactionState || {}), job.message_id, job.user_id],
+      );
+    }
+    const emotionExpression = buildEmotionExpressionPlan({
+      replyTone: speechTone,
+      text: outputText,
+      interactionState,
+      personalityNote: message.personality_note,
+      personalityTurnFocus,
+    });
+    const speechPlan = buildSpeechSynthesisPlan(
+      speechTone,
+      outputText,
+      speechPlanBaselineWithCorrections(observedPersonEvidence, message.quality_report),
+      emotionExpression,
+    );
+    const synthesisReference = usesReferenceAudio(this.voiceProvider)
+      ? this.safePath(message.reference_object_key)
+      : providerBinding;
+    const audio = await this.voiceProvider.synthesize(
+      synthesisReference,
+      usesReferenceAudio(this.voiceProvider) ? outputText : speechPlan.text,
+      {
       jobId: job.id,
       messageId: job.message_id,
       instruction: speechPlan.instruction,
@@ -520,6 +593,14 @@ export class JobRunner {
       pitch: speechPlan.pitch,
       volume: speechPlan.volume,
       enableSsml: speechPlan.enableSsml,
+      replyTone: speechTone,
+      ageYears: message.age_years,
+      gender: message.gender,
+      userAgeYears: message.user_age_years,
+      relationshipType: message.relationship_type,
+      interactionStance: interactionState?.action.stance || null,
+      emotionIntensity: speechPlan.emotionIntensity,
+      personalityStyle: emotionExpression.personalityStyle,
     });
     const objectKey = path.join('generated', job.user_id, job.voice_profile_id, `${job.message_id}.wav`).replaceAll('\\', '/');
     const audioPath = this.safePath(objectKey);
@@ -542,7 +623,7 @@ export class JobRunner {
     );
     const model = models.rows[0];
     if (model && model.status !== 'DELETED') {
-      await this.voiceProvider.deleteVoice(decryptProviderId(model.provider_voice_id_encrypted));
+      await this.deleteProviderBinding(decryptProviderId(model.provider_voice_id_encrypted));
     }
     const assets = await this.database.pool.query<{ id: string; object_key: string }>(
       `SELECT id,object_key FROM media_assets WHERE voice_profile_id=$1 AND status <> 'DELETED'`,
@@ -573,7 +654,7 @@ export class JobRunner {
     );
     for (const model of models.rows) {
       if (model.status !== 'DELETED') {
-        await this.voiceProvider.deleteVoice(decryptProviderId(model.provider_voice_id_encrypted));
+        await this.deleteProviderBinding(decryptProviderId(model.provider_voice_id_encrypted));
       }
     }
     const assets = await this.database.pool.query<{ object_key: string }>(

@@ -87,6 +87,10 @@
                 <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '声音生成中…' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' && item.text ? '声音生成失败，文字已保留，未扣积分' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
               </view>
               <text wx:if="{{item.isUser && item.timeText}}" class="message-time">{{item.timeText}}</text>
+              <view wx:if="{{item.isAssistant && item.status === 'READY'}}" class="reply-feedback">
+                <view role="button" class="reply-feedback-action {{item.feedbackVerdict === 'LIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyLike">像TA</view>
+                <view role="button" class="reply-feedback-action {{item.feedbackVerdict === 'DISLIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyDislike">不像TA</view>
+              </view>
             </view>
             <image wx:if="{{item.isUser}}" class="message-avatar user-message-avatar" src="{{userAvatar}}" mode="aspectFill"></image>
           </view>

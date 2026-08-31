@@ -89,12 +89,17 @@ test('present-scene sanitizer removes only unsupported factual clauses', () => {
     reply: '到了先找个地方吃饭，我都快饿扁了。',
     currentUserText: '到了以后怎么安排？', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
     allowPlayfulEmbellishment: true,
-  }), { reply: '到了先找个地方吃饭，我都快饿扁了。', removed: false });
+  }), { reply: '到了先找个地方吃饭。', removed: true });
   assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
     reply: '临时才说确实打乱了我的安排，我都等饿了。',
     currentUserText: '我会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
     allowLowRiskConversationalEmbellishment: true,
-  }), { reply: '临时才说确实打乱了我的安排，我都等饿了。', removed: false });
+  }), { reply: '', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了去老地方转一圈，怕你饿得把我当点心啃了。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+    allowLowRiskConversationalEmbellishment: true,
+  }), { reply: '到了去老地方转一圈，怕你饿得把我当点心啃了。', removed: false });
   assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
     reply: '到了先让我捏捏脸出出气，然后随便找个地方吃饭，饿过劲儿了不想折腾。',
     currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
@@ -112,6 +117,27 @@ test('present-scene sanitizer removes only unsupported factual clauses', () => {
     currentUserText: '我今晚会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
   }), { reply: '下次早点说，不然我会一直干等。', removed: false });
   assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先陪我散散步吧，刚才一直坐着，想出去透透气。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先陪我散散步吧，想出去透透气。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '行吧，抱完赶紧去吃饭，我都饿了。',
+    currentUserText: '到了先抱一下。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '行吧，抱完赶紧去吃饭。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '突然晚一小时我有点没准备，到了去旁边那家小店吧。',
+    currentUserText: '我今晚会晚一个小时到。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先去旁边那家吃点东西吧，我想跟你坐一会儿。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+    allowLowRiskConversationalEmbellishment: true,
+  }), { reply: '我想跟你坐一会儿。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先陪我慢慢走一段吧，刚才等得有点累，想靠着你缓一缓。',
+    currentUserText: '我现在出发，到了以后你想怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先陪我慢慢走一段吧，想靠着你缓一缓。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
     reply: '我没说你故意，是你临时才说，我这边就只能干等。',
     currentUserText: '我又不是故意的。', recentUserInputs: ['我会晚一个小时到。'], recentCharacterReplies: [], subjectBackground: null,
   }), { reply: '我没说你故意，是你临时才说。', removed: true });
@@ -123,4 +149,8 @@ test('present-scene sanitizer removes only unsupported factual clauses', () => {
     reply: '先去喝点东西吧，谁让你害我站了一个小时。',
     currentUserText: '到了以后怎么安排？', recentUserInputs: ['害你等了这么久，怪我。'], recentCharacterReplies: [], subjectBackground: null,
   }), { reply: '先去喝点东西吧。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '不是故意也会让我不舒服，我气的是你总忘了通知我。',
+    currentUserText: '我又不是故意的。', recentUserInputs: ['我今晚忙忘了跟你说。'], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '不是故意也会让我不舒服。', removed: true });
 });

@@ -79,7 +79,7 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(markup, /bubble="\{\{true\}\}"[^>]*durationOnly="\{\{true\}\}"/)
   assert.doesNotMatch(markup, /class="workbench-content fade-in"/)
   assert.doesNotMatch(markup, /class="text-button change-mode"/)
-  assert.doesNotMatch(markup, /class="reply-feedback"/)
+  assert.match(markup, /class="reply-feedback"[\s\S]*像TA[\s\S]*不像TA/)
   assert.match(style, /\.user-bubble\s*\{[^}]*color:\s*#ffffff[^}]*linear-gradient\(135deg,\s*#7264f9/s)
   assert.match(style, /\.assistant-avatar-image\s*\{[^}]*width:\s*100%[^}]*height:\s*100%/s)
   assert.match(style, /\.assistant-message-avatar-image\s*\{/)
@@ -333,6 +333,8 @@ test('assistant reply feedback records like and asks for a reason before recordi
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
   let pageDefinition: any
   let actionSheetItems: string[] = []
+  let selectedTapIndex = 3
+  let modalPlaceholder = ''
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
   ;(globalThis as any).wx = {
@@ -343,8 +345,13 @@ test('assistant reply feedback records like and asks for a reason before recordi
     showToast: () => undefined,
     showActionSheet: (options: any) => {
       actionSheetItems = options.itemList
-      options.success({ tapIndex: 3 })
-    }
+      options.success({ tapIndex: selectedTapIndex })
+    },
+    showModal: (options: any) => {
+      modalPlaceholder = options.placeholderText
+      options.success({ confirm: true, content: '她生气时声音反而会更低' })
+    },
+    request: (options: any) => options.success({ statusCode: 200, data: { recorded: true, correctionApplied: true } })
   }
 
   await import('../pages/voice/workbench?case=reply-feedback')
@@ -366,8 +373,14 @@ test('assistant reply feedback records like and asks for a reason before recordi
   assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].verdict, 'LIKE')
 
   instance.markReplyDislike({ currentTarget: { dataset: { messageId: 'message-1' } } })
-  assert.equal(actionSheetItems.length, 6)
+  assert.equal(actionSheetItems.length, 8)
   assert.equal(instance.data.chatMessages[0].feedbackVerdict, 'DISLIKE')
   assert.equal(instance.data.chatMessages[0].feedbackReason, 'LESS_PREACHY')
   assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, 'LESS_PREACHY')
+
+  selectedTapIndex = 7
+  instance.markReplyDislike({ currentTarget: { dataset: { messageId: 'message-1' } } })
+  assert.match(modalPlaceholder, /生气时声音反而会更低/)
+  assert.equal(instance.data.chatMessages[0].feedbackReason, 'TONE_NOT_LIKE')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, 'TONE_NOT_LIKE')
 })

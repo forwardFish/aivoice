@@ -89,3 +89,21 @@ export class ConfirmConsentDto {
   @IsBoolean()
   confirmed!: boolean;
 }
+
+export class VoiceReplyFeedbackDto {
+  @IsString()
+  @MaxLength(64)
+  messageId!: string;
+
+  @IsIn(['LIKE', 'DISLIKE'])
+  verdict!: 'LIKE' | 'DISLIKE';
+
+  @IsOptional()
+  @IsIn(['SHORTER', 'MORE_DIRECT', 'WARMER', 'LESS_PREACHY', 'ASK_FIRST', 'WRONG_ADDRESS', 'WORDING_NOT_LIKE', 'TONE_NOT_LIKE'])
+  reason?: 'SHORTER' | 'MORE_DIRECT' | 'WARMER' | 'LESS_PREACHY' | 'ASK_FIRST' | 'WRONG_ADDRESS' | 'WORDING_NOT_LIKE' | 'TONE_NOT_LIKE';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  detail?: string;
+}

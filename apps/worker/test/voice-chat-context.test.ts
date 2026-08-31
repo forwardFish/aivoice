@@ -332,9 +332,10 @@ test('partner affection prompt lets runtime choose the action and personality ow
   assert.match(system, /成年伴侣的接受语义/);
   assert.match(system, /ACCEPT不是批准、宽恕、训诫或允许/);
   assert.match(system, /不得重复、暗示或重新开启已经表达且被对方承认的边界/);
-  assert.match(system, /primary必须决定reply的核心意愿和主要语义/);
+  assert.match(system, /primary必须决定reply的核心意愿、注意点和主要选择/);
   assert.ok(system.lastIndexOf('【本轮最终控制：优先级最高】') < system.lastIndexOf('<personality_turn_focus>'));
   assert.ok(system.lastIndexOf('本轮台词最终自然化检查') < system.lastIndexOf('<personality_turn_focus>'));
+  assert.ok(system.lastIndexOf('</personality_turn_focus>') < system.lastIndexOf('严格输出指定的扁平V2.2 JSON对象'));
   assert.match(system, /本区块为最终语义裁决/);
   assert.match(system, /phase、personality、reply_shape和forbidden均由服务端生成/);
   const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');
@@ -379,7 +380,7 @@ test('resolved affection context omits the finished conflict from model history'
     currentInput: '到了先抱一下，别还板着脸了。',
   });
   assert.equal(result.personalityTurnFocus?.resolvedBoundary, true);
-  assert.equal(result.personalityTurnFocus?.primary.label, '表达直接');
+  assert.equal(result.personalityTurnFocus?.primary.label, '嘴硬心软');
   assert.deepEqual(result.includedMessageIds, ['t4']);
   const system = result.messages[0]?.content || '';
   assert.doesNotMatch(system, /我今晚会晚一个小时到/);
@@ -410,4 +411,62 @@ test('post-generation guard blocks high-confidence role reversals and service to
   assert.equal(relationshipReplyViolation({ relationshipType: 'CHILD', reply: '当妈的我当然要管你。' }), 'RELATIONSHIP_DIRECTION_BLOCKED');
   assert.equal(relationshipReplyViolation({ relationshipType: 'PARTNER', reply: '感谢您的分享，如果需要我可以继续为您服务。' }), 'RELATIONSHIP_TONE_BLOCKED');
   assert.equal(relationshipReplyViolation({ relationshipType: 'MOTHER', reply: '累了就先歇会儿，妈不催你。' }), null);
+});
+
+test('authorized video evidence affects wording and cadence without inferring personality', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'observed-evidence',
+    voiceName: '小雨', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
+    relationshipType: 'CHILD', relationshipLabel: '', userAddress: '妈妈',
+    personalityNote: '', speechHabitNote: '', relationshipNote: '', background: '',
+    observedPersonEvidence: {
+      transcriptExcerpt: '等一下，我马上就来。',
+      charactersPerSecond: 5.8,
+      medianSentenceCharacters: 9,
+      speechRate: 'FAST', pauseStyle: 'LOW', volumeStyle: 'MEDIUM', averagePauseMs: 180,
+      pitchStyle: 'UNKNOWN', volumeDynamicsStyle: 'UNKNOWN', sentenceEndingStyle: 'UNKNOWN', sentenceEndingEnergyStyle: 'UNKNOWN',
+      pitchMedianHz: 0, pitchRangeSemitones: 0, volumeDynamicRangeDb: 0,
+      sentenceFinalPitchDeltaSemitones: 0, sentenceFinalEnergyDeltaDb: 0, sampleAffectCues: [],
+      recurringPhrases: [], activeSpeechRatio: 0.9,
+    },
+    history: [], currentInput: '今天在学校怎么样？',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /视频真实台词摘录：等一下，我马上就来/);
+  assert.match(system, /语速偏快；停顿较少/);
+  assert.match(system, /不得根据这段短视频自动推断嘴硬心软/);
+});
+
+test('explicit user correction outranks defaults only inside its stated scope', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'correction-current',
+    voiceName: '小宁', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】表达直接：点明问题。',
+    history: [{ messageId: 'correction-old', mode: 'CHAT', inputText: '她生气时声音不会变大，只会停顿更多。', outputText: '知道了。' }],
+    currentInput: '那你现在还生气吗？',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /<explicit_user_corrections>/);
+  assert.match(system, /她生气时声音不会变大，只会停顿更多/);
+  assert.match(system, /不得扩大成用户没有说出的稳定性格/);
+});
+
+test('persisted dislike corrections enter the prompt as bounded user evidence', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'persisted-correction',
+    voiceName: '小雨', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】表达直接：会点明问题。',
+    persistedPersonCorrections: ['用户明确反馈：TA很少讲大道理或完整说教。', '用户明确纠正TA的语气：她生气时声音反而会更低'],
+    history: [], currentInput: '我今天又迟到了。',
+  });
+  const system = result.messages[0]?.content || '';
+  assert.match(system, /<persisted_user_corrections>/);
+  assert.match(system, /她生气时声音反而会更低/);
+  assert.match(system, /较新的具体校准优先/);
+  assert.match(system, /不得扩展成用户没说过的稳定性格/);
 });

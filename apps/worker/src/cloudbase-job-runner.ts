@@ -13,14 +13,23 @@ import {
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
 import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
-import { inspectReferenceQuality, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
+import { inspectReferenceQuality, inspectSentenceFinalProsody, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
 import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
+import { SeedAudioGenerationError } from './providers/volcengine-seed-audio.js';
+import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.js';
+import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
+import { buildEmotionExpressionPlan } from './emotion-expression.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections } from './observed-person-evidence.js';
 import {
-  AliyunSpeakerDiarizationProvider,
   type SpeakerDiarizationReport,
 } from './providers/aliyun-speaker-diarization.js';
-import { DashscopeChatProvider } from './providers/dashscope-chat.js';
+import {
+  createSpeakerAnalysisProviderFromEnv,
+  type SpeakerAnalysisProviderPort,
+} from './providers/speaker-analysis-provider.js';
+import { createChatProviderFromEnv } from './providers/chat-provider-factory.js';
+import type { ChatProviderPort } from './providers/chat-provider.js';
 import {
   compileVoiceChatMessages,
   relationshipReplyViolation,
@@ -57,26 +66,11 @@ interface JobRow {
   payload: Record<string, unknown>;
 }
 
-interface VoiceProviderPort {
-  readonly targetModel: string;
-  enroll(referencePath: string, prefix: string): Promise<string>;
-  synthesize(voiceId: string, text: string, options?: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean }): Promise<Buffer>;
-  deleteVoice(voiceId: string): Promise<void>;
-}
-
-interface ChatProviderPort {
-  reply(messages: VoiceChatMessage[], options?: { maxAttempts?: 1 | 2; temperature?: number }): Promise<string | CharacterTurnGeneration>;
-}
-
-interface SpeakerDiarizationPort {
-  inspect(fileUrl: string): Promise<SpeakerDiarizationReport>;
-}
-
 export interface CloudBaseWorkerDependencies {
   runtime?: CloudBaseRuntimeClient;
   voiceProvider?: VoiceProviderPort;
   chatProvider?: ChatProviderPort;
-  speakerDetector?: SpeakerDiarizationPort;
+  speakerDetector?: SpeakerAnalysisProviderPort;
   temporaryRoot?: string;
 }
 
@@ -120,7 +114,7 @@ export class CloudBaseJobRunner {
   private readonly runtime: CloudBaseRuntimeClient;
   private readonly voiceProvider: VoiceProviderPort;
   private readonly chatProvider: ChatProviderPort;
-  private readonly speakerDetector: SpeakerDiarizationPort;
+  private readonly speakerDetector: SpeakerAnalysisProviderPort;
   private readonly temporaryRoot: string;
   private readonly sourceBucket = process.env.CLOUDBASE_SOURCE_BUCKET || 'aivoice-source';
   private readonly audioBucket = process.env.CLOUDBASE_AUDIO_BUCKET || 'aivoice-audio';
@@ -129,9 +123,9 @@ export class CloudBaseJobRunner {
 
   constructor(dependencies: CloudBaseWorkerDependencies = {}) {
     this.runtime = dependencies.runtime || cloudBaseRuntimeFromEnv();
-    this.voiceProvider = dependencies.voiceProvider || new AliyunCosyVoiceProvider();
-    this.chatProvider = dependencies.chatProvider || new DashscopeChatProvider();
-    this.speakerDetector = dependencies.speakerDetector || new AliyunSpeakerDiarizationProvider();
+    this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
+    this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
+    this.speakerDetector = dependencies.speakerDetector || createSpeakerAnalysisProviderFromEnv();
     this.temporaryRoot = path.resolve(dependencies.temporaryRoot || process.env.WORKER_TEMP_ROOT || '/tmp/aivoice');
   }
 
@@ -189,6 +183,10 @@ export class CloudBaseJobRunner {
       sourceMediaId: string;
       sourceObjectKey: string;
       sourceMimeType: string;
+      ageYears: number | null;
+      gender: 'FEMALE' | 'MALE' | null;
+      userAgeYears: number | null;
+      relationshipType: VoiceRelationshipType | null;
       existingProviderVoiceIdEncrypted: string | null;
       existingProviderStatus: string | null;
     } | Array<never>>('rpc_job_get_voice_input', { pJobId: job.id, pWorkerId: this.workerId }));
@@ -213,7 +211,12 @@ export class CloudBaseJobRunner {
       try {
         const qualityUrl = await this.runtime.signDownload(this.audioBucket, qualityStoredKey, 600);
         const speakerDiarization = await this.speakerDetector.inspect(qualityUrl);
-        qualityReport = { ...quality, speakerDiarization };
+        const sentenceFinalProsody = await inspectSentenceFinalProsody(referencePath, speakerDiarization.segments);
+        qualityReport = {
+          ...quality,
+          acousticEvidence: { ...quality.acousticEvidence!, ...sentenceFinalProsody },
+          speakerDiarization,
+        };
         if (!speakerDiarization.acceptable && speakerDiarization.failureCode) {
           throw new ReferenceQualityError(speakerDiarization.failureCode, qualityReport);
         }
@@ -227,13 +230,26 @@ export class CloudBaseJobRunner {
       ? decryptProviderId(input.existingProviderVoiceIdEncrypted)
       : '';
 
-    let providerVoiceId = '';
+    let providerBinding = '';
     let finalized = false;
     const uploaded: Array<{ bucket: string; key: string }> = [];
     try {
-      providerVoiceId = await this.voiceProvider.enroll(referencePath, `av${job.voiceProfileId.replaceAll('-', '').slice(0, 8)}`);
       const previewText = process.env.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。';
-      await fs.writeFile(previewPath, await this.voiceProvider.synthesize(providerVoiceId, previewText));
+      if (!usesReferenceAudio(this.voiceProvider)) {
+        providerBinding = await this.voiceProvider.enroll(referencePath, `av${job.voiceProfileId.replaceAll('-', '').slice(0, 8)}`);
+      }
+      await fs.writeFile(previewPath, await this.voiceProvider.synthesize(
+        usesReferenceAudio(this.voiceProvider) ? referencePath : providerBinding,
+        previewText,
+        {
+          jobId: job.id,
+          replyTone: 'PLAIN',
+          ageYears: input.ageYears,
+          gender: input.gender,
+          userAgeYears: input.userAgeYears,
+          relationshipType: input.relationshipType,
+        },
+      ));
       const [referenceProbe, previewProbe, referenceHash, previewHash] = await Promise.all([
         probeWav(referencePath),
         probeWav(previewPath),
@@ -244,6 +260,7 @@ export class CloudBaseJobRunner {
       const previewKey = `preview/${input.userId}/${job.voiceProfileId}.wav`;
       const referenceStoredKey = await this.runtime.uploadFile(this.audioBucket, referenceKey, referencePath, 'audio/wav');
       uploaded.push({ bucket: this.audioBucket, key: referenceStoredKey });
+      if (usesReferenceAudio(this.voiceProvider)) providerBinding = referenceStoredKey;
       const previewStoredKey = await this.runtime.uploadFile(this.audioBucket, previewKey, previewPath, 'audio/wav');
       uploaded.push({ bucket: this.audioBucket, key: previewStoredKey });
       await this.runtime.rpc('rpc_voice_processing_finalize', {
@@ -259,15 +276,15 @@ export class CloudBaseJobRunner {
         pPreviewBytes: previewProbe.bytes,
         pPreviewDurationMs: previewProbe.durationMs,
         pPreviewSha256: previewHash,
-        pProvider: 'aliyun-cosyvoice',
+        pProvider: this.voiceProvider.providerName || 'aliyun-cosyvoice',
         pTargetModel: this.voiceProvider.targetModel,
-        pProviderVoiceIdEncrypted: encryptProviderId(providerVoiceId),
+        pProviderVoiceIdEncrypted: encryptProviderId(providerBinding),
         pQualityReport: qualityReport,
       });
       finalized = true;
       await this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId });
-      if (existingProviderVoiceId && existingProviderVoiceId !== providerVoiceId) {
-        await this.voiceProvider.deleteVoice(existingProviderVoiceId).catch((error) => {
+      if (existingProviderVoiceId && existingProviderVoiceId !== providerBinding) {
+        await this.deleteProviderBinding(existingProviderVoiceId).catch((error) => {
           console.error('previous provider voice cleanup failed after replacement', error);
         });
       }
@@ -277,7 +294,9 @@ export class CloudBaseJobRunner {
     } catch (error) {
       if (!finalized) {
         await Promise.all(uploaded.map((item) => this.deleteObject(item.bucket, item.key).catch(() => undefined)));
-        if (providerVoiceId) await this.voiceProvider.deleteVoice(providerVoiceId).catch(() => undefined);
+        if (providerBinding && !usesReferenceAudio(this.voiceProvider)) {
+          await this.voiceProvider.deleteVoice(providerBinding).catch(() => undefined);
+        }
       }
       throw error;
     }
@@ -328,12 +347,23 @@ export class CloudBaseJobRunner {
       relationshipNote: string;
       personalityNote: string;
       speechHabitNote: string;
+      qualityReport: unknown;
       providerVoiceIdEncrypted: string;
         history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string; interactionState?: unknown }>;
       } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
       mode = message.mode;
+      const providerBinding = decryptProviderId(message.providerVoiceIdEncrypted);
+      if (usesReferenceAudio(this.voiceProvider) && !providerBinding.startsWith('reference/')) {
+        throw new SeedAudioGenerationError(
+          'Existing voice must be recreated before Seed Audio use',
+          'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
+        );
+      }
+      const observedPersonEvidence = observedPersonEvidenceFromQualityReport(message.qualityReport);
+      const persistedPersonCorrections = persistedPersonCorrectionsFromQualityReport(message.qualityReport);
       let outputText = message.inputText;
       let speechTone: import('./chat/interaction-state.js').ReplyTone = 'PLAIN';
+      let personalityTurnFocus: import('./chat/personality-turn-focus.js').PersonalityTurnFocus | null = null;
       let generationParamsDescriptor = JSON.stringify({ mode: message.mode });
       if (message.mode === 'CHAT') {
         const context = compileVoiceChatMessages({
@@ -351,12 +381,16 @@ export class CloudBaseJobRunner {
           relationshipNote: message.relationshipNote,
           personalityNote: message.personalityNote,
           speechHabitNote: message.speechHabitNote,
+          observedPersonEvidence,
+          persistedPersonCorrections,
           history: message.history,
           currentInput: message.inputText,
         });
         const chatTemperature = chatTemperatureForFocus(context.personalityTurnFocus);
+        personalityTurnFocus = context.personalityTurnFocus;
         generationParamsDescriptor = JSON.stringify({
-          model: process.env.CHAT_MODEL?.trim() || 'qwen3.8-max',
+          provider: this.chatProvider.providerName || 'dashscope',
+          model: this.chatProvider.modelName || process.env.CHAT_MODEL?.trim() || 'qwen3.8-max',
           temperature: chatTemperature,
           enableThinking: false,
           structuredOutput: true,
@@ -365,7 +399,8 @@ export class CloudBaseJobRunner {
         });
         console.info('voice chat context compiled', {
           promptVersion: 'voice-chat-human-v2',
-          modelName: process.env.CHAT_MODEL || 'qwen3.8-max',
+          providerName: this.chatProvider.providerName || 'dashscope',
+          modelName: this.chatProvider.modelName || process.env.CHAT_MODEL || 'qwen3.8-max',
           voiceId: message.voiceId,
           conversationId: message.conversationId,
           currentMessageId: message.messageId,
@@ -423,7 +458,8 @@ export class CloudBaseJobRunner {
         softQualitySignals = quality.qualitySignals;
         console.info('character_generation_quality', JSON.stringify({
           event: 'character_generation_quality', promptVersion: 'voice-chat-human-v2', personaVersion: 'explicit-persona-v1',
-          model: process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
+          provider: this.chatProvider.providerName || 'dashscope',
+          model: this.chatProvider.modelName || process.env.CHAT_MODEL || 'qwen3.8-max', parsedSuccessfully: true,
           hardRuleHits: [], softQualitySignals, interactionStateAccepted, interactionStateResetReason,
           interactionStateIssues, qualityAttemptCount: quality.attemptCount, firstAttemptReasons: quality.firstAttemptReasons,
           replyLength: Array.from(outputText).length,
@@ -449,10 +485,27 @@ export class CloudBaseJobRunner {
         stages.publish_text = 0;
       }
       const audioPath = path.join(workDir, 'generated.wav');
-      const speechPlan = buildSpeechSynthesisPlan(speechTone, outputText);
+      const emotionExpression = buildEmotionExpressionPlan({
+        replyTone: speechTone,
+        text: outputText,
+        interactionState,
+        personalityNote: message.personalityNote,
+        personalityTurnFocus,
+      });
+      const speechPlan = buildSpeechSynthesisPlan(
+        speechTone,
+        outputText,
+        speechPlanBaselineWithCorrections(observedPersonEvidence, message.qualityReport),
+        emotionExpression,
+      );
+      let synthesisReference = providerBinding;
+      if (usesReferenceAudio(this.voiceProvider)) {
+        synthesisReference = path.join(workDir, 'reference.wav');
+        await measure('download_reference', () => this.download(this.audioBucket, providerBinding, synthesisReference));
+      }
       const audio = await measure('voice_synthesis_download', () => this.voiceProvider.synthesize(
-        decryptProviderId(message.providerVoiceIdEncrypted),
-        speechPlan.text,
+        synthesisReference,
+        usesReferenceAudio(this.voiceProvider) ? outputText : speechPlan.text,
         {
           jobId: job.id,
           messageId: job.messageId || '',
@@ -461,6 +514,14 @@ export class CloudBaseJobRunner {
           pitch: speechPlan.pitch,
           volume: speechPlan.volume,
           enableSsml: speechPlan.enableSsml,
+          replyTone: speechTone,
+          ageYears: message.ageYears,
+          gender: message.gender,
+          userAgeYears: message.userAgeYears,
+          relationshipType: message.relationshipType,
+          interactionStance: interactionState?.action.stance || null,
+          emotionIntensity: speechPlan.emotionIntensity,
+          personalityStyle: emotionExpression.personalityStyle,
         },
       ));
       await measure('write_audio', () => fs.writeFile(audioPath, audio));
@@ -541,6 +602,15 @@ export class CloudBaseJobRunner {
     }
   }
 
+  private async deleteProviderBinding(providerBinding: string): Promise<void> {
+    if (!providerBinding || providerBinding.startsWith('reference/')) return;
+    if (!usesReferenceAudio(this.voiceProvider)) {
+      await this.voiceProvider.deleteVoice(providerBinding);
+      return;
+    }
+    await new AliyunCosyVoiceProvider().deleteVoice(providerBinding);
+  }
+
   private async deleteVoice(job: JobRow): Promise<void> {
     if (!job.voiceProfileId) throw new Error('DELETE_VOICE job has no voice_profile_id');
     const manifest = one(await this.runtime.rpc<{
@@ -548,7 +618,7 @@ export class CloudBaseJobRunner {
       assets: Array<{ objectKey: string; status: string }>;
     } | Array<never>>('rpc_job_get_delete_manifest', { pJobId: job.id, pWorkerId: this.workerId }));
     for (const model of manifest.models) {
-      if (model.status !== 'DELETED') await this.voiceProvider.deleteVoice(decryptProviderId(model.providerVoiceIdEncrypted));
+      if (model.status !== 'DELETED') await this.deleteProviderBinding(decryptProviderId(model.providerVoiceIdEncrypted));
     }
     for (const asset of manifest.assets) await this.deleteObject(this.bucketForObjectKey(asset.objectKey), asset.objectKey);
     await this.runtime.rpc('rpc_voice_delete_finalize', {
@@ -563,7 +633,7 @@ export class CloudBaseJobRunner {
       assets: Array<{ objectKey: string; status: string }>;
     } | Array<never>>('rpc_job_get_delete_manifest', { pJobId: job.id, pWorkerId: this.workerId }));
     for (const model of manifest.models) {
-      if (model.status !== 'DELETED') await this.voiceProvider.deleteVoice(decryptProviderId(model.providerVoiceIdEncrypted));
+      if (model.status !== 'DELETED') await this.deleteProviderBinding(decryptProviderId(model.providerVoiceIdEncrypted));
     }
     for (const asset of manifest.assets) await this.deleteObject(this.bucketForObjectKey(asset.objectKey), asset.objectKey);
     await this.runtime.rpc('rpc_account_delete_finalize', {
@@ -613,25 +683,26 @@ export class CloudBaseJobRunner {
       }
       const message = error instanceof Error ? error.message : String(error);
       const quality = error instanceof ReferenceQualityError ? error : null;
+      const seedAudioError = error instanceof SeedAudioGenerationError ? error : null;
       const generationStage = job.type === 'GENERATE_MESSAGE'
         ? String((error as Error & { generationStage?: string })?.generationStage || '')
         : '';
       const generationErrorCode = generationStage
         ? `MESSAGE_${generationStage.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}_FAILED`.slice(0, 100)
         : 'JOB_FAILED';
-      const terminal = Boolean(quality) || job.attempts >= job.maxAttempts;
+      const terminal = Boolean(quality) || error instanceof SeedAudioGenerationError || job.attempts >= job.maxAttempts;
       if (terminal && job.messageId && job.type === 'GENERATE_MESSAGE') {
         await this.runtime.rpc('rpc_message_complete_failure', {
           pUserId: job.userId,
           pMessageId: job.messageId,
-          pErrorCode: quality?.code || generationErrorCode,
+          pErrorCode: quality?.code || seedAudioError?.code || generationErrorCode,
           pErrorMessage: message.slice(0, 500),
         });
       }
       await this.runtime.rpc('rpc_job_mark_failed_or_retry', {
         pJobId: job.id,
         pWorkerId: this.workerId,
-        pErrorCode: quality?.code || generationErrorCode,
+        pErrorCode: quality?.code || seedAudioError?.code || generationErrorCode,
         pErrorMessage: message.slice(0, 1000),
         pRetryable: !terminal,
         pRetryDelaySeconds: 10,

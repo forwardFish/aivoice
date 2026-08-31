@@ -3,9 +3,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { cleanupUnpersistedReference, inspectReferenceQuality } from '../src/media/quality.js';
+import { cleanupUnpersistedReference, inspectReferenceQuality, inspectSentenceFinalProsody } from '../src/media/quality.js';
 
-function pcmWav(durationSeconds: number, amplitude: number, activeSeconds = durationSeconds): Buffer {
+function pcmWav(durationSeconds: number, amplitude: number, activeSeconds = durationSeconds, frequency = 220): Buffer {
   const sampleRate = 24_000;
   const sampleCount = Math.round(durationSeconds * sampleRate);
   const dataBytes = sampleCount * 2;
@@ -26,7 +26,7 @@ function pcmWav(durationSeconds: number, amplitude: number, activeSeconds = dura
   const activeSamples = Math.round(activeSeconds * sampleRate);
   for (let index = 0; index < sampleCount; index += 1) {
     const sample = index < activeSamples
-      ? Math.round(amplitude * Math.sin(2 * Math.PI * 440 * index / sampleRate))
+      ? Math.round(amplitude * Math.sin(2 * Math.PI * frequency * index / sampleRate))
       : 0;
     wav.writeInt16LE(sample, 44 + index * 2);
   }
@@ -51,6 +51,26 @@ test('reference quality accepts clear continuous speech-like PCM', async () => {
     assert.equal(report.activeSeconds, 12);
     assert.deepEqual(report.warnings, []);
     assert.ok(report.averageDbfs > -35);
+    assert.ok((report.acousticEvidence?.pitchMedianHz || 0) > 210);
+    assert.ok((report.acousticEvidence?.pitchMedianHz || 0) < 230);
+    assert.ok((report.acousticEvidence?.pitchRangeSemitones || 0) < 0.5);
+    assert.ok((report.acousticEvidence?.volumeDynamicRangeDb ?? 99) < 0.5, JSON.stringify(report.acousticEvidence));
+  });
+});
+
+test('sentence-final prosody measures a rising tail from the existing PCM reference', async () => {
+  const wav = pcmWav(8, 4_000, 8, 220);
+  const sampleRate = 24_000;
+  const tailSamples = Math.round(sampleRate * 0.28);
+  const totalSamples = Math.round(sampleRate * 8);
+  for (let index = totalSamples - tailSamples; index < totalSamples; index += 1) {
+    wav.writeInt16LE(Math.round(4_000 * Math.sin(2 * Math.PI * 275 * index / sampleRate)), 44 + index * 2);
+  }
+  await withWav(wav, async (filePath) => {
+    const ending = await inspectSentenceFinalProsody(filePath, [{ beginMs: 0, endMs: 8_000 }]);
+    assert.equal(ending.sentenceFinalPitchSampleCount, 1);
+    assert.equal(ending.sentenceFinalEnergySampleCount, 1);
+    assert.ok((ending.sentenceFinalPitchDeltaSemitones || 0) > 2, JSON.stringify(ending));
   });
 });
 

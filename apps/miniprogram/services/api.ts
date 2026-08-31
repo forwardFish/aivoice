@@ -121,6 +121,7 @@ function errorMessage(code: string, fallback = ''): string {
     QUOTA_EXHAUSTED: '当前积分不足，请先购买积分。',
     CONTENT_BLOCKED: '这段内容不符合使用规则，请修改后重试。',
     PROVIDER_FAILED: '声音服务暂时不可用，本次不会扣积分。',
+    VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO: '语音服务已经升级，请重新创建这个声音后继续使用。',
     ORDER_NOT_FOUND: '订单不存在或已失效。',
     PAYMENT_MISMATCH: '支付信息校验失败，请联系客服。',
     PAYMENT_PENDING: '支付结果正在确认，请稍候。',
@@ -588,6 +589,23 @@ export async function saveVoiceProfile(voiceId: string, input: {
     data: input
   })
   return normalizeVoice(raw.voice || raw)
+}
+
+export async function recordVoiceReplyFeedback(voiceId: string, input: {
+  messageId: string
+  verdict: 'LIKE' | 'DISLIKE'
+  reason?: string
+  detail?: string
+}): Promise<{ recorded: boolean; correctionApplied: boolean }> {
+  const raw = await requestRaw<any>({
+    path: `/voices/${encodeURIComponent(voiceId)}/reply-feedback`,
+    method: 'POST',
+    data: input
+  })
+  return {
+    recorded: raw?.recorded === true,
+    correctionApplied: raw?.correctionApplied === true
+  }
 }
 
 export async function saveVoiceConsent(voiceId: string, input: {

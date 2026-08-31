@@ -13,6 +13,7 @@ import {
   type RuntimeDialogueControl,
 } from './dialogue-control.js';
 import { buildPersonalityTurnFocus, personalityTurnFocusEnvelope, personalityTurnFocusInstructions, type PersonalityTurnFocus } from './personality-turn-focus.js';
+import { observedPersonEvidencePrompt, type ObservedPersonEvidence } from '../observed-person-evidence.js';
 
 export type VoiceRelationshipType =
   | 'SELF'
@@ -188,6 +189,15 @@ function clean(value: string, max: number): string {
   return String(value || '').replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, max);
 }
 
+function explicitUserCorrections(turns: PromptTurn[]): string[] {
+  const pattern = /(?:她|他|TA|ta|你)(?:不会这么说|不会这样说|一般会|平时会|通常会|会先|生气时|关心时|说话时|声音不会|语气不会)|(?:不像她|不像他|不像TA|不是她会说的|不是他会说的)/iu;
+  return turns
+    .filter((turn) => turn.role === 'USER' && pattern.test(turn.content))
+    .map((turn) => clean(turn.content, 160))
+    .filter(Boolean)
+    .slice(-3);
+}
+
 function repeatedHistoryPhrases(history: VoiceChatHistoryRow[]): string[] {
   const phraseRows = new Map<string, number>();
   for (const row of history) {
@@ -358,6 +368,8 @@ function buildRelationshipSystem(input: {
   structuredOutput: boolean;
   runtimeDialogueControl: RuntimeDialogueControl;
   personalityTurnFocus: PersonalityTurnFocus | null;
+  observedPersonEvidence: ObservedPersonEvidence | null;
+  persistedPersonCorrections: readonly string[];
 }): string {
   const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
@@ -395,6 +407,13 @@ function buildRelationshipSystem(input: {
       userLifeStage: input.userLifeStage,
       gender: input.gender,
     }),
+    ...observedPersonEvidencePrompt(input.observedPersonEvidence),
+    ...(input.persistedPersonCorrections.length ? [
+      '<persisted_user_corrections>',
+      ...input.persistedPersonCorrections.map((correction) => clean(correction, 100)),
+      '</persisted_user_corrections>',
+      '这些是用户主动提交并已保存的具体校准，按时间由旧到新排列；较新的具体校准优先。只在其明确的措辞或语气范围内生效，不得扩展成用户没说过的稳定性格。',
+    ] : []),
     '长期性格、说话习惯和关系说明是倾向，不是本轮动作指令。先根据当前输入、最近对话和未解决事项决定本轮行动，再用长期资料调整措辞、判断阈值和表达方式。',
     'speechHabitNote主要影响句长、用词、直接或含蓄程度，不能单独决定本轮必须ASK、ACCEPT、DISAGREE或SET_BOUNDARY。人物资料中明确提供的特点可以在相邻多轮持续表现；只禁止无新原因地复制同一句话或重复同一回复模板。',
     '当当前情境与用户明确填写的长期特征相关时，这些特征必须影响人物关注点和表达，不能只是装饰；人物一致性来自判断方式稳定，不来自每轮执行同一个动作。',
@@ -431,8 +450,16 @@ function buildRelationshipSystem(input: {
       '<prompt_turn_ids>',
       ...input.promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`),
       '</prompt_turn_ids>',
+      ...(() => {
+        const corrections = explicitUserCorrections(input.promptTurns);
+        return corrections.length ? [
+          '<explicit_user_corrections>',
+          ...corrections,
+          '</explicit_user_corrections>',
+          '这些是用户在自然对话中主动给出的具体人物纠正，只在其明确含义范围内优先于视频证据、性格标签和一般默认；不得扩大成用户没有说出的稳定性格。',
+        ] : [];
+      })(),
       'carryCauseTurnId、actionCauseTurnId、requestBasisTurnId必须逐字使用prompt_turn_ids中已有ID；对应Quote或Evidence必须摘取该轮连续原文；carryEmotionEvidence必须逐字摘自本轮reply。',
-      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
       ...(input.personalityNote ? [
         '<explicit_personality_recap>',
         clean(input.personalityNote, 300),
@@ -444,7 +471,11 @@ function buildRelationshipSystem(input: {
       ] : []),
       ...turnControlInstructions(input.runtimeDialogueControl, input.relationshipType),
       ...FINAL_REPLY_NATURALIZATION,
-      ...personalityTurnFocusInstructions(personalityTurnFocus),
+      ...personalityTurnFocusInstructions(
+        personalityTurnFocus,
+        input.promptTurns.filter((turn) => turn.role === 'CHARACTER').map((turn) => turn.content),
+      ),
+      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
     ] : []),
   ].join('\n');
 }
@@ -474,6 +505,8 @@ export function compileVoiceChatMessages(input: {
   relationshipNote?: string;
   personalityNote?: string;
   speechHabitNote?: string;
+  observedPersonEvidence?: ObservedPersonEvidence | null;
+  persistedPersonCorrections?: readonly string[];
   relationshipType: VoiceRelationshipType | null;
   relationshipLabel: string;
   userAddress: string;
@@ -570,12 +603,14 @@ export function compileVoiceChatMessages(input: {
       structuredOutput: input.structuredOutput === true,
       runtimeDialogueControl,
       personalityTurnFocus,
+      observedPersonEvidence: input.observedPersonEvidence || null,
+      persistedPersonCorrections: input.persistedPersonCorrections || [],
     })
     : [GENERIC_SYSTEM_PROMPT, ...NATURAL_RESPONSE_INSTRUCTIONS, ...(input.structuredOutput === true ? [
       '<prompt_turn_ids>', ...promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`), '</prompt_turn_ids>',
-      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
       ...turnControlInstructions(runtimeDialogueControl),
       ...FINAL_REPLY_NATURALIZATION,
+      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
     ] : [])].join('\n');
 
   const messages: VoiceChatMessage[] = [
