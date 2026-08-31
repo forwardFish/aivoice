@@ -1,7 +1,44 @@
-import type { InteractionStance, ReplyTone } from '../chat/interaction-state.js';
 import type { VoiceRelationshipType } from '../chat/voice-chat-context.js';
 
 export type VoiceReferenceMode = 'REGISTERED_VOICE' | 'REFERENCE_AUDIO';
+
+export type VoiceDeliveryMode =
+  | 'CASUAL'
+  | 'BRIGHT_LIGHT'
+  | 'DIRECT_TENSE'
+  | 'QUIET_UNEASY'
+  | 'SOFT_HURT'
+  | 'PLAYFUL_LIGHT'
+  | 'PRACTICAL_CARE';
+
+export type VoiceSpeechAct =
+  | 'REPLY'
+  | 'AGREE'
+  | 'ASK'
+  | 'EXPLAIN'
+  | 'NEGOTIATE'
+  | 'TEASE'
+  | 'REMIND'
+  | 'SHARE';
+
+export type VoiceDeliveryCorrection =
+  | 'SPEAK_SLOWER'
+  | 'SPEAK_FASTER'
+  | 'PAUSE_MORE'
+  | 'PAUSE_LESS'
+  | 'VOLUME_SOFTER'
+  | 'VOLUME_STRONGER'
+  | 'PITCH_FLATTER'
+  | 'PITCH_MORE_DYNAMIC';
+
+export interface VoiceObservedDeliveryBaseline {
+  speechRate: 'SLOW' | 'MEDIUM' | 'FAST';
+  pauseStyle: 'LOW' | 'MEDIUM' | 'HIGH';
+  pitchStyle: 'NARROW' | 'MEDIUM' | 'WIDE' | 'UNKNOWN';
+  sentenceEndingStyle: 'FALLING' | 'LEVEL' | 'RISING' | 'UNKNOWN';
+  volumeDynamicsStyle: 'FLAT' | 'MEDIUM' | 'DYNAMIC' | 'UNKNOWN';
+  correction?: VoiceDeliveryCorrection;
+}
 
 export interface VoiceSynthesisOptions {
   jobId?: string;
@@ -11,15 +48,10 @@ export interface VoiceSynthesisOptions {
   pitch?: number;
   volume?: number;
   enableSsml?: boolean;
-  replyTone?: ReplyTone;
-  ageYears?: number | null;
-  gender?: 'FEMALE' | 'MALE' | null;
-  userAgeYears?: number | null;
   relationshipType?: VoiceRelationshipType | null;
-  sceneInstruction?: string;
-  interactionStance?: InteractionStance | null;
-  emotionIntensity?: 0 | 1 | 2 | 3;
-  personalityStyle?: string;
+  deliveryMode?: VoiceDeliveryMode;
+  speechAct?: VoiceSpeechAct;
+  observedBaseline?: VoiceObservedDeliveryBaseline | null;
 }
 
 export interface VoiceProviderPort {

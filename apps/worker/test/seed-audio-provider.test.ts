@@ -30,95 +30,104 @@ test.afterEach(() => {
   else process.env.SEED_AUDIO_MODEL = originalEnv.model;
 });
 
-test('builds a natural relationship scene without CosyVoice parameter instructions', () => {
+test('builds one compact delivery prompt without age, gender or raw personality labels', () => {
   const prompt = buildSeedAudioPrompt('我知道啦，现在已经没事了。', {
-    ageYears: 12,
-    gender: 'FEMALE',
-    userAgeYears: 40,
     relationshipType: 'CHILD',
-    replyTone: 'MIXED',
+    deliveryMode: 'DIRECT_TENSE',
+    speechAct: 'EXPLAIN',
   });
   assert.match(prompt, /使用@Audio1的声音/);
-  assert.match(prompt, /12岁女孩先表达一点不满，随后自然把话收回来/);
+  assert.match(prompt, /直接向父母补一句原因/);
+  assert.match(prompt, /轻微不满，关键词稍重/);
   assert.match(prompt, /『我知道啦，现在已经没事了。』/);
-  assert.doesNotMatch(prompt, /pitch|volume|SSML|音调提高/u);
+  assert.doesNotMatch(prompt, /12岁|女孩|女性|HARD_SOFT|嘴硬心软|pitch|volume|SSML/u);
 });
 
-test('accepts one shared semantic scene instruction for cross-provider comparison', () => {
-  const prompt = buildSeedAudioPrompt('真的呀？', {
-    sceneInstruction: '12岁女孩在家里和妈妈说话，听到好消息后自然开心，带一点笑意，不夸张，不表演。',
-  });
-  assert.match(prompt, /听到好消息后自然开心，带一点笑意，不夸张，不表演。只说这一句/);
-  assert.doesNotMatch(prompt, /普通的日常交流|当前对话气氛/u);
-});
-
-test('plain replies describe the current speech act instead of an abstract relaxed emotion', () => {
-  const prompt = buildSeedAudioPrompt('我知道啦，今天会早点回来的。', {
-    ageYears: 12,
-    gender: 'FEMALE',
+test('keeps only compact observable reference habits and one explicit correction', () => {
+  const prompt = buildSeedAudioPrompt('我知道了。', {
     relationshipType: 'CHILD',
-    replyTone: 'PLAIN',
-    interactionStance: 'ACCEPT',
+    deliveryMode: 'CASUAL',
+    speechAct: 'REPLY',
+    observedBaseline: {
+      speechRate: 'FAST',
+      pauseStyle: 'LOW',
+      pitchStyle: 'WIDE',
+      sentenceEndingStyle: 'FALLING',
+      volumeDynamicsStyle: 'DYNAMIC',
+      correction: 'VOLUME_SOFTER',
+    },
   });
-  assert.match(prompt, /12岁女孩随口回应自己的父母一件小事/);
-  assert.doesNotMatch(prompt, /自然放松|当前就是普通|真实的日常对话/u);
+  assert.match(prompt, /本人语速偏快、少停顿、语调自然起伏的说话习惯/);
+  assert.match(prompt, /情绪起来时音量不要变大/);
+  assert.match(prompt, /语调自然起伏/u);
+  assert.doesNotMatch(prompt, /句尾下收|保留自然强弱/u);
 });
 
-test('emotional replies describe concrete conversational actions and bounded intensity', () => {
+test('plain replies use one concrete speech act', () => {
+  const prompt = buildSeedAudioPrompt('我知道啦，今天会早点回来的。', {
+    relationshipType: 'CHILD',
+    deliveryMode: 'CASUAL',
+    speechAct: 'AGREE',
+  });
+  assert.match(prompt, /接住父母的话并自然回应/);
+  assert.match(prompt, /连贯地说，句尾干净/);
+  assert.doesNotMatch(prompt, /12岁|女孩|自然放松|当前就是普通/u);
+});
+
+test('emotional replies use one delivery mode and one speech act', () => {
   const concerned = buildSeedAudioPrompt('你是不是还没吃饭？', {
-    ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'CONCERNED',
-    interactionStance: 'ASK', emotionIntensity: 1,
+    relationshipType: 'CHILD', deliveryMode: 'PRACTICAL_CARE', speechAct: 'ASK',
   });
   const sad = buildSeedAudioPrompt('我心里有点难受。', {
-    ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'SAD_OR_HURT',
-    interactionStance: 'RESPOND', emotionIntensity: 2,
+    relationshipType: 'CHILD', deliveryMode: 'SOFT_HURT', speechAct: 'REPLY',
   });
   const mixed = buildSeedAudioPrompt('现在已经没事了。', {
-    ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'MIXED',
-    interactionStance: 'REPAIR', emotionIntensity: 2,
+    relationshipType: 'CHILD', deliveryMode: 'CASUAL', speechAct: 'AGREE',
   });
-  assert.match(concerned, /注意到自己的父母当前的情况，顺口关心地问一句/);
-  assert.match(sad, /因为当前这件事有些难受，直接对自己的父母说出感受/);
-  assert.match(mixed, /先表达一点不满，随后自然把话收回来/);
-  assert.doesNotMatch(`${concerned}${sad}${mixed}`, /当前对话气氛|当前是在认真关心|逐渐缓下来/u);
+  assert.match(concerned, /顺口问父母一句。认真但自然/);
+  assert.match(sad, /直接回应父母。有点难受/);
+  assert.match(mixed, /接住父母的话并自然回应。连贯地说/);
+  assert.doesNotMatch(`${concerned}${sad}${mixed}`, /当前对话气氛|逐渐缓下来|情绪退得快/u);
 });
 
-test('anger, playful and teasing styles produce distinct identity-aware scenes', () => {
+test('anger, playful and teasing use bounded delivery modes rather than raw personality scenes', () => {
   const angry = buildSeedAudioPrompt('你怎么现在才说呀。', {
-    ageYears: 24, gender: 'FEMALE', relationshipType: 'PARTNER', replyTone: 'IRRITATED',
-    interactionStance: 'RESPOND', emotionIntensity: 2, personalityStyle: 'QUICK_DIRECT_IRRITATED',
+    relationshipType: 'PARTNER',
+    deliveryMode: 'DIRECT_TENSE', speechAct: 'REPLY',
   });
   const playful = buildSeedAudioPrompt('我就吃一口嘛。', {
-    ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'PLAIN',
-    interactionStance: 'RESPOND', emotionIntensity: 0, personalityStyle: 'PLAYFUL_PLAIN',
+    relationshipType: 'CHILD',
+    deliveryMode: 'PLAYFUL_LIGHT', speechAct: 'TEASE',
   });
   const teasing = buildSeedAudioPrompt('你今天这么好说话呀。', {
-    ageYears: 24, gender: 'FEMALE', relationshipType: 'PARTNER', replyTone: 'POSITIVE',
-    interactionStance: 'RESPOND', emotionIntensity: 1, personalityStyle: 'PLAYFUL_POSITIVE',
+    relationshipType: 'PARTNER',
+    deliveryMode: 'PLAYFUL_LIGHT', speechAct: 'TEASE',
   });
-  assert.match(angry, /突然不高兴，开头直接，语气短促/);
-  assert.match(playful, /12岁女孩带一点调皮地调侃自己的父母一句/);
-  assert.match(teasing, /24岁女性带着笑意调侃自己的伴侣一句/);
+  assert.match(angry, /轻微不满，关键词稍重/);
+  assert.match(playful, /顺口调侃父母一句/);
+  assert.match(teasing, /顺口调侃伴侣一句/);
+  assert.doesNotMatch(`${angry}${playful}${teasing}`, /QUICK_DIRECT|PLAYFUL_PLAIN|PLAYFUL_POSITIVE|12岁|24岁/u);
 });
 
-test('surprise, embarrassment and autonomy styles remain age-appropriate', () => {
-  const surprise = buildSeedAudioPrompt('真的假的？', { ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'POSITIVE', personalityStyle: 'SURPRISED_POSITIVE' });
-  const embarrassed = buildSeedAudioPrompt('你别夸我啦。', { ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'UNEASY', personalityStyle: 'EMBARRASSED_UNEASY' });
-  const autonomy = buildSeedAudioPrompt('先听我说完。', { ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'IRRITATED', personalityStyle: 'AUTONOMY_IRRITATED' });
-  assert.match(surprise, /起句是真实惊喜，随后自然开心/);
-  assert.match(embarrassed, /被自己的父母夸奖后有点不好意思/);
-  assert.match(autonomy, /不喜欢自己的父母替自己决定/);
+test('delivery prompt never receives age-stage or personality psychology prose', () => {
+  const prompt = buildSeedAudioPrompt('先听我说完。', {
+    relationshipType: 'CHILD',
+    deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN',
+  });
+  assert.match(prompt, /直接向父母补一句原因/);
+  assert.doesNotMatch(prompt, /12岁|女孩|自主|自己的主意|被尊重|AUTONOMY/u);
 });
 
-test('hard-mouth soft-heart keeps every spoken word but shortens an ellipsis pause', () => {
+test('direct explanation keeps every spoken word but shortens an ellipsis pause', () => {
   const visible = '我才没有担心你……就是看你这么晚还没回来。';
-  const synthesis = seedAudioSynthesisText(visible, { personalityStyle: 'HARD_SOFT_MIXED' });
+  const synthesis = seedAudioSynthesisText(visible, { deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN' });
   const prompt = buildSeedAudioPrompt(visible, {
-    ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD', replyTone: 'MIXED',
-    personalityStyle: 'HARD_SOFT_MIXED',
+    relationshipType: 'CHILD',
+    deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN',
   });
   assert.equal(synthesis, '我才没有担心你，就是看你这么晚还没回来。');
-  assert.match(prompt, /先简短否认，紧接着说明自己在意的原因/);
+  assert.match(prompt, /直接向父母补一句原因/);
+  assert.doesNotMatch(prompt, /嘴硬|心软|先简短否认/u);
   assert.doesNotMatch(prompt, /……/u);
 });
 
@@ -150,7 +159,8 @@ test('sends one Seed Audio request with the reference audio and returns WAV byte
     const provider = new VolcengineSeedAudioProvider();
     const result = await provider.synthesize(referencePath, '你好。', {
       messageId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      replyTone: 'PLAIN',
+      deliveryMode: 'CASUAL',
+      speechAct: 'REPLY',
     });
     assert.deepEqual(result, expected);
     assert.equal(calls, 1);

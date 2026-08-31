@@ -6,6 +6,7 @@ import {
   observedSpeechPlanBaseline,
   persistedPersonCorrectionsFromQualityReport,
   speechPlanBaselineWithCorrections,
+  voiceObservedDeliveryBaselineWithCorrections,
 } from '../src/observed-person-evidence.js';
 
 test('quality report becomes bounded observable person evidence without personality inference', () => {
@@ -56,6 +57,13 @@ test('quality report becomes bounded observable person evidence without personal
     pauseFactor: 0.82,
     volumeOffset: 2,
     instructionFragment: '原口音咬字；快语、少停顿、自然起伏、降尾、保留自然强弱',
+  });
+  assert.deepEqual(voiceObservedDeliveryBaselineWithCorrections(evidence, {}), {
+    speechRate: 'FAST',
+    pauseStyle: 'LOW',
+    pitchStyle: 'WIDE',
+    sentenceEndingStyle: 'FALLING',
+    volumeDynamicsStyle: 'DYNAMIC',
   });
 });
 
@@ -110,4 +118,9 @@ test('latest explicit tone correction adjusts the TTS baseline without another m
   assert.match(baseline?.instructionFragment || '', /原口音咬字/);
   assert.match(baseline?.instructionFragment || '', /校准：情绪时音量更低/);
   assert.match(baseline?.instructionFragment || '', /中速、中停顿、自然起伏/);
+  assert.equal(voiceObservedDeliveryBaselineWithCorrections(evidence, {
+    passiveCorrections: [
+      { reason: 'TONE_NOT_LIKE', instruction: '用户明确纠正TA的语气：她生气时声音反而会更低' },
+    ],
+  })?.correction, 'VOLUME_SOFTER');
 });

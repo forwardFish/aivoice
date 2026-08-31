@@ -40,6 +40,15 @@ test('switches text, voice and analysis providers through environment configurat
   assert.equal(createSpeakerAnalysisProviderFromEnv().providerName, 'aliyun');
 });
 
+test('defaults chat audio to the low-latency registered voice provider', () => {
+  delete process.env.AIVOICE_VOICE_PROVIDER;
+  process.env.DASHSCOPE_API_KEY = 'cosy-key';
+  process.env.DASHSCOPE_API_HOST = 'https://dashscope.aliyuncs.com';
+  const provider = createVoiceProviderFromEnv();
+  assert.equal(provider.providerName, 'aliyun-cosyvoice');
+  assert.equal(provider.referenceMode, 'REGISTERED_VOICE');
+});
+
 test('rejects unknown providers instead of silently using the wrong model', () => {
   process.env.AIVOICE_VOICE_PROVIDER = 'unknown';
   assert.throws(() => createVoiceProviderFromEnv(), /Unsupported AIVOICE_VOICE_PROVIDER/);

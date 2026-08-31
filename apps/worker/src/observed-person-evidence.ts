@@ -1,3 +1,5 @@
+import type { VoiceDeliveryCorrection, VoiceObservedDeliveryBaseline } from './providers/voice-provider.js';
+
 export type ObservedSpeechRate = 'SLOW' | 'MEDIUM' | 'FAST';
 export type ObservedPauseStyle = 'LOW' | 'MEDIUM' | 'HIGH';
 export type ObservedVolumeStyle = 'SOFT' | 'MEDIUM' | 'STRONG';
@@ -214,5 +216,36 @@ export function speechPlanBaselineWithCorrections(
     pauseFactor,
     volumeOffset,
     instructionFragment: `原口音咬字；${baseParts.join('、')}；校准：${correction}`,
+  };
+}
+
+function voiceDeliveryCorrection(instruction: string): VoiceDeliveryCorrection | undefined {
+  if (/(?:声音|音量).{0,8}(?:更低|小一点|更小|不会变大|不变大|别变大)|不喊/u.test(instruction)) return 'VOLUME_SOFTER';
+  if (/(?:声音|音量).{0,8}(?:更高|大一点|更大)/u.test(instruction)) return 'VOLUME_STRONGER';
+  if (/(?:语速|说话).{0,8}(?:更慢|慢一点)/u.test(instruction)) return 'SPEAK_SLOWER';
+  if (/(?:语速|说话).{0,8}(?:更快|快一点)/u.test(instruction)) return 'SPEAK_FASTER';
+  if (/(?:停顿).{0,8}(?:更多|长一点|更长)/u.test(instruction)) return 'PAUSE_MORE';
+  if (/(?:停顿).{0,8}(?:更少|短一点|更短)/u.test(instruction)) return 'PAUSE_LESS';
+  if (/(?:语调|音高).{0,8}(?:更平|平一点|没那么大起伏)/u.test(instruction)) return 'PITCH_FLATTER';
+  if (/(?:语调|音高).{0,8}(?:起伏更大|更有起伏)/u.test(instruction)) return 'PITCH_MORE_DYNAMIC';
+  return undefined;
+}
+
+export function voiceObservedDeliveryBaselineWithCorrections(
+  evidence: ObservedPersonEvidence | null,
+  qualityReport: unknown,
+): VoiceObservedDeliveryBaseline | null {
+  const report = object(qualityReport);
+  const rows = Array.isArray(report.passiveCorrections) ? report.passiveCorrections : [];
+  const toneRow = [...rows].reverse().map(object).find((row) => String(row.reason || '') === 'TONE_NOT_LIKE');
+  const correction = voiceDeliveryCorrection(clampText(toneRow?.instruction, 100));
+  if (!evidence && !correction) return null;
+  return {
+    speechRate: evidence?.speechRate || 'MEDIUM',
+    pauseStyle: evidence?.pauseStyle || 'MEDIUM',
+    pitchStyle: evidence?.pitchStyle || 'UNKNOWN',
+    sentenceEndingStyle: evidence?.sentenceEndingStyle || 'UNKNOWN',
+    volumeDynamicsStyle: evidence?.volumeDynamicsStyle || 'UNKNOWN',
+    ...(correction ? { correction } : {}),
   };
 }

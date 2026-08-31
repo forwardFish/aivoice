@@ -1,5 +1,6 @@
 import type { ReplyTone } from './chat/interaction-state.js';
 import type { EmotionExpressionPlan } from './emotion-expression.js';
+import type { VoiceDeliveryMode, VoiceSpeechAct } from './providers/voice-provider.js';
 
 const INSTRUCTIONS: Record<ReplyTone, string> = {
   PLAIN: '像熟人随口说，语气松一点，不要播报，也不要表演。',
@@ -22,6 +23,41 @@ const COMPACT_TONE_INSTRUCTIONS: Record<ReplyTone, string> = {
   IRRITATED: '有点不高兴，正常说，不加速不抬音量',
   MIXED: '前半不满，短停后自然放软',
 };
+
+const DELIVERY_INSTRUCTIONS: Record<VoiceDeliveryMode, string> = {
+  CASUAL: '日常连贯，句尾干净',
+  BRIGHT_LIGHT: '带一点笑意，轻快但不夸张',
+  DIRECT_TENSE: '轻微不满，关键词稍重，句尾短，不喊不拖',
+  QUIET_UNEASY: '声音稍收，停顿自然，连着说，不用气声',
+  SOFT_HURT: '声音放轻，句尾收住，不用哭腔',
+  PLAYFUL_LIGHT: '带一点笑意，不故意扬尾，不搞怪',
+  PRACTICAL_CARE: '认真但自然，不用安慰腔，不说教',
+};
+
+const SPEECH_ACT_INSTRUCTIONS: Record<VoiceSpeechAct, string> = {
+  REPLY: '直接回应',
+  AGREE: '自然接住对方的话',
+  ASK: '顺口问一句',
+  EXPLAIN: '马上补一句原因',
+  NEGOTIATE: '直接说清自己的想法',
+  TEASE: '顺口调侃一句',
+  REMIND: '顺口提醒一句',
+  SHARE: '自然分享',
+};
+
+const DELIVERY_PROSODY: Record<VoiceDeliveryMode, { rate: number; breakMs: number }> = {
+  CASUAL: { rate: 1, breakMs: 160 },
+  BRIGHT_LIGHT: { rate: 1.02, breakMs: 100 },
+  DIRECT_TENSE: { rate: 1.02, breakMs: 90 },
+  QUIET_UNEASY: { rate: 0.98, breakMs: 180 },
+  SOFT_HURT: { rate: 0.97, breakMs: 200 },
+  PLAYFUL_LIGHT: { rate: 1.02, breakMs: 90 },
+  PRACTICAL_CARE: { rate: 1, breakMs: 160 },
+};
+
+function deliveryInstruction(expression: EmotionExpressionPlan): string {
+  return `${SPEECH_ACT_INSTRUCTIONS[expression.speechAct]}；${DELIVERY_INSTRUCTIONS[expression.deliveryMode]}`;
+}
 
 export interface SpeechPlanBaseline {
   rateFactor: number;
@@ -56,6 +92,21 @@ function withFirstPause(value: string, breakMs: number): string {
   return `${escapeSsml(match[1])}<break time="${breakMs}ms"/>${escapeSsml(match[2])}`;
 }
 
+function internalPauseBoundaryCount(value: string): number {
+  return Array.from(value.matchAll(/[，,；;]/gu)).length;
+}
+
+export function shouldUseExplicitPause(
+  text: string,
+  baseline: SpeechPlanBaseline | null,
+  expression: EmotionExpressionPlan,
+): boolean {
+  if (internalPauseBoundaryCount(text) !== 1) return false;
+  if (['EXPLAIN', 'NEGOTIATE', 'TEASE', 'REMIND'].includes(expression.speechAct)) return false;
+  const combinedPauseFactor = (baseline?.pauseFactor || 1) * expression.pauseFactor;
+  return combinedPauseFactor >= 1.05;
+}
+
 export function instructionWeightedLength(value: string): number {
   return Array.from(value).reduce((sum, character) => sum + (/\p{Script=Han}/u.test(character) ? 2 : 1), 0);
 }
@@ -66,9 +117,9 @@ export function buildSpeechInstruction(
   expression: EmotionExpressionPlan | null = null,
 ): string {
   const defaultInstruction = INSTRUCTIONS[replyTone] || INSTRUCTIONS.PLAIN;
-  const emotionInstruction = expression?.instructionFragment
-    || COMPACT_TONE_INSTRUCTIONS[expression?.effectiveTone || replyTone]
-    || COMPACT_TONE_INSTRUCTIONS.PLAIN;
+  const emotionInstruction = expression
+    ? deliveryInstruction(expression)
+    : COMPACT_TONE_INSTRUCTIONS[replyTone] || COMPACT_TONE_INSTRUCTIONS.PLAIN;
   if (!baseline && !expression) return defaultInstruction;
   const candidates = baseline ? [
     `${baseline.instructionFragment}；${emotionInstruction}。`,
@@ -101,22 +152,28 @@ export function buildSpeechSynthesisPlan(
   volume: number;
   effectiveTone: ReplyTone;
   emotionIntensity: 0 | 1 | 2 | 3;
-  enableSsml: true;
+  enableSsml: boolean;
 } {
   const effectiveTone = expression?.effectiveTone || replyTone;
   const prosody = PROSODY[effectiveTone] || PROSODY.PLAIN;
-  const rate = Number(bounded(prosody.rate * (baseline?.rateFactor || 1) * (expression?.rateFactor || 1), 0.85, 1.15).toFixed(3));
+  const deliveryProsody = expression ? DELIVERY_PROSODY[expression.deliveryMode] : null;
+  const rate = Number(bounded((deliveryProsody?.rate || prosody.rate) * (baseline?.rateFactor || 1) * (expression?.rateFactor || 1), 0.85, 1.15).toFixed(3));
   const pitch = Number(bounded(prosody.pitch * (expression?.pitchFactor || 1), 0.95, 1.05).toFixed(3));
   const volume = Math.round(bounded(prosody.volume + (baseline?.volumeOffset || 0) + (expression?.volumeOffset || 0), 45, 55));
-  const breakMs = Math.round(bounded(prosody.breakMs * (baseline?.pauseFactor || 1) * (expression?.pauseFactor || 1), 70, 450));
+  const breakMs = Math.round(bounded(
+    (deliveryProsody?.breakMs || prosody.breakMs) * (baseline?.pauseFactor || 1) * (expression?.pauseFactor || 1),
+    70,
+    expression ? 260 : 450,
+  ));
+  const enableSsml = expression === null || shouldUseExplicitPause(text, baseline, expression);
   return {
-    text: `<speak rate="${rate}" pitch="${pitch}" volume="${volume}">${withFirstPause(text, breakMs)}</speak>`,
+    text: enableSsml ? `<speak rate="${rate}" pitch="${pitch}" volume="${volume}">${withFirstPause(text, breakMs)}</speak>` : text,
     instruction: buildSpeechInstruction(replyTone, baseline, expression),
     rate,
     pitch,
     volume,
     effectiveTone,
     emotionIntensity: expression?.intensity || 0,
-    enableSsml: true,
+    enableSsml,
   };
 }

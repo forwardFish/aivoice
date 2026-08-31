@@ -31,7 +31,7 @@ import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.j
 import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
-import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections } from './observed-person-evidence.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
 import { createChatProviderFromEnv } from './providers/chat-provider-factory.js';
 import type { ChatProviderPort } from './providers/chat-provider.js';
 import {
@@ -55,6 +55,7 @@ interface JobRow {
 
 interface JobRunnerDependencies {
   voiceProvider?: VoiceProviderPort;
+  registeredVoiceProvider?: VoiceProviderPort;
   chatProvider?: ChatProviderPort;
 }
 
@@ -82,12 +83,15 @@ async function sha256(filePath: string): Promise<string> {
 export class JobRunner {
   private readonly mediaRoot = path.resolve(process.env.MEDIA_LOCAL_ROOT || '../../.runtime/media');
   private readonly voiceProvider: VoiceProviderPort;
+  private registeredVoiceProvider: VoiceProviderPort | null;
   private readonly chatProvider: ChatProviderPort;
   private readonly pointCost: number;
   private stopping = false;
 
   constructor(private readonly database: WorkerDatabase, dependencies: JobRunnerDependencies = {}) {
     this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
+    this.registeredVoiceProvider = dependencies.registeredVoiceProvider
+      || (usesReferenceAudio(this.voiceProvider) ? null : this.voiceProvider);
     this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
     this.pointCost = generationPointCost();
   }
@@ -104,11 +108,13 @@ export class JobRunner {
 
   private async deleteProviderBinding(providerBinding: string): Promise<void> {
     if (!providerBinding || providerBinding.startsWith('reference/')) return;
-    if (!usesReferenceAudio(this.voiceProvider)) {
-      await this.voiceProvider.deleteVoice(providerBinding);
-      return;
-    }
-    await new AliyunCosyVoiceProvider().deleteVoice(providerBinding);
+    await this.registeredProvider().deleteVoice(providerBinding);
+  }
+
+  private registeredProvider(): VoiceProviderPort {
+    if (!this.registeredVoiceProvider) this.registeredVoiceProvider = new AliyunCosyVoiceProvider();
+    if (usesReferenceAudio(this.registeredVoiceProvider)) throw new Error('Registered voice provider cannot use reference-audio mode');
+    return this.registeredVoiceProvider;
   }
 
   private async acquire(): Promise<JobRow | null> {
@@ -253,6 +259,7 @@ export class JobRunner {
     });
     let providerBinding = '';
     let referencePersisted = false;
+    const registeredProvider = this.registeredProvider();
     try {
       const referenceProbe = await probeWav(referencePath);
       const quality = await inspectReferenceQuality(referencePath);
@@ -278,19 +285,15 @@ export class JobRunner {
         );
       }
       const previewText = process.env.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。';
-      providerBinding = usesReferenceAudio(this.voiceProvider)
-        ? referenceKey
-        : await this.voiceProvider.enroll(referencePath, `av${job.voice_profile_id.replaceAll('-', '').slice(0, 8)}`);
+      providerBinding = await registeredProvider.enroll(referencePath, `av${job.voice_profile_id.replaceAll('-', '').slice(0, 8)}`);
       const previewBytes = await this.voiceProvider.synthesize(
         usesReferenceAudio(this.voiceProvider) ? referencePath : providerBinding,
         previewText,
         {
           jobId: job.id,
-          replyTone: 'PLAIN',
-          ageYears: row.age_years,
-          gender: row.gender,
-          userAgeYears: row.user_age_years,
           relationshipType: row.relationship_type,
+          deliveryMode: 'CASUAL',
+          speechAct: 'REPLY',
         },
       );
       const previewKey = path.join('preview', row.user_id, `${job.voice_profile_id}.wav`).replaceAll('\\', '/');
@@ -324,8 +327,8 @@ export class JobRunner {
           [
             randomUUID(),
             job.voice_profile_id,
-            this.voiceProvider.providerName || 'aliyun-cosyvoice',
-            this.voiceProvider.targetModel,
+            registeredProvider.providerName || 'aliyun-cosyvoice',
+            registeredProvider.targetModel,
             encryptProviderId(providerBinding),
           ],
         );
@@ -341,9 +344,7 @@ export class JobRunner {
       }
       await fs.unlink(sourcePath).catch(() => undefined);
     } catch (error) {
-      if (providerBinding && !usesReferenceAudio(this.voiceProvider)) {
-        await this.voiceProvider.deleteVoice(providerBinding).catch(() => undefined);
-      }
+      if (providerBinding) await registeredProvider.deleteVoice(providerBinding).catch(() => undefined);
       throw error;
     } finally {
       await cleanupUnpersistedReference(referencePath, referencePersisted);
@@ -460,9 +461,9 @@ export class JobRunner {
     const message = result.rows[0];
     if (!message) throw new Error('message or ready voice model not found');
     const providerBinding = decryptProviderId(message.provider_voice_id_encrypted);
-    if (usesReferenceAudio(this.voiceProvider) && !providerBinding.startsWith('reference/')) {
+    if (usesReferenceAudio(this.voiceProvider) && !message.reference_object_key) {
       throw new SeedAudioGenerationError(
-        'Existing voice must be recreated before Seed Audio use',
+        'Existing voice has no retained reference audio for Seed Audio use',
         'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
       );
     }
@@ -573,10 +574,12 @@ export class JobRunner {
       personalityNote: message.personality_note,
       personalityTurnFocus,
     });
+    const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.quality_report);
+    const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.quality_report);
     const speechPlan = buildSpeechSynthesisPlan(
       speechTone,
       outputText,
-      speechPlanBaselineWithCorrections(observedPersonEvidence, message.quality_report),
+      speechBaseline,
       emotionExpression,
     );
     const synthesisReference = usesReferenceAudio(this.voiceProvider)
@@ -593,14 +596,10 @@ export class JobRunner {
       pitch: speechPlan.pitch,
       volume: speechPlan.volume,
       enableSsml: speechPlan.enableSsml,
-      replyTone: speechTone,
-      ageYears: message.age_years,
-      gender: message.gender,
-      userAgeYears: message.user_age_years,
       relationshipType: message.relationship_type,
-      interactionStance: interactionState?.action.stance || null,
-      emotionIntensity: speechPlan.emotionIntensity,
-      personalityStyle: emotionExpression.personalityStyle,
+      deliveryMode: emotionExpression.deliveryMode,
+      speechAct: emotionExpression.speechAct,
+      observedBaseline: voiceObservedBaseline,
     });
     const objectKey = path.join('generated', job.user_id, job.voice_profile_id, `${job.message_id}.wav`).replaceAll('\\', '/');
     const audioPath = this.safePath(objectKey);

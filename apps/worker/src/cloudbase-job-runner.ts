@@ -20,7 +20,7 @@ import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.j
 import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
-import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections } from './observed-person-evidence.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
 import {
   type SpeakerDiarizationReport,
 } from './providers/aliyun-speaker-diarization.js';
@@ -69,6 +69,7 @@ interface JobRow {
 export interface CloudBaseWorkerDependencies {
   runtime?: CloudBaseRuntimeClient;
   voiceProvider?: VoiceProviderPort;
+  registeredVoiceProvider?: VoiceProviderPort;
   chatProvider?: ChatProviderPort;
   speakerDetector?: SpeakerAnalysisProviderPort;
   temporaryRoot?: string;
@@ -113,6 +114,7 @@ function slowestStage(stages: Record<string, number>): { slowestStage: string; s
 export class CloudBaseJobRunner {
   private readonly runtime: CloudBaseRuntimeClient;
   private readonly voiceProvider: VoiceProviderPort;
+  private registeredVoiceProvider: VoiceProviderPort | null;
   private readonly chatProvider: ChatProviderPort;
   private readonly speakerDetector: SpeakerAnalysisProviderPort;
   private readonly temporaryRoot: string;
@@ -124,6 +126,8 @@ export class CloudBaseJobRunner {
   constructor(dependencies: CloudBaseWorkerDependencies = {}) {
     this.runtime = dependencies.runtime || cloudBaseRuntimeFromEnv();
     this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
+    this.registeredVoiceProvider = dependencies.registeredVoiceProvider
+      || (usesReferenceAudio(this.voiceProvider) ? null : this.voiceProvider);
     this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
     this.speakerDetector = dependencies.speakerDetector || createSpeakerAnalysisProviderFromEnv();
     this.temporaryRoot = path.resolve(dependencies.temporaryRoot || process.env.WORKER_TEMP_ROOT || '/tmp/aivoice');
@@ -233,21 +237,18 @@ export class CloudBaseJobRunner {
     let providerBinding = '';
     let finalized = false;
     const uploaded: Array<{ bucket: string; key: string }> = [];
+    const registeredProvider = this.registeredProvider();
     try {
       const previewText = process.env.VOICE_PREVIEW_TEXT || '你好，好久不见。愿你今天也有一个温暖的好心情。';
-      if (!usesReferenceAudio(this.voiceProvider)) {
-        providerBinding = await this.voiceProvider.enroll(referencePath, `av${job.voiceProfileId.replaceAll('-', '').slice(0, 8)}`);
-      }
+      providerBinding = await registeredProvider.enroll(referencePath, `av${job.voiceProfileId.replaceAll('-', '').slice(0, 8)}`);
       await fs.writeFile(previewPath, await this.voiceProvider.synthesize(
         usesReferenceAudio(this.voiceProvider) ? referencePath : providerBinding,
         previewText,
         {
           jobId: job.id,
-          replyTone: 'PLAIN',
-          ageYears: input.ageYears,
-          gender: input.gender,
-          userAgeYears: input.userAgeYears,
           relationshipType: input.relationshipType,
+          deliveryMode: 'CASUAL',
+          speechAct: 'REPLY',
         },
       ));
       const [referenceProbe, previewProbe, referenceHash, previewHash] = await Promise.all([
@@ -260,7 +261,6 @@ export class CloudBaseJobRunner {
       const previewKey = `preview/${input.userId}/${job.voiceProfileId}.wav`;
       const referenceStoredKey = await this.runtime.uploadFile(this.audioBucket, referenceKey, referencePath, 'audio/wav');
       uploaded.push({ bucket: this.audioBucket, key: referenceStoredKey });
-      if (usesReferenceAudio(this.voiceProvider)) providerBinding = referenceStoredKey;
       const previewStoredKey = await this.runtime.uploadFile(this.audioBucket, previewKey, previewPath, 'audio/wav');
       uploaded.push({ bucket: this.audioBucket, key: previewStoredKey });
       await this.runtime.rpc('rpc_voice_processing_finalize', {
@@ -276,8 +276,8 @@ export class CloudBaseJobRunner {
         pPreviewBytes: previewProbe.bytes,
         pPreviewDurationMs: previewProbe.durationMs,
         pPreviewSha256: previewHash,
-        pProvider: this.voiceProvider.providerName || 'aliyun-cosyvoice',
-        pTargetModel: this.voiceProvider.targetModel,
+        pProvider: registeredProvider.providerName || 'aliyun-cosyvoice',
+        pTargetModel: registeredProvider.targetModel,
         pProviderVoiceIdEncrypted: encryptProviderId(providerBinding),
         pQualityReport: qualityReport,
       });
@@ -294,9 +294,7 @@ export class CloudBaseJobRunner {
     } catch (error) {
       if (!finalized) {
         await Promise.all(uploaded.map((item) => this.deleteObject(item.bucket, item.key).catch(() => undefined)));
-        if (providerBinding && !usesReferenceAudio(this.voiceProvider)) {
-          await this.voiceProvider.deleteVoice(providerBinding).catch(() => undefined);
-        }
+        if (providerBinding) await registeredProvider.deleteVoice(providerBinding).catch(() => undefined);
       }
       throw error;
     }
@@ -349,13 +347,14 @@ export class CloudBaseJobRunner {
       speechHabitNote: string;
       qualityReport: unknown;
       providerVoiceIdEncrypted: string;
+      referenceObjectKey: string;
         history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string; interactionState?: unknown }>;
       } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
       mode = message.mode;
       const providerBinding = decryptProviderId(message.providerVoiceIdEncrypted);
-      if (usesReferenceAudio(this.voiceProvider) && !providerBinding.startsWith('reference/')) {
+      if (usesReferenceAudio(this.voiceProvider) && !message.referenceObjectKey) {
         throw new SeedAudioGenerationError(
-          'Existing voice must be recreated before Seed Audio use',
+          'Existing voice has no retained reference audio for Seed Audio use',
           'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
         );
       }
@@ -492,16 +491,18 @@ export class CloudBaseJobRunner {
         personalityNote: message.personalityNote,
         personalityTurnFocus,
       });
+      const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
+      const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
       const speechPlan = buildSpeechSynthesisPlan(
         speechTone,
         outputText,
-        speechPlanBaselineWithCorrections(observedPersonEvidence, message.qualityReport),
+        speechBaseline,
         emotionExpression,
       );
       let synthesisReference = providerBinding;
       if (usesReferenceAudio(this.voiceProvider)) {
         synthesisReference = path.join(workDir, 'reference.wav');
-        await measure('download_reference', () => this.download(this.audioBucket, providerBinding, synthesisReference));
+        await measure('download_reference', () => this.download(this.audioBucket, message.referenceObjectKey, synthesisReference));
       }
       const audio = await measure('voice_synthesis_download', () => this.voiceProvider.synthesize(
         synthesisReference,
@@ -514,14 +515,10 @@ export class CloudBaseJobRunner {
           pitch: speechPlan.pitch,
           volume: speechPlan.volume,
           enableSsml: speechPlan.enableSsml,
-          replyTone: speechTone,
-          ageYears: message.ageYears,
-          gender: message.gender,
-          userAgeYears: message.userAgeYears,
           relationshipType: message.relationshipType,
-          interactionStance: interactionState?.action.stance || null,
-          emotionIntensity: speechPlan.emotionIntensity,
-          personalityStyle: emotionExpression.personalityStyle,
+          deliveryMode: emotionExpression.deliveryMode,
+          speechAct: emotionExpression.speechAct,
+          observedBaseline: voiceObservedBaseline,
         },
       ));
       await measure('write_audio', () => fs.writeFile(audioPath, audio));
@@ -602,13 +599,15 @@ export class CloudBaseJobRunner {
     }
   }
 
+  private registeredProvider(): VoiceProviderPort {
+    if (!this.registeredVoiceProvider) this.registeredVoiceProvider = new AliyunCosyVoiceProvider();
+    if (usesReferenceAudio(this.registeredVoiceProvider)) throw new Error('Registered voice provider cannot use reference-audio mode');
+    return this.registeredVoiceProvider;
+  }
+
   private async deleteProviderBinding(providerBinding: string): Promise<void> {
     if (!providerBinding || providerBinding.startsWith('reference/')) return;
-    if (!usesReferenceAudio(this.voiceProvider)) {
-      await this.voiceProvider.deleteVoice(providerBinding);
-      return;
-    }
-    await new AliyunCosyVoiceProvider().deleteVoice(providerBinding);
+    await this.registeredProvider().deleteVoice(providerBinding);
   }
 
   private async deleteVoice(job: JobRow): Promise<void> {

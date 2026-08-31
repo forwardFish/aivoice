@@ -117,7 +117,7 @@ const envVariables = {
   DEEPSEEK_API_KEY: localEnv.DEEPSEEK_API_KEY || '',
   DEEPSEEK_API_HOST: localEnv.DEEPSEEK_API_HOST || 'https://api.deepseek.com',
   DEEPSEEK_CHAT_MODEL: localEnv.DEEPSEEK_CHAT_MODEL || 'deepseek-chat',
-  AIVOICE_VOICE_PROVIDER: localEnv.AIVOICE_VOICE_PROVIDER || 'volcengine-seed-audio',
+  AIVOICE_VOICE_PROVIDER: localEnv.AIVOICE_VOICE_PROVIDER || 'aliyun-cosyvoice',
   VOLCENGINE_SEED_AUDIO_API_KEY: localEnv.VOLCENGINE_SEED_AUDIO_API_KEY || localEnv.BYTEPLUS_SEED_AUDIO_API_KEY || '',
   VOLCENGINE_SEED_AUDIO_BASE_URL: localEnv.VOLCENGINE_SEED_AUDIO_BASE_URL || 'https://openspeech.bytedance.com',
   SEED_AUDIO_MODEL: localEnv.SEED_AUDIO_MODEL || 'seed-audio-1.0',

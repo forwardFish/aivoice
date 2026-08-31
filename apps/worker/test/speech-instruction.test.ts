@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { REPLY_TONES } from '../src/chat/interaction-state.js';
+import { buildEmotionExpressionPlan } from '../src/emotion-expression.js';
 import { buildSpeechInstruction, buildSpeechSynthesisPlan, instructionWeightedLength } from '../src/speech-instruction.js';
 
 test('every reply tone maps to a bounded CosyVoice instruction', () => {
@@ -71,4 +72,20 @@ test('explicit tone correction remains within the CosyVoice instruction limit', 
   });
   assert.match(instruction, /校准：情绪时音量更低/);
   assert.ok(instructionWeightedLength(instruction) <= 100);
+});
+
+test('explicit pause is decided from each person baseline, sentence shape and speech act instead of emotion names', () => {
+  const casual = buildEmotionExpressionPlan({ replyTone: 'PLAIN', text: '我知道啦，马上回来。', interactionState: null });
+  const sad = buildEmotionExpressionPlan({ replyTone: 'SAD_OR_HURT', text: '你刚才那样说，我有点难受。', interactionState: null });
+  const hardSoft = buildEmotionExpressionPlan({
+    replyTone: 'MIXED', text: '我才没有担心你，就是回来看看。', interactionState: null,
+    personalityNote: '嘴硬心软：担心时不会直接承认。',
+  });
+  const manyPauses = { rateFactor: 1, pauseFactor: 1.22, volumeOffset: 0, instructionFragment: '原口音咬字；中速、多停顿' };
+  const fewPauses = { rateFactor: 1, pauseFactor: 0.82, volumeOffset: 0, instructionFragment: '原口音咬字；中速、少停顿' };
+
+  assert.equal(buildSpeechSynthesisPlan('PLAIN', '我知道啦，马上回来。', manyPauses, casual).enableSsml, true);
+  assert.equal(buildSpeechSynthesisPlan('SAD_OR_HURT', '你刚才那样说，我有点难受。', fewPauses, sad).enableSsml, false);
+  assert.equal(buildSpeechSynthesisPlan('MIXED', '我才没有担心你，就是回来看看。', manyPauses, hardSoft).enableSsml, false);
+  assert.equal(buildSpeechSynthesisPlan('SAD_OR_HURT', '我有点难受。', manyPauses, sad).enableSsml, false);
 });

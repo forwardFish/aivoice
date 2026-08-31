@@ -3,7 +3,7 @@ import { VolcengineSeedAudioProvider } from './volcengine-seed-audio.js';
 import type { VoiceProviderPort } from './voice-provider.js';
 
 export function createVoiceProviderFromEnv(): VoiceProviderPort {
-  const configured = String(process.env.AIVOICE_VOICE_PROVIDER || 'volcengine-seed-audio').trim().toLowerCase();
+  const configured = String(process.env.AIVOICE_VOICE_PROVIDER || 'aliyun-cosyvoice').trim().toLowerCase();
   if (configured === 'volcengine-seed-audio' || configured === 'seed-audio') {
     return new VolcengineSeedAudioProvider();
   }

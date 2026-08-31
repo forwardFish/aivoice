@@ -1,5 +1,6 @@
 import type { ConversationInteractionState, ReplyTone } from './chat/interaction-state.js';
 import type { PersonalityTurnFocus } from './chat/personality-turn-focus.js';
+import type { VoiceDeliveryMode, VoiceSpeechAct } from './providers/voice-provider.js';
 
 export interface EmotionExpressionPlan {
   requestedTone: ReplyTone;
@@ -12,6 +13,8 @@ export interface EmotionExpressionPlan {
   instructionFragment: string;
   alignmentAdjusted: boolean;
   personalityStyle: string;
+  deliveryMode: VoiceDeliveryMode;
+  speechAct: VoiceSpeechAct;
 }
 
 const TONE_TEXT_EVIDENCE: Partial<Record<ReplyTone, RegExp>> = {
@@ -19,7 +22,7 @@ const TONE_TEXT_EVIDENCE: Partial<Record<ReplyTone, RegExp>> = {
   CONCERNED: /担心|小心|慢点|注意|还好吗|没事吧|疼|不舒服|生病|发烧|安全|到家/u,
   LOW_ENERGY: /累|困|没力气|没精神|休息|睡|撑不住/u,
   UNEASY: /不安|紧张|害怕|担心|有点慌|不知道|不确定|怎么办|怕|不好意思|别夸|尴尬/u,
-  SAD_OR_HURT: /难过|伤心|委屈|受伤|心疼|舍不得|想哭|哭|心里堵|不好受|疼/u,
+  SAD_OR_HURT: /难过|难受|伤心|委屈|受伤|心疼|舍不得|想哭|哭|心里堵|不好受|疼/u,
   IRRITATED: /不高兴|生气|烦|不爽|过分|受不了|别|又|还要|才说|非要|凭什么|怎么能|为什么|不舒服|我的事|替我决定|听我说完|先问我/u,
 };
 
@@ -61,6 +64,29 @@ function emotionIntensity(tone: ReplyTone, text: string, state: ConversationInte
   if (STRONG_EMOTION.test(text)) intensity = Math.max(intensity, 2);
   if (VERY_STRONG_EMOTION.test(text)) intensity = 3;
   return clamp(Math.round(intensity), 1, 3) as 1 | 2 | 3;
+}
+
+function deliveryMode(tone: ReplyTone, personalityStyle: string): VoiceDeliveryMode {
+  if (personalityStyle === 'PLAYFUL_PLAIN' || personalityStyle === 'PLAYFUL_POSITIVE') return 'PLAYFUL_LIGHT';
+  if (personalityStyle === 'RESTRAINED_IRRITATED') return 'QUIET_UNEASY';
+  if (tone === 'POSITIVE') return 'BRIGHT_LIGHT';
+  if (tone === 'CONCERNED') return 'PRACTICAL_CARE';
+  if (tone === 'LOW_ENERGY' || tone === 'UNEASY') return 'QUIET_UNEASY';
+  if (tone === 'SAD_OR_HURT') return 'SOFT_HURT';
+  if (tone === 'IRRITATED' || personalityStyle === 'HARD_SOFT_MIXED') return 'DIRECT_TENSE';
+  return 'CASUAL';
+}
+
+function speechAct(state: ConversationInteractionState | null, personalityStyle: string): VoiceSpeechAct {
+  if (personalityStyle === 'PLAYFUL_PLAIN' || personalityStyle === 'PLAYFUL_POSITIVE') return 'TEASE';
+  if (personalityStyle === 'ACTION_CARE' || personalityStyle === 'NAGGING_CARE') return 'REMIND';
+  if (personalityStyle === 'HARD_SOFT_MIXED' || personalityStyle === 'AUTONOMY_IRRITATED') return 'EXPLAIN';
+  const stance = state?.action.stance || 'RESPOND';
+  if (stance === 'SHARE') return 'SHARE';
+  if (stance === 'ASK') return 'ASK';
+  if (stance === 'ACCEPT' || stance === 'PARTIAL_ACCEPT' || stance === 'REPAIR') return 'AGREE';
+  if (stance === 'NEGOTIATE' || stance === 'DISAGREE' || stance === 'SET_BOUNDARY' || stance === 'DEFER') return 'NEGOTIATE';
+  return 'REPLY';
 }
 
 export function buildEmotionExpressionPlan(input: {
@@ -188,5 +214,7 @@ export function buildEmotionExpressionPlan(input: {
     instructionFragment,
     alignmentAdjusted: effectiveTone !== requestedTone,
     personalityStyle,
+    deliveryMode: deliveryMode(effectiveTone, personalityStyle),
+    speechAct: speechAct(input.interactionState, personalityStyle),
   };
 }

@@ -1,8 +1,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
-import type { ReplyTone } from '../chat/interaction-state.js';
 import type { VoiceRelationshipType } from '../chat/voice-chat-context.js';
-import type { VoiceProviderPort, VoiceSynthesisOptions } from './voice-provider.js';
+import type {
+  VoiceDeliveryMode,
+  VoiceObservedDeliveryBaseline,
+  VoiceProviderPort,
+  VoiceSpeechAct,
+  VoiceSynthesisOptions,
+} from './voice-provider.js';
 
 const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -30,102 +35,71 @@ export class SeedAudioGenerationError extends Error {
   }
 }
 
-function speakerDescription(options: VoiceSynthesisOptions): string {
-  const age = Number(options.ageYears || 0);
-  const child = age > 0 && age < 18;
-  const person = options.gender === 'MALE'
-    ? child ? '男孩' : '男性'
-    : options.gender === 'FEMALE'
-      ? child ? '女孩' : '女性'
-      : '人物';
-  return age > 0 ? `${age}岁${person}` : person;
-}
-
-function counterpartDescription(
-  relationship: VoiceRelationshipType | null | undefined,
-  userAgeYears: number | null | undefined,
-): string {
-  const userIsChild = Number(userAgeYears || 0) > 0 && Number(userAgeYears) < 18;
+function counterpartDescription(relationship: VoiceRelationshipType | null | undefined): string {
   const values: Record<VoiceRelationshipType, string> = {
     SELF: '熟悉的人',
-    MOTHER: userIsChild ? '自己的孩子' : '已经长大的孩子',
-    FATHER: userIsChild ? '自己的孩子' : '已经长大的孩子',
-    GRANDMOTHER: '自己的晚辈',
-    GRANDFATHER: '自己的晚辈',
-    CHILD: '自己的父母',
-    PARTNER: '自己的伴侣',
-    FRIEND: '自己的朋友',
+    MOTHER: '孩子',
+    FATHER: '孩子',
+    GRANDMOTHER: '晚辈',
+    GRANDFATHER: '晚辈',
+    CHILD: '父母',
+    PARTNER: '伴侣',
+    FRIEND: '朋友',
     OTHER: '熟悉的人',
   };
   return relationship ? values[relationship] : '熟悉的人';
 }
 
-function plainScene(options: VoiceSynthesisOptions): string {
-  const speaker = speakerDescription(options);
-  const counterpart = counterpartDescription(options.relationshipType, options.userAgeYears);
-  if (options.interactionStance === 'ACCEPT' || options.interactionStance === 'PARTIAL_ACCEPT') {
-    return `${speaker}随口回应${counterpart}一件小事。`;
-  }
-  if (options.interactionStance === 'ASK') return `${speaker}随口问${counterpart}一件事。`;
-  if (options.interactionStance === 'DISAGREE' || options.interactionStance === 'SET_BOUNDARY') {
-    return `${speaker}平静地回应${counterpart}。`;
-  }
-  return `${speaker}和${counterpart}说一句日常话。`;
+const DELIVERY_INSTRUCTIONS: Record<VoiceDeliveryMode, string> = {
+  CASUAL: '连贯地说，句尾干净',
+  BRIGHT_LIGHT: '自然开心，带一点笑意，不夸张',
+  DIRECT_TENSE: '轻微不满，关键词稍重，句尾短，不喊不拖',
+  QUIET_UNEASY: '声音稍收，少停顿，连着说，不用气声',
+  SOFT_HURT: '有点难受，声音放轻，句尾收住，不用哭腔',
+  PLAYFUL_LIGHT: '带一点笑意，不故意扬尾，不搞怪',
+  PRACTICAL_CARE: '认真但自然，不用安慰腔，不说教',
+};
+
+function speechActInstruction(act: VoiceSpeechAct, counterpart: string): string {
+  const values: Record<VoiceSpeechAct, string> = {
+    REPLY: `直接回应${counterpart}`,
+    AGREE: `接住${counterpart}的话并自然回应`,
+    ASK: `顺口问${counterpart}一句`,
+    EXPLAIN: `直接向${counterpart}补一句原因`,
+    NEGOTIATE: `直接和${counterpart}说清自己的想法`,
+    TEASE: `顺口调侃${counterpart}一句`,
+    REMIND: `顺口提醒${counterpart}一句`,
+    SHARE: `和${counterpart}分享一句`,
+  };
+  return values[act];
 }
 
-function intensityWord(options: VoiceSynthesisOptions): string {
-  if (options.emotionIntensity === 1) return '有一点';
-  if (options.emotionIntensity === 3) return '很';
-  return '有些';
-}
-
-function emotionScene(replyTone: ReplyTone, options: VoiceSynthesisOptions): string {
-  const speaker = speakerDescription(options);
-  const counterpart = counterpartDescription(options.relationshipType, options.userAgeYears);
-  const intensity = intensityWord(options);
-  const style = String(options.personalityStyle || 'NEUTRAL');
-  if (style === 'SURPRISED_POSITIVE') return `${speaker}听到意外的好消息，起句是真实惊喜，随后自然开心地回应${counterpart}，不尖叫。`;
-  if (style === 'EMBARRASSED_UNEASY') return `${speaker}被${counterpart}夸奖后有点不好意思，声音稍微收一点，短暂停一下再回应，不装可爱。`;
-  if (style === 'AUTONOMY_IRRITATED') return `${speaker}不喜欢${counterpart}替自己决定，先直接争取把话说完，但不喊叫。`;
-  if (style === 'PLAYFUL_PLAIN' || style === 'PLAYFUL_POSITIVE') {
-    const playful = Number(options.ageYears || 0) > 0 && Number(options.ageYears) < 18
-      ? '带一点调皮地'
-      : '带着笑意';
-    return `${speaker}${playful}调侃${counterpart}一句，像熟人之间顺口开的玩笑，不故意搞怪。`;
-  }
-  if (replyTone === 'POSITIVE') {
-    return options.interactionStance === 'SHARE'
-      ? `${speaker}${intensity}开心，和${counterpart}分享一件事。`
-      : `${speaker}听到让自己开心的话，自然回应${counterpart}。`;
-  }
-  if (replyTone === 'CONCERNED') {
-    if (style === 'ACTION_CARE') return `${speaker}注意到${counterpart}当前有些累，用一件具体小事表达关心，不煽情。`;
-    if (style === 'NAGGING_CARE') return `${speaker}因为担心${counterpart}，围绕当前一件具体小事多提醒一句，但不说教。`;
-    return options.interactionStance === 'ASK'
-      ? `${speaker}注意到${counterpart}当前的情况，顺口关心地问一句。`
-      : `${speaker}认真关心${counterpart}，直接回应当前这件事。`;
-  }
-  if (replyTone === 'LOW_ENERGY') return `${speaker}当前${intensity}累，简短回应${counterpart}。`;
-  if (replyTone === 'UNEASY') return `${speaker}对当前这件事${intensity}不安，犹豫着回应${counterpart}。`;
-  if (replyTone === 'SAD_OR_HURT') return `${speaker}因为当前这件事${intensity}难受，直接对${counterpart}说出感受。`;
-  if (replyTone === 'IRRITATED') {
-    if (style === 'RESTRAINED_IRRITATED') return `${speaker}压着对当前事情的不高兴，停一下再回应${counterpart}，不喊叫。`;
-    if (style === 'QUICK_IRRITATED' || style === 'QUICK_DIRECT_IRRITATED') {
-      return `${speaker}因为当前事情突然不高兴，开头直接，语气短促地回应${counterpart}，但不提高音量。`;
-    }
-    return `${speaker}针对当前这件事${intensity}不高兴，直接回应${counterpart}，但不是争吵。`;
-  }
-  if (replyTone === 'MIXED') {
-    if (style === 'HARD_SOFT_MIXED') return `${speaker}先简短否认，紧接着说明自己在意的原因，语气自然变软，不拖腔。`;
-    if (style === 'FAST_RECOVERY_MIXED') return `${speaker}前半句留一点不满，随后很快恢复普通语气，继续回应${counterpart}。`;
-    return `${speaker}先表达一点不满，随后自然把话收回来，继续回应${counterpart}。`;
-  }
-  return plainScene(options);
+function observedBaselineInstruction(baseline: VoiceObservedDeliveryBaseline | null | undefined): string {
+  if (!baseline) return '保持本人原来的说话节奏。';
+  const cues = [
+    baseline.speechRate === 'FAST' ? '语速偏快' : baseline.speechRate === 'SLOW' ? '语速偏慢' : '',
+    baseline.pauseStyle === 'LOW' ? '少停顿' : baseline.pauseStyle === 'HIGH' ? '停顿稍多' : '',
+    baseline.pitchStyle === 'NARROW' ? '语调起伏较小' : baseline.pitchStyle === 'WIDE' ? '语调自然起伏' : '',
+    baseline.sentenceEndingStyle === 'FALLING' ? '句尾下收' : baseline.sentenceEndingStyle === 'RISING' ? '句尾微扬' : baseline.sentenceEndingStyle === 'LEVEL' ? '句尾平稳' : '',
+    baseline.volumeDynamicsStyle === 'FLAT' ? '音量较稳' : baseline.volumeDynamicsStyle === 'DYNAMIC' ? '保留自然强弱' : '',
+  ].filter(Boolean).slice(0, 3);
+  const corrections = {
+    SPEAK_SLOWER: '语速放慢一点',
+    SPEAK_FASTER: '语速快一点',
+    PAUSE_MORE: '停顿多一点',
+    PAUSE_LESS: '停顿少一点',
+    VOLUME_SOFTER: '情绪起来时音量不要变大',
+    VOLUME_STRONGER: '情绪起来时音量可以稍强',
+    PITCH_FLATTER: '语调起伏小一点',
+    PITCH_MORE_DYNAMIC: '语调起伏自然一些',
+  } as const;
+  const habit = cues.length ? `保持本人${cues.join('、')}的说话习惯。` : '保持本人原来的说话节奏。';
+  return baseline.correction ? `${habit}${corrections[baseline.correction]}。` : habit;
 }
 
 export function seedAudioSynthesisText(text: string, options: VoiceSynthesisOptions = {}): string {
   const normalized = String(text || '').trim();
-  if (options.personalityStyle === 'HARD_SOFT_MIXED') {
+  if (options.deliveryMode === 'DIRECT_TENSE' && options.speechAct === 'EXPLAIN') {
     return normalized.replace(/(?:……|…{2,})/gu, '，');
   }
   return normalized;
@@ -134,15 +108,13 @@ export function seedAudioSynthesisText(text: string, options: VoiceSynthesisOpti
 export function buildSeedAudioPrompt(text: string, options: VoiceSynthesisOptions = {}): string {
   const exactText = seedAudioSynthesisText(text, options);
   if (!exactText) throw new SeedAudioGenerationError('Seed Audio text is empty', 'SEED_AUDIO_TEXT_EMPTY');
-  const explicitScene = String(options.sceneInstruction || '').trim();
-  const replyTone = options.replyTone || 'PLAIN';
-  const personalityOwnsPlain = options.personalityStyle === 'PLAYFUL_PLAIN';
-  const scene = explicitScene
-    ? `${explicitScene.replace(/[。；;]+$/u, '')}。`
-    : replyTone === 'PLAIN' && !personalityOwnsPlain
-      ? plainScene(options)
-      : emotionScene(replyTone, options);
-  return `使用@Audio1的声音。${scene}只说这一句：『${exactText}』像平时说话一样自然，不播音，不表演。只生成人声，不要音乐，不要环境音效。`;
+  const deliveryMode = options.deliveryMode || 'CASUAL';
+  const speechAct = options.speechAct || 'REPLY';
+  const counterpart = counterpartDescription(options.relationshipType);
+  const baseline = observedBaselineInstruction(options.observedBaseline);
+  const act = speechActInstruction(speechAct, counterpart);
+  const delivery = DELIVERY_INSTRUCTIONS[deliveryMode];
+  return `使用@Audio1的声音。${baseline}${act}。${delivery}。只说：『${exactText}』自然说，不播报不表演；只生成人声。`;
 }
 
 function apiKey(): string {
