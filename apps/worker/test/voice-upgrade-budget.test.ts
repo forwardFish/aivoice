@@ -57,3 +57,12 @@ test('CloudBase budget reservation enforces the rolling window and prevents a re
   assert.match(source, /idempotent',true/);
   assert.match(source, /allowed',false,'reserved',false,'idempotent',true/);
 });
+
+test('worker deployment supports explicit selective-parallel and budget overrides without editing local secrets', () => {
+  for (const relative of ['../../../scripts/deploy/cloudbase-worker-function.mjs', '../../../scripts/deploy/cloudbase-worker-compact.mjs']) {
+    const source = fs.readFileSync(path.resolve(import.meta.dirname, relative), 'utf8');
+    assert.match(source, /process\.env\.AIVOICE_VOICE_STRATEGY \|\| localEnv\.AIVOICE_VOICE_STRATEGY/);
+    assert.match(source, /process\.env\.AIVOICE_SEED_AUDIO_BUDGET_WINDOW \|\| localEnv\.AIVOICE_SEED_AUDIO_BUDGET_WINDOW/);
+    assert.match(source, /process\.env\.AIVOICE_SEED_AUDIO_BUDGET_LIMIT \|\| localEnv\.AIVOICE_SEED_AUDIO_BUDGET_LIMIT/);
+  }
+});
