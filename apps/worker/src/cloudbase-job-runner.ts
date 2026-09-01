@@ -20,6 +20,7 @@ import { inspectReferenceQuality, inspectSentenceFinalProsody, ReferenceQualityE
 import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
+import { createVoiceDeliveryPlan } from './voice-delivery-plan.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
 import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
 import {
@@ -586,24 +587,29 @@ export class CloudBaseJobRunner {
       });
       const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
       const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
+      const deliveryPlan = createVoiceDeliveryPlan(emotionExpression);
       const speechPlan = buildSpeechSynthesisPlan(
         speechTone,
         outputText,
         speechBaseline,
         emotionExpression,
+        deliveryPlan,
       );
       const synthesisOptions = {
           jobId: job.id,
           messageId: job.messageId || '',
           instruction: speechPlan.instruction,
-          rate: speechPlan.rate,
-          pitch: speechPlan.pitch,
-          volume: speechPlan.volume,
+          ...(speechPlan.applyAcousticOverrides ? {
+            rate: speechPlan.rate,
+            pitch: speechPlan.pitch,
+            volume: speechPlan.volume,
+          } : {}),
           enableSsml: speechPlan.enableSsml,
           relationshipType: message.relationshipType,
           deliveryMode: emotionExpression.deliveryMode,
           speechAct: emotionExpression.speechAct,
           observedBaseline: voiceObservedBaseline,
+          deliveryPlan,
       };
       const referencePath = path.join(workDir, 'reference.wav');
       const generationSession = await measure('voice_generation_primary', () => this.voiceGenerationCoordinator.generate({

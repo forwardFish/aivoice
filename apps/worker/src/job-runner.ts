@@ -31,6 +31,7 @@ import { cleanupUnpersistedReference, inspectReferenceQuality, ReferenceQualityE
 import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
+import { createVoiceDeliveryPlan } from './voice-delivery-plan.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
 import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
 import { createChatProviderFromEnv } from './providers/chat-provider-factory.js';
@@ -697,24 +698,29 @@ export class JobRunner {
     });
     const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.quality_report);
     const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.quality_report);
+    const deliveryPlan = createVoiceDeliveryPlan(emotionExpression);
     const speechPlan = buildSpeechSynthesisPlan(
       speechTone,
       outputText,
       speechBaseline,
       emotionExpression,
+      deliveryPlan,
     );
     const synthesisOptions = {
       jobId: job.id,
       messageId: job.message_id,
       instruction: speechPlan.instruction,
-      rate: speechPlan.rate,
-      pitch: speechPlan.pitch,
-      volume: speechPlan.volume,
+      ...(speechPlan.applyAcousticOverrides ? {
+        rate: speechPlan.rate,
+        pitch: speechPlan.pitch,
+        volume: speechPlan.volume,
+      } : {}),
       enableSsml: speechPlan.enableSsml,
       relationshipType: message.relationship_type,
       deliveryMode: emotionExpression.deliveryMode,
       speechAct: emotionExpression.speechAct,
       observedBaseline: voiceObservedBaseline,
+      deliveryPlan,
     };
     const referencePath = this.safePath(message.reference_object_key);
     const generationSession = await this.voiceGenerationCoordinator.generate({

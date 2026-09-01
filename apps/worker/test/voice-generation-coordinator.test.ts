@@ -72,7 +72,7 @@ test('selective parallel invokes registered and every companion only for express
     ],
   };
   const coordinator = new VoiceGenerationCoordinator(registry, () => 'SELECTIVE_PARALLEL');
-  const strong = buildEmotionExpressionPlan({ replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null });
+  const strong = buildEmotionExpressionPlan({ replyTone: 'IRRITATED', text: '你总是替我决定，我真的受不了了。', interactionState: null });
   const generated = await coordinator.generate(request(strong, async () => { referenceResolves += 1; return 'reference.wav'; }));
   await generated.bestUpgrade;
   assert.deepEqual(calls.sort(), ['companion-a:reference.wav', 'companion-b:reference.wav', 'registered:speaker-id']);
@@ -100,7 +100,7 @@ test('selective parallel skips a companion denied by its independent budget with
     ],
   };
   const expression = buildEmotionExpressionPlan({
-    replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null,
+    replyTone: 'IRRITATED', text: '你总是替我决定，我真的受不了了。', interactionState: null,
   });
   const input = request(expression, async () => { referenceResolves += 1; return 'reference.wav'; });
   const generated = await new VoiceGenerationCoordinator(registry, () => 'SELECTIVE_PARALLEL').generate({
@@ -145,7 +145,7 @@ test('budget reservation never delays the registered primary provider', async ()
     companions: [{ id: 'volcengine-seed-audio', qualityRank: 100, provider: seed }],
   };
   const expression = buildEmotionExpressionPlan({
-    replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null,
+    replyTone: 'IRRITATED', text: '你总是替我决定，我真的受不了了。', interactionState: null,
   });
   let releaseBudget!: () => void;
   const budgetPending = new Promise<void>((resolve) => { releaseBudget = resolve; });
@@ -175,7 +175,7 @@ test('selective parallel falls back to the registered provider when the companio
     registered: { id: 'registered', qualityRank: 10, provider: registered },
     companions: [{ id: 'companion', qualityRank: 100, provider: companion }],
   };
-  const strong = buildEmotionExpressionPlan({ replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null });
+  const strong = buildEmotionExpressionPlan({ replyTone: 'IRRITATED', text: '你总是替我决定，我真的受不了了。', interactionState: null });
   const generated = await new VoiceGenerationCoordinator(registry, () => 'SELECTIVE_PARALLEL').generate({
     ...request(strong, async () => 'reference.wav'),
     allowCompanion: async () => false,

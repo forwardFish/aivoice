@@ -47,6 +47,10 @@ export function shouldUseParallelVoice(input: {
   expression: EmotionExpressionPlan;
 }): boolean {
   if (input.mode !== 'CHAT') return false;
+  // Real listening acceptance found CosyVoice consistently more natural for
+  // hurt delivery. Do not let a slower Seed result overwrite that accepted
+  // provider choice merely because the emotion is strong.
+  if (input.expression.effectiveTone === 'SAD_OR_HURT') return false;
   if (input.expression.intensity >= 2) return true;
   if (input.expression.speechAct === 'TEASE') return true;
   if (input.expression.personalityStyle === 'HARD_SOFT_MIXED') return true;

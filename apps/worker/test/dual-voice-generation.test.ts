@@ -5,17 +5,19 @@ import { shouldUseParallelVoice, startVoiceGeneration, voiceGenerationStrategy }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-test('strong or expressively complex chat replies trigger Seed while ordinary and exact speech do not', () => {
+test('strong or expressively complex chat replies trigger Seed except accepted CosyVoice hurt delivery', () => {
   const plain = buildEmotionExpressionPlan({ replyTone: 'PLAIN', text: '我知道了。', interactionState: null });
-  const strong = buildEmotionExpressionPlan({ replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null });
+  const strong = buildEmotionExpressionPlan({ replyTone: 'IRRITATED', text: '你总是替我决定，我真的受不了了。', interactionState: null });
+  const hurt = buildEmotionExpressionPlan({ replyTone: 'SAD_OR_HURT', text: '我真的忍不住哭了。', interactionState: null });
   const hardSoft = buildEmotionExpressionPlan({
     replyTone: 'MIXED', text: '我才没担心你，就是回来看看。', interactionState: null,
     personalityNote: '嘴硬心软：担心时不会直接承认。',
   });
   assert.equal(shouldUseParallelVoice({ mode: 'CHAT', text: '我知道了。', expression: plain }), false);
-  assert.equal(shouldUseParallelVoice({ mode: 'CHAT', text: '我真的忍不住哭了。', expression: strong }), true);
+  assert.equal(shouldUseParallelVoice({ mode: 'CHAT', text: '你总是替我决定，我真的受不了了。', expression: strong }), true);
+  assert.equal(shouldUseParallelVoice({ mode: 'CHAT', text: '我真的忍不住哭了。', expression: hurt }), false);
   assert.equal(shouldUseParallelVoice({ mode: 'CHAT', text: '我才没担心你，就是回来看看。', expression: hardSoft }), true);
-  assert.equal(shouldUseParallelVoice({ mode: 'EXACT_SPEECH', text: '我真的忍不住哭了。', expression: strong }), false);
+  assert.equal(shouldUseParallelVoice({ mode: 'EXACT_SPEECH', text: '你总是替我决定，我真的受不了了。', expression: strong }), false);
 });
 
 test('the fastest provider becomes playable and a higher-ranked later result is exposed as an upgrade', async () => {

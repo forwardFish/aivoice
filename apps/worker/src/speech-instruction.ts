@@ -1,6 +1,7 @@
 import type { ReplyTone } from './chat/interaction-state.js';
 import type { EmotionExpressionPlan } from './emotion-expression.js';
-import type { VoiceDeliveryMode, VoiceSpeechAct } from './providers/voice-provider.js';
+import type { VoiceAct, VoiceDeliveryMode, VoiceDeliveryPlan, VoiceSpeechAct } from './providers/voice-provider.js';
+import { buildInternalTtsText } from './voice-delivery-plan.js';
 
 const INSTRUCTIONS: Record<ReplyTone, string> = {
   PLAIN: '像熟人随口说，语气松一点，不要播报，也不要表演。',
@@ -111,6 +112,29 @@ export function instructionWeightedLength(value: string): number {
   return Array.from(value).reduce((sum, character) => sum + (/\p{Script=Han}/u.test(character) ? 2 : 1), 0);
 }
 
+const VOICE_PLAN_INSTRUCTIONS: Record<VoiceAct, string> = {
+  CASUAL_EXPLAIN: '像在家里顺嘴回应熟悉的人，整句连着说，语气词快速带过，最后短收。',
+  DENY_THEN_EXPLAIN: '像被说中后先急着否认，紧接着解释，逗号后保持同样速度，最后短收。',
+  ASSERT_BOUNDARY: '像妈妈没听完就替她决定，她一下急了，马上顶回去。第一句短而不耐烦，第二句把自己的边界说重，结尾干脆。',
+  PLAYFUL_PROBE: '像发现对方今天有点反常，忍不住笑着试探。前半轻快，语气词快速带过，最后问句轻轻上扬。',
+  ADMIT_HURT: '像刚被妈妈一句话刺到，先停一下才开口。第二句是忍着眼泪说出的真实感受，气息发紧、声音微颤，最后压低收住。',
+  EXPRESS_DELIGHT: '像突然听到好消息，眼睛一亮就接话。起句是真实惊喜，中间轻快，最后自然上扬后短收。',
+  SHOW_PRACTICAL_CARE: '像看到妈妈一直硬撑，心里一下有点急。先问她，再顺口催她去吃东西，前一句带担心，后一句更直接。',
+  HESITATE_OR_SHY: '像有点紧张又不想显得太慌，开头轻，第一处分句短停，后面小心说完，结尾带一点不确定。',
+  SPEAK_LOW_ENERGY: '像刚撑完一阵才坐下来，已经没力气继续说。第一句气息沉一点，第二句更轻更短，说完就停。',
+  SOFTEN_AFTER_TENSION: '像刚才还有点不高兴，现在愿意缓下来。前半保留一点硬，转折后恢复日常节奏，最后短收。',
+};
+
+export function buildVoicePlanInstruction(
+  plan: VoiceDeliveryPlan,
+  baseline: SpeechPlanBaseline | null = null,
+): string {
+  const base = VOICE_PLAN_INSTRUCTIONS[plan.act];
+  const correction = baseline?.instructionFragment.match(/校准：[^；。]+/u)?.[0] || '';
+  const withCorrection = correction ? `${base}${correction}。` : base;
+  return instructionWeightedLength(withCorrection) <= 100 ? withCorrection : base;
+}
+
 export function buildSpeechInstruction(
   replyTone: ReplyTone,
   baseline: SpeechPlanBaseline | null = null,
@@ -144,6 +168,7 @@ export function buildSpeechSynthesisPlan(
   text: string,
   baseline: SpeechPlanBaseline | null = null,
   expression: EmotionExpressionPlan | null = null,
+  deliveryPlan: VoiceDeliveryPlan | null = null,
 ): {
   text: string;
   instruction: string;
@@ -153,8 +178,23 @@ export function buildSpeechSynthesisPlan(
   effectiveTone: ReplyTone;
   emotionIntensity: 0 | 1 | 2 | 3;
   enableSsml: boolean;
+  applyAcousticOverrides: boolean;
 } {
   const effectiveTone = expression?.effectiveTone || replyTone;
+  if (deliveryPlan) {
+    const hasExplicitCorrection = Boolean(baseline?.instructionFragment.includes('校准：'));
+    return {
+      text: buildInternalTtsText(text, deliveryPlan),
+      instruction: buildVoicePlanInstruction(deliveryPlan, baseline),
+      rate: hasExplicitCorrection ? Number(bounded(baseline?.rateFactor || 1, 0.85, 1.15).toFixed(3)) : 1,
+      pitch: 1,
+      volume: hasExplicitCorrection ? Math.round(bounded(50 + (baseline?.volumeOffset || 0), 45, 55)) : 50,
+      effectiveTone,
+      emotionIntensity: expression?.intensity || 0,
+      enableSsml: false,
+      applyAcousticOverrides: hasExplicitCorrection,
+    };
+  }
   const prosody = PROSODY[effectiveTone] || PROSODY.PLAIN;
   const deliveryProsody = expression ? DELIVERY_PROSODY[expression.deliveryMode] : null;
   const rate = Number(bounded((deliveryProsody?.rate || prosody.rate) * (baseline?.rateFactor || 1) * (expression?.rateFactor || 1), 0.85, 1.15).toFixed(3));
@@ -175,5 +215,6 @@ export function buildSpeechSynthesisPlan(
     effectiveTone,
     emotionIntensity: expression?.intensity || 0,
     enableSsml,
+    applyAcousticOverrides: true,
   };
 }

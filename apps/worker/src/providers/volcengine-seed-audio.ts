@@ -1,12 +1,12 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import type { VoiceRelationshipType } from '../chat/voice-chat-context.js';
+import { downmixPcm16WavToMono, trimTrailingPcmSilence } from '../media/wav-silence.js';
+import { buildInternalTtsText } from '../voice-delivery-plan.js';
 import {
   VoiceGenerationError,
-  type VoiceDeliveryMode,
-  type VoiceObservedDeliveryBaseline,
+  type VoiceDeliveryPlan,
   type VoiceProviderPort,
-  type VoiceSpeechAct,
   type VoiceSynthesisOptions,
 } from './voice-provider.js';
 
@@ -49,71 +49,67 @@ function counterpartDescription(relationship: VoiceRelationshipType | null | und
   return relationship ? values[relationship] : '熟悉的人';
 }
 
-const DELIVERY_INSTRUCTIONS: Record<VoiceDeliveryMode, string> = {
-  CASUAL: '连贯地说，句尾干净',
-  BRIGHT_LIGHT: '自然开心，带一点笑意，不夸张',
-  DIRECT_TENSE: '轻微不满，关键词稍重，句尾短，不喊不拖',
-  QUIET_UNEASY: '声音稍收，少停顿，连着说，不用气声',
-  SOFT_HURT: '有点难受，声音放轻，句尾收住，不用哭腔',
-  PLAYFUL_LIGHT: '带一点笑意，不故意扬尾，不搞怪',
-  PRACTICAL_CARE: '认真但自然，不用安慰腔，不说教',
-};
-
-function speechActInstruction(act: VoiceSpeechAct, counterpart: string): string {
-  const values: Record<VoiceSpeechAct, string> = {
-    REPLY: `直接回应${counterpart}`,
-    AGREE: `接住${counterpart}的话并自然回应`,
-    ASK: `顺口问${counterpart}一句`,
-    EXPLAIN: `直接向${counterpart}补一句原因`,
-    NEGOTIATE: `直接和${counterpart}说清自己的想法`,
-    TEASE: `顺口调侃${counterpart}一句`,
-    REMIND: `顺口提醒${counterpart}一句`,
-    SHARE: `和${counterpart}分享一句`,
-  };
-  return values[act];
-}
-
-function observedBaselineInstruction(baseline: VoiceObservedDeliveryBaseline | null | undefined): string {
-  if (!baseline) return '保持本人原来的说话节奏。';
-  const cues = [
-    baseline.speechRate === 'FAST' ? '语速偏快' : baseline.speechRate === 'SLOW' ? '语速偏慢' : '',
-    baseline.pauseStyle === 'LOW' ? '少停顿' : baseline.pauseStyle === 'HIGH' ? '停顿稍多' : '',
-    baseline.pitchStyle === 'NARROW' ? '语调起伏较小' : baseline.pitchStyle === 'WIDE' ? '语调自然起伏' : '',
-    baseline.sentenceEndingStyle === 'FALLING' ? '句尾下收' : baseline.sentenceEndingStyle === 'RISING' ? '句尾微扬' : baseline.sentenceEndingStyle === 'LEVEL' ? '句尾平稳' : '',
-    baseline.volumeDynamicsStyle === 'FLAT' ? '音量较稳' : baseline.volumeDynamicsStyle === 'DYNAMIC' ? '保留自然强弱' : '',
-  ].filter(Boolean).slice(0, 3);
-  const corrections = {
-    SPEAK_SLOWER: '语速放慢一点',
-    SPEAK_FASTER: '语速快一点',
-    PAUSE_MORE: '停顿多一点',
-    PAUSE_LESS: '停顿少一点',
-    VOLUME_SOFTER: '情绪起来时音量不要变大',
-    VOLUME_STRONGER: '情绪起来时音量可以稍强',
-    PITCH_FLATTER: '语调起伏小一点',
-    PITCH_MORE_DYNAMIC: '语调起伏自然一些',
-  } as const;
-  const habit = cues.length ? `保持本人${cues.join('、')}的说话习惯。` : '保持本人原来的说话节奏。';
-  return baseline.correction ? `${habit}${corrections[baseline.correction]}。` : habit;
-}
-
 export function seedAudioSynthesisText(text: string, options: VoiceSynthesisOptions = {}): string {
-  const normalized = String(text || '').trim();
-  if (options.deliveryMode === 'DIRECT_TENSE' && options.speechAct === 'EXPLAIN') {
-    return normalized.replace(/(?:……|…{2,})/gu, '，');
+  return buildInternalTtsText(String(text || ''), options.deliveryPlan || legacyPlan(options));
+}
+
+function legacyPlan(options: VoiceSynthesisOptions): VoiceDeliveryPlan {
+  if (options.deliveryMode === 'PLAYFUL_LIGHT') {
+    return { act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE' };
   }
-  return normalized;
+  if (options.deliveryMode === 'SOFT_HURT') {
+    return { act: 'ADMIT_HURT', affect: 'HURT', intensity: 2, cadence: 'SOFT_FALL' };
+  }
+  if (options.deliveryMode === 'DIRECT_TENSE' && options.speechAct === 'EXPLAIN') {
+    return { act: 'DENY_THEN_EXPLAIN', affect: 'IRRITATED', intensity: 1, cadence: 'NO_SLOWDOWN_AFTER_COMMA' };
+  }
+  if (options.deliveryMode === 'DIRECT_TENSE') {
+    return { act: 'ASSERT_BOUNDARY', affect: 'IRRITATED', intensity: 2, cadence: 'FIRM_TWO_BEAT' };
+  }
+  return { act: 'CASUAL_EXPLAIN', affect: 'NEUTRAL', intensity: 0, cadence: 'CONNECTED_SHORT' };
+}
+
+function particleCue(text: string): string {
+  return /[啦呀嘛呢啊](?=[，,。！？!?]|$)/u.test(text) ? '，语气词快速带过' : '';
+}
+
+function performanceDirection(plan: VoiceDeliveryPlan, counterpart: string, text: string): string {
+  if (plan.act === 'DENY_THEN_EXPLAIN') {
+    return `像被${counterpart}说中后，先急着否认，紧接着把原因说出来。逗号后保持同样速度，最后短收`;
+  }
+  if (plan.act === 'ASSERT_BOUNDARY') {
+    return `像${counterpart}正要替她做决定时，立刻把话顶回去。第一句带明显不耐烦，中间表达自己边界的语义单元稍微加重，最后坚定短收`;
+  }
+  if (plan.act === 'PLAYFUL_PROBE') {
+    return `像发现${counterpart}今天有点反常，忍不住笑着试探一句。前半轻快${particleCue(text)}，最后问句只轻轻上扬`;
+  }
+  if (plan.act === 'ADMIT_HURT') {
+    return `像刚被${counterpart}一句话伤到，委屈但认真说出来。逗号处短停，后半声音收一点，中间表达真实感受的语义单元稍微加重，最后轻短收住`;
+  }
+  if (plan.act === 'EXPRESS_DELIGHT') {
+    return `像突然听到好消息，眼睛一亮就接话。起句是真实惊喜，中间轻快，最后自然上扬后短收`;
+  }
+  if (plan.act === 'SHOW_PRACTICAL_CARE') {
+    return `像发现${counterpart}状态不对，马上认真关心。先确认，再给一个具体提醒，语气柔和但不说教`;
+  }
+  if (plan.act === 'HESITATE_OR_SHY') {
+    return `像有点紧张又不想显得太慌，开头轻，第一处分句短停，后面小心说完，结尾带一点不确定`;
+  }
+  if (plan.act === 'SPEAK_LOW_ENERGY') {
+    return `像真的有点累，气息比平时弱，语速略慢但连贯，只在语义处停一下，最后自然落下`;
+  }
+  if (plan.act === 'SOFTEN_AFTER_TENSION') {
+    return `像刚才还有点不高兴，现在愿意缓下来。前半保留一点硬，转折后恢复日常节奏，最后短收`;
+  }
+  return `像在家里被${counterpart}问到后，顺嘴解释一句。整句自然连着说${particleCue(text)}，最后短收`;
 }
 
 export function buildSeedAudioPrompt(text: string, options: VoiceSynthesisOptions = {}): string {
   const exactText = seedAudioSynthesisText(text, options);
   if (!exactText) throw new SeedAudioGenerationError('Seed Audio text is empty', 'SEED_AUDIO_TEXT_EMPTY');
-  const deliveryMode = options.deliveryMode || 'CASUAL';
-  const speechAct = options.speechAct || 'REPLY';
   const counterpart = counterpartDescription(options.relationshipType);
-  const baseline = observedBaselineInstruction(options.observedBaseline);
-  const act = speechActInstruction(speechAct, counterpart);
-  const delivery = DELIVERY_INSTRUCTIONS[deliveryMode];
-  return `使用@Audio1的声音。${baseline}${act}。${delivery}。只说：『${exactText}』自然说，不播报不表演；只生成人声。`;
+  const plan = options.deliveryPlan || legacyPlan(options);
+  return `使用@Audio1里同一个人的声音。${performanceDirection(plan, counterpart, exactText)}。只说：“${exactText}”。只生成干净单人声。`;
 }
 
 function apiKey(): string {
@@ -279,6 +275,8 @@ export class VolcengineSeedAudioProvider implements VoiceProviderPort {
       );
     }
     const billingSeconds = Number(result.original_duration ?? result.duration ?? 0);
+    const monoAudio = downmixPcm16WavToMono(audio);
+    const normalizedAudio = trimTrailingPcmSilence(monoAudio);
     console.info('seed_audio_generation', JSON.stringify({
       event: 'seed_audio_generation',
       status: 'SUCCEEDED',
@@ -292,9 +290,11 @@ export class VolcengineSeedAudioProvider implements VoiceProviderPort {
       pricingUsdPerMinute,
       estimatedCostUsd: estimateSeedAudioCostUsd(billingSeconds, pricingUsdPerMinute),
       referenceBytes: reference.length,
-      outputBytes: audio.length,
+      outputBytes: normalizedAudio.length,
+      downmixedStereoBytes: audio.length - monoAudio.length,
+      trimmedTrailingSilenceBytes: monoAudio.length - normalizedAudio.length,
     }));
-    return audio;
+    return normalizedAudio;
   }
 
   async deleteVoice(): Promise<void> {

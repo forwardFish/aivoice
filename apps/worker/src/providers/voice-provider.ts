@@ -34,6 +34,48 @@ export type VoiceSpeechAct =
   | 'REMIND'
   | 'SHARE';
 
+export type VoiceAct =
+  | 'CASUAL_EXPLAIN'
+  | 'DENY_THEN_EXPLAIN'
+  | 'ASSERT_BOUNDARY'
+  | 'PLAYFUL_PROBE'
+  | 'ADMIT_HURT'
+  | 'EXPRESS_DELIGHT'
+  | 'SHOW_PRACTICAL_CARE'
+  | 'HESITATE_OR_SHY'
+  | 'SPEAK_LOW_ENERGY'
+  | 'SOFTEN_AFTER_TENSION';
+
+export type VoiceAffect =
+  | 'NEUTRAL'
+  | 'POSITIVE'
+  | 'CONCERNED'
+  | 'IRRITATED'
+  | 'PLAYFUL'
+  | 'UNEASY'
+  | 'LOW_ENERGY'
+  | 'HURT'
+  | 'MIXED';
+export type VoiceIntensity = 0 | 1 | 2;
+export type VoiceCadence =
+  | 'CONNECTED_SHORT'
+  | 'NO_SLOWDOWN_AFTER_COMMA'
+  | 'FIRM_TWO_BEAT'
+  | 'LIGHT_FINAL_RISE'
+  | 'SOFT_FALL'
+  | 'BRIGHT_BOUNCE'
+  | 'CAREFUL_STEADY'
+  | 'HESITANT_SHORT'
+  | 'LOW_ENERGY_SPARSE'
+  | 'TENSE_TO_SOFT';
+
+export interface VoiceDeliveryPlan {
+  act: VoiceAct;
+  affect: VoiceAffect;
+  intensity: VoiceIntensity;
+  cadence: VoiceCadence;
+}
+
 export type VoiceDeliveryCorrection =
   | 'SPEAK_SLOWER'
   | 'SPEAK_FASTER'
@@ -65,6 +107,7 @@ export interface VoiceSynthesisOptions {
   deliveryMode?: VoiceDeliveryMode;
   speechAct?: VoiceSpeechAct;
   observedBaseline?: VoiceObservedDeliveryBaseline | null;
+  deliveryPlan?: VoiceDeliveryPlan;
 }
 
 export interface VoiceProviderPort {

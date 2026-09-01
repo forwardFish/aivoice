@@ -19,7 +19,7 @@ export interface EmotionExpressionPlan {
 
 const TONE_TEXT_EVIDENCE: Partial<Record<ReplyTone, RegExp>> = {
   POSITIVE: /开心|高兴|太好了|真好|终于|喜欢|想你|爱你|抱|亲|期待|笑|不错|好棒|真的假的|居然|没想到|竟然/u,
-  CONCERNED: /担心|小心|慢点|注意|还好吗|没事吧|疼|不舒服|生病|发烧|安全|到家/u,
+  CONCERNED: /担心|小心|慢点|注意|还好吗|没事吧|疼|不舒服|生病|发烧|安全|到家|没吃|吃点|硬撑|喝水|带伞|多穿|早点休息/u,
   LOW_ENERGY: /累|困|没力气|没精神|休息|睡|撑不住/u,
   UNEASY: /不安|紧张|害怕|担心|有点慌|不知道|不确定|怎么办|怕|不好意思|别夸|尴尬/u,
   SAD_OR_HURT: /难过|难受|伤心|委屈|受伤|心疼|舍不得|想哭|哭|心里堵|不好受|疼/u,

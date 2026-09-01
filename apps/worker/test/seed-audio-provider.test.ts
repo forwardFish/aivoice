@@ -11,6 +11,7 @@ import {
   SeedAudioGenerationError,
   VolcengineSeedAudioProvider,
 } from '../src/providers/volcengine-seed-audio.js';
+import type { VoiceDeliveryPlan } from '../src/providers/voice-provider.js';
 
 const originalFetch = globalThis.fetch;
 const originalEnv = {
@@ -46,105 +47,65 @@ test('estimates Seed Audio billing in the provider account currency without a ha
   );
 });
 
-test('builds one compact delivery prompt without age, gender or raw personality labels', () => {
-  const prompt = buildSeedAudioPrompt('我知道啦，现在已经没事了。', {
-    relationshipType: 'CHILD',
-    deliveryMode: 'DIRECT_TENSE',
-    speechAct: 'EXPLAIN',
+const plans: Record<string, VoiceDeliveryPlan> = {
+  casual: { act: 'CASUAL_EXPLAIN', affect: 'NEUTRAL', intensity: 0, cadence: 'CONNECTED_SHORT' },
+  deny: { act: 'DENY_THEN_EXPLAIN', affect: 'IRRITATED', intensity: 1, cadence: 'NO_SLOWDOWN_AFTER_COMMA' },
+  boundary: { act: 'ASSERT_BOUNDARY', affect: 'IRRITATED', intensity: 2, cadence: 'FIRM_TWO_BEAT' },
+  playful: { act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE' },
+  hurt: { act: 'ADMIT_HURT', affect: 'HURT', intensity: 2, cadence: 'SOFT_FALL' },
+};
+
+test('builds one positive micro-scene instead of a generic instruction stack', () => {
+  const prompt = buildSeedAudioPrompt('我知道啦，刚才就是有点忙。', {
+    relationshipType: 'CHILD', deliveryPlan: plans.casual,
   });
-  assert.match(prompt, /使用@Audio1的声音/);
-  assert.match(prompt, /直接向父母补一句原因/);
-  assert.match(prompt, /轻微不满，关键词稍重/);
-  assert.match(prompt, /『我知道啦，现在已经没事了。』/);
-  assert.doesNotMatch(prompt, /12岁|女孩|女性|HARD_SOFT|嘴硬心软|pitch|volume|SSML/u);
+  assert.match(prompt, /使用@Audio1里同一个人的声音/);
+  assert.match(prompt, /顺嘴解释一句/);
+  assert.match(prompt, /语气词快速带过/);
+  assert.match(prompt, /只说：“我知道啦，刚才就是有点忙。”/);
+  assert.doesNotMatch(prompt, /对方刚说|保持本人原来|不播报|不过度表演|嘴硬心软/u);
 });
 
-test('keeps only compact observable reference habits and one explicit correction', () => {
-  const prompt = buildSeedAudioPrompt('我知道了。', {
-    relationshipType: 'CHILD',
-    deliveryMode: 'CASUAL',
-    speechAct: 'REPLY',
-    observedBaseline: {
-      speechRate: 'FAST',
-      pauseStyle: 'LOW',
-      pitchStyle: 'WIDE',
-      sentenceEndingStyle: 'FALLING',
-      volumeDynamicsStyle: 'DYNAMIC',
-      correction: 'VOLUME_SOFTER',
-    },
+test('four-field plans produce distinct observable speaking actions', () => {
+  const deny = buildSeedAudioPrompt('我才没有担心你，就是看你这么晚还没回来。', {
+    relationshipType: 'CHILD', deliveryPlan: plans.deny,
   });
-  assert.match(prompt, /本人语速偏快、少停顿、语调自然起伏的说话习惯/);
-  assert.match(prompt, /情绪起来时音量不要变大/);
-  assert.match(prompt, /语调自然起伏/u);
-  assert.doesNotMatch(prompt, /句尾下收|保留自然强弱/u);
+  const boundary = buildSeedAudioPrompt('你先听我说完，这是我的事，我想自己决定。', {
+    relationshipType: 'CHILD', deliveryPlan: plans.boundary,
+  });
+  const playful = buildSeedAudioPrompt('你今天这么好说话呀，是不是有事求我？', {
+    relationshipType: 'CHILD', deliveryPlan: plans.playful,
+  });
+  const hurt = buildSeedAudioPrompt('你刚才那样说，我心里真的有点难受。', {
+    relationshipType: 'CHILD', deliveryPlan: plans.hurt,
+  });
+  assert.match(deny, /先急着否认，紧接着把原因说出来/);
+  assert.match(boundary, /立刻把话顶回去/);
+  assert.match(boundary, /表达自己边界的语义单元稍微加重/);
+  assert.match(playful, /忍不住笑着试探一句/);
+  assert.match(hurt, /委屈但认真说出来/);
+  assert.match(hurt, /表达真实感受的语义单元稍微加重/);
+  assert.equal(boundary.match(/这是我的事/gu)?.length, 1);
+  assert.equal(hurt.match(/真的/gu)?.length, 1);
 });
 
-test('plain replies use one concrete speech act', () => {
-  const prompt = buildSeedAudioPrompt('我知道啦，今天会早点回来的。', {
-    relationshipType: 'CHILD',
-    deliveryMode: 'CASUAL',
-    speechAct: 'AGREE',
-  });
-  assert.match(prompt, /接住父母的话并自然回应/);
-  assert.match(prompt, /连贯地说，句尾干净/);
-  assert.doesNotMatch(prompt, /12岁|女孩|自然放松|当前就是普通/u);
+test('internal punctuation changes rhythm without changing words or visible text', () => {
+  const visible = '你先听我说完，这是我的事，我想自己决定。';
+  assert.equal(
+    seedAudioSynthesisText(visible, { deliveryPlan: plans.boundary }),
+    '你先听我说完。这是我的事，我想自己决定。',
+  );
+  assert.equal(
+    seedAudioSynthesisText('我才没有担心你……就是看你这么晚还没回来。', { deliveryPlan: plans.deny }),
+    '我才没有担心你，就是看你这么晚还没回来。',
+  );
 });
 
-test('emotional replies use one delivery mode and one speech act', () => {
-  const concerned = buildSeedAudioPrompt('你是不是还没吃饭？', {
-    relationshipType: 'CHILD', deliveryMode: 'PRACTICAL_CARE', speechAct: 'ASK',
-  });
-  const sad = buildSeedAudioPrompt('我心里有点难受。', {
-    relationshipType: 'CHILD', deliveryMode: 'SOFT_HURT', speechAct: 'REPLY',
-  });
-  const mixed = buildSeedAudioPrompt('现在已经没事了。', {
-    relationshipType: 'CHILD', deliveryMode: 'CASUAL', speechAct: 'AGREE',
-  });
-  assert.match(concerned, /顺口问父母一句。认真但自然/);
-  assert.match(sad, /直接回应父母。有点难受/);
-  assert.match(mixed, /接住父母的话并自然回应。连贯地说/);
-  assert.doesNotMatch(`${concerned}${sad}${mixed}`, /当前对话气氛|逐渐缓下来|情绪退得快/u);
-});
-
-test('anger, playful and teasing use bounded delivery modes rather than raw personality scenes', () => {
-  const angry = buildSeedAudioPrompt('你怎么现在才说呀。', {
-    relationshipType: 'PARTNER',
-    deliveryMode: 'DIRECT_TENSE', speechAct: 'REPLY',
-  });
-  const playful = buildSeedAudioPrompt('我就吃一口嘛。', {
-    relationshipType: 'CHILD',
-    deliveryMode: 'PLAYFUL_LIGHT', speechAct: 'TEASE',
-  });
-  const teasing = buildSeedAudioPrompt('你今天这么好说话呀。', {
-    relationshipType: 'PARTNER',
-    deliveryMode: 'PLAYFUL_LIGHT', speechAct: 'TEASE',
-  });
-  assert.match(angry, /轻微不满，关键词稍重/);
-  assert.match(playful, /顺口调侃父母一句/);
-  assert.match(teasing, /顺口调侃伴侣一句/);
-  assert.doesNotMatch(`${angry}${playful}${teasing}`, /QUICK_DIRECT|PLAYFUL_PLAIN|PLAYFUL_POSITIVE|12岁|24岁/u);
-});
-
-test('delivery prompt never receives age-stage or personality psychology prose', () => {
-  const prompt = buildSeedAudioPrompt('先听我说完。', {
-    relationshipType: 'CHILD',
-    deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN',
-  });
-  assert.match(prompt, /直接向父母补一句原因/);
-  assert.doesNotMatch(prompt, /12岁|女孩|自主|自己的主意|被尊重|AUTONOMY/u);
-});
-
-test('direct explanation keeps every spoken word but shortens an ellipsis pause', () => {
-  const visible = '我才没有担心你……就是看你这么晚还没回来。';
-  const synthesis = seedAudioSynthesisText(visible, { deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN' });
-  const prompt = buildSeedAudioPrompt(visible, {
-    relationshipType: 'CHILD',
-    deliveryMode: 'DIRECT_TENSE', speechAct: 'EXPLAIN',
-  });
-  assert.equal(synthesis, '我才没有担心你，就是看你这么晚还没回来。');
-  assert.match(prompt, /直接向父母补一句原因/);
-  assert.doesNotMatch(prompt, /嘴硬|心软|先简短否认/u);
-  assert.doesNotMatch(prompt, /……/u);
+test('the exact same text and four-field plan produce the exact same Seed prompt', () => {
+  const options = { relationshipType: 'CHILD' as const, deliveryPlan: plans.playful };
+  const left = buildSeedAudioPrompt('你今天这么好说话呀，是不是有事求我？', options);
+  const right = buildSeedAudioPrompt('你今天这么好说话呀，是不是有事求我？', options);
+  assert.equal(left, right);
 });
 
 test('sends one Seed Audio request with the reference audio and returns WAV bytes', async () => {
