@@ -6,9 +6,13 @@ Component({
       type: String,
       value: '',
       observer(newValue) {
+        const normalized = String(newValue || '')
+        if (this.observedSource === normalized) return
+        this.observedSource = normalized
+        this.sourceLocked = false
         if (this.audio) {
           this.audio.stop()
-          void this.assignSource(newValue || '')
+          this.requestedSource = ''
           this.setData({ playing: false, progress: 0, currentText: '00:00' })
         }
       }
@@ -40,12 +44,15 @@ Component({
       audio.obeyMuteSwitch = false
       audio.autoplay = false
       audio.volume = 1
-      if (this.data.src) void this.assignSource(this.data.src)
       audio.onPlay(() => {
         if (this.pauseRequested) {
           audio.stop()
           return
         }
+        // The first actual playback pins the downloaded temp file for this
+        // component instance. A later Seed upgrade may replace the cloud
+        // object, but repeat plays keep the version the user first heard.
+        this.sourceLocked = true
         this.clearPauseFallback()
         this.pauseNotified = false
         this.setData({ playing: true })
@@ -83,6 +90,7 @@ Component({
         this.clearPauseFallback()
         this.pauseRequested = false
         this.pauseNotified = true
+        this.sourceLocked = false
         this.setData({ playing: false, progress: 0, currentText: '00:00' })
         this.triggerEvent('error', error)
       })
@@ -160,7 +168,7 @@ Component({
       }
       if (this.data.playing || this.audio.paused === false) this.requestPause()
       else {
-        if (this.requestedSource !== this.data.src || !this.audio.src) {
+        if ((isCloudFileId(this.data.src) && !this.sourceLocked) || this.requestedSource !== this.data.src || !this.audio.src) {
           try {
             await this.assignSource(this.data.src)
           } catch (_error) {

@@ -13,11 +13,17 @@
 ```env
 AIVOICE_CHAT_PROVIDER=dashscope
 CHAT_MODEL=qwen3.8-max
+# 生产Qwen/DeepSeek默认使用简单JSON对象；仅其他兼容Provider必要时改为minimal_json_schema
+CHAT_RESPONSE_MODE=json_object
 
 AIVOICE_VOICE_PROVIDER=aliyun-cosyvoice
-VOLCENGINE_SEED_AUDIO_API_KEY=
+AIVOICE_VOICE_STRATEGY=single
+BYTEPLUS_SEED_AUDIO_API_KEY=
 VOLCENGINE_SEED_AUDIO_BASE_URL=https://openspeech.bytedance.com
 SEED_AUDIO_MODEL=seed-audio-1.0
+AIVOICE_SEED_AUDIO_BUDGET_WINDOW=50
+AIVOICE_SEED_AUDIO_BUDGET_LIMIT=15
+BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE=0.15
 
 AIVOICE_SPEAKER_ANALYSIS_PROVIDER=aliyun
 AIVOICE_SPEAKER_DIARIZATION_ENABLED=true
@@ -45,7 +51,7 @@ DEEPSEEK_CHAT_MODEL=deepseek-chat
 
 ### 对话
 
-1. Chat Provider 生成并校验回复文字；确定性质量失败时最多重试一次。
+1. Chat Provider 只生成 `reply`、`replyTone`、`actionStance` 三字段；服务端派生内部状态，确定性质量失败时最多重试一次。
 2. 安全文字先发布到页面。
 3. Voice Provider 使用参考音频和可见回复文字生成 WAV。
 4. 写入 AIGC 元数据、上传、扣减一次积分并标记完成。
@@ -68,7 +74,21 @@ DEEPSEEK_CHAT_MODEL=deepseek-chat
 
 - 切换 Provider 只允许修改环境变量或增加新的 Provider 实现，不能在页面或业务服务中加入模型分支。
 - 新创建的每个声音同时保留 CosyVoice `speakerId` 和私有参考音频：CosyVoice 使用前者，Seed Audio 使用后者。两者不重复创建人物资料，也不需要用户重新上传视频。
-- 上线前只需设置 `AIVOICE_VOICE_PROVIDER=aliyun-cosyvoice` 或 `AIVOICE_VOICE_PROVIDER=volcengine-seed-audio` 并重启 Worker；单次消息不会同时调用两个语音模型。
+- 标准单Provider模式只需设置 `AIVOICE_VOICE_PROVIDER=aliyun-cosyvoice` 或 `AIVOICE_VOICE_PROVIDER=volcengine-seed-audio` 并重启 Worker；这种模式下单次消息不会同时调用两个语音模型。
+- 需要强情绪多模型时，保持 `AIVOICE_VOICE_PROVIDER=aliyun-cosyvoice` 并设置 `AIVOICE_VOICE_STRATEGY=selective-parallel`。普通回复只使用当前Provider；强情绪或复杂语气由注册表中的候选Provider并行生成，最快结果先播放，更高质量结果后完成时原对象原位升级，不重复扣积分。
+- `Seed Audio`作为增强Provider时默认受滚动预算保护：每位用户最近50次生成尝试最多预留15次Seed调用。预算在调用前写入现有`jobs.payload.voiceCompanionReservations`，失败调用也占用一次，以避免供应商已经计费但本地未保存成功时突破成本上限。同一任务重试不会再次调用Seed。达到上限后仅跳过Seed，CosyVoice首播及其他Provider不受影响。单Provider模式不套用该增强轨预算。
+- `AIVOICE_SEED_AUDIO_BUDGET_WINDOW`和`AIVOICE_SEED_AUDIO_BUDGET_LIMIT`可调整窗口与上限；默认`50/15`。预算异常时采用失败关闭，仅跳过该增强Provider。
+- BytePlus Audio 1.0按生成音频时长以美元计费。Worker记录`pricingCurrency=USD`、`pricingUsdPerMinute`与`estimatedCostUsd`，不再使用固定人民币汇率；`BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE`默认按当前公开价`0.15`配置，价格变化时应先更新环境变量。
 - 未知 Provider 必须启动失败，不能静默回退到另一模型。
 - Seed Audio 生成失败不自动重试，防止一次完成但响应丢失造成重复计费。
 - 更换实际处理声音样本的第三方前，必须同步更新隐私政策、授权版本和上架材料；技术可切换不代表可以绕过重新告知和同意。
+
+## 模块边界
+
+- `providers/voice-provider.ts`：只有供应商无关的声音能力接口和输入契约。
+- `providers/voice-provider-registry.ts`：注册当前Provider、固定音色Provider及任意数量的高质量候选Provider；新增模型只在这里接入适配器和质量优先级。
+- `voice-generation-strategy.ts`：只负责单模型/选择性并行策略、强表达判断、竞速和失败隔离，不访问数据库、文件或供应商SDK。
+- `voice-generation-coordinator.ts`：把注册表与策略组合成一次生成会话，统一解析`speakerId`或参考音频；不保存业务状态。
+- `job-runner.ts`和`cloudbase-job-runner.ts`：只负责文字发布、最快音频落盘、后续高质量音频升级、积分和任务状态，不包含具体模型名称或情绪选择规则。
+
+Provider、策略、编排、持久化四层不得反向依赖。未来增加第三个或更多并行模型时，Worker主流程无需增加模型分支。

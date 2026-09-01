@@ -153,4 +153,36 @@ test('present-scene sanitizer removes only unsupported factual clauses', () => {
     reply: '不是故意也会让我不舒服，我气的是你总忘了通知我。',
     currentUserText: '我又不是故意的。', recentUserInputs: ['我今晚忙忘了跟你说。'], recentCharacterReplies: [], subjectBackground: null,
   }), { reply: '不是故意也会让我不舒服。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我都说了马上就好，干嘛直接抢啊。给你就是了。',
+    currentUserText: '我刚才已经叫过你一次了，手机给我。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '我都说了马上就好，给你就是了。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '你都直接抢走了，还问我干嘛。',
+    currentUserText: '我刚才直接把手机拿走了。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '你都直接抢走了，还问我干嘛。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '行吧，你到了跟我说，我先把位置占好等你。',
+    currentUserText: '确实是我没提前说，怪我。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: '两个人住在同一座城市。',
+  }), { reply: '行吧，你到了跟我说。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '我先把位置占好等你。',
+    currentUserText: '我已经到店里了，你先占好位置。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '我先把位置占好等你。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '行吧，你到了跟我说一声，我先把想看的剧点开。',
+    currentUserText: '确实是我没提前说，怪我。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: '两个人住在同一座城市。',
+  }), { reply: '行吧，你到了跟我说一声。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '那我先把想看的剧点开。',
+    currentUserText: '你先把刚才说的剧点开吧。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '那我先把想看的剧点开。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '行吧，你到了跟我说一声，我再出门。',
+    currentUserText: '确实是我没提前说，怪我。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: '两个人住在同一座城市。',
+  }), { reply: '行吧，你到了跟我说一声。', removed: true });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '你到了跟我说一声，我再出门。',
+    currentUserText: '你先在家等我，我到了你再出门。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '你到了跟我说一声，我再出门。', removed: false });
 });

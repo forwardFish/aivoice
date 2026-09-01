@@ -29,6 +29,12 @@ export type TurnActionState = { stance: InteractionStance; currentWant: string |
 export type ConversationInteractionState = { version: 2; carryAffect: CarryAffectState | null; action: TurnActionState; createdAt: string };
 export type InteractionStateCandidate = Omit<ConversationInteractionState, 'createdAt'>;
 export type CharacterTurnGeneration = { replyTone: ReplyTone; reply: string; interactionState: InteractionStateCandidate };
+export type MinimalCharacterTurnGeneration = {
+  outputFormat: 'MINIMAL_V1';
+  replyTone: ReplyTone;
+  reply: string;
+  actionStance: InteractionStance;
+};
 export type PromptTurn = { id: string; role: 'USER' | 'CHARACTER'; content: string };
 export type ExplicitProfileTexts = { personalityNote: string | null; speechHabitNote: string | null; relationshipNote: string | null };
 
@@ -44,6 +50,36 @@ const ALLOWED_EMOTIONS_BY_TONE: Record<ReplyTone, readonly CarryEmotion[]> = {
 };
 const ACTIONS_REQUIRING_CAUSE = new Set<InteractionStance>(INTERACTION_STANCES.filter((value) => value !== 'RESPOND'));
 const REQUEST_STANCES = new Set<InteractionStance>(['ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE', 'DISAGREE', 'SET_BOUNDARY', 'DEFER', 'ASK']);
+const REQUEST_ONLY_STANCES = new Set<InteractionStance>(['ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE']);
+
+const REPLY_TONE_ALIASES: Readonly<Record<string, ReplyTone>> = {
+  NEUTRAL: 'PLAIN', NORMAL: 'PLAIN', PLAIN: 'PLAIN', '普通': 'PLAIN', '平静': 'PLAIN',
+  HAPPY: 'POSITIVE', JOYFUL: 'POSITIVE', POSITIVE: 'POSITIVE', '开心': 'POSITIVE', '高兴': 'POSITIVE',
+  CARE: 'CONCERNED', CONCERNED: 'CONCERNED', WORRIED: 'CONCERNED', '关心': 'CONCERNED', '担心': 'CONCERNED',
+  LOW: 'LOW_ENERGY', LOW_ENERGY: 'LOW_ENERGY', TIRED: 'LOW_ENERGY', '疲惫': 'LOW_ENERGY', '低落': 'LOW_ENERGY',
+  NERVOUS: 'UNEASY', UNEASY: 'UNEASY', '不安': 'UNEASY', '紧张': 'UNEASY',
+  HURT: 'SAD_OR_HURT', SAD: 'SAD_OR_HURT', SAD_OR_HURT: 'SAD_OR_HURT', '伤心': 'SAD_OR_HURT', '难过': 'SAD_OR_HURT', '受伤': 'SAD_OR_HURT',
+  ANGRY: 'IRRITATED', ANNOYED: 'IRRITATED', IRRITATED: 'IRRITATED', '不满': 'IRRITATED', '生气': 'IRRITATED',
+  COMPLEX: 'MIXED', MIXED: 'MIXED', '复杂': 'MIXED', '嘴硬心软': 'MIXED',
+};
+
+const ACTION_STANCE_ALIASES: Readonly<Record<string, InteractionStance>> = {
+  ANSWER: 'RESPOND', REPLY: 'RESPOND', RESPOND: 'RESPOND', '回应': 'RESPOND',
+  SHARE: 'SHARE', '分享': 'SHARE',
+  ASK: 'ASK', QUESTION: 'ASK', '提问': 'ASK',
+  ACCEPT: 'ACCEPT', AGREE: 'ACCEPT', '同意': 'ACCEPT', '接受': 'ACCEPT',
+  PARTIAL_ACCEPT: 'PARTIAL_ACCEPT', '部分接受': 'PARTIAL_ACCEPT',
+  NEGOTIATE: 'NEGOTIATE', '协商': 'NEGOTIATE', '商量': 'NEGOTIATE',
+  DISAGREE: 'DISAGREE', DECLINE: 'DISAGREE', REFUSE: 'DISAGREE', '不同意': 'DISAGREE', '拒绝': 'DISAGREE',
+  BOUNDARY: 'SET_BOUNDARY', SET_BOUNDARY: 'SET_BOUNDARY', '设边界': 'SET_BOUNDARY',
+  DEFER: 'DEFER', DELAY: 'DEFER', '推迟': 'DEFER', '稍后': 'DEFER',
+  APOLOGIZE: 'REPAIR', REPAIR: 'REPAIR', '修复': 'REPAIR', '道歉': 'REPAIR',
+  END: 'END_TOPIC', END_TOPIC: 'END_TOPIC', '结束': 'END_TOPIC', '结束话题': 'END_TOPIC',
+};
+
+const MINIMAL_REPLY_FIELDS = ['reply', 'text', 'content', 'answer', 'response'] as const;
+const MINIMAL_TONE_FIELDS = ['replyTone', 'reply_tone', 'tone', 'emotion', 'mood'] as const;
+const MINIMAL_STANCE_FIELDS = ['actionStance', 'action_stance', 'stance', 'action', 'intent'] as const;
 
 function enumValue<T extends readonly string[]>(values: T, value: unknown): T[number] | null {
   return values.includes(String(value) as T[number]) ? String(value) as T[number] : null;
@@ -63,6 +99,72 @@ function text(value: unknown, max: number): string | null {
 function requiredString(row: Record<string, unknown>, field: string, max: number): string {
   if (typeof row[field] !== 'string') throw new Error('QWEN_STRUCTURED_OUTPUT_INVALID');
   return Array.from(row[field].replace(/[\u0000-\u001F\u007F]/gu, ' ').replace(/\s+/gu, ' ').trim()).slice(0, max).join('');
+}
+
+function aliasKey(value: unknown): string {
+  return String(value ?? '').normalize('NFC').trim().toUpperCase().replace(/[\s-]+/gu, '_');
+}
+
+function firstMinimalReply(row: Record<string, unknown>): string | null {
+  for (const field of MINIMAL_REPLY_FIELDS) {
+    if (typeof row[field] !== 'string') continue;
+    const value = text(row[field], 80);
+    if (value) return value;
+  }
+  return null;
+}
+
+function aliasedEnumValue<T extends string>(row: Record<string, unknown>, fields: readonly string[], aliases: Readonly<Record<string, T>>): T | null {
+  for (const field of fields) {
+    const value = aliases[aliasKey(row[field])];
+    if (value) return value;
+  }
+  return null;
+}
+
+function inferReplyTone(reply: string): ReplyTone {
+  const normalized = reply.normalize('NFC');
+  if (/(?:才没有|嘴硬|明明|偏偏)[^。！？]{0,30}(?:但|不过|还是|其实)|(?:但|不过|可是)[^。！？]{0,30}(?:在意|担心|想|喜欢)/u.test(normalized)) return 'MIXED';
+  if (/(?:难过|伤心|委屈|失望|心里不好受|挺伤人)/u.test(normalized)) return 'SAD_OR_HURT';
+  if (/(?:生气|烦死|烦人|讨厌|够了|凭什么|不高兴)/u.test(normalized)) return 'IRRITATED';
+  if (/(?:担心|小心|注意安全|还好吗|没事吧|早点休息)/u.test(normalized)) return 'CONCERNED';
+  if (/(?:累死|太累|好累|困死|没力气|不想动)/u.test(normalized)) return 'LOW_ENERGY';
+  if (/(?:紧张|不安|有点慌|心里没底)/u.test(normalized)) return 'UNEASY';
+  if (/(?:开心|高兴|太好了|真好|好耶|哈哈|嘿嘿|期待)/u.test(normalized)) return 'POSITIVE';
+  return 'PLAIN';
+}
+
+function inferActionStance(reply: string): InteractionStance {
+  const normalized = reply.normalize('NFC').replace(/\s+/gu, '');
+  if (/(?:对不起|抱歉|是我不好|我错了)/u.test(normalized)) return 'REPAIR';
+  if (/(?:不说了|到此为止|先这样吧|这事到这儿)/u.test(normalized)) return 'END_TOPIC';
+  if (/(?:等一下|等会儿|待会儿|晚点|改天|先让我)/u.test(normalized)) return 'DEFER';
+  if (/(?:要不|不如|我们可以|换成|改成)/u.test(normalized)) return 'NEGOTIATE';
+  if (/(?:可以|行|好)[^。！？]{0,18}(?:但|不过|只是)/u.test(normalized)) return 'PARTIAL_ACCEPT';
+  if (/(?:不行|不能|不同意|我不答应|做不到)/u.test(normalized)) return 'DISAGREE';
+  if (/(?:别再|不要再|别替我|别逼我|这是我的事|我自己决定)/u.test(normalized)) return 'SET_BOUNDARY';
+  if (/^(?:行|好|可以|没问题|知道了|就这么办)/u.test(normalized)) return 'ACCEPT';
+  if (/[？?]/u.test(normalized)) return 'ASK';
+  if (/^(?:我觉得|我想|我也|我刚才|我今天)/u.test(normalized)) return 'SHARE';
+  return 'RESPOND';
+}
+
+/**
+ * Parses the production three-field response without trusting metadata spelling.
+ * Reply text is still required; tone and stance are safe hints and are inferred
+ * from the reply when Qwen omits or misspells them. Extra fields are ignored.
+ */
+export function parseMinimalCharacterTurnGeneration(value: unknown): MinimalCharacterTurnGeneration {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('QWEN_STRUCTURED_OUTPUT_INVALID');
+  const row = value as Record<string, unknown>;
+  const reply = firstMinimalReply(row);
+  if (!reply) throw new Error('QWEN_STRUCTURED_OUTPUT_INVALID');
+  return {
+    outputFormat: 'MINIMAL_V1',
+    reply,
+    replyTone: aliasedEnumValue(row, MINIMAL_TONE_FIELDS, REPLY_TONE_ALIASES) || inferReplyTone(reply),
+    actionStance: aliasedEnumValue(row, MINIMAL_STANCE_FIELDS, ACTION_STANCE_ALIASES) || inferActionStance(reply),
+  };
 }
 
 function parseDialogueEvidence(value: unknown): DialogueEvidence | null {
@@ -301,6 +403,122 @@ export function isClearlyMaterialRequest(requestText: string): boolean {
     || /(?:借钱|转账|贷款|担保|签字|辞职|替我决定|替我负责|停药|改药|违法|隐瞒事故)/u.test(normalized);
 }
 
+function anchoredTurnText(turn: PromptTurn, max: number): string {
+  return Array.from(turn.content.trim()).slice(0, max).join('');
+}
+
+function hasConservativeCurrentRequest(turn: PromptTurn): boolean {
+  if (turn.role !== 'USER') return false;
+  const value = turn.content.normalize('NFC').replace(/\s+/gu, '');
+  if (/(?:请|麻烦|拜托|求你)(?:你)?[^。！？]{1,30}/u.test(value)) return true;
+  if (/(?:帮|替)我[^。！？]{1,24}|(?:抱我?一下|抱一下|陪我一下)/u.test(value)) return true;
+  if (/(?:手机给我|把[^。！？]{1,24}(?:给我|放下|收起来|关掉)|(?:厨房|客厅|卫生间|家务)[^。！？]{0,12}(?:你收|你做|你处理))/u.test(value)) return true;
+  if (/(?:别|不要|先别|别再)[^。！？]{1,24}/u.test(value)) return true;
+  if (/(?:都由你|你全包|都你来|替我负责)/u.test(value)) return true;
+  return isClearlyMaterialRequest(value) && /(?:你|由你|替我|帮我|给我|负责)/u.test(value);
+}
+
+function deriveAllowedMinimalStance(input: {
+  hinted: InteractionStance;
+  reply: string;
+  control: TurnGenerationControl;
+  hasRequest: boolean;
+}): InteractionStance {
+  const allowed = new Set(input.control.allowedActionStances);
+  const validForRequest = (stance: InteractionStance): boolean => {
+    if (!allowed.has(stance)) return false;
+    if (input.control.requestPolicy === 'FORCE_NONE' && REQUEST_ONLY_STANCES.has(stance)) return false;
+    if (input.hasRequest && !REQUEST_STANCES.has(stance)) return false;
+    if (!input.hasRequest && REQUEST_ONLY_STANCES.has(stance)) return false;
+    return true;
+  };
+  const inferred = inferActionStance(input.reply);
+  if (validForRequest(input.hinted)) return input.hinted;
+  if (validForRequest(inferred)) return inferred;
+  const priorities: InteractionStance[] = input.hasRequest
+    ? ['DEFER', 'NEGOTIATE', 'PARTIAL_ACCEPT', 'DISAGREE', 'SET_BOUNDARY', 'ASK', 'ACCEPT']
+    : ['RESPOND', 'SHARE', 'REPAIR', 'DISAGREE', 'SET_BOUNDARY', 'DEFER', 'END_TOPIC', 'ASK'];
+  return priorities.find(validForRequest) || 'RESPOND';
+}
+
+/**
+ * Expands the model's minimal hint into the existing V2 state contract. All
+ * evidence and request policy come from backend-owned inputs, never from Qwen.
+ */
+export function buildInteractionStateCandidateFromMinimal(input: {
+  generation: MinimalCharacterTurnGeneration;
+  currentTurn: PromptTurn;
+  control: TurnGenerationControl;
+  previousState?: ConversationInteractionState | null;
+}): InteractionStateCandidate {
+  const currentCauseQuote = anchoredTurnText(input.currentTurn, 80);
+  const currentBasisQuote = anchoredTurnText(input.currentTurn, 120);
+  const forcedRequest = input.control.requestPolicy === 'FORCE_LOW_CURRENT' || input.control.requestPolicy === 'FORCE_LOW_CONTEXT';
+  const autoRequest = input.control.requestPolicy === 'AUTO' && hasConservativeCurrentRequest(input.currentTurn);
+  const hasRequest = forcedRequest || autoRequest;
+  let stance = deriveAllowedMinimalStance({
+    hinted: input.generation.actionStance,
+    reply: input.generation.reply,
+    control: input.control,
+    hasRequest,
+  });
+  if (stance !== 'RESPOND' && !currentCauseQuote) stance = 'RESPOND';
+
+  let requestDecision: RequestDecision = { kind: 'NONE' };
+  if (forcedRequest) {
+    requestDecision = {
+      kind: 'REQUEST',
+      load: 'LOW',
+      basis: {
+        source: input.control.requestPolicy === 'FORCE_LOW_CURRENT' ? 'CURRENT_REQUEST' : 'CURRENT_CONTEXT',
+        turnId: input.control.forcedRequestTurnId || input.currentTurn.id,
+        evidence: input.control.forcedRequestQuote || currentBasisQuote,
+      },
+    };
+  } else if (autoRequest) {
+    requestDecision = {
+      kind: 'REQUEST',
+      load: isClearlyMaterialRequest(input.currentTurn.content) ? 'MATERIAL' : 'LOW',
+      basis: { source: 'CURRENT_REQUEST', turnId: input.currentTurn.id, evidence: currentBasisQuote },
+    };
+  }
+
+  const carryByTone: Partial<Record<ReplyTone, { emotion: CarryEmotion; intensity: 1 | 2 }>> = {
+    POSITIVE: { emotion: 'PLEASED', intensity: 1 },
+    CONCERNED: { emotion: 'CONCERNED', intensity: 1 },
+    LOW_ENERGY: { emotion: 'TIRED', intensity: 1 },
+    UNEASY: { emotion: 'UNEASY', intensity: 1 },
+    SAD_OR_HURT: { emotion: 'HURT', intensity: 2 },
+    IRRITATED: { emotion: 'ANNOYED', intensity: 2 },
+    MIXED: { emotion: 'MIXED', intensity: 1 },
+  };
+  const toneCarry = carryByTone[input.generation.replyTone];
+  let carryAffect: CarryAffectState | null = null;
+  if (toneCarry) {
+    const previous = input.previousState?.carryAffect;
+    const continuesPrevious = previous?.emotion === toneCarry.emotion && previous.remainingTurns > 1;
+    const intensity = continuesPrevious ? Math.min(toneCarry.intensity, previous.intensity) as 1 | 2 : toneCarry.intensity;
+    carryAffect = {
+      emotion: toneCarry.emotion,
+      intensity,
+      cause: continuesPrevious ? { source: 'PREVIOUS_STATE' } : { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: input.currentTurn.id, quote: currentCauseQuote },
+      emotionEvidence: Array.from(input.generation.reply).slice(0, 40).join(''),
+      remainingTurns: continuesPrevious ? Math.min(previous.remainingTurns - 1, intensity) as 1 | 2 : intensity,
+    };
+  }
+
+  return {
+    version: 2,
+    carryAffect,
+    action: {
+      stance,
+      currentWant: null,
+      cause: stance === 'RESPOND' ? null : { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: input.currentTurn.id, quote: currentCauseQuote },
+      requestDecision,
+    },
+  };
+}
+
 export function deriveRequestDisposition(action: TurnActionState): RequestDisposition | null {
   if (action.requestDecision.kind === 'NONE') return null;
   if (action.stance === 'ACCEPT') return 'ACCEPT';
@@ -473,6 +691,21 @@ export function normalizeInteractionStateDetailed(input: {
 export function normalizeInteractionState(input: Parameters<typeof normalizeInteractionStateDetailed>[0]): ConversationInteractionState {
   return normalizeInteractionStateDetailed(input).state;
 }
+
+export const MINIMAL_CHARACTER_TURN_JSON_SCHEMA = {
+  name: 'aivoice_turn_minimal_v1',
+  strict: false,
+  schema: {
+    type: 'object',
+    additionalProperties: true,
+    properties: {
+      reply: { type: 'string' },
+      replyTone: { type: 'string' },
+      actionStance: { type: 'string' },
+    },
+    required: ['reply', 'replyTone', 'actionStance'],
+  },
+} as const;
 
 export const CHARACTER_TURN_JSON_SCHEMA = {
   name: 'aivoice_turn_flat_v22',

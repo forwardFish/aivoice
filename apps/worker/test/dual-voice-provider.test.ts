@@ -10,12 +10,14 @@ test('both worker backends retain a registered speaker id while Seed reads the s
     assert.match(source, /registeredProvider\.providerName/);
     assert.match(source, /registeredProvider\.targetModel/);
     assert.match(source, /registeredProvider\(\)\.deleteVoice\(providerBinding\)/);
+    assert.match(source, /voiceGenerationCoordinator\.generate/);
+    assert.match(source, /upgradeReadyMessageAudio/);
   }
 
   const local = fs.readFileSync(path.resolve(import.meta.dirname, '../src/job-runner.ts'), 'utf8');
   const cloud = fs.readFileSync(path.resolve(import.meta.dirname, '../src/cloudbase-job-runner.ts'), 'utf8');
-  assert.match(local, /usesReferenceAudio\(this\.voiceProvider\)[\s\S]{0,120}message\.reference_object_key/);
-  assert.match(cloud, /download\(this\.audioBucket, message\.referenceObjectKey, synthesisReference\)/);
+  assert.match(local, /resolveReference:\s*async \(\) => referencePath/);
+  assert.match(cloud, /download\(this\.audioBucket, message\.referenceObjectKey, referencePath\)/);
   assert.doesNotMatch(local, /Existing voice must be recreated before Seed Audio use/);
   assert.doesNotMatch(cloud, /Existing voice must be recreated before Seed Audio use/);
 });

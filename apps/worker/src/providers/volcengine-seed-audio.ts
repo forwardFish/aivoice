@@ -1,12 +1,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import type { VoiceRelationshipType } from '../chat/voice-chat-context.js';
-import type {
-  VoiceDeliveryMode,
-  VoiceObservedDeliveryBaseline,
-  VoiceProviderPort,
-  VoiceSpeechAct,
-  VoiceSynthesisOptions,
+import {
+  VoiceGenerationError,
+  type VoiceDeliveryMode,
+  type VoiceObservedDeliveryBaseline,
+  type VoiceProviderPort,
+  type VoiceSpeechAct,
+  type VoiceSynthesisOptions,
 } from './voice-provider.js';
 
 const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
@@ -21,16 +22,14 @@ interface SeedAudioResponse {
   original_duration?: number;
 }
 
-export class SeedAudioGenerationError extends Error {
-  readonly retryable = false;
-
+export class SeedAudioGenerationError extends VoiceGenerationError {
   constructor(
     message: string,
     readonly code = 'SEED_AUDIO_FAILED',
     readonly httpStatus: number | null = null,
     readonly requestId = '',
   ) {
-    super(message);
+    super(message, code, httpStatus, requestId, false);
     this.name = 'SeedAudioGenerationError';
   }
 }
@@ -125,6 +124,25 @@ function apiKey(): string {
   ).trim();
 }
 
+export function seedAudioUsdPerMinute(env: NodeJS.ProcessEnv = process.env): number {
+  const value = Number(String(env.BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE || '0.15').trim());
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error('BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE must be a positive number');
+  }
+  return value;
+}
+
+export function estimateSeedAudioCostUsd(
+  billingSeconds: number,
+  usdPerMinute: number = seedAudioUsdPerMinute(),
+): number {
+  if (!Number.isFinite(usdPerMinute) || usdPerMinute <= 0) {
+    throw new Error('Seed Audio USD price per minute must be a positive number');
+  }
+  const seconds = Number.isFinite(billingSeconds) ? Math.max(0, billingSeconds) : 0;
+  return Number((seconds * usdPerMinute / 60).toFixed(6));
+}
+
 function seedAudioEndpoint(configured: string): string {
   const url = new URL(configured);
   if (url.protocol !== 'https:' || url.username || url.password || url.hostname !== 'openspeech.bytedance.com') {
@@ -163,6 +181,7 @@ export class VolcengineSeedAudioProvider implements VoiceProviderPort {
   async synthesize(referencePath: string, text: string, options: VoiceSynthesisOptions = {}): Promise<Buffer> {
     const key = apiKey();
     if (!key) throw new SeedAudioGenerationError('VOLCENGINE_SEED_AUDIO_API_KEY is required', 'SEED_AUDIO_KEY_MISSING');
+    const pricingUsdPerMinute = seedAudioUsdPerMinute();
     let reference: Buffer;
     try {
       reference = await fs.readFile(referencePath);
@@ -269,7 +288,9 @@ export class VolcengineSeedAudioProvider implements VoiceProviderPort {
       elapsedMs: Date.now() - startedAt,
       durationSeconds: Number(result.duration || 0),
       billingDurationSeconds: billingSeconds,
-      estimatedCostRmb: Number((billingSeconds * 0.3 / 60).toFixed(6)),
+      pricingCurrency: 'USD',
+      pricingUsdPerMinute,
+      estimatedCostUsd: estimateSeedAudioCostUsd(billingSeconds, pricingUsdPerMinute),
       referenceBytes: reference.length,
       outputBytes: audio.length,
     }));

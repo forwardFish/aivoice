@@ -2,13 +2,136 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   activePreviousInteractionState,
+  buildInteractionStateCandidateFromMinimal,
+  MINIMAL_CHARACTER_TURN_JSON_SCHEMA,
   normalizeInteractionStateDetailed,
   parseCharacterTurnGeneration,
+  parseMinimalCharacterTurnGeneration,
   type ConversationInteractionState,
 } from '../src/chat/interaction-state.js';
 
 const currentTurn = { id: 'current:USER', role: 'USER' as const, content: '你每次都说两分钟，手机给我。' };
 const profile = { personalityNote: '有自己的主意。', speechHabitNote: '多用短句。', relationshipNote: '母女会直接说清楚。' };
+
+test('minimal generation tolerates aliases and extra fields while marking its format', () => {
+  const parsed = parseMinimalCharacterTurnGeneration({
+    text: '等一下，我马上就好了。',
+    emotion: '不满',
+    action: '稍后',
+    ignoredLegacyField: 'anything',
+  });
+  assert.deepEqual(parsed, {
+    outputFormat: 'MINIMAL_V1',
+    reply: '等一下，我马上就好了。',
+    replyTone: 'IRRITATED',
+    actionStance: 'DEFER',
+  });
+  assert.deepEqual(MINIMAL_CHARACTER_TURN_JSON_SCHEMA.schema.required, ['reply', 'replyTone', 'actionStance']);
+});
+
+test('minimal generation infers safe metadata when Qwen omits or misspells it', () => {
+  const parsed = parseMinimalCharacterTurnGeneration({
+    reply: '太好了，周末一起去！',
+    replyTone: 'POSITVE',
+    actionStance: 'unknown-action',
+  });
+  assert.equal(parsed.replyTone, 'POSITIVE');
+  assert.equal(parsed.actionStance, 'RESPOND');
+  assert.throws(() => parseMinimalCharacterTurnGeneration({ tone: '开心' }), /QWEN_STRUCTURED_OUTPUT_INVALID/u);
+});
+
+test('minimal state uses backend-owned forced request basis and current-turn action evidence', () => {
+  const generation = parseMinimalCharacterTurnGeneration({
+    reply: '等一下，我马上给你。', replyTone: 'IRRITATED', actionStance: 'RESPOND',
+  });
+  const candidate = buildInteractionStateCandidateFromMinimal({
+    generation,
+    currentTurn,
+    control: {
+      questionPolicy: 'AT_MOST_ONE',
+      allowedActionStances: ['ASK', 'ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE', 'DISAGREE', 'SET_BOUNDARY', 'DEFER'],
+      requestPolicy: 'FORCE_LOW_CURRENT',
+      forcedRequestTurnId: 'current:USER',
+      forcedRequestQuote: '手机给我',
+    },
+  });
+  assert.deepEqual(candidate.carryAffect, {
+    emotion: 'ANNOYED', intensity: 2,
+    cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'current:USER', quote: currentTurn.content },
+    emotionEvidence: '等一下，我马上给你。', remainingTurns: 2,
+  });
+  assert.equal(candidate.action.stance, 'DEFER');
+  assert.deepEqual(candidate.action.cause, {
+    source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'current:USER', quote: currentTurn.content,
+  });
+  assert.deepEqual(candidate.action.requestDecision, {
+    kind: 'REQUEST', load: 'LOW', basis: { source: 'CURRENT_REQUEST', turnId: 'current:USER', evidence: '手机给我' },
+  });
+});
+
+test('minimal AUTO policy derives only explicit current requests and classifies material load', () => {
+  const control = {
+    questionPolicy: 'AT_MOST_ONE' as const,
+    allowedActionStances: ['RESPOND', 'ACCEPT', 'PARTIAL_ACCEPT', 'NEGOTIATE', 'DISAGREE', 'SET_BOUNDARY', 'DEFER', 'ASK'] as const,
+    requestPolicy: 'AUTO' as const,
+    forcedRequestTurnId: '',
+    forcedRequestQuote: '',
+  };
+  const build = (content: string, actionStance: string) => buildInteractionStateCandidateFromMinimal({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '行，我知道了。', replyTone: 'PLAIN', actionStance }),
+    currentTurn: { id: 'auto:USER', role: 'USER', content },
+    control: { ...control, allowedActionStances: [...control.allowedActionStances] },
+  });
+
+  const ordinary = build('今晚厨房你收一下。', 'ACCEPT');
+  assert.equal(ordinary.action.requestDecision.kind, 'REQUEST');
+  if (ordinary.action.requestDecision.kind === 'REQUEST') assert.equal(ordinary.action.requestDecision.load, 'LOW');
+
+  const material = build('以后所有家务都你来。', 'ACCEPT');
+  assert.equal(material.action.requestDecision.kind, 'REQUEST');
+  if (material.action.requestDecision.kind === 'REQUEST') assert.equal(material.action.requestDecision.load, 'MATERIAL');
+
+  const disclosure = build('我今天真的很累。', 'ACCEPT');
+  assert.equal(disclosure.action.requestDecision.kind, 'NONE');
+  assert.equal(disclosure.action.stance, 'RESPOND');
+});
+
+test('minimal FORCE_NONE removes request-only stance without trusting model metadata', () => {
+  const candidate = buildInteractionStateCandidateFromMinimal({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '行，我知道了。', replyTone: 'PLAIN', actionStance: 'ACCEPT' }),
+    currentTurn: { id: 'explain:USER', role: 'USER', content: '我只是怕饭凉。' },
+    control: {
+      questionPolicy: 'AT_MOST_ONE', allowedActionStances: ['RESPOND', 'SHARE', 'ASK', 'DISAGREE', 'SET_BOUNDARY', 'DEFER', 'REPAIR', 'END_TOPIC'],
+      requestPolicy: 'FORCE_NONE', forcedRequestTurnId: '', forcedRequestQuote: '',
+    },
+  });
+  assert.equal(candidate.action.stance, 'RESPOND');
+  assert.equal(candidate.action.requestDecision.kind, 'NONE');
+});
+
+test('minimal generation carries the same audible emotion for one bounded following turn', () => {
+  const previousState: ConversationInteractionState = {
+    version: 2,
+    carryAffect: {
+      emotion: 'ANNOYED', intensity: 2,
+      cause: { source: 'CURRENT_OR_RECENT_DIALOGUE', turnId: 'prior:USER', quote: '你又临时改口。' },
+      emotionEvidence: '临时改口真的很烦。', remainingTurns: 2,
+    },
+    action: { stance: 'RESPOND', currentWant: null, cause: null, requestDecision: { kind: 'NONE' } },
+    createdAt: new Date().toISOString(),
+  };
+  const candidate = buildInteractionStateCandidateFromMinimal({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '我现在还是有点不高兴。', replyTone: 'IRRITATED', actionStance: 'RESPOND' }),
+    currentTurn: { id: 'follow:USER', role: 'USER', content: '嗯。' },
+    control: { questionPolicy: 'AT_MOST_ONE', allowedActionStances: ['RESPOND'], requestPolicy: 'AUTO', forcedRequestTurnId: '', forcedRequestQuote: '' },
+    previousState,
+  });
+  assert.deepEqual(candidate.carryAffect, {
+    emotion: 'ANNOYED', intensity: 2,
+    cause: { source: 'PREVIOUS_STATE' },
+    emotionEvidence: '我现在还是有点不高兴。', remainingTurns: 1,
+  });
+});
 
 test('V2 structured generation separates reply tone, carried affect and action', () => {
   const parsed = parseCharacterTurnGeneration({

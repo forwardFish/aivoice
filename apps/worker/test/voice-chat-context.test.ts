@@ -272,8 +272,8 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   assert.match(askedSystem, /整个reply最多只能有一个真正的问题/);
   assert.match(askedSystem, /一个问号内也不得先问/);
   assert.match(askedSystem, /questionPolicy=FORBIDDEN/);
-  assert.match(askedSystem, /PLAIN只能NONE/);
-  assert.match(askedSystem, /MIXED只能MIXED/);
+  assert.match(askedSystem, /只保留reply、replyTone、actionStance三个字段/);
+  assert.doesNotMatch(askedSystem, /carryEmotion只能/);
   assert.match(askedSystem, /当前输入确实触发且尚未被后续事实化解/);
   assert.match(askedSystem, /修复不等于撤销全部立场/);
   assert.match(askedSystem, /人物在最近对话中已经明确说出的时间、可用范围/);
@@ -335,7 +335,7 @@ test('partner affection prompt lets runtime choose the action and personality ow
   assert.match(system, /primary必须决定reply的核心意愿、注意点和主要选择/);
   assert.ok(system.lastIndexOf('【本轮最终控制：优先级最高】') < system.lastIndexOf('<personality_turn_focus>'));
   assert.ok(system.lastIndexOf('本轮台词最终自然化检查') < system.lastIndexOf('<personality_turn_focus>'));
-  assert.ok(system.lastIndexOf('</personality_turn_focus>') < system.lastIndexOf('严格输出指定的扁平V2.2 JSON对象'));
+  assert.ok(system.lastIndexOf('</personality_turn_focus>') < system.lastIndexOf('只输出一个简单JSON对象'));
   assert.match(system, /本区块为最终语义裁决/);
   assert.match(system, /phase、personality、reply_shape和forbidden均由服务端生成/);
   const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');

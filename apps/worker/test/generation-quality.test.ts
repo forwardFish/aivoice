@@ -7,7 +7,7 @@ import {
   qualityRetryMessages,
   withOneQualityRetry,
 } from '../src/chat/generation-quality.js';
-import { legacyCharacterTurnGeneration } from '../src/chat/interaction-state.js';
+import { legacyCharacterTurnGeneration, parseMinimalCharacterTurnGeneration } from '../src/chat/interaction-state.js';
 import { compileVoiceChatMessages } from '../src/chat/voice-chat-context.js';
 
 test('quality retry does not call the model twice when the first result passes', async () => {
@@ -96,6 +96,30 @@ test('unsupported current-state claims request a retry before audio generation',
   });
   assert.ok(quality.retryReasons.includes('UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED'));
   assert.equal(quality.outputText, '我知道你不是故意的。');
+});
+
+test('minimal production output expands into an accepted backend-owned affect state', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'minimal-quality',
+    voiceName: '小宁', ageYears: 24, gender: 'FEMALE', userAgeYears: 26,
+    relationshipType: 'PARTNER', relationshipLabel: '', userAddress: '阿哲',
+    personalityNote: '【用户明确选择】脾气来得快：临时变卦时会直接不满。',
+    history: [], currentInput: '我今晚会晚一个小时到，刚才忙忘了跟你说。',
+  });
+  const quality = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '阿哲，晚到才说也太突然了吧。', replyTone: 'IRRITATED', actionStance: 'RESPOND' }),
+    currentUserText: '我今晚会晚一个小时到，刚才忙忘了跟你说。',
+    relationshipType: 'PARTNER', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    profile: { personalityNote: '脾气来得快', speechHabitNote: null, relationshipNote: null },
+  });
+  assert.equal(quality.interactionStateAccepted, true);
+  assert.equal(quality.interactionState.carryAffect?.emotion, 'ANNOYED');
+  assert.equal(quality.interactionState.carryAffect?.remainingTurns, 2);
 });
 
 test('retry prompt preserves the original messages and adds only one correction system message', () => {

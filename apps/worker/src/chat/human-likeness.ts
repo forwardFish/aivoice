@@ -130,6 +130,10 @@ export function sanitizeUnsupportedPresentSceneClaims(input: {
   if (!/(?:安排好|排好|空出时间|已有安排)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我这边|我的)?(?:时间|事情)?.{0,5}(?:都安排好|都排好|已经安排好|已经排好|空出来了|没法(?:再)?安排(?:别的)?)|(?:打乱|影响)了?(?:我|我的|这边的)?安排/u);
   if (!/(?:准备好|没准备|来不及准备)/u.test(authoritativeKnown)) unsupportedPatterns.push(/我(?:有点|还|都)?没准备(?:好)?|我还没准备好/u);
   if (!/(?:刚才|之前).{0,8}(?:坐|站|躺|忙|工作|开会|走|跑)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:刚才|之前)(?:一直|还在|都在)?(?:坐|站|躺|忙|工作|开会|走|跑)(?:着|了)?/u);
+  if (!/(?:抢|夺|拿走|伸手拿|直接拿)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:干嘛|为什么|怎么)?(?:还|就|又)?(?:直接)?(?:来)?抢(?:啊|呀|嘛)?|(?:别|不要)抢|你(?:刚才)?(?:直接)?抢/u);
+  if (!/(?:点好|订好|买好|准备好|占好|占位置|占座|到店|在店里|在餐厅)/u.test(authoritativeKnown)) unsupportedPatterns.push(/我(?:已经|都|正|先)(?:把)?[^，。！？]{0,14}(?:点好|订好|买好|准备好|占好|占位置|占座)[^，。！？]{0,10}(?:等你|等着你)?/u);
+  if (!/(?:剧|电影|电视|视频|节目)/u.test(authoritativeKnown)) unsupportedPatterns.push(/我(?:已经|都|正|先)(?:把)?[^，。！？]{0,14}(?:剧|电影|电视|视频|节目)[^，。！？]{0,8}(?:点开|打开|找好|放上)/u);
+  if (!/(?:在家|家里|没出门|还没出门|准备出门|出门|到家|回家)/u.test(authoritativeKnown)) unsupportedPatterns.push(/我(?:还|现在)?(?:在家|在家里|没出门|还没出门)|(?:等你|你到了|你到)(?:以后|之后|了)?[^，。！？]{0,8}我(?:再|才)出门|我(?:再|才)出门/u);
   if (!/(?:总|老是|经常|每次).{0,12}(?:忘|不说|没说|不告诉|没告诉)/u.test(authoritativeKnown)) unsupportedPatterns.push(/你(?:总|老是|经常|每次)(?:会|是)?(?:忘|不说|没说|不告诉|没告诉).{0,8}/u);
   // A casual shared-history embellishment ("老地方/上次那家") can be harmless in a
   // partner conversation, but a specific nearby venue asserts the character's current

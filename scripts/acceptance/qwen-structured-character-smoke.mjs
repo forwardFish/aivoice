@@ -13,11 +13,12 @@ process.env.DASHSCOPE_API_HOST = String(baseEnv.DASHSCOPE_API_HOST || 'https://d
 process.env.CHAT_MODEL = String(baseEnv.CHAT_MODEL || 'qwen3.8-max').trim();
 if (!process.env.DASHSCOPE_API_KEY) throw new Error('DASHSCOPE_API_KEY is missing');
 
-const [{ compileVoiceChatMessages }, { normalizeInteractionStateDetailed }, { DashscopeChatProvider }] = await Promise.all([
+const [{ compileVoiceChatMessages }, { DashscopeChatProvider }, generationQualityModule] = await Promise.all([
   import('../../apps/worker/dist/chat/voice-chat-context.js'),
-  import('../../apps/worker/dist/chat/interaction-state.js'),
   import('../../apps/worker/dist/providers/dashscope-chat.js'),
+  import('../../apps/worker/dist/chat/generation-quality.js'),
 ]);
+const { evaluateCharacterGenerationQuality } = generationQualityModule;
 
 const profile = {
   voiceName: '小雨', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
@@ -49,31 +50,35 @@ for (let index = 0; index < runCount; index += 1) {
   const startedAt = performance.now();
   try {
     const generated = await provider.reply(context.messages);
-    const normalized = normalizeInteractionStateDetailed({
-      candidate: generated.interactionState,
-      replyTone: generated.replyTone,
-      reply: generated.reply,
+    const quality = evaluateCharacterGenerationQuality({
+      generation: generated,
+      currentUserText: currentInput,
+      relationshipType: profile.relationshipType,
+      subjectBackground: profile.background,
+      recentUserInputs: [],
+      recentCharacterReplies: [],
       currentTurn: context.currentTurn,
       recentTurns: context.recentTurns,
       previousState: context.previousInteractionState,
       control: context.runtimeDialogueControl,
+      personalityTurnFocus: context.personalityTurnFocus,
       profile: {
         personalityNote: profile.personalityNote,
         speechHabitNote: profile.speechHabitNote,
         relationshipNote: profile.relationshipNote,
       },
     });
-    runs.push({ index: index + 1, currentInput, elapsedMs: Math.round(performance.now() - startedAt), parsed: true, stateAccepted: normalized.accepted, stateIssues: normalized.issues, reply: generated.reply, replyTone: generated.replyTone, interactionState: normalized.state });
+    runs.push({ index: index + 1, currentInput, elapsedMs: Math.round(performance.now() - startedAt), parsed: true, stateAccepted: quality.interactionStateAccepted, stateIssues: quality.interactionStateIssues, reply: quality.outputText, replyTone: quality.replyTone, interactionState: quality.interactionState });
   } catch (error) {
     runs.push({ index: index + 1, currentInput, elapsedMs: Math.round(performance.now() - startedAt), parsed: false, error: error instanceof Error ? error.message : String(error) });
   }
-  process.stdout.write(`[qwen flat v2.2] ${index + 1}/${runCount} ${runs.at(-1).parsed ? 'PARSED' : 'FAILED'}\n`);
+  process.stdout.write(`[qwen minimal v1] ${index + 1}/${runCount} ${runs.at(-1).parsed ? 'PARSED' : 'FAILED'}\n`);
 }
 const parsedCount = runs.filter((run) => run.parsed).length;
 const report = {
   status: parsedCount === runCount ? 'PASS' : 'FAIL',
   model: process.env.CHAT_MODEL,
-  promptVersion: 'voice-chat-human-flat-v2.2',
+  promptVersion: 'voice-chat-human-minimal-v1',
   runCount,
   parsedCount,
   stateAcceptedCount: runs.filter((run) => run.stateAccepted).length,

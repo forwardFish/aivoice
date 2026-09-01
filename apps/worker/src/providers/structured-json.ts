@@ -42,3 +42,24 @@ export function parseStrictStructuredJson(raw: string): unknown {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('QWEN_STRUCTURED_OUTPUT_INVALID');
   return parsed;
 }
+
+/**
+ * Reads the first complete JSON object and ignores duplicate/trailing model output.
+ * Minimal reply parsing only consumes an allowlisted set of fields afterward.
+ */
+export function parseFirstStructuredJson(raw: string): unknown {
+  const trimmed = String(raw || '').replace(/^\uFEFF/u, '').trim();
+  const fence = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```/iu);
+  const source = (fence ? fence[1] : trimmed).trim();
+  const start = source.indexOf('{');
+  if (start < 0) throw new Error('QWEN_MINIMAL_OUTPUT_INVALID');
+  const end = completeJsonObjectEnd(source, start);
+  if (end < 0) throw new Error('QWEN_MINIMAL_OUTPUT_INVALID');
+  try {
+    const parsed = JSON.parse(source.slice(start, end + 1));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('invalid object');
+    return parsed;
+  } catch {
+    throw new Error('QWEN_MINIMAL_OUTPUT_INVALID');
+  }
+}

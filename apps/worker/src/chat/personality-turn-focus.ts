@@ -329,7 +329,7 @@ export function personalityTurnFocusInstructions(
     focusedBehavior.push('本轮不满只能针对用户已经说出的行为；严禁声称“我这边都安排好了、我已经空出时间、我没法安排别的、我遭受了损失”等未提供事实。');
   }
   if (focus.phase === 'TRIGGER' && focus.primary.label === '脾气来得快') {
-    focusedBehavior.push('本轮用陈述表达一个第一人称不满和一个现实期待，不使用反问或任何问号；不要把“为什么不早说、忙完再说很难吗”组合成审问，也不要只剩“下次早点说”这种无人物反应的通知句。');
+    focusedBehavior.push('本轮只完成一个主要关系动作，优先让即时不满本身可见；不要把“复述事实＋命名情绪＋提出下次要求”整理成完整沟通模板。可以只表达人物此刻的直接反应，边界留到确实需要时再说；不使用反问或任何问号。');
   }
   if (focus.phase === 'CONTINUING_CONFLICT' && focus.secondary?.label === '表达直接') {
     focusedBehavior.push('上一轮已经表达过具体要求，本轮要区分“对方不是故意”和“行为仍有影响”，不得再次重复提前通知或安排时间的同一句要求。');
@@ -451,13 +451,19 @@ export function personalityTurnFocusReplyViolation(
   focus: PersonalityTurnFocus | null,
   reply: string,
   recentCharacterReplies: readonly string[] = [],
-): 'AFFECTION_PASSIVE_PERMISSION' | 'AFFECTION_ECHO_ONLY' | 'AUTHORITY_JUDGMENT' | 'GENERIC_REPAIR_STAGE_PHRASE' | 'MODELISH_BOUNDARY_TEMPLATE' | 'REPEATED_SAME_GRIEVANCE' | 'QUICK_TRIGGER_QUESTION' | 'MULTIPLE_NEXT_STEPS' | 'PREMATURE_AFFECTION_REPAIR' | null {
+): 'AFFECTION_PASSIVE_PERMISSION' | 'AFFECTION_ECHO_ONLY' | 'AUTHORITY_JUDGMENT' | 'GENERIC_REPAIR_STAGE_PHRASE' | 'MODELISH_BOUNDARY_TEMPLATE' | 'REPEATED_SAME_GRIEVANCE' | 'REPEATED_EXPLICIT_CONFLICT_EMOTION' | 'TRIGGER_COMPLETE_COMMUNICATION_TEMPLATE' | 'QUICK_TRIGGER_QUESTION' | 'MULTIPLE_NEXT_STEPS' | 'PREMATURE_AFFECTION_REPAIR' | 'REPEATED_SAFE_ACTIVITY' | 'BUNDLED_GENERIC_SAFE_CLOSURE' | null {
   if (!focus) return null;
   if (focus.phase === 'TRIGGER' && focus.primary.label === '脾气来得快' && /[？?]/u.test(reply)) {
     return 'QUICK_TRIGGER_QUESTION';
   }
+  if (focus.phase === 'TRIGGER' && focus.primary.label === '脾气来得快'
+    && /(?:晚到|晚说|临时|忘了|才说)/u.test(reply)
+    && /(?:不爽|不高兴|生气|恼火|难受|不舒服|失望)/u.test(reply)
+    && /(?:下次|以后|记得|早点|先给我|先发)/u.test(reply)) {
+    return 'TRIGGER_COMPLETE_COMMUNICATION_TEMPLATE';
+  }
   if ((focus.phase === 'TRIGGER' || focus.phase === 'CONTINUING_CONFLICT')
-    && /(?:时间有变|及时通知|我这边(?:不太)?好安排|我这边没法安排|影响(?:我这边的)?安排|方便安排|别过了才说|我(?:又|也)?没(?:一直)?揪着.{0,6}不放|(?:忙完再说|晚说|临时说)(?:是|就是)事实)/u.test(reply)) {
+    && /(?:时间有变|及时通知|我这边(?:不太)?好安排|我这边没法安排|影响(?:我这边的)?安排|方便安排|别过了才说|被通知(?:得)?(?:晚|迟)|我(?:又|也)?没(?:一直)?揪着.{0,6}不放|(?:忙完再说|晚说|临时说)(?:是|就是)事实)/u.test(reply)) {
     return 'MODELISH_BOUNDARY_TEMPLATE';
   }
   if (focus.phase === 'REPAIR' && /(?:知道就好|认错态度(?:不错|可以|还行)|看在你认错|(?:你)?(?:肯认|肯说|认了|认错)(?:就)?(?:行|好)|这次算了)/u.test(reply)) {
@@ -476,6 +482,10 @@ export function personalityTurnFocusReplyViolation(
   }
   if (focus.phase === 'CONTINUING_CONFLICT' && recentCharacterReplies.length) {
     const previousReply = String(recentCharacterReplies.at(-1) || '');
+    const explicitEmotionTerms = ['不爽', '不高兴', '生气', '恼火', '委屈', '失望', '难受', '不舒服'];
+    if (explicitEmotionTerms.some((term) => previousReply.includes(term) && reply.includes(term))) {
+      return 'REPEATED_EXPLICIT_CONFLICT_EMOTION';
+    }
     const grievanceConcepts = [
       /(?:晚到才说|晚说|提前说|忘了说|临时才说)/u,
       /(?:干等|一直等|等消息|等你)/u,
@@ -483,7 +493,10 @@ export function personalityTurnFocusReplyViolation(
       /(?:安排|协调|时间)/u,
     ];
     const repeatedConceptCount = grievanceConcepts.filter((pattern) => pattern.test(previousReply) && pattern.test(reply)).length;
-    if (repeatedConceptCount >= 2) return 'REPEATED_SAME_GRIEVANCE';
+    const quickTemperRepeatedLateNotice = focus.primary.label === '脾气来得快'
+      && grievanceConcepts[0].test(previousReply)
+      && grievanceConcepts[0].test(reply);
+    if (repeatedConceptCount >= 2 || quickTemperRepeatedLateNotice) return 'REPEATED_SAME_GRIEVANCE';
   }
   if (focus.phase === 'DECISION') {
     const actionConcepts = [
@@ -492,9 +505,31 @@ export function personalityTurnFocusReplyViolation(
       /(?:散步|走走|走一段|转一圈)/u,
       /(?:坐会|坐一会|待一会|待会儿)/u,
       /(?:看电影|逛街|逛逛)/u,
+      /(?:抱一下|抱一会|抱会儿|抱着|亲一下|靠一会)/u,
     ];
+    const previousReply = String(recentCharacterReplies.at(-1) || '');
+    const repetitiveSafeConcepts = [
+      /(?:点好|点菜|吃饭|吃点东西|吃碗|吃个)/u,
+      /(?:抱一下|抱一会|抱会儿|抱着|亲一下|靠一会)/u,
+    ];
+    if (previousReply && repetitiveSafeConcepts.some((pattern) => pattern.test(previousReply) && pattern.test(reply))) {
+      return 'REPEATED_SAFE_ACTIVITY';
+    }
+    const safeClosureDomains = [
+      /(?:抱|亲|搂|靠着|牵手)/u,
+      /(?:吃饭|吃东西|点菜|做饭|餐厅|火锅|夜宵)/u,
+      /(?:睡觉|休息|歇着|躺着)/u,
+    ];
+    if (safeClosureDomains.filter((pattern) => pattern.test(reply)).length >= 2) {
+      return 'BUNDLED_GENERIC_SAFE_CLOSURE';
+    }
+    if ((focus.primary.label === '喜欢亲近' || focus.secondary?.label === '喜欢亲近')
+      && /^(?:好|行|嗯|那)?[，,]?(?:到了)?(?:就)?先?(?:让我)?(?:抱|亲|靠)/u.test(reply.trim())) {
+      return 'PREMATURE_AFFECTION_REPAIR';
+    }
     const actionCount = actionConcepts.filter((pattern) => pattern.test(reply)).length;
-    if (actionCount >= 2 && /(?:然后|再|接着)/u.test(reply)) return 'MULTIPLE_NEXT_STEPS';
+    const affectionAction = actionConcepts.at(-1)?.test(reply) || false;
+    if ((actionCount >= 3 || (affectionAction && actionCount >= 2)) && /(?:然后|再|接着)/u.test(reply)) return 'MULTIPLE_NEXT_STEPS';
   }
   if (focus.phase === 'AFFECTION'
     && /^(?:好|行|嗯)?[，,]?(?:到了)?(?:就)?先?抱(?:一下|一会儿|会儿)?[。.]?$/u.test(reply.trim())) {

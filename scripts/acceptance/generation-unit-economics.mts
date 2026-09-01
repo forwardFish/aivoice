@@ -20,8 +20,8 @@ const [contextModule, stateModule, jsonModule] = await Promise.all([
   import('../../apps/worker/dist/providers/structured-json.js')
 ])
 const { compileVoiceChatMessages } = contextModule
-const { CHARACTER_TURN_JSON_SCHEMA, parseCharacterTurnGeneration } = stateModule
-const { parseStrictStructuredJson } = jsonModule
+const { buildInteractionStateCandidateFromMinimal, normalizeInteractionStateDetailed, parseMinimalCharacterTurnGeneration } = stateModule
+const { parseFirstStructuredJson } = jsonModule
 
 const userTurns = [
   '我今晚会晚一个小时到，刚才忙忘了跟你说。',
@@ -60,7 +60,7 @@ for (let index = 0; index < userTurns.length; index += 1) {
       enable_thinking: false,
       preserve_thinking: false,
       temperature: 0.65,
-      response_format: { type: 'json_schema', json_schema: CHARACTER_TURN_JSON_SCHEMA }
+      response_format: { type: 'json_object' }
     }),
     signal: AbortSignal.timeout(60_000)
   })
@@ -71,7 +71,18 @@ for (let index = 0; index < userTurns.length; index += 1) {
   }
   const raw = result.choices?.[0]?.message?.content
   if (!raw) throw new Error('cost probe returned no structured output')
-  const generation = parseCharacterTurnGeneration(typeof raw === 'string' ? parseStrictStructuredJson(raw) : raw)
+  const generation = parseMinimalCharacterTurnGeneration(typeof raw === 'string' ? parseFirstStructuredJson(raw) : raw)
+  const candidate = buildInteractionStateCandidateFromMinimal({ generation, currentTurn: context.currentTurn, control: context.runtimeDialogueControl })
+  const normalized = normalizeInteractionStateDetailed({
+    candidate,
+    replyTone: generation.replyTone,
+    reply: generation.reply,
+    currentTurn: context.currentTurn,
+    recentTurns: context.recentTurns,
+    previousState: context.previousInteractionState,
+    control: context.runtimeDialogueControl,
+    profile: { personalityNote: profile.personalityNote, speechHabitNote: profile.speechHabitNote, relationshipNote: profile.relationshipNote }
+  })
   const inputTokens = Number(result.usage?.prompt_tokens ?? result.usage?.input_tokens ?? 0)
   const outputTokens = Number(result.usage?.completion_tokens ?? result.usage?.output_tokens ?? 0)
   const replyCharacters = Array.from(generation.reply).length
@@ -91,7 +102,7 @@ for (let index = 0; index < userTurns.length; index += 1) {
     mode: 'CHAT',
     inputText: userTurns[index],
     outputText: generation.reply,
-    interactionState: generation.interactionState
+    interactionState: normalized.state
   })
 }
 

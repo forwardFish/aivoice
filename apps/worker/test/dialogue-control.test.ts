@@ -35,6 +35,7 @@ test('question validation rejects compound intents even when there is only one q
   assert.deepEqual(validateQuestionBehavior('你具体几点搬、要帮到哪一步？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('时间是什么、地址在哪里？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('东西多不多、需要几个人？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
+  assert.deepEqual(validateQuestionBehavior('怎么突然想辞职了？工作干得不顺心还是身体吃不消啊。', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('周六具体几点开始？', action('ASK'), control), []);
 });
 

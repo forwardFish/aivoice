@@ -8,9 +8,11 @@ import {
   sanitizeUnsupportedPresentSceneClaims,
 } from './human-likeness.js';
 import {
+  buildInteractionStateCandidateFromMinimal,
   normalizeInteractionStateDetailed,
   type CharacterTurnGeneration,
   type ConversationInteractionState,
+  type MinimalCharacterTurnGeneration,
   type PromptTurn,
 } from './interaction-state.js';
 import {
@@ -53,7 +55,7 @@ export function chatTemperatureForFocus(focus: PersonalityTurnFocus | null): num
 }
 
 export function evaluateCharacterGenerationQuality(input: {
-  generation: CharacterTurnGeneration;
+  generation: CharacterTurnGeneration | MinimalCharacterTurnGeneration;
   currentUserText: string;
   relationshipType: VoiceRelationshipType | null;
   subjectBackground: string | null;
@@ -85,8 +87,17 @@ export function evaluateCharacterGenerationQuality(input: {
     allowLowRiskConversationalEmbellishment: input.relationshipType === 'PARTNER',
   });
   const outputText = presentSceneSanitization.reply;
+  let candidate;
+  if ('outputFormat' in input.generation) {
+    candidate = buildInteractionStateCandidateFromMinimal({
+      generation: input.generation,
+      currentTurn: input.currentTurn,
+      control: input.control,
+      previousState: input.previousState,
+    });
+  } else candidate = input.generation.interactionState;
   const normalized = normalizeInteractionStateDetailed({
-    candidate: input.generation.interactionState,
+    candidate,
     replyTone: input.generation.replyTone,
     reply: outputText,
     currentTurn: input.currentTurn,
@@ -157,12 +168,16 @@ const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   PURE_ACKNOWLEDGEMENT: '上一版只有敷衍确认。重写时加入人物自己的具体反应或一个自然推进。',
   GENERIC_REPAIR_STAGE_PHRASE: '上一版直接用“翻篇、没事、不生气了”等词汇汇报修复阶段。保持人物已开始缓和，但要通过减少攻击、恢复普通交流、轻微调侃、小要求或具体选择表现变化，不要宣布阶段结束。',
   REPEATED_SAME_GRIEVANCE: '上一版重复了人物上一轮已经说过的同一项指责和边界。直接回应用户本轮新增的辩解或信息，保留立场但不要再次复述等待、晚告知或下次提醒；增加一个新的个人判断或当前选择。',
+  REPEATED_EXPLICIT_CONFLICT_EMOTION: '上一版与上一轮连续使用同一个显式情绪词证明人物还在生气。情绪可以继续存在，但本轮必须回应用户新增的辩解、否认或压制动作；用新的个人判断、迟疑、让步或关系动作表现，不再重复同一个情绪名词。',
+  TRIGGER_COMPLETE_COMMUNICATION_TEMPLATE: '上一版把快速不满整理成“复述事实＋命名情绪＋提出下次要求”的标准沟通模板。保留真实触发，但本轮只做一个主要关系动作，优先给出人物即时、口语化的直接反应；不要同时总结原因、感受和解决方案。',
   MODELISH_BOUNDARY_TEMPLATE: '上一版用了“时间有变、我这边不好安排、影响安排”等公文化边界模板。保持人物的边界和现实期待不变，改成24岁伴侣会自然说出的第一人称感受或需要，不声称已有具体安排受损。',
   AFFECTION_ECHO_ONLY: '上一版只是把用户的“到了先抱一下”换词复述。保持温和接受，但加入人物自己的简短参与、感受或当下动作，不需要变得热烈，也不要重新讲边界。',
   MULTIPLE_QUESTION_INTENTS: '上一版包含复合提问或连续追问。本轮用户没有要求人物采访原因；改用陈述句表达一个不满和一个现实期待，reply不出现问号，也不要用“为什么、怎么、难吗”变相追问。',
   QUICK_TRIGGER_QUESTION: '上一版把快速不满写成了反问。保留明确不满，但改为第一人称陈述和一个现实期待，不出现问号或“不能、难吗、为什么”等审问句式。',
   MULTIPLE_NEXT_STEPS: '上一版同时塞入两个安排。本轮只保留人物最想做的一件事，不能用“然后、再、接着”追加第二项活动。',
   PREMATURE_AFFECTION_REPAIR: '上一版在用户尚未邀请亲近时就主动把修复收束为拥抱或靠着。保持温柔和已经缓和，但先恢复普通交流或提出一个非身体亲近的现实下一步；把亲近留到用户真正邀请时再回应。',
+  REPEATED_SAFE_ACTIVITY: '上一版又使用了最近一轮已经出现的吃饭、喝东西、散步、看电影或拥抱等安全收束。保持人物本轮意愿不变，但换成一个不同且符合已知事实的现实安排；不要再次使用最近一轮的同类活动，也不要同时塞入两个下一步。',
+  BUNDLED_GENERIC_SAFE_CLOSURE: '上一版在安排轮同时打包了拥抱、吃饭或休息等多个通用安全收束。只保留人物此刻最想要的一个核心安排；不要用第二个安全动作补齐“和好流程”，也不要沿用未被用户或资料确认的计划。',
 };
 
 const SAFE_SANITIZED_FALLBACK_REASONS = new Set([
@@ -200,7 +215,7 @@ export function qualityRetryMessages(messages: VoiceChatMessage[], reasons: stri
     messages[0],
     {
       role: 'system',
-      content: `上一版仅因以下确定性质量问题不合格：${reasons.join('、')}。${guidance.join(' ')}人物身份、已知事实、当前阶段、主次性格、本轮立场和其他已合格内容保持不变；只修正列出的失败项，不增加新事实，不改写成另一种人物。重新输出完整扁平V2.2 JSON，不解释重试原因。`,
+      content: `上一版仅因以下确定性质量问题不合格：${reasons.join('、')}。${guidance.join(' ')}人物身份、已知事实、当前阶段、主次性格、本轮立场和其他已合格内容保持不变；只修正列出的失败项，不增加新事实，不改写成另一种人物。只重新输出reply、replyTone、actionStance三个字段，不解释重试原因，不输出第二份JSON。`,
     },
     ...messages.slice(1),
   ];

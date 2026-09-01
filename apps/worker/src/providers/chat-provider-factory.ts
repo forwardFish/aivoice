@@ -14,7 +14,7 @@ export function createChatProviderFromEnv(): ChatProviderPort {
       apiHost: process.env.CHAT_API_HOST || '',
       endpointPath: process.env.CHAT_API_PATH || '/v1/chat/completions',
       model: process.env.CHAT_MODEL || '',
-      schemaMode: process.env.CHAT_SCHEMA_MODE === 'json_object' ? 'json_object' : 'json_schema',
+      responseMode: process.env.CHAT_RESPONSE_MODE === 'minimal_json_schema' ? 'minimal_json_schema' : 'json_object',
     });
   }
   throw new Error(`Unsupported AIVOICE_CHAT_PROVIDER: ${configured}`);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseStrictStructuredJson } from '../src/providers/structured-json.js';
+import { parseFirstStructuredJson, parseStrictStructuredJson } from '../src/providers/structured-json.js';
 
 test('structured JSON parser accepts one object and one optional code fence', () => {
   assert.deepEqual(parseStrictStructuredJson('{"a":1,"nested":{"text":"}"}}'), { a: 1, nested: { text: '}' } });
@@ -17,4 +17,10 @@ test('structured JSON parser rejects prose, truncation and different duplicates'
     '{"a":1}{"a":2}',
     '[{"a":1}]',
   ]) assert.throws(() => parseStrictStructuredJson(raw), /QWEN_STRUCTURED_OUTPUT_INVALID/u);
+});
+
+test('minimal JSON parser accepts the first complete object when a model repeats or adds prose', () => {
+  assert.deepEqual(parseFirstStructuredJson('{"reply":"第一条"}{"reply":"第二条"}'), { reply: '第一条' });
+  assert.deepEqual(parseFirstStructuredJson('结果：```json\n{"reply":"你好"}\n```'), { reply: '你好' });
+  assert.throws(() => parseFirstStructuredJson('{"reply":'), /QWEN_MINIMAL_OUTPUT_INVALID/u);
 });

@@ -108,6 +108,7 @@ test('audio player confirms real playback and force-stops when pause stalls', as
 
   handlers.play()
   assert.equal(instance.data.playing, true)
+  assert.equal(instance.sourceLocked, true)
   assert.deepEqual(events, ['play'])
   assert.equal(audio.volume, 1)
 
@@ -121,4 +122,13 @@ test('audio player confirms real playback and force-stops when pause stalls', as
   assert.deepEqual(events, ['play', 'pause'])
 
   componentDefinition.lifetimes.detached.call(instance)
+})
+
+test('audio player locks the first played cloud version and only refreshes before playback starts', () => {
+  const source = read('components/audio-player/audio-player.ts')
+  assert.doesNotMatch(source, /if \(this\.data\.src\) void this\.assignSource/)
+  assert.match(source, /this\.sourceLocked = true/)
+  assert.match(source, /isCloudFileId\(this\.data\.src\) && !this\.sourceLocked/)
+  assert.match(source, /if \(this\.observedSource === normalized\) return/)
+  assert.match(source, /await this\.assignSource\(this\.data\.src\)/)
 })

@@ -1,4 +1,4 @@
-import type { CharacterTurnGeneration } from '../chat/interaction-state.js';
+import type { CharacterTurnGeneration, MinimalCharacterTurnGeneration } from '../chat/interaction-state.js';
 import type { VoiceChatMessage } from '../chat/voice-chat-context.js';
 
 export interface ChatReplyOptions {
@@ -9,5 +9,5 @@ export interface ChatReplyOptions {
 export interface ChatProviderPort {
   readonly providerName?: string;
   readonly modelName?: string;
-  reply(messages: VoiceChatMessage[], options?: ChatReplyOptions): Promise<string | CharacterTurnGeneration>;
+  reply(messages: VoiceChatMessage[], options?: ChatReplyOptions): Promise<string | CharacterTurnGeneration | MinimalCharacterTurnGeneration>;
 }

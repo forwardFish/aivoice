@@ -2,6 +2,19 @@ import type { VoiceRelationshipType } from '../chat/voice-chat-context.js';
 
 export type VoiceReferenceMode = 'REGISTERED_VOICE' | 'REFERENCE_AUDIO';
 
+export class VoiceGenerationError extends Error {
+  constructor(
+    message: string,
+    readonly code = 'VOICE_GENERATION_FAILED',
+    readonly httpStatus: number | null = null,
+    readonly requestId = '',
+    readonly retryable = false,
+  ) {
+    super(message);
+    this.name = 'VoiceGenerationError';
+  }
+}
+
 export type VoiceDeliveryMode =
   | 'CASUAL'
   | 'BRIGHT_LIGHT'

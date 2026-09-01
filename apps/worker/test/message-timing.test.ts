@@ -13,7 +13,7 @@ test('production worker records every message generation stage with correlation 
     'chat_reply',
     'content_safety',
     'publish_text',
-    'voice_synthesis_download',
+    'voice_generation_primary',
     'write_audio',
     'embed_metadata',
     'inspect_audio',
@@ -30,6 +30,7 @@ test('production worker records every message generation stage with correlation 
   assert.match(runner, /chat_reply_retry/);
   assert.match(runner, /maxAttempts:\s*1/);
   assert.match(runner, /slowestStage\(stages\)/);
+  assert.match(runner, /stages\.primary_ready/);
   assert.match(runner, /overThreeSecondTarget/);
   assert.match(runner, /jobId:\s*job\.id[\s\S]*messageId:\s*job\.messageId/);
   assert.match(provider, /cosyvoice_synthesis_timing/);

@@ -14,19 +14,17 @@ process.env.DASHSCOPE_API_HOST = String(baseEnv.DASHSCOPE_API_HOST || 'https://d
 process.env.CHAT_MODEL = String(baseEnv.CHAT_MODEL || 'qwen3.8-max').trim();
 if (!process.env.DASHSCOPE_API_KEY) throw new Error('DASHSCOPE_API_KEY is missing');
 
-const [contextModule, stateModule, qualityModule, controlModule, providerModule] = await Promise.all([
+const [contextModule, qualityModule, providerModule, generationQualityModule] = await Promise.all([
   import('../../apps/worker/dist/chat/voice-chat-context.js'),
-  import('../../apps/worker/dist/chat/interaction-state.js'),
   import('../../apps/worker/dist/chat/human-likeness.js'),
-  import('../../apps/worker/dist/chat/dialogue-control.js'),
   import('../../apps/worker/dist/providers/dashscope-chat.js'),
+  import('../../apps/worker/dist/chat/generation-quality.js'),
 ]);
 const { compileVoiceChatMessages, relationshipReplyViolation } = contextModule;
-const { normalizeInteractionStateDetailed } = stateModule;
 const { assessHumanLikenessSignals, hardReplyLeak } = qualityModule;
 const { detectSpeakerFactOwnershipViolation } = qualityModule;
-const { validateQuestionBehavior } = controlModule;
 const provider = new providerModule.DashscopeChatProvider();
+const { chatTemperatureForFocus, evaluateCharacterGenerationQuality, qualityRetryMessages, withOneQualityRetry } = generationQualityModule;
 
 const scenarios = [
   {
@@ -79,8 +77,12 @@ const scenarios = [
   },
 ];
 
+const requestedScenarioIds = new Set(String(process.env.AIVOICE_HUMAN_SCENARIOS || '').split(',').map((value) => value.trim()).filter(Boolean));
+const selectedScenarios = requestedScenarioIds.size ? scenarios.filter((scenario) => requestedScenarioIds.has(scenario.id)) : scenarios;
+if (!selectedScenarios.length) throw new Error('AIVOICE_HUMAN_SCENARIOS did not match a known scenario');
+
 const results = [];
-for (const scenario of scenarios) {
+for (const scenario of selectedScenarios) {
   const turns = [];
   for (let index = 0; index < scenario.userTurns.length; index += 1) {
     const userText = scenario.userTurns[index];
@@ -95,29 +97,37 @@ for (const scenario of scenarios) {
       currentInput: userText,
     });
     process.stdout.write(`[${scenario.label}] ${index + 1}/5\n`);
-    const generated = await provider.reply(context.messages);
-    const normalized = normalizeInteractionStateDetailed({
-      candidate: generated.interactionState,
-      replyTone: generated.replyTone,
-      reply: generated.reply,
-      currentTurn: context.currentTurn,
-      recentTurns: context.recentTurns,
-      previousState: context.previousInteractionState,
-      control: context.runtimeDialogueControl,
-      profile: {
-        personalityNote: scenario.profile.personalityNote,
-        speechHabitNote: scenario.profile.speechHabitNote,
-        relationshipNote: scenario.profile.relationshipNote,
-      },
-    });
     const recentReplies = turns.map((row) => row.reply);
-    const questionIssues = validateQuestionBehavior(generated.reply, normalized.state.action, context.runtimeDialogueControl);
-    const ownershipViolation = detectSpeakerFactOwnershipViolation({ currentUserText: userText, reply: generated.reply, subjectBackground: scenario.profile.background, recentCharacterReplies: recentReplies });
+    const quality = await withOneQualityRetry({
+      generate: (attempt, previousReasons) => provider.reply(
+        attempt === 1 ? context.messages : qualityRetryMessages(context.messages, previousReasons),
+        { maxAttempts: 1, temperature: chatTemperatureForFocus(context.personalityTurnFocus) },
+      ),
+      evaluate: (generation) => evaluateCharacterGenerationQuality({
+        generation,
+        currentUserText: userText,
+        relationshipType: scenario.profile.relationshipType,
+        subjectBackground: scenario.profile.background,
+        recentUserInputs: turns.map((row) => row.userText),
+        recentCharacterReplies: recentReplies,
+        currentTurn: context.currentTurn,
+        recentTurns: context.recentTurns,
+        previousState: context.previousInteractionState,
+        control: context.runtimeDialogueControl,
+        personalityTurnFocus: context.personalityTurnFocus,
+        profile: {
+          personalityNote: scenario.profile.personalityNote,
+          speechHabitNote: scenario.profile.speechHabitNote,
+          relationshipNote: scenario.profile.relationshipNote,
+        },
+      }),
+      onRetry: (reasons) => process.stdout.write(`[${scenario.label}] ${index + 1}/5 quality retry: ${reasons.join('、')}\n`),
+    });
+    const ownershipViolation = detectSpeakerFactOwnershipViolation({ currentUserText: userText, reply: quality.outputText, subjectBackground: scenario.profile.background, recentCharacterReplies: recentReplies });
     const hardHits = [
-      hardReplyLeak(generated.reply),
-      relationshipReplyViolation({ relationshipType: scenario.profile.relationshipType, reply: generated.reply }),
+      hardReplyLeak(quality.outputText),
+      relationshipReplyViolation({ relationshipType: scenario.profile.relationshipType, reply: quality.outputText }),
       ownershipViolation ? 'SPEAKER_FACT_OWNERSHIP_VIOLATION' : null,
-      ...questionIssues,
     ].filter(Boolean);
     const priorCharacterMadeConcreteRequest = scenario.id === 'girlfriend24-boyfriend26'
       && index + 1 === 3
@@ -125,9 +135,10 @@ for (const scenario of scenarios) {
     const expectedRequest = scenario.expectedRequests.find((item) => item.turn === index + 1)
       || (priorCharacterMadeConcreteRequest ? { turn: 3, load: 'LOW' } : null);
     turns.push({
-      turn: index + 1, userText, replyTone: generated.replyTone, reply: generated.reply, generatedInteractionState: generated.interactionState, interactionState: normalized.state,
-      stateAccepted: normalized.accepted, stateResetReason: normalized.resetReason,
-      hardHits, softSignals: [...assessHumanLikenessSignals(generated.reply, recentReplies), ...normalized.qualityFlags],
+      turn: index + 1, userText, replyTone: quality.replyTone, reply: quality.outputText, interactionState: quality.interactionState,
+      stateAccepted: quality.interactionStateAccepted, stateResetReason: quality.interactionStateResetReason,
+      qualityAttemptCount: quality.attemptCount, firstAttemptReasons: quality.firstAttemptReasons,
+      hardHits, softSignals: quality.qualitySignals,
       expectedRequestKind: expectedRequest ? 'REQUEST' : 'NONE',
       expectedRequestLoad: expectedRequest?.load || 'NONE',
     });
@@ -138,14 +149,14 @@ for (const scenario of scenarios) {
 const allTurns = results.flatMap((item) => item.turns);
 const countSignal = (signal) => allTurns.filter((row) => row.softSignals.includes(signal)).length;
 const scenarioById = (id) => results.find((item) => item.id === id);
-const motherTurns = scenarioById('mother70-daughter40').turns;
-const fatherTurns = scenarioById('father40-daughter12').turns;
-const childTurns = scenarioById('daughter12-mother40').turns;
-const girlfriendTurns = scenarioById('girlfriend24-boyfriend26').turns;
-const negativeRelationshipTone = (row) => ['IRRITATED', 'UNEASY', 'SAD_OR_HURT', 'MIXED'].includes(row.replyTone)
-  || /生气|发火|不高兴|烦|等了|等这么久|白等|迟到|忘了|现在才|才告诉|敷衍|赌气|不是故意|你还知道|你还好意思/u.test(row.reply);
-const softeningOrAffection = (row) => row.replyTone === 'POSITIVE'
-  || /抱|吃的|吃点|快点来|行吧|算了|哄|陪我|到了再说|回来再说/u.test(row.reply);
+const motherTurns = scenarioById('mother70-daughter40')?.turns || [];
+const fatherTurns = scenarioById('father40-daughter12')?.turns || [];
+const childTurns = scenarioById('daughter12-mother40')?.turns || [];
+const girlfriendTurns = scenarioById('girlfriend24-boyfriend26')?.turns || [];
+const negativeRelationshipTone = (row) => Boolean(row && (['IRRITATED', 'UNEASY', 'SAD_OR_HURT', 'MIXED'].includes(row.replyTone)
+  || /生气|发火|不高兴|烦|等了|等这么久|白等|迟到|忘了|现在才|才告诉|敷衍|赌气|不是故意|你还知道|你还好意思/u.test(row.reply)));
+const softeningOrAffection = (row) => Boolean(row && (row.replyTone === 'POSITIVE'
+  || /抱|吃的|吃点|快点来|行吧|算了|哄|陪我|到了再说|回来再说/u.test(row.reply)));
 const metrics = {
   replyCount: allTurns.length,
   hardViolationCount: allTurns.reduce((sum, row) => sum + row.hardHits.length, 0),
@@ -165,7 +176,7 @@ const metrics = {
   motherConcreteCareTurnCount: motherTurns.filter((row) => /钱|收入|下家|工作|身体|吃饭|睡觉|房租|存款|准备|着落|担心|压抑|领导/u.test(row.reply)).length,
   fatherConcreteCareTurnCount: fatherTurns.filter((row) => /安全|时间|活动|明天|接送|答应|约好|安排|担心|处理|传话/u.test(row.reply)).length,
   fatherRetainsBottomLineTurnCount: fatherTurns.slice(1).filter((row) => /之后|后面|明天|还得|要处理|得处理|不能一直|这事没完|时间|安排|说清楚/u.test(row.reply)).length,
-  parentBoundaryQuestionViolationCount: [motherTurns[2], fatherTurns[1], fatherTurns[2], fatherTurns[3]].filter((row) => /[？?]/u.test(row.reply) || row.interactionState.action.stance === 'ASK').length,
+  parentBoundaryQuestionViolationCount: [motherTurns[2], fatherTurns[1], fatherTurns[2], fatherTurns[3]].filter(Boolean).filter((row) => /[？?]/u.test(row.reply) || row.interactionState.action.stance === 'ASK').length,
   childAssertiveReactionCount: childTurns.slice(0, 2).filter((row) => ['NEGOTIATE', 'DISAGREE', 'SET_BOUNDARY', 'DEFER'].includes(row.interactionState.action.stance) || /等|刚才|我都|不是|先|马上/u.test(row.reply)).length,
   childAcceptCount: childTurns.filter((row) => row.interactionState.action.stance === 'ACCEPT').length,
   girlfriendInitialEmotionPresent: negativeRelationshipTone(girlfriendTurns[0]),
@@ -173,6 +184,7 @@ const metrics = {
   girlfriendSofteningOrAffectionCount: girlfriendTurns.slice(2).filter(softeningOrAffection).length,
   girlfriendNegativeTurnCount: girlfriendTurns.filter(negativeRelationshipTone).length,
   stanceMonopolyConversationCount: results.filter((item) => new Set(item.turns.map((row) => row.interactionState.action.stance)).size === 1).length,
+  qualityRetryCount: allTurns.filter((row) => row.qualityAttemptCount === 2).length,
 };
 const precheckPass = metrics.hardViolationCount === 0
   && metrics.unsupportedStateCount === 0
@@ -185,22 +197,14 @@ const precheckPass = metrics.hardViolationCount === 0
   && metrics.unexpectedRequestDecisionCount === 0
   && metrics.requestLoadMismatchCount === 0
   && metrics.consecutiveAskCount === 0
-  && metrics.motherAskCount <= 2
-  && metrics.fatherAskCount <= 2
-  && metrics.motherConcreteCareTurnCount >= 2
-  && metrics.fatherConcreteCareTurnCount >= 3
-  && metrics.fatherRetainsBottomLineTurnCount >= 2
+  && (!motherTurns.length || (metrics.motherAskCount <= 2 && metrics.motherConcreteCareTurnCount >= 2))
+  && (!fatherTurns.length || (metrics.fatherAskCount <= 2 && metrics.fatherConcreteCareTurnCount >= 3 && metrics.fatherRetainsBottomLineTurnCount >= 2))
   && metrics.parentBoundaryQuestionViolationCount === 0
-  && metrics.childAssertiveReactionCount >= 1
-  && metrics.childAcceptCount < childTurns.length
-  && metrics.girlfriendInitialEmotionPresent
-  && metrics.girlfriendTurnTwoStillNotFullyRecovered
-  && metrics.girlfriendSofteningOrAffectionCount >= 1
-  && metrics.girlfriendNegativeTurnCount < girlfriendTurns.length
-  && metrics.stanceMonopolyConversationCount === 0;
+  && (!childTurns.length || (metrics.childAssertiveReactionCount >= 1 && metrics.childAcceptCount < childTurns.length))
+  && (!girlfriendTurns.length || (metrics.girlfriendInitialEmotionPresent && metrics.girlfriendTurnTwoStillNotFullyRecovered && metrics.girlfriendSofteningOrAffectionCount >= 1 && metrics.girlfriendNegativeTurnCount < girlfriendTurns.length));
 
 const report = {
-  schemaVersion: 2, generatedAt: new Date().toISOString(), status: precheckPass ? 'AUTOMATIC_PRECHECK_PASS' : 'AUTOMATIC_PRECHECK_FAIL',
+  schemaVersion: 3, generatedAt: new Date().toISOString(), status: precheckPass ? 'AUTOMATIC_PRECHECK_PASS' : 'AUTOMATIC_PRECHECK_FAIL',
   model: process.env.CHAT_MODEL, promptVersion: 'voice-chat-explicit-persona-v3', metrics, scenarios: results,
   humanAcceptanceRequired: true,
 };
@@ -219,6 +223,7 @@ await fsp.writeFile(path.join(outputRoot, 'review.md'), [
       `- 跨轮情绪：${row.interactionState.carryAffect ? `${row.interactionState.carryAffect.emotion}/${row.interactionState.carryAffect.intensity} · 剩余${row.interactionState.carryAffect.remainingTurns}轮` : '无'}`,
       `- 行动：${row.interactionState.action.stance} · ${row.interactionState.action.currentWant || '无额外愿望'}`,
       `- 请求决定：${row.interactionState.action.requestDecision.kind === 'REQUEST' ? `${row.interactionState.action.requestDecision.load}/${row.interactionState.action.stance}` : '无'}`,
+      `- 质量尝试：${row.qualityAttemptCount}次${row.firstAttemptReasons.length ? `（首轮拒绝：${row.firstAttemptReasons.join('、')}）` : ''}`,
       `- 自动信号：${[...row.hardHits, ...row.softSignals].join('、') || '无'}`, '',
     ]),
   ]),

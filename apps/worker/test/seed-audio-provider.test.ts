@@ -5,7 +5,9 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   buildSeedAudioPrompt,
+  estimateSeedAudioCostUsd,
   seedAudioSynthesisText,
+  seedAudioUsdPerMinute,
   SeedAudioGenerationError,
   VolcengineSeedAudioProvider,
 } from '../src/providers/volcengine-seed-audio.js';
@@ -16,6 +18,7 @@ const originalEnv = {
   alias: process.env.BYTEPLUS_SEED_AUDIO_API_KEY,
   base: process.env.VOLCENGINE_SEED_AUDIO_BASE_URL,
   model: process.env.SEED_AUDIO_MODEL,
+  price: process.env.BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE,
 };
 
 test.afterEach(() => {
@@ -28,6 +31,19 @@ test.afterEach(() => {
   else process.env.VOLCENGINE_SEED_AUDIO_BASE_URL = originalEnv.base;
   if (originalEnv.model === undefined) delete process.env.SEED_AUDIO_MODEL;
   else process.env.SEED_AUDIO_MODEL = originalEnv.model;
+  if (originalEnv.price === undefined) delete process.env.BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE;
+  else process.env.BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE = originalEnv.price;
+});
+
+test('estimates Seed Audio billing in the provider account currency without a hard-coded RMB conversion', () => {
+  const env = { BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE: '0.15' } as NodeJS.ProcessEnv;
+  assert.equal(seedAudioUsdPerMinute(env), 0.15);
+  assert.equal(estimateSeedAudioCostUsd(5.4, 0.15), 0.0135);
+  assert.equal(estimateSeedAudioCostUsd(-1, 0.15), 0);
+  assert.throws(
+    () => seedAudioUsdPerMinute({ BYTEPLUS_SEED_AUDIO_USD_PER_MINUTE: '0' } as NodeJS.ProcessEnv),
+    /positive number/,
+  );
 });
 
 test('builds one compact delivery prompt without age, gender or raw personality labels', () => {

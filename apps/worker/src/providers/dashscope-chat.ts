@@ -8,7 +8,6 @@ export class DashscopeChatProvider extends OpenAICompatibleChatProvider {
       apiHost: process.env.DASHSCOPE_API_HOST || '',
       endpointPath: '/compatible-mode/v1/chat/completions',
       model: process.env.CHAT_MODEL?.trim() || 'qwen3.8-max',
-      schemaMode: 'json_schema',
       includeDashscopeThinkingFlags: true,
     });
   }

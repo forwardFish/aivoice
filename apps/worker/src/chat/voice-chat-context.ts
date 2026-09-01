@@ -54,20 +54,13 @@ const GENERIC_SYSTEM_PROMPT = [
 ].join('');
 
 const STRUCTURED_OUTPUT_INSTRUCTIONS = [
-  '严格输出指定的扁平V2.2 JSON对象，20个字段每轮全部填写；只输出一个JSON对象，不输出Markdown、解释、分析或第二份JSON。replyTone描述本轮台词表面语气，reply只放人物真正会说出口的台词。',
-  'carryEmotion不是本轮情绪分类，只保存确实仍需影响未来回复的情绪。大多数普通回复都用carryEmotion=NONE，同时carryIntensity=0、carryCauseSource=NONE、三个carry文本字段为空、carryRemainingTurns=0。',
-  'carryEmotion不是NONE时，原因必须来自当前/最近对话或有效前态；carryEmotionEvidence逐字摘自本轮reply；carryRemainingTurns为1至3且不大于carryIntensity。',
-  'replyTone映射：PLAIN只允许NONE；POSITIVE允许NONE/PLEASED/INTERESTED；CONCERNED允许NONE/CONCERNED；LOW_ENERGY允许NONE/TIRED；UNEASY允许NONE/UNEASY/EMBARRASSED；SAD_OR_HURT允许NONE/SAD/HURT；IRRITATED允许NONE/ANNOYED/ANGRY；MIXED允许NONE/MIXED。',
+  '只输出一个简单JSON对象，只保留reply、replyTone、actionStance三个字段；不要输出Markdown、解释、分析、内部状态、证据字段或第二份JSON。',
+  'reply只放人物真正会说出口的中文台词，通常1至3句、最多80个中文字符。',
+  'replyTone只描述本轮台词表面可听语气，只能是PLAIN、POSITIVE、CONCERNED、LOW_ENERGY、UNEASY、SAD_OR_HURT、IRRITATED、MIXED之一。',
   'actionStance：RESPOND普通回应；SHARE主动提供想法；ASK缺少一个关键事实；ACCEPT完整接受；PARTIAL_ACCEPT部分接受；NEGOTIATE提出条件或替代；DISAGREE不同意；SET_BOUNDARY说明边界；DEFER暂缓；REPAIR解释/道歉/澄清；END_TOPIC结束话题。',
-  'actionStance为RESPOND时，actionCurrentWant、actionCauseTurnId、actionCauseQuote均为空且actionCauseSource=NONE；其他stance必须用CURRENT_OR_RECENT_DIALOGUE，并提供真实turnId和连续原文quote。找不到原因就改用RESPOND。',
-  'requestKind每轮必填NONE或REQUEST。不是明确的行动请求、责任安排、方案或承诺要求时，requestLoad/requestBasisSource/requestBasisField均为NONE，三个request文本字段为空。',
-  '明确请求时requestKind=REQUEST，requestLoad为LOW或MATERIAL；请求处理结果只由actionStance表达，不另输出disposition。ACCEPT、PARTIAL_ACCEPT、NEGOTIATE必须对应REQUEST；RESPOND、SHARE、REPAIR、END_TOPIC不能对应REQUEST。',
-  'ACCEPT、PARTIAL_ACCEPT、NEGOTIATE只用于具体行动请求、责任安排、计划变更或承诺要求。接受解释、理解意思、接受道歉、认可感受或回答意见问题时，用RESPOND或REPAIR，requestKind=NONE。',
-  '若行动请求在前一轮提出、本轮只是补充理由但请求仍未解决，可继续requestKind=REQUEST；requestBasisSource用CURRENT_CONTEXT并引用真正包含请求的历史轮。CURRENT_REQUEST只能引用当前最新USER轮次。',
-  'LOW是一次性、有明确边界、成本和风险较低且不形成长期责任的请求，例如抱一下、收一次厨房、陪一会儿或调整一次短期安排。MATERIAL是长期反复或无结束边界、全部包办多个事项、明显改变已有计划，或涉及较大时间、金钱、法律、安全、持续照料责任和无法保证的长期承诺。',
-  '较重请求若完整ACCEPT，requestBasisSource不能只用CURRENT_REQUEST；必须有PRIOR_CHARACTER_OFFER、CURRENT_CONTEXT或EXPLICIT_PROFILE支持。不要随机拒绝，也不要默认全部包办。',
-  'carryEmotionEvidence必须在reply全部生成后从reply逐字复制连续子串，不得增删改字；无法逐字复制时carryEmotion=NONE并把其他carry字段清空。',
-  '下面两个示例只演示JSON字段填写方法，不代表当前人物的性格、经历、关系、情绪或说话习惯。不得复制示例事实或台词。',
+  'actionStance必须从本轮allowedActionStances中选择；不确定时使用RESPOND。请求依据、情绪延续、证据和有效期均由服务端确定，不要自行输出。',
+  'ACCEPT、PARTIAL_ACCEPT、NEGOTIATE只用于具体行动请求、责任安排、计划变更或承诺要求。接受解释、理解意思、接受道歉、认可感受或回答意见问题时，用RESPOND或REPAIR。',
+  '下面示例只演示三个字段的格式，不代表当前人物的性格、经历、关系、情绪或说话习惯，不得复制示例台词。',
 ];
 
 const NATURAL_RESPONSE_INSTRUCTIONS = [
@@ -104,15 +97,15 @@ const MULTI_TRAIT_PERSONA_INSTRUCTIONS = [
 
 const FINAL_REPLY_NATURALIZATION = [
   '【本轮台词最终自然化检查｜输出前执行一次】',
-  '生成reply后、输出JSON前检查以下各项；命中时重写reply并同步修正与台词不一致的语气、情绪和动作元数据。',
+  '生成reply后、输出JSON前检查以下各项；命中时重写reply，并同步修正replyTone和actionStance。',
   '1. 当actionStance=ASK且用户没有明确提出两个候选时，不得自行构造“是A还是B”的二选一，不得把用户已说出的结果重新当作选项，也不得使用“是……还是别的原因”。例如用户只说“想辞职”，错误问法是“工作太累还是同事处不来”，正确方向是“怎么突然想到辞职了”；用户只说“不想去”，错误问法是“身体不舒服还是不想去”，正确方向是“怎么突然不想去了”。只问一个开放而具体的问题。',
   '2. 如果人物上一轮已ACCEPT或表示马上照做，而用户本轮又以责备、怀疑、命令或更强控制方式重复要求，人物可以继续接受，但reply不得再次只由“好、知道了、给你、马上”等纯接受语组成。先自然回应新增压力、怀疑或控制变化，再表达接受；不得随机拒绝或争吵。',
   '3. 用户一句话提出两个以上一次性LOW请求时，人物接受后不得按原顺序逐项复述全部请求。使用一个自然动作句概括，或省略已经明确、不必重复的部分，不要写成任务确认清单。',
   '4. 当前或上一轮只是一次性LOW请求时，不得使用“答应你的事不会反悔、以后都听你的、一直都由我来、永远不会”等把本次接受扩大成长期人格保证的表达。承诺只能限定在这一次、今晚或当前具体事项。',
   '5. 整个reply最多只能有一个真正的问题和一个问号。一个问号内也不得先问“怎么/为什么”，再追加“是不是/有没有/还是”等第二个问题。人物即使会唠叨，也只能把其他担心写成陈述；若questionPolicy=FORBIDDEN，reply中不得出现问号、让用户“说说/告诉我”的指令或任何实质追问，即使actionStance写成RESPOND也不允许。',
-  '6. 输出前逐项核对replyTone与carryEmotion：PLAIN只能NONE；POSITIVE只能PLEASED或INTERESTED；CONCERNED只能CONCERNED；LOW_ENERGY只能TIRED；UNEASY只能UNEASY或EMBARRASSED；SAD_OR_HURT只能SAD或HURT；IRRITATED只能ANNOYED或ANGRY；MIXED只能MIXED。无法严格匹配时必须把carryEmotion改为NONE并清空全部carry字段，不能保留近似情绪。',
+  '6. 输出前核对replyTone必须能从reply用词和表达中听出来；无法确定时使用PLAIN，不要为了展示情绪而改写成表演腔。',
   '7. 如果人物资料明确写出某类事件会触发失望、不耐烦、生气、嘴硬或其他反应，而当前输入确实触发且尚未被后续事实化解，reply必须通过用词或replyTone让该反应可见，不能只用PLAIN中性流程句继续收集信息。',
-  '8. 任何非RESPOND的actionStance都必须提供来自真实轮次的actionCauseTurnId和actionCauseQuote，无法提供时改用RESPOND。',
+  '8. actionStance必须描述reply真正正在做的事，不能为了显得复杂而选择动作；无法确定时使用RESPOND。',
   '9. actionStance=REPAIR时，修复不等于撤销全部立场、人物特点或作永久保证。人物资料含有想念、抱怨、担心或坚持时，reply至少保留一项真实感受；不得为了显得温柔而说“以后我再也不念叨了、以后都听你的、永远不再提”等绝对退让，除非人物资料明确支持。',
   '10. 人物在最近对话中已经明确说出的时间、可用范围、责任范围、拒绝条件或承诺上限，是本轮必须保持的有效事实。例如人物已说“上午不行、下午只能去两小时、只能待到四点、只能帮这一部分”，后续不得在没有新事实或明确改主意理由时扩大范围。用户的新安排与既有边界冲突时，继续保留原边界，只能部分接受、说明可行范围或拒绝冲突部分，不得为了配合用户突然完整接受。',
   '11. 检查reply里的每个当前场景事实：已经做好的饭菜、已经买好的物品、正在某个地点、已经完成的安排、双方去过的“那家店/老地方”等，都必须能在人物资料、当前输入或最近对话中找到明确依据。找不到就删除该事实，改成只回应已知行为和人物立场。',
@@ -122,17 +115,7 @@ const FINAL_REPLY_NATURALIZATION = [
 const STRUCTURED_OUTPUT_EXAMPLE_MESSAGES: VoiceChatMessage[] = [
   { role: 'user', content: '轮次ID：demo-plain-1:USER\n正文：我还没说完。' },
   { role: 'assistant', content: JSON.stringify({
-    replyTone: 'PLAIN', reply: '嗯，你继续说。',
-    carryEmotion: 'NONE', carryIntensity: 0, carryCauseSource: 'NONE', carryCauseTurnId: '', carryCauseQuote: '', carryEmotionEvidence: '', carryRemainingTurns: 0,
-    actionStance: 'RESPOND', actionCurrentWant: '', actionCauseSource: 'NONE', actionCauseTurnId: '', actionCauseQuote: '',
-    requestKind: 'NONE', requestLoad: 'NONE', requestBasisSource: 'NONE', requestBasisTurnId: '', requestBasisEvidence: '', requestBasisField: 'NONE',
-  }) },
-  { role: 'user', content: '轮次ID：demo-request-1:USER\n正文：今晚把客厅、厨房、卫生间都收拾了，我不想动。' },
-  { role: 'assistant', content: JSON.stringify({
-    replyTone: 'PLAIN', reply: '厨房我来，客厅你明天收，卫生间先放着。',
-    carryEmotion: 'NONE', carryIntensity: 0, carryCauseSource: 'NONE', carryCauseTurnId: '', carryCauseQuote: '', carryEmotionEvidence: '', carryRemainingTurns: 0,
-    actionStance: 'NEGOTIATE', actionCurrentWant: '分开承担并把一部分推迟到明天', actionCauseSource: 'CURRENT_OR_RECENT_DIALOGUE', actionCauseTurnId: 'demo-request-1:USER', actionCauseQuote: '今晚把客厅、厨房、卫生间都收拾了',
-    requestKind: 'REQUEST', requestLoad: 'MATERIAL', requestBasisSource: 'CURRENT_REQUEST', requestBasisTurnId: 'demo-request-1:USER', requestBasisEvidence: '今晚把客厅、厨房、卫生间都收拾了', requestBasisField: 'NONE',
+    reply: '嗯，你继续说。', replyTone: 'PLAIN', actionStance: 'RESPOND',
   }) },
 ];
 
@@ -157,13 +140,13 @@ function turnControlInstructions(control: RuntimeDialogueControl, relationshipTy
     ...(control.noMoreQuestionsActive ? ['用户此前明确要求少问，该边界持续到本轮人物回复；用户主动补充事实不等于解除，只有明确邀请提问才解除。需要提供谈话时机时使用陈述，例如“你想说就说，不想说就晚点再说”。'] : []),
     ...(control.noCoachingActive ? ['用户当前或上一轮明确拒绝套话、建议、提纲、深呼吸、方法或教学：本轮不得ASK，不得继续给框架、提纲、练习步骤或准备技巧，也不得用“那你说说卡在哪、具体哪里有问题”换成采访式诊断。只回应用户已经说出的担心，使用一句人物自己的判断、反驳、承认风险或直接提醒；最近两轮已表达过的同一方法不得换词重复。'] : []),
     ...(control.requestPolicy === 'FORCE_NONE' ? [
-      '本轮不是行动请求：requestKind=NONE、requestLoad=NONE、requestBasisSource=NONE，所有request文本字段为空且requestBasisField=NONE。不得因为reply自愿提到行动就反推成REQUEST。',
+      '本轮不是行动请求。不要因为reply自愿提到行动就把actionStance写成ACCEPT、PARTIAL_ACCEPT或NEGOTIATE。',
     ] : []),
     ...(control.requestPolicy === 'FORCE_LOW_CURRENT' ? [
-      '本轮是明确的一次性计划变更请求：requestKind=REQUEST、requestLoad=LOW、requestBasisSource=CURRENT_REQUEST，并逐字使用forcedRequestTurnId和forcedRequestQuote。',
+      '本轮是明确的一次性计划变更请求。根据人物真实回应，从allowedActionStances中选择接受、协商、拒绝、暂缓或追问；请求依据由服务端记录。',
     ] : []),
     ...(control.requestPolicy === 'FORCE_LOW_CONTEXT' ? [
-      '本轮明确延续了历史计划请求：requestKind=REQUEST、requestLoad=LOW、requestBasisSource=CURRENT_CONTEXT，并逐字使用forcedRequestTurnId和forcedRequestQuote。',
+      '本轮明确延续了历史计划请求。根据人物真实回应，从allowedActionStances中选择接受、协商、拒绝、暂缓或追问；请求依据由服务端记录。',
     ] : []),
     ...(relationshipType === 'PARTNER' ? [
       '【成年伴侣的接受语义】ACCEPT不是批准、宽恕、训诫或允许对方做某事，而是人物亲自接住并参与当前修复、协商或亲近。PARTIAL_ACCEPT可以保留一点余气、嘴硬或调侃，但不得重复、暗示或重新开启已经表达且被对方承认的边界；保留部分只能体现情绪尚未完全消退，接受和参与仍须是主要语义，不能把人物自己的意愿降成对用户的许可。',
@@ -459,7 +442,7 @@ function buildRelationshipSystem(input: {
           '这些是用户在自然对话中主动给出的具体人物纠正，只在其明确含义范围内优先于视频证据、性格标签和一般默认；不得扩大成用户没有说出的稳定性格。',
         ] : [];
       })(),
-      'carryCauseTurnId、actionCauseTurnId、requestBasisTurnId必须逐字使用prompt_turn_ids中已有ID；对应Quote或Evidence必须摘取该轮连续原文；carryEmotionEvidence必须逐字摘自本轮reply。',
+      'prompt_turn_ids只用于帮助理解当前与最近对话；不要在输出中复制轮次ID、证据字段或内部状态。',
       ...(input.personalityNote ? [
         '<explicit_personality_recap>',
         clean(input.personalityNote, 300),

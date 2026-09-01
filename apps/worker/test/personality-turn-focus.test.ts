@@ -26,7 +26,9 @@ test('trigger phase distinguishes quick-temper from gentle-boundary personalitie
   assert.equal(personalityTurnFocusReplyViolation(gentle, '时间有变要及时通知，不然我这边不好安排。'), 'MODELISH_BOUNDARY_TEMPLATE');
   assert.equal(personalityTurnFocusReplyViolation(quick, '晚到可以，但下次别过了才说。'), 'MODELISH_BOUNDARY_TEMPLATE');
   assert.equal(personalityTurnFocusReplyViolation(quick, '不是故意也会让人不舒服啊，我又没揪着不放。'), 'MODELISH_BOUNDARY_TEMPLATE');
+  assert.equal(personalityTurnFocusReplyViolation(quick, '不是故意归不是故意，但我确实是被通知晚了才不爽啊。'), 'MODELISH_BOUNDARY_TEMPLATE');
   assert.equal(personalityTurnFocusReplyViolation(quick, '晚一个小时才说确实有点过分，下次早点告诉我行吗？'), 'QUICK_TRIGGER_QUESTION');
+  assert.equal(personalityTurnFocusReplyViolation(quick, '临时晚到才说让我挺不爽的，下次早点告诉我。'), 'TRIGGER_COMPLETE_COMMUNICATION_TEMPLATE');
 
   const warmClose = buildPersonalityTurnFocus({
     personalityNote: note('温柔耐心：小摩擦不急着升级；嘴硬心软：解释到位后会缓和；喜欢亲近：愿意主动靠近；重视边界：说清现实期待'),
@@ -204,8 +206,18 @@ test('decision quality marker allows confirming an earlier plan but rejects comp
     promptTurns: turns('我现在出发，到了以后你想怎么安排？'), previousState: null,
   });
   assert.equal(personalityTurnFocusReplyViolation(focus, '到了先陪我去买杯喝的。', ['那你到了先陪我去买杯喝的。']), null);
-  assert.equal(personalityTurnFocusReplyViolation(focus, '到了先去附近走走，然后找地方坐一会儿。', []), 'MULTIPLE_NEXT_STEPS');
+  assert.equal(personalityTurnFocusReplyViolation(focus, '到了先去附近走走，然后找地方坐一会儿。', []), null);
+  assert.equal(personalityTurnFocusReplyViolation(focus, '到了先去附近走走，然后找地方坐一会儿，再买杯喝的。', []), 'MULTIPLE_NEXT_STEPS');
   assert.equal(personalityTurnFocusReplyViolation(focus, '到了先陪我走一段吧。', []), null);
+
+  const quickClose = buildPersonalityTurnFocus({
+    personalityNote: note('脾气来得快：有触发才不满；嘴硬心软：靠短句缓和；喜欢亲近：会回应拥抱；情绪退得快：认错后过去'),
+    promptTurns: turns('我现在出发，到了以后你想怎么安排？'), previousState: null,
+  });
+  assert.equal(personalityTurnFocusReplyViolation(quickClose, '到了先让我抱一下，然后咱们安心吃饭。', ['我先把想吃的菜点好等你。']), 'REPEATED_SAFE_ACTIVITY');
+  assert.equal(personalityTurnFocusReplyViolation(quickClose, '到了先让我抱一下，然后咱们吃饭。', []), 'BUNDLED_GENERIC_SAFE_CLOSURE');
+  assert.equal(personalityTurnFocusReplyViolation(quickClose, '到了先让我抱一下。', []), 'PREMATURE_AFFECTION_REPAIR');
+  assert.equal(personalityTurnFocusReplyViolation(quickClose, '到了陪我在附近走一小段。', []), null);
 });
 
 test('continuing conflict rejects two repeated grievance concepts but allows a new reaction', () => {
@@ -223,6 +235,20 @@ test('continuing conflict rejects two repeated grievance concepts but allows a n
   assert.equal(
     personalityTurnFocusReplyViolation(focus, '我知道你不是故意，但你一解释我反而更想先缓一缓。', ['晚到才说我不爽，下次别让我干等。']),
     null,
+  );
+
+  const quick = buildPersonalityTurnFocus({
+    personalityNote: note('脾气来得快：有触发才不满；嘴硬心软：靠短句缓和；喜欢亲近：会回应拥抱；情绪退得快：认错后过去'),
+    promptTurns: turns('你别一上来就不高兴，我又不是故意的。', '我今晚会晚一个小时到，刚才忙忘了跟你说。'),
+    previousState: null,
+  });
+  assert.equal(
+    personalityTurnFocusReplyViolation(quick, '不是故意也不能当没发生，我就是觉得临时才说让人不舒服。', ['临时晚到才说让我挺不爽的，下次早点告诉我。']),
+    'REPEATED_SAME_GRIEVANCE',
+  );
+  assert.equal(
+    personalityTurnFocusReplyViolation(quick, '不是故意也不能当没发生，我还是挺不爽的。', ['临时才说让我挺不爽的。']),
+    'REPEATED_EXPLICIT_CONFLICT_EMOTION',
   );
 });
 

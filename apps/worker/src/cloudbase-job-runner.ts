@@ -11,13 +11,14 @@ import {
   cloudBaseRuntimeFromEnv,
 } from '@aivoice/cloudbase-runtime';
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
+import { VoiceGenerationCoordinator } from './voice-generation-coordinator.js';
+import type { GeneratedVoiceCandidate } from './voice-generation-strategy.js';
+import { voiceCompanionBudgetPolicy } from './voice-companion-budget.js';
 import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
 import { inspectReferenceQuality, inspectSentenceFinalProsody, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
-import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
-import { SeedAudioGenerationError } from './providers/volcengine-seed-audio.js';
-import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.js';
-import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
+import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
+import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
 import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
@@ -70,6 +71,8 @@ export interface CloudBaseWorkerDependencies {
   runtime?: CloudBaseRuntimeClient;
   voiceProvider?: VoiceProviderPort;
   registeredVoiceProvider?: VoiceProviderPort;
+  companionVoiceProviders?: VoiceProviderPort[];
+  voiceProviderRegistry?: VoiceProviderRegistry;
   chatProvider?: ChatProviderPort;
   speakerDetector?: SpeakerAnalysisProviderPort;
   temporaryRoot?: string;
@@ -113,8 +116,9 @@ function slowestStage(stages: Record<string, number>): { slowestStage: string; s
 
 export class CloudBaseJobRunner {
   private readonly runtime: CloudBaseRuntimeClient;
+  private readonly voiceProviders: VoiceProviderRegistry;
   private readonly voiceProvider: VoiceProviderPort;
-  private registeredVoiceProvider: VoiceProviderPort | null;
+  private readonly voiceGenerationCoordinator: VoiceGenerationCoordinator;
   private readonly chatProvider: ChatProviderPort;
   private readonly speakerDetector: SpeakerAnalysisProviderPort;
   private readonly temporaryRoot: string;
@@ -125,9 +129,13 @@ export class CloudBaseJobRunner {
 
   constructor(dependencies: CloudBaseWorkerDependencies = {}) {
     this.runtime = dependencies.runtime || cloudBaseRuntimeFromEnv();
-    this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
-    this.registeredVoiceProvider = dependencies.registeredVoiceProvider
-      || (usesReferenceAudio(this.voiceProvider) ? null : this.voiceProvider);
+    this.voiceProviders = dependencies.voiceProviderRegistry || createVoiceProviderRegistry({
+      active: dependencies.voiceProvider,
+      registered: dependencies.registeredVoiceProvider,
+      companions: dependencies.companionVoiceProviders,
+    });
+    this.voiceProvider = this.voiceProviders.active.provider;
+    this.voiceGenerationCoordinator = new VoiceGenerationCoordinator(this.voiceProviders);
     this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
     this.speakerDetector = dependencies.speakerDetector || createSpeakerAnalysisProviderFromEnv();
     this.temporaryRoot = path.resolve(dependencies.temporaryRoot || process.env.WORKER_TEMP_ROOT || '/tmp/aivoice');
@@ -300,6 +308,91 @@ export class CloudBaseJobRunner {
     }
   }
 
+  private async reserveVoiceCompanionBudget(job: JobRow, providerId: string): Promise<boolean> {
+    const policy = voiceCompanionBudgetPolicy(providerId);
+    if (!policy) return true;
+    try {
+      const raw = await this.runtime.rpc<{
+        allowed: boolean;
+        reserved?: boolean;
+        idempotent?: boolean;
+        used?: number;
+        limit?: number;
+        windowSize?: number;
+      } | Array<{
+        allowed: boolean;
+        reserved?: boolean;
+        idempotent?: boolean;
+        used?: number;
+        limit?: number;
+        windowSize?: number;
+      }>>('rpc_voice_companion_budget_reserve_v1', {
+        pJobId: job.id,
+        pUserId: job.userId,
+        pWorkerId: this.workerId,
+        pProvider: providerId,
+        pWindowSize: policy.windowSize,
+        pLimit: policy.limit,
+      });
+      const decision = one(raw);
+      console.info('voice_companion_budget', JSON.stringify({
+        event: 'voice_companion_budget', status: decision.idempotent
+          ? 'ALREADY_RESERVED'
+          : decision.allowed ? (decision.reserved ? 'RESERVED' : 'ALLOWED') : 'DENIED',
+        provider: providerId, jobId: job.id, userId: job.userId,
+        used: decision.used, limit: policy.limit, windowSize: policy.windowSize,
+      }));
+      return decision.allowed;
+    } catch (error) {
+      console.error('voice_companion_budget', JSON.stringify({
+        event: 'voice_companion_budget', status: 'FAILED_CLOSED', provider: providerId,
+        jobId: job.id, userId: job.userId,
+        error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+      }));
+      return false;
+    }
+  }
+
+  private async prepareGeneratedAudio(audioPath: string, messageId: string, audio: Buffer): Promise<{
+    bytes: number;
+    durationMs: number;
+    sha256: string;
+  }> {
+    await fs.writeFile(audioPath, audio);
+    await embedAigcMetadata(audioPath, messageId);
+    const [probe, hash] = await Promise.all([probeWav(audioPath), sha256(audioPath)]);
+    return { bytes: probe.bytes, durationMs: probe.durationMs, sha256: hash };
+  }
+
+  private async upgradeReadyMessageAudio(input: {
+    job: JobRow;
+    audioPath: string;
+    objectKey: string;
+    candidate: GeneratedVoiceCandidate;
+  }): Promise<void> {
+    if (!input.job.messageId || !input.job.voiceProfileId) return;
+    const prepared = await this.prepareGeneratedAudio(input.audioPath, input.job.messageId, input.candidate.audio);
+    const storedObjectKey = await this.runtime.uploadFile(this.audioBucket, input.objectKey, input.audioPath, 'audio/wav');
+    await this.runtime.rpc('rpc_message_upgrade_audio_v1', {
+      pUserId: input.job.userId,
+      pVoiceId: input.job.voiceProfileId,
+      pMessageId: input.job.messageId,
+      pObjectKey: storedObjectKey,
+      pBytes: prepared.bytes,
+      pDurationMs: prepared.durationMs,
+      pSha256: prepared.sha256,
+    });
+    console.info('voice_quality_upgrade', JSON.stringify({
+      event: 'voice_quality_upgrade',
+      status: 'SUCCEEDED',
+      messageId: input.job.messageId,
+      provider: input.candidate.id,
+      providerElapsedMs: input.candidate.elapsedMs,
+      durationMs: prepared.durationMs,
+      bytes: prepared.bytes,
+    }));
+  }
+
   private async generateMessage(job: JobRow, workDir: string): Promise<void> {
     if (!job.messageId || !job.voiceProfileId) throw new Error('GENERATE_MESSAGE job is incomplete');
     const totalStartedAt = Date.now();
@@ -353,7 +446,7 @@ export class CloudBaseJobRunner {
       mode = message.mode;
       const providerBinding = decryptProviderId(message.providerVoiceIdEncrypted);
       if (usesReferenceAudio(this.voiceProvider) && !message.referenceObjectKey) {
-        throw new SeedAudioGenerationError(
+        throw new VoiceGenerationError(
           'Existing voice has no retained reference audio for Seed Audio use',
           'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
         );
@@ -499,15 +592,7 @@ export class CloudBaseJobRunner {
         speechBaseline,
         emotionExpression,
       );
-      let synthesisReference = providerBinding;
-      if (usesReferenceAudio(this.voiceProvider)) {
-        synthesisReference = path.join(workDir, 'reference.wav');
-        await measure('download_reference', () => this.download(this.audioBucket, message.referenceObjectKey, synthesisReference));
-      }
-      const audio = await measure('voice_synthesis_download', () => this.voiceProvider.synthesize(
-        synthesisReference,
-        usesReferenceAudio(this.voiceProvider) ? outputText : speechPlan.text,
-        {
+      const synthesisOptions = {
           jobId: job.id,
           messageId: job.messageId || '',
           instruction: speechPlan.instruction,
@@ -519,8 +604,25 @@ export class CloudBaseJobRunner {
           deliveryMode: emotionExpression.deliveryMode,
           speechAct: emotionExpression.speechAct,
           observedBaseline: voiceObservedBaseline,
+      };
+      const referencePath = path.join(workDir, 'reference.wav');
+      const generationSession = await measure('voice_generation_primary', () => this.voiceGenerationCoordinator.generate({
+        mode: message.mode,
+        visibleText: outputText,
+        synthesisText: speechPlan.text,
+        expression: emotionExpression,
+        registeredBinding: providerBinding,
+        resolveReference: async () => {
+          const downloadStartedAt = Date.now();
+          await this.download(this.audioBucket, message.referenceObjectKey, referencePath);
+          stages.download_reference = Date.now() - downloadStartedAt;
+          return referencePath;
         },
-      ));
+        options: synthesisOptions,
+        allowCompanion: (provider) => this.reserveVoiceCompanionBudget(job, provider.id),
+      }));
+      const primaryCandidate = generationSession.primary;
+      const audio = primaryCandidate.audio;
       await measure('write_audio', () => fs.writeFile(audioPath, audio));
       await measure('embed_metadata', () => embedAigcMetadata(audioPath, job.messageId || ''));
       const [probe, hash] = await measure('inspect_audio', () => Promise.all([probeWav(audioPath), sha256(audioPath)]));
@@ -545,6 +647,21 @@ export class CloudBaseJobRunner {
         }));
         completed = true;
         await measure('mark_job_succeeded', () => this.runtime.rpc('rpc_job_mark_succeeded', { pJobId: job.id, pWorkerId: this.workerId }));
+        const primaryReadyMs = Date.now() - totalStartedAt;
+        const upgrade = await generationSession.bestUpgrade;
+        if (upgrade) {
+            await this.upgradeReadyMessageAudio({ job, audioPath, objectKey: storedObjectKey, candidate: upgrade }).catch((error) => {
+              console.error('voice_quality_upgrade', JSON.stringify({
+                event: 'voice_quality_upgrade', status: 'FAILED', messageId: job.messageId,
+                error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+              }));
+            });
+        } else {
+            console.info('voice_quality_upgrade', JSON.stringify({
+              event: 'voice_quality_upgrade', status: 'NO_HIGHER_QUALITY_RESULT', messageId: job.messageId,
+            }));
+        }
+        stages.primary_ready = primaryReadyMs;
       } catch (error) {
         if (!completed) await this.deleteObject(this.audioBucket, storedObjectKey).catch(() => undefined);
         throw error;
@@ -600,9 +717,7 @@ export class CloudBaseJobRunner {
   }
 
   private registeredProvider(): VoiceProviderPort {
-    if (!this.registeredVoiceProvider) this.registeredVoiceProvider = new AliyunCosyVoiceProvider();
-    if (usesReferenceAudio(this.registeredVoiceProvider)) throw new Error('Registered voice provider cannot use reference-audio mode');
-    return this.registeredVoiceProvider;
+    return this.voiceProviders.registered.provider;
   }
 
   private async deleteProviderBinding(providerBinding: string): Promise<void> {
@@ -682,26 +797,26 @@ export class CloudBaseJobRunner {
       }
       const message = error instanceof Error ? error.message : String(error);
       const quality = error instanceof ReferenceQualityError ? error : null;
-      const seedAudioError = error instanceof SeedAudioGenerationError ? error : null;
+      const voiceGenerationError = error instanceof VoiceGenerationError ? error : null;
       const generationStage = job.type === 'GENERATE_MESSAGE'
         ? String((error as Error & { generationStage?: string })?.generationStage || '')
         : '';
       const generationErrorCode = generationStage
         ? `MESSAGE_${generationStage.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}_FAILED`.slice(0, 100)
         : 'JOB_FAILED';
-      const terminal = Boolean(quality) || error instanceof SeedAudioGenerationError || job.attempts >= job.maxAttempts;
+      const terminal = Boolean(quality) || error instanceof VoiceGenerationError || job.attempts >= job.maxAttempts;
       if (terminal && job.messageId && job.type === 'GENERATE_MESSAGE') {
         await this.runtime.rpc('rpc_message_complete_failure', {
           pUserId: job.userId,
           pMessageId: job.messageId,
-          pErrorCode: quality?.code || seedAudioError?.code || generationErrorCode,
+          pErrorCode: quality?.code || voiceGenerationError?.code || generationErrorCode,
           pErrorMessage: message.slice(0, 500),
         });
       }
       await this.runtime.rpc('rpc_job_mark_failed_or_retry', {
         pJobId: job.id,
         pWorkerId: this.workerId,
-        pErrorCode: quality?.code || seedAudioError?.code || generationErrorCode,
+        pErrorCode: quality?.code || voiceGenerationError?.code || generationErrorCode,
         pErrorMessage: message.slice(0, 1000),
         pRetryable: !terminal,
         pRetryDelaySeconds: 10,

@@ -5,6 +5,9 @@ import path from 'node:path';
 import type { PoolClient } from 'pg';
 import { evaluateContentSafety } from '@aivoice/contracts';
 import { decryptProviderId, encryptProviderId } from './crypto/provider-id.js';
+import { VoiceGenerationCoordinator } from './voice-generation-coordinator.js';
+import type { GeneratedVoiceCandidate } from './voice-generation-strategy.js';
+import { voiceCompanionBudgetPolicy } from './voice-companion-budget.js';
 import {
   compileVoiceChatMessages,
   relationshipReplyViolation,
@@ -25,10 +28,8 @@ import { recoverExpiredLeases } from './lease-recovery.js';
 import { embedAigcMetadata } from './media/aigc.js';
 import { extractReference, probeWav } from './media/ffmpeg.js';
 import { cleanupUnpersistedReference, inspectReferenceQuality, ReferenceQualityError } from './media/quality.js';
-import { AliyunCosyVoiceProvider } from './providers/aliyun-cosyvoice.js';
-import { SeedAudioGenerationError } from './providers/volcengine-seed-audio.js';
-import { createVoiceProviderFromEnv } from './providers/voice-provider-factory.js';
-import { usesReferenceAudio, type VoiceProviderPort } from './providers/voice-provider.js';
+import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
+import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
 import { buildSpeechSynthesisPlan } from './speech-instruction.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
 import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
@@ -56,6 +57,8 @@ interface JobRow {
 interface JobRunnerDependencies {
   voiceProvider?: VoiceProviderPort;
   registeredVoiceProvider?: VoiceProviderPort;
+  companionVoiceProviders?: VoiceProviderPort[];
+  voiceProviderRegistry?: VoiceProviderRegistry;
   chatProvider?: ChatProviderPort;
 }
 
@@ -82,16 +85,21 @@ async function sha256(filePath: string): Promise<string> {
 
 export class JobRunner {
   private readonly mediaRoot = path.resolve(process.env.MEDIA_LOCAL_ROOT || '../../.runtime/media');
+  private readonly voiceProviders: VoiceProviderRegistry;
   private readonly voiceProvider: VoiceProviderPort;
-  private registeredVoiceProvider: VoiceProviderPort | null;
+  private readonly voiceGenerationCoordinator: VoiceGenerationCoordinator;
   private readonly chatProvider: ChatProviderPort;
   private readonly pointCost: number;
   private stopping = false;
 
   constructor(private readonly database: WorkerDatabase, dependencies: JobRunnerDependencies = {}) {
-    this.voiceProvider = dependencies.voiceProvider || createVoiceProviderFromEnv();
-    this.registeredVoiceProvider = dependencies.registeredVoiceProvider
-      || (usesReferenceAudio(this.voiceProvider) ? null : this.voiceProvider);
+    this.voiceProviders = dependencies.voiceProviderRegistry || createVoiceProviderRegistry({
+      active: dependencies.voiceProvider,
+      registered: dependencies.registeredVoiceProvider,
+      companions: dependencies.companionVoiceProviders,
+    });
+    this.voiceProvider = this.voiceProviders.active.provider;
+    this.voiceGenerationCoordinator = new VoiceGenerationCoordinator(this.voiceProviders);
     this.chatProvider = dependencies.chatProvider || createChatProviderFromEnv();
     this.pointCost = generationPointCost();
   }
@@ -112,9 +120,91 @@ export class JobRunner {
   }
 
   private registeredProvider(): VoiceProviderPort {
-    if (!this.registeredVoiceProvider) this.registeredVoiceProvider = new AliyunCosyVoiceProvider();
-    if (usesReferenceAudio(this.registeredVoiceProvider)) throw new Error('Registered voice provider cannot use reference-audio mode');
-    return this.registeredVoiceProvider;
+    return this.voiceProviders.registered.provider;
+  }
+
+  private async reserveVoiceCompanionBudget(job: JobRow, providerId: string): Promise<boolean> {
+    const policy = voiceCompanionBudgetPolicy(providerId);
+    if (!policy) return true;
+    const client = await this.database.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [job.user_id]);
+      const current = await client.query<{ payload: Record<string, unknown> }>(
+        `SELECT payload FROM jobs
+         WHERE id=$1 AND user_id=$2 AND type='GENERATE_MESSAGE'
+         FOR UPDATE`,
+        [job.id, job.user_id],
+      );
+      const payload = current.rows[0]?.payload;
+      if (!payload) throw new Error('GENERATION_JOB_NOT_FOUND');
+      const reservations = payload.voiceCompanionReservations;
+      if (reservations && typeof reservations === 'object' && providerId in reservations) {
+        await client.query('COMMIT');
+        console.info('voice_companion_budget', JSON.stringify({
+          event: 'voice_companion_budget', status: 'ALREADY_RESERVED', provider: providerId,
+          jobId: job.id, userId: job.user_id, limit: policy.limit, windowSize: policy.windowSize,
+        }));
+        return false;
+      }
+      const usedResult = await client.query<{ current_in_window: boolean; used: number }>(
+        `SELECT COALESCE(bool_or(id=$2),false) AS current_in_window,
+           count(*) FILTER (
+             WHERE COALESCE(recent.payload->'voiceCompanionReservations','{}'::jsonb) ? $4
+           )::integer AS used
+         FROM (
+           SELECT id,payload FROM jobs
+           WHERE user_id=$1 AND type='GENERATE_MESSAGE'
+           ORDER BY created_at DESC,id DESC
+           LIMIT $3
+         ) recent`,
+        [job.user_id, job.id, policy.windowSize, providerId],
+      );
+      const currentInWindow = Boolean(usedResult.rows[0]?.current_in_window);
+      const used = Number(usedResult.rows[0]?.used || 0);
+      if (!currentInWindow) {
+        await client.query('COMMIT');
+        console.info('voice_companion_budget', JSON.stringify({
+          event: 'voice_companion_budget', status: 'OUTSIDE_CURRENT_WINDOW', provider: providerId,
+          jobId: job.id, userId: job.user_id, used, limit: policy.limit, windowSize: policy.windowSize,
+        }));
+        return false;
+      }
+      if (used >= policy.limit) {
+        await client.query('COMMIT');
+        console.info('voice_companion_budget', JSON.stringify({
+          event: 'voice_companion_budget', status: 'DENIED', provider: providerId,
+          jobId: job.id, userId: job.user_id, used, limit: policy.limit, windowSize: policy.windowSize,
+        }));
+        return false;
+      }
+      await client.query(
+        `UPDATE jobs SET payload=jsonb_set(
+           jsonb_set(COALESCE(payload,'{}'::jsonb),'{voiceCompanionReservations}',
+             COALESCE(payload->'voiceCompanionReservations','{}'::jsonb),true),
+           ARRAY['voiceCompanionReservations',$1],
+           jsonb_build_object('reservedAt',now(),'limit',$2::integer,'windowSize',$3::integer),true
+         ),updated_at=NOW()
+         WHERE id=$4`,
+        [providerId, policy.limit, policy.windowSize, job.id],
+      );
+      await client.query('COMMIT');
+      console.info('voice_companion_budget', JSON.stringify({
+        event: 'voice_companion_budget', status: 'RESERVED', provider: providerId,
+        jobId: job.id, userId: job.user_id, used: used + 1, limit: policy.limit, windowSize: policy.windowSize,
+      }));
+      return true;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      console.error('voice_companion_budget', JSON.stringify({
+        event: 'voice_companion_budget', status: 'FAILED_CLOSED', provider: providerId,
+        jobId: job.id, userId: job.user_id,
+        error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+      }));
+      return false;
+    } finally {
+      client.release();
+    }
   }
 
   private async acquire(): Promise<JobRow | null> {
@@ -197,9 +287,9 @@ export class JobRunner {
   private async markFailed(job: JobRow, error: unknown): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     const qualityError = error instanceof ReferenceQualityError ? error : null;
-    const seedAudioError = error instanceof SeedAudioGenerationError ? error : null;
-    const terminal = Boolean(qualityError) || error instanceof SeedAudioGenerationError || job.attempts >= job.max_attempts;
-    const jobErrorCode = qualityError?.code || seedAudioError?.code || 'JOB_FAILED';
+    const voiceGenerationError = error instanceof VoiceGenerationError ? error : null;
+    const terminal = Boolean(qualityError) || error instanceof VoiceGenerationError || job.attempts >= job.max_attempts;
+    const jobErrorCode = qualityError?.code || voiceGenerationError?.code || 'JOB_FAILED';
     await this.database.pool.query(
       `UPDATE jobs SET status = $1::job_status,
        available_at = CASE WHEN $1::job_status = 'QUEUED'::job_status THEN NOW() + INTERVAL '10 seconds' ELSE available_at END,
@@ -212,14 +302,14 @@ export class JobRunner {
       await this.database.pool.query(
         `UPDATE voice_profiles SET status = 'FAILED', failure_code = $1, failure_message = $2, updated_at = NOW()
          WHERE id = $3`,
-        [qualityError?.code || seedAudioError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.voice_profile_id],
+        [qualityError?.code || voiceGenerationError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.voice_profile_id],
       );
     }
     if (terminal && job.message_id && job.type === 'GENERATE_MESSAGE') {
       await this.database.pool.query(
         `UPDATE messages SET status = 'FAILED', error_code = $1, error_message = $2, updated_at = NOW()
          WHERE id = $3 AND status IN ('PENDING', 'PROCESSING')`,
-        [seedAudioError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.message_id],
+        [voiceGenerationError?.code || 'PROVIDER_FAILED', message.slice(0, 500), job.message_id],
       );
     }
   }
@@ -351,6 +441,37 @@ export class JobRunner {
     }
   }
 
+  private async prepareGeneratedAudio(audioPath: string, messageId: string, audio: Buffer): Promise<{
+    bytes: number;
+    durationMs: number;
+    sha256: string;
+  }> {
+    await fs.writeFile(audioPath, audio);
+    await embedAigcMetadata(audioPath, messageId);
+    const [probe, hash] = await Promise.all([probeWav(audioPath), sha256(audioPath)]);
+    return { bytes: probe.bytes, durationMs: probe.durationMs, sha256: hash };
+  }
+
+  private async upgradeReadyMessageAudio(input: {
+    job: JobRow;
+    audioPath: string;
+    candidate: GeneratedVoiceCandidate;
+  }): Promise<void> {
+    if (!input.job.message_id) return;
+    const prepared = await this.prepareGeneratedAudio(input.audioPath, input.job.message_id, input.candidate.audio);
+    const result = await this.database.pool.query(
+      `UPDATE media_assets SET bytes=$1,duration_ms=$2,sha256=$3,updated_at=NOW()
+       WHERE message_id=$4 AND kind='GENERATED_AUDIO' AND status='READY' AND deleted_at IS NULL`,
+      [prepared.bytes, prepared.durationMs, prepared.sha256, input.job.message_id],
+    );
+    if (!result.rowCount) throw new Error('MESSAGE_AUDIO_NOT_READY');
+    console.info('voice_quality_upgrade', JSON.stringify({
+      event: 'voice_quality_upgrade', status: 'SUCCEEDED', messageId: input.job.message_id,
+      provider: input.candidate.id,
+      providerElapsedMs: input.candidate.elapsedMs, durationMs: prepared.durationMs, bytes: prepared.bytes,
+    }));
+  }
+
   private async completeGeneratedMessage(input: {
     job: JobRow;
     outputText: string;
@@ -462,7 +583,7 @@ export class JobRunner {
     if (!message) throw new Error('message or ready voice model not found');
     const providerBinding = decryptProviderId(message.provider_voice_id_encrypted);
     if (usesReferenceAudio(this.voiceProvider) && !message.reference_object_key) {
-      throw new SeedAudioGenerationError(
+      throw new VoiceGenerationError(
         'Existing voice has no retained reference audio for Seed Audio use',
         'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
       );
@@ -582,13 +703,7 @@ export class JobRunner {
       speechBaseline,
       emotionExpression,
     );
-    const synthesisReference = usesReferenceAudio(this.voiceProvider)
-      ? this.safePath(message.reference_object_key)
-      : providerBinding;
-    const audio = await this.voiceProvider.synthesize(
-      synthesisReference,
-      usesReferenceAudio(this.voiceProvider) ? outputText : speechPlan.text,
-      {
+    const synthesisOptions = {
       jobId: job.id,
       messageId: job.message_id,
       instruction: speechPlan.instruction,
@@ -600,14 +715,39 @@ export class JobRunner {
       deliveryMode: emotionExpression.deliveryMode,
       speechAct: emotionExpression.speechAct,
       observedBaseline: voiceObservedBaseline,
+    };
+    const referencePath = this.safePath(message.reference_object_key);
+    const generationSession = await this.voiceGenerationCoordinator.generate({
+      mode: message.mode,
+      visibleText: outputText,
+      synthesisText: speechPlan.text,
+      expression: emotionExpression,
+      registeredBinding: providerBinding,
+      resolveReference: async () => referencePath,
+      options: synthesisOptions,
+      allowCompanion: (provider) => this.reserveVoiceCompanionBudget(job, provider.id),
     });
+    const primaryCandidate = generationSession.primary;
     const objectKey = path.join('generated', job.user_id, job.voice_profile_id, `${job.message_id}.wav`).replaceAll('\\', '/');
     const audioPath = this.safePath(objectKey);
     await fs.mkdir(path.dirname(audioPath), { recursive: true });
     try {
-      await fs.writeFile(audioPath, audio);
+      await fs.writeFile(audioPath, primaryCandidate.audio);
       await embedAigcMetadata(audioPath, job.message_id);
       await this.completeGeneratedMessage({ job, outputText, audioPath, objectKey, interactionState });
+      const upgrade = await generationSession.bestUpgrade;
+      if (upgrade) {
+          await this.upgradeReadyMessageAudio({ job, audioPath, candidate: upgrade }).catch((error) => {
+            console.error('voice_quality_upgrade', JSON.stringify({
+              event: 'voice_quality_upgrade', status: 'FAILED', messageId: job.message_id,
+              error: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+            }));
+          });
+      } else {
+          console.info('voice_quality_upgrade', JSON.stringify({
+            event: 'voice_quality_upgrade', status: 'NO_HIGHER_QUALITY_RESULT', messageId: job.message_id,
+          }));
+      }
     } catch (error) {
       await fs.unlink(audioPath).catch(() => undefined);
       throw error;
