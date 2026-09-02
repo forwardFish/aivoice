@@ -23,6 +23,7 @@
 
       <view class="footer-card">
         <text class="footer-text">{{doc.footer}}</text>
+        <button wx:if="{{showFeedbackAction}}" class="feedback-button" open-type="feedback">提交意见反馈</button>
       </view>
     </view>
   </scroll-view>

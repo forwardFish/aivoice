@@ -111,3 +111,20 @@
   line-height: 1.8;
   color: #6b7891;
 }
+
+.feedback-button {
+  margin: 24rpx 0 0;
+  width: 100%;
+  min-height: 80rpx;
+  border: 0;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #6956f2 0%, #7f5cf4 100%);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 80rpx;
+}
+
+.feedback-button::after {
+  border: 0;
+}
