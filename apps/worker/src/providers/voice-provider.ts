@@ -103,6 +103,7 @@ export interface VoiceSynthesisOptions {
   pitch?: number;
   volume?: number;
   enableSsml?: boolean;
+  seed?: number;
   relationshipType?: VoiceRelationshipType | null;
   deliveryMode?: VoiceDeliveryMode;
   speechAct?: VoiceSpeechAct;

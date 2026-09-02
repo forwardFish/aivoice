@@ -78,10 +78,10 @@ function performanceDirection(plan: VoiceDeliveryPlan, counterpart: string, text
     return `像被${counterpart}说中后，先急着否认，紧接着把原因说出来。逗号后保持同样速度，最后短收`;
   }
   if (plan.act === 'ASSERT_BOUNDARY') {
-    return `像${counterpart}正要替她做决定时，立刻把话顶回去。第一句带明显不耐烦，中间表达自己边界的语义单元稍微加重，最后坚定短收`;
+    return `妈妈正替她做决定，她马上顶回去。语速正常偏快，边界句说重，后半不放软，结尾短收`;
   }
   if (plan.act === 'PLAYFUL_PROBE') {
-    return `像发现${counterpart}今天有点反常，忍不住笑着试探一句。前半轻快${particleCue(text)}，最后问句只轻轻上扬`;
+    return `妈妈今天反常好说话，她顺口逗一句。语气轻快${particleCue(text)}，试探意味落在问句后半，只在结尾轻轻上扬`;
   }
   if (plan.act === 'ADMIT_HURT') {
     return `像刚被${counterpart}一句话伤到，委屈但认真说出来。逗号处短停，后半声音收一点，中间表达真实感受的语义单元稍微加重，最后轻短收住`;

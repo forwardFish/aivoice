@@ -130,14 +130,13 @@ export class AliyunCosyVoiceProvider {
   async synthesize(
     voiceId: string,
     text: string,
-    options: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean } = {},
+    options: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean; seed?: number } = {},
   ): Promise<Buffer> {
     const totalStartedAt = Date.now();
     let requestMs = 0;
     let downloadMs = 0;
     try {
       const requestStartedAt = Date.now();
-      const qwenAudio = this.targetModel.startsWith('qwen-audio-');
       const response = await fetch(`${this.apiHost}/api/v1/services/audio/tts/SpeechSynthesizer`, {
         method: 'POST',
         headers: this.headers(),
@@ -149,8 +148,8 @@ export class AliyunCosyVoiceProvider {
             format: 'wav',
             sample_rate: 24000,
             language_hints: ['zh'],
-            seed: 0,
-            ...(options.instruction ? (qwenAudio ? { instructions: options.instruction } : { instruction: options.instruction }) : {}),
+            seed: options.seed ?? 0,
+            ...(options.instruction ? { instruction: options.instruction } : {}),
             ...(options.rate !== undefined ? { rate: options.rate } : {}),
             ...(options.pitch !== undefined ? { pitch: options.pitch } : {}),
             ...(options.volume !== undefined ? { volume: options.volume } : {}),

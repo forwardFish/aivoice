@@ -22,6 +22,16 @@ test('personality expression collapses into one four-field provider-neutral plan
   }));
   assert.equal(autonomy.act, 'ASSERT_BOUNDARY');
   assert.equal(autonomy.intensity, 2);
+  const autonomySynthesis = buildSpeechSynthesisPlan(
+    'IRRITATED', '你先听我说完，这是我的事，我想自己决定。', null,
+    buildEmotionExpressionPlan({
+      replyTone: 'IRRITATED', text: '你先听我说完，这是我的事，我想自己决定。', interactionState: null,
+      personalityNote: '有自己的主意：对自己的事情有看法。',
+    }),
+    autonomy,
+  );
+  assert.equal(autonomySynthesis.pitch, 0.97);
+  assert.equal(autonomySynthesis.applyAcousticOverrides, true);
 });
 
 test('the four-field plan covers all eight MVP emotional processes without adding fields', () => {
@@ -54,9 +64,10 @@ test('the four-field plan covers all eight MVP emotional processes without addin
     const synthesis = buildSpeechSynthesisPlan(item.tone, item.text, null, expression, deliveryPlan);
     assert.equal(synthesis.enableSsml, false);
     assert.equal(synthesis.rate, 1);
-    assert.equal(synthesis.pitch, 1);
+    assert.equal(synthesis.pitch, deliveryPlan.act === 'ASSERT_BOUNDARY' ? 0.97 : 1);
     assert.equal(synthesis.volume, 50);
-    assert.equal(synthesis.applyAcousticOverrides, false);
+    assert.equal(synthesis.seed, deliveryPlan.act === 'ADMIT_HURT' ? 1 : 0);
+    assert.equal(synthesis.applyAcousticOverrides, deliveryPlan.act === 'ASSERT_BOUNDARY');
   }
 });
 
@@ -92,4 +103,35 @@ test('playful and hurt replies stay audibly distinct from a casual explanation',
   assert.equal(playful.act, 'PLAYFUL_PROBE');
   assert.equal(hurt.act, 'ADMIT_HURT');
   assert.equal(casual.act, 'CASUAL_EXPLAIN');
+});
+
+test('CosyVoice receives the same concrete boundary and playful acting direction as Seed Audio', () => {
+  const boundary = buildVoicePlanInstruction({
+    act: 'ASSERT_BOUNDARY', affect: 'IRRITATED', intensity: 2, cadence: 'FIRM_TWO_BEAT',
+  });
+  const playful = buildVoicePlanInstruction({
+    act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE',
+  });
+  assert.match(boundary, /觉得不被尊重/);
+  assert.match(boundary, /有点委屈又不服气/);
+  assert.match(boundary, /只想让妈妈先听完/);
+  assert.match(playful, /顺口逗一句/);
+  assert.match(playful, /问句后半带试探/);
+  assert.ok(instructionWeightedLength(boundary) <= 100);
+  assert.ok(instructionWeightedLength(playful) <= 100);
+});
+
+test('CosyVoice preserves the individually accepted direction for concern, hurt and recovery', () => {
+  const instructions = [
+    buildVoicePlanInstruction({ act: 'SHOW_PRACTICAL_CARE', affect: 'CONCERNED', intensity: 1, cadence: 'CAREFUL_STEADY' }),
+    buildVoicePlanInstruction({ act: 'ADMIT_HURT', affect: 'HURT', intensity: 2, cadence: 'SOFT_FALL' }),
+    buildVoicePlanInstruction({ act: 'SOFTEN_AFTER_TENSION', affect: 'MIXED', intensity: 1, cadence: 'TENSE_TO_SOFT' }),
+  ];
+  assert.match(instructions[0], /前一句带担心/);
+  assert.match(instructions[0], /后一句更直接/);
+  assert.match(instructions[1], /气息发紧、声音微颤/);
+  assert.match(instructions[1], /最后压低收住/);
+  assert.match(instructions[2], /前半保留一点硬/);
+  assert.match(instructions[2], /转折后恢复日常节奏/);
+  for (const instruction of instructions) assert.ok(instructionWeightedLength(instruction) <= 100);
 });

@@ -599,6 +599,7 @@ export class CloudBaseJobRunner {
           jobId: job.id,
           messageId: job.messageId || '',
           instruction: speechPlan.instruction,
+          seed: speechPlan.seed,
           ...(speechPlan.applyAcousticOverrides ? {
             rate: speechPlan.rate,
             pitch: speechPlan.pitch,

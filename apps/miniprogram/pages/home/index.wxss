@@ -98,6 +98,8 @@
 .create-copy {
   flex: 1;
   min-width: 0;
+  text-align: center;
+  transform: translateX(16rpx);
 }
 
 .create-title {
@@ -121,6 +123,11 @@
   flex: 0 0 auto;
   width: 84rpx;
   height: 84rpx;
+}
+
+.home-arrow-hidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .home-state {
@@ -153,6 +160,8 @@
 .guest-copy {
   flex: 1;
   min-width: 0;
+  text-align: center;
+  transform: translateX(16rpx);
 }
 
 .guest-title {

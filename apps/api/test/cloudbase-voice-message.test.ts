@@ -148,7 +148,7 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
     'rpc_voice_retry_preview',
     'rpc_voice_delete_request',
   ]);
-  assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.5');
+  assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.6');
   assert.match(String(calls[0].args.pConsentTextHash), /^[a-f0-9]{64}$/);
 });
 

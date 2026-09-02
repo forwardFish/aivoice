@@ -115,8 +115,8 @@ export function instructionWeightedLength(value: string): number {
 const VOICE_PLAN_INSTRUCTIONS: Record<VoiceAct, string> = {
   CASUAL_EXPLAIN: '像在家里顺嘴回应熟悉的人，整句连着说，语气词快速带过，最后短收。',
   DENY_THEN_EXPLAIN: '像被说中后先急着否认，紧接着解释，逗号后保持同样速度，最后短收。',
-  ASSERT_BOUNDARY: '像妈妈没听完就替她决定，她一下急了，马上顶回去。第一句短而不耐烦，第二句把自己的边界说重，结尾干脆。',
-  PLAYFUL_PROBE: '像发现对方今天有点反常，忍不住笑着试探。前半轻快，语气词快速带过，最后问句轻轻上扬。',
+  ASSERT_BOUNDARY: '妈妈没听她解释就替她决定，她觉得不被尊重，有点委屈又不服气。她不是要吵架，只想让妈妈先听完。',
+  PLAYFUL_PROBE: '妈妈今天反常好说话，她顺口逗一句。语气轻快，语气词快速带过，问句后半带试探，只在结尾轻轻上扬。',
   ADMIT_HURT: '像刚被妈妈一句话刺到，先停一下才开口。第二句是忍着眼泪说出的真实感受，气息发紧、声音微颤，最后压低收住。',
   EXPRESS_DELIGHT: '像突然听到好消息，眼睛一亮就接话。起句是真实惊喜，中间轻快，最后自然上扬后短收。',
   SHOW_PRACTICAL_CARE: '像看到妈妈一直硬撑，心里一下有点急。先问她，再顺口催她去吃东西，前一句带担心，后一句更直接。',
@@ -175,6 +175,7 @@ export function buildSpeechSynthesisPlan(
   rate: number;
   pitch: number;
   volume: number;
+  seed: number;
   effectiveTone: ReplyTone;
   emotionIntensity: 0 | 1 | 2 | 3;
   enableSsml: boolean;
@@ -183,16 +184,18 @@ export function buildSpeechSynthesisPlan(
   const effectiveTone = expression?.effectiveTone || replyTone;
   if (deliveryPlan) {
     const hasExplicitCorrection = Boolean(baseline?.instructionFragment.includes('校准：'));
+    const lowerBoundaryPitch = deliveryPlan.act === 'ASSERT_BOUNDARY';
     return {
       text: buildInternalTtsText(text, deliveryPlan),
       instruction: buildVoicePlanInstruction(deliveryPlan, baseline),
       rate: hasExplicitCorrection ? Number(bounded(baseline?.rateFactor || 1, 0.85, 1.15).toFixed(3)) : 1,
-      pitch: 1,
+      pitch: lowerBoundaryPitch ? 0.97 : 1,
       volume: hasExplicitCorrection ? Math.round(bounded(50 + (baseline?.volumeOffset || 0), 45, 55)) : 50,
+      seed: deliveryPlan.act === 'ADMIT_HURT' ? 1 : 0,
       effectiveTone,
       emotionIntensity: expression?.intensity || 0,
       enableSsml: false,
-      applyAcousticOverrides: hasExplicitCorrection,
+      applyAcousticOverrides: hasExplicitCorrection || lowerBoundaryPitch,
     };
   }
   const prosody = PROSODY[effectiveTone] || PROSODY.PLAIN;
@@ -212,6 +215,7 @@ export function buildSpeechSynthesisPlan(
     rate,
     pitch,
     volume,
+    seed: 0,
     effectiveTone,
     emotionIntensity: expression?.intensity || 0,
     enableSsml,

@@ -7,10 +7,20 @@ import { config as loadDotEnv, parse as parseDotEnv } from 'dotenv';
 import CloudBase from '@cloudbase/manager-node';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const databaseEnvId = process.env.CLOUDBASE_TARGET_ENV_ID || 'aivoice-d1g94bgoh67c6b974';
-const resourceEnvId = process.env.CLOUDBASE_RESOURCE_ENV_ID || 'aiassistant-0517-d6en8tw82f2f7fc';
-const runEnvId = process.env.CLOUDBASE_RUN_ENV_ID || resourceEnvId;
-const serviceName = process.env.CLOUDBASE_SERVICE_NAME || 'aivoice-api';
+const secretsDir = process.env.AIVOICE_CLOUDBASE_SECRETS_DIR || 'D:/lyh/secrets/aivoice/cloudbase';
+const statePath = path.join(secretsDir, 'deployment-state.json');
+await fsp.mkdir(secretsDir, { recursive: true });
+let state = {};
+if (fs.existsSync(statePath)) state = JSON.parse(await fsp.readFile(statePath, 'utf8'));
+const databaseEnvId = process.env.CLOUDBASE_TARGET_ENV_ID
+  || state.databaseEnvId
+  || state.envId
+  || 'aivoice-d1g94bgoh67c6b974';
+const resourceEnvId = process.env.CLOUDBASE_RESOURCE_ENV_ID
+  || state.resourceEnvId
+  || 'aiassistant-0517-d6en8tw82f2f7fc';
+const runEnvId = process.env.CLOUDBASE_RUN_ENV_ID || state.runEnvId || resourceEnvId;
+const serviceName = process.env.CLOUDBASE_SERVICE_NAME || state.serviceName || 'aivoice-api';
 const baseLocalEnv = fs.existsSync(path.join(projectRoot, '.env.local'))
   ? parseDotEnv(fs.readFileSync(path.join(projectRoot, '.env.local')))
   : {};
@@ -34,11 +44,6 @@ const secretId = process.env.TENCENTCLOUD_SECRETID || credentials.TENCENTCLOUD_S
 const secretKey = process.env.TENCENTCLOUD_SECRETKEY || credentials.TENCENTCLOUD_SECRETKEY;
 if (!secretId || !secretKey) throw new Error('Tencent Cloud deployment credentials are missing');
 
-const secretsDir = process.env.AIVOICE_CLOUDBASE_SECRETS_DIR || 'D:/lyh/secrets/aivoice/cloudbase';
-const statePath = path.join(secretsDir, 'deployment-state.json');
-await fsp.mkdir(secretsDir, { recursive: true });
-let state = {};
-if (fs.existsSync(statePath)) state = JSON.parse(await fsp.readFile(statePath, 'utf8'));
 state.envId = databaseEnvId;
 state.databaseEnvId = databaseEnvId;
 state.resourceEnvId = resourceEnvId;

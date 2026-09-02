@@ -710,6 +710,7 @@ export class JobRunner {
       jobId: job.id,
       messageId: job.message_id,
       instruction: speechPlan.instruction,
+      seed: speechPlan.seed,
       ...(speechPlan.applyAcousticOverrides ? {
         rate: speechPlan.rate,
         pitch: speechPlan.pitch,

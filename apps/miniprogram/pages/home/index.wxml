@@ -21,7 +21,7 @@
       <text class="create-title">创建新声音</text>
       <text class="create-subtitle">从旧视频中提取 TA 的声音</text>
     </view>
-    <image class="create-arrow" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
+    <image class="create-arrow home-arrow-hidden" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
   </view>
 
   <view wx:if="{{state === 'guest'}}" class="guest-section fade-in">
@@ -34,7 +34,7 @@
         <text class="guest-title">登录后查看你的声音</text>
         <text class="guest-description">首页可以直接浏览，开始创建或查看私有内容时再登录。</text>
       </view>
-      <image class="guest-arrow" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
+      <image class="guest-arrow home-arrow-hidden" src="/assets/ui/arrow-circle.png" mode="aspectFit"></image>
     </view>
   </view>
 
@@ -59,7 +59,7 @@
       <text class="section-title">最近的声音</text>
       <view class="section-link-wrap" bindtap="openAllVoices">
         <text class="section-link">全部</text>
-        <text class="section-link-arrow">›</text>
+        <text class="section-link-arrow home-arrow-hidden">›</text>
       </view>
     </view>
 
