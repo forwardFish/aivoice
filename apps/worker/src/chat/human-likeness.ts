@@ -39,6 +39,20 @@ function normalizeOwnershipText(text: string): string {
   return String(text || '').normalize('NFC').replace(/[\s，。！？；、,.!?;：“”‘’"'（）()]/gu, '');
 }
 
+const EXPLICIT_PERSONAL_PREFERENCE_QUESTION = /(?:你|自己).{0,8}(?:想(?:吃|喝|要|去|看|玩|选|买|做|怎么|什么|哪)|有什么想法)/u;
+
+export function normalizeExplicitPreferenceSubject(input: {
+  currentUserText: string;
+  reply: string;
+}): { reply: string; changed: boolean } {
+  const reply = String(input.reply || '').trim();
+  const currentUserText = String(input.currentUserText || '').normalize('NFC');
+  if (!reply || !EXPLICIT_PERSONAL_PREFERENCE_QUESTION.test(currentUserText) || !/^想/u.test(reply)) {
+    return { reply, changed: false };
+  }
+  return { reply: `我${reply}`, changed: true };
+}
+
 function extractFirstPersonFactClauses(userText: string): string[] {
   return removeQuotedSpans(String(userText || '').normalize('NFC'))
     .split(/[，。！？；,!?\n;]/u)

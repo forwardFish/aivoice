@@ -122,6 +122,29 @@ test('minimal production output expands into an accepted backend-owned affect st
   assert.equal(quality.interactionState.carryAffect?.remainingTurns, 2);
 });
 
+test('an explicit preference answer restores the first-person subject without another model call', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'preference-quality',
+    voiceName: '小雨', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
+    relationshipType: 'CHILD', relationshipLabel: '', userAddress: '妈妈',
+    history: [], currentInput: '那我们晚点吃点东西，你想吃什么？',
+  });
+  const quality = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '想吃炸鸡！', replyTone: 'PLAIN', actionStance: 'RESPOND' }),
+    currentUserText: '那我们晚点吃点东西，你想吃什么？',
+    relationshipType: 'CHILD', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    profile: { personalityNote: null, speechHabitNote: null, relationshipNote: null },
+  });
+  assert.equal(quality.outputText, '我想吃炸鸡！');
+  assert.ok(quality.qualitySignals.includes('EXPLICIT_PREFERENCE_SUBJECT_RESTORED'));
+  assert.deepEqual(quality.retryReasons, []);
+});
+
 test('retry prompt preserves the original messages and adds only one correction system message', () => {
   const messages = [
     { role: 'system' as const, content: 'system' },

@@ -4,6 +4,7 @@ import {
   assessHumanLikenessSignals,
   detectSpeakerFactOwnershipViolation,
   hardReplyLeak,
+  normalizeExplicitPreferenceSubject,
   sanitizeSelfUnsupportedPersonalHistory,
   sanitizeUnsupportedPresentSceneClaims,
 } from './human-likeness.js';
@@ -68,9 +69,13 @@ export function evaluateCharacterGenerationQuality(input: {
   personalityTurnFocus: PersonalityTurnFocus | null;
   profile: { personalityNote: string | null; speechHabitNote: string | null; relationshipNote: string | null };
 }): CharacterGenerationQuality {
+  const preferenceSubject = normalizeExplicitPreferenceSubject({
+    currentUserText: input.currentUserText,
+    reply: input.generation.reply,
+  });
   const selfHistorySanitization = sanitizeSelfUnsupportedPersonalHistory({
     relationshipType: input.relationshipType,
-    reply: input.generation.reply,
+    reply: preferenceSubject.reply,
     currentUserText: input.currentUserText,
     recentUserInputs: input.recentUserInputs,
     subjectBackground: input.subjectBackground,
@@ -123,6 +128,7 @@ export function evaluateCharacterGenerationQuality(input: {
   const qualitySignals = [
     ...humanSignals,
     ...normalized.qualityFlags,
+    ...(preferenceSubject.changed ? ['EXPLICIT_PREFERENCE_SUBJECT_RESTORED'] : []),
     ...(selfHistorySanitization.removed ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : []),
     ...(presentSceneSanitization.removed ? ['UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED'] : []),
     ...(personalityViolation ? [personalityViolation] : []),

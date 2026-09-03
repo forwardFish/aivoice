@@ -167,6 +167,8 @@ test('child relationship uses structured age and gender instead of parsing the v
   assert.match(system, /人物是用户的孩子，用户是人物的父母/);
   assert.match(system, /人物比用户年轻28岁/);
   assert.match(system, /不得承担父母、长辈或咨询师职责/);
+  assert.match(system, /用第一人称说清自己的偏好/);
+  assert.match(system, /不要只用“想……”开头/);
   assert.doesNotMatch(system, /本轮说话动作|SHORT|HESITANT|SOFT_RESISTANCE/);
 });
 
