@@ -79,5 +79,11 @@ export function buildInternalTtsText(text: string, plan: VoiceDeliveryPlan): str
   if (plan.act === 'ASSERT_BOUNDARY' || plan.act === 'ADMIT_HURT') {
     result = result.replace(/[，,]/u, '。');
   }
+  const compactPlainReply = plan.act === 'CASUAL_EXPLAIN'
+    && !/[，,。！？!?；;]/u.test(result.slice(0, -1))
+    && (result.match(/\p{Script=Han}/gu)?.length || 0) <= 8;
+  if (compactPlainReply) {
+    result = result.replace(/[！!]$/u, '。');
+  }
   return result;
 }

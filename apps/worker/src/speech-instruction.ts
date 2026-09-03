@@ -113,7 +113,7 @@ export function instructionWeightedLength(value: string): number {
 }
 
 const VOICE_PLAN_INSTRUCTIONS: Record<VoiceAct, string> = {
-  CASUAL_EXPLAIN: '像在家里顺嘴回应熟悉的人，整句连着说，语气词快速带过，最后短收。',
+  CASUAL_EXPLAIN: '像在家里随口回应熟悉的人，表达自己的想法，不是在要求对方。整句连着说，最后轻轻收住。',
   DENY_THEN_EXPLAIN: '像被说中后先急着否认，紧接着解释，逗号后保持同样速度，最后短收。',
   ASSERT_BOUNDARY: '妈妈没听她解释就替她决定，她觉得不被尊重，有点委屈又不服气。她不是要吵架，只想让妈妈先听完。',
   PLAYFUL_PROBE: '妈妈今天反常好说话，她顺口逗一句。语气轻快，语气词快速带过，问句后半带试探，只在结尾轻轻上扬。',

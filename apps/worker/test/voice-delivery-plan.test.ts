@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildEmotionExpressionPlan } from '../src/emotion-expression.js';
-import { createVoiceDeliveryPlan } from '../src/voice-delivery-plan.js';
+import { buildInternalTtsText, createVoiceDeliveryPlan } from '../src/voice-delivery-plan.js';
 import { buildSpeechSynthesisPlan, buildVoicePlanInstruction, instructionWeightedLength } from '../src/speech-instruction.js';
 import type { ReplyTone } from '../src/chat/interaction-state.js';
 
@@ -103,6 +103,20 @@ test('playful and hurt replies stay audibly distinct from a casual explanation',
   assert.equal(playful.act, 'PLAYFUL_PROBE');
   assert.equal(hurt.act, 'ADMIT_HURT');
   assert.equal(casual.act, 'CASUAL_EXPLAIN');
+});
+
+test('a compact plain preference reply does not become a spoken command', () => {
+  const casual = {
+    act: 'CASUAL_EXPLAIN', affect: 'NEUTRAL', intensity: 0, cadence: 'CONNECTED_SHORT',
+  } as const;
+  const delighted = {
+    act: 'EXPRESS_DELIGHT', affect: 'POSITIVE', intensity: 1, cadence: 'BRIGHT_BOUNCE',
+  } as const;
+
+  assert.equal(buildInternalTtsText('想吃炸鸡！', casual), '想吃炸鸡。');
+  assert.equal(buildInternalTtsText('想吃炸鸡！', delighted), '想吃炸鸡！');
+  assert.equal(buildInternalTtsText('我想吃炸鸡，不过不用现在去。', casual), '我想吃炸鸡，不过不用现在去。');
+  assert.match(buildVoicePlanInstruction(casual), /不是在要求对方/);
 });
 
 test('CosyVoice receives the same concrete boundary and playful acting direction as Seed Audio', () => {

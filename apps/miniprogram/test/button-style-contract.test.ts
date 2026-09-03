@@ -26,6 +26,10 @@ test('button families share color tokens without forcing page-specific geometry'
   const sendButtonMinHeight = Number(sendButtonBlock.match(/min-height:\s*(\d+)rpx/)?.[1] || 0)
   assert.ok(sendButtonMinWidth >= 128, 'send button keeps a usable minimum width')
   assert.ok(sendButtonMinHeight >= 80, 'send button keeps a usable minimum touch height')
+  assert.match(
+    workbenchStyle,
+    /\.quick-prompt-button\s*\{[^}]*width:\s*432rpx[^}]*min-height:\s*82rpx[^}]*display:\s*flex[^}]*align-items:\s*center[^}]*justify-content:\s*center[^}]*line-height:\s*1\.3[^}]*text-align:\s*center/s
+  )
   assert.match(dialogStyle, /\.buy-button\s*\{[^}]*min-height:\s*94rpx[^}]*var\(--action-primary-start/s)
 })
 
