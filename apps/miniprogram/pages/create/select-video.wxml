@@ -7,12 +7,20 @@
       <text class="upload-percent">{{uploadProgress}}%</text>
     </view>
     <text class="upload-title">正在安全上传视频</text>
-    <text class="upload-copy">只处理你主动选择的这一段视频，请暂时保持小程序在前台。</text>
+    <text class="upload-copy">稍后会检查片段中是否只有 TA 一个人说话，请暂时保持小程序在前台。</text>
     <view class="progress-track"><view class="progress-value" style="width: {{uploadProgress}}%;"></view></view>
   </view>
 
   <block wx:else>
     <view class="page-body fade-in">
+      <view class="speaker-rule-card" role="note">
+        <view class="speaker-rule-mark">!</view>
+        <view class="speaker-rule-copy">
+          <text class="speaker-rule-title">只能有 TA 一个人说话</text>
+          <text class="speaker-rule-description">不要包含旁白、电视声、其他人插话或多人同时说话，否则无法创建声音。</text>
+        </view>
+      </view>
+
       <view class="media-tabs">
         <button class="media-tab is-active" bindtap="openAlbumTab">相册</button>
         <view class="media-tab">视频</view>

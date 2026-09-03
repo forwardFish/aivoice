@@ -18,6 +18,12 @@ const PROGRESS_BY_STATUS: Record<VoiceStatus, number> = {
   DELETED: 100
 }
 
+const SINGLE_SPEAKER_FAILURE_CODES = new Set([
+  'MULTIPLE_SPEAKERS',
+  'OVERLAPPING_SPEECH',
+  'SPEAKER_UNCERTAIN'
+])
+
 Page({
   data: {
     voiceId: '',
@@ -27,6 +33,7 @@ Page({
     progress: 0,
     statusText: '准备创建声音',
     errorMessage: '',
+    speakerFailureModalShown: false,
     stages: [] as any[]
   },
   onLoad(options: Record<string, string>) {
@@ -89,6 +96,7 @@ Page({
     const stageText = this.stageText(voice.status, voice.processingStage)
     const failed = voice.status === 'FAILED'
     const deleting = voice.status === 'DELETING'
+    const failureCode = String(voice.error && voice.error.code || '')
     this.setData({
       state: failed ? 'failed' : deleting ? 'deleting' : 'processing',
       voiceName: voice.name || '这个声音',
@@ -97,6 +105,27 @@ Page({
       statusText: stageText,
       errorMessage: failed ? (voice.error && voice.error.message) || '声音创建失败，请重新选择片段后重试。' : this.data.errorMessage,
       stages: this.buildStages(progress, voice.status)
+    })
+    if (failed && SINGLE_SPEAKER_FAILURE_CODES.has(failureCode)) {
+      this.showSingleSpeakerFailure(failureCode)
+    }
+  },
+  showSingleSpeakerFailure(failureCode: string) {
+    if (this.data.speakerFailureModalShown) return
+    this.setData({ speakerFailureModalShown: true })
+    const title = failureCode === 'MULTIPLE_SPEAKERS'
+      ? '检测到多个声音'
+      : failureCode === 'OVERLAPPING_SPEECH'
+        ? '检测到多人同时说话'
+        : '无法确认只有一个声音'
+    wx.showModal({
+      title,
+      content: '为了避免生成错误音色，请重新选择只有 TA 一个人清楚说话的视频，不要包含旁白、电视声或其他人插话。',
+      showCancel: false,
+      confirmText: '重新选择视频',
+      success: result => {
+        if (result.confirm) this.retry()
+      }
     })
   },
   stageText(status: VoiceStatus, serverStage?: string): string {

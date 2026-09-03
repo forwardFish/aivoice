@@ -18,6 +18,6 @@ test('progress page error states use shared app buttons instead of raw native bu
   const markup = readFileSync(new URL('../pages/create/progress.wxml', import.meta.url), 'utf8')
 
   assert.match(markup, /<app-button variant="secondary" label="返回我的声音" bindaction="goVoices"><\/app-button>/)
-  assert.match(markup, /<app-button label="重新选择片段" bindaction="retry"><\/app-button>/)
-  assert.doesNotMatch(markup, /<button class="primary-button" bindtap="retry">重新选择片段<\/button>/)
+  assert.match(markup, /<app-button label="重新选择视频" bindaction="retry"><\/app-button>/)
+  assert.doesNotMatch(markup, /<button class="primary-button" bindtap="retry">重新选择视频<\/button>/)
 })

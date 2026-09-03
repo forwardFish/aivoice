@@ -6,6 +6,56 @@
 .page-body {
   padding-top: 34rpx;
 }
+.speaker-rule-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+  padding: 24rpx 26rpx;
+  border: 2rpx solid rgba(240, 151, 41, 0.38);
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #fff8e9, #fffdf8);
+  box-shadow: 0 14rpx 34rpx rgba(175, 112, 24, 0.1);
+}
+
+.speaker-rule-mark {
+  flex: 0 0 42rpx;
+  width: 42rpx;
+  height: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #ed962c;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.speaker-rule-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.speaker-rule-title,
+.speaker-rule-description {
+  display: block;
+}
+
+.speaker-rule-title {
+  color: #6f430f;
+  font-size: 27rpx;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.speaker-rule-description {
+  margin-top: 8rpx;
+  color: #89683e;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
 
 .intro-block {
   padding: 0 4rpx;

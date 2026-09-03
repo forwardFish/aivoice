@@ -15,7 +15,7 @@
   <view wx:elif="{{state === 'failed'}}" class="state-wrap glass-card">
     <page-state mode="error" title="这次没有创建成功" description="{{errorMessage}}"></page-state>
     <view class="state-action-stack">
-      <app-button label="重新选择片段" bindaction="retry"></app-button>
+      <app-button label="重新选择视频" bindaction="retry"></app-button>
       <app-button variant="secondary" label="返回我的声音" bindaction="goVoices"></app-button>
     </view>
   </view>

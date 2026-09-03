@@ -18,6 +18,19 @@ function fileNameFromPath(path: string): string {
   return clean.slice(clean.lastIndexOf('/') + 1) || `video-${Date.now()}.mp4`
 }
 
+function confirmSingleSpeakerVideo(): Promise<boolean> {
+  return new Promise(resolve => {
+    wx.showModal({
+      title: '视频里只能有 TA 一个人说话',
+      content: '请不要选择包含旁白、电视声、其他人插话或多人同时说话的视频。后续标记的 8–20 秒片段中，只能有 TA 一个人清楚说话。',
+      confirmText: '选择视频',
+      cancelText: '暂不选择',
+      success: result => resolve(Boolean(result.confirm)),
+      fail: () => resolve(false)
+    })
+  })
+}
+
 Page({
   data: {
     state: 'idle',
@@ -63,6 +76,7 @@ Page({
   },
   async chooseVideo(event?: any) {
     if (this.data.state === 'uploading') return
+    if (!await confirmSingleSpeakerVideo()) return
     const requestedIndex = event && event.currentTarget && event.currentTarget.dataset
       ? event.currentTarget.dataset.index
       : undefined

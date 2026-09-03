@@ -85,7 +85,8 @@ test('normalizes speaker quality failures into actionable Chinese guidance', () 
     failureMessage: 'MULTIPLE_SPEAKERS'
   })
   assert.equal(voice.error?.code, 'MULTIPLE_SPEAKERS')
-  assert.match(String(voice.error?.message), /多个人声/)
+  assert.match(String(voice.error?.message), /多个声音/)
+  assert.match(String(voice.error?.message), /只有 TA 一个人说话的视频/)
 })
 
 test('normalizes missing source media into a recoverable Chinese restart instruction', () => {

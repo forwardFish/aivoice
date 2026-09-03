@@ -43,9 +43,9 @@ function voiceFailureMessage(code: string, message: string): string {
   const messages: Record<string, string> = {
     SOURCE_VIDEO_REQUIRED: '原视频已经失效，请重新选择视频后继续创建。',
     INVALID_SOURCE_MEDIA: '原视频不可用，请重新选择一个 8–60 秒的视频。',
-    MULTIPLE_SPEAKERS: '检测到片段中有多个人声，请重新选择只有目标人物单独说话的片段。',
-    OVERLAPPING_SPEECH: '检测到多人重叠说话，无法安全提取目标声音，请重新选择片段。',
-    SPEAKER_UNCERTAIN: '暂时无法确认片段中是否只有一个人说话，请试听后重新选择更清晰的片段。'
+    MULTIPLE_SPEAKERS: '检测到多个声音，请重新选择只有 TA 一个人说话的视频。',
+    OVERLAPPING_SPEECH: '检测到多人同时说话，请重新选择只有 TA 一个人说话的视频。',
+    SPEAKER_UNCERTAIN: '暂时无法确认只有一个人说话，请重新选择只有 TA 一个人说话的视频。'
   }
   if (messages[code]) return messages[code]
   if (/source video is required/i.test(message)) return messages.SOURCE_VIDEO_REQUIRED
