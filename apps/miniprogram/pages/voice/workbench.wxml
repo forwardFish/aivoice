@@ -88,8 +88,29 @@
               </view>
               <text wx:if="{{item.isUser && item.timeText}}" class="message-time">{{item.timeText}}</text>
               <view wx:if="{{item.isAssistant && item.status === 'READY'}}" class="reply-feedback">
-                <view role="button" class="reply-feedback-action {{item.feedbackVerdict === 'LIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyLike">像TA</view>
-                <view role="button" class="reply-feedback-action {{item.feedbackVerdict === 'DISLIKE' ? 'selected' : ''}}" data-message-id="{{item.id}}" bindtap="markReplyDislike">不像TA</view>
+                <view
+                  role="button"
+                  hover-class="reply-feedback-action-hover"
+                  hover-stay-time="80"
+                  class="reply-feedback-action like-action {{item.feedbackVerdict === 'LIKE' ? 'selected' : ''}}"
+                  data-message-id="{{item.id}}"
+                  bindtap="markReplyLike"
+                >
+                  <view class="reply-feedback-indicator"></view>
+                  <text class="reply-feedback-label">像TA</text>
+                </view>
+                <view class="reply-feedback-divider"></view>
+                <view
+                  role="button"
+                  hover-class="reply-feedback-action-hover"
+                  hover-stay-time="80"
+                  class="reply-feedback-action dislike-action {{item.feedbackVerdict === 'DISLIKE' ? 'selected' : ''}}"
+                  data-message-id="{{item.id}}"
+                  bindtap="markReplyDislike"
+                >
+                  <view class="reply-feedback-indicator"></view>
+                  <text class="reply-feedback-label">不像TA</text>
+                </view>
               </view>
             </view>
             <image wx:if="{{item.isUser}}" class="message-avatar user-message-avatar" src="{{userAvatar}}" mode="aspectFill"></image>
