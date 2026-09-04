@@ -202,7 +202,8 @@ test('chat mode keeps nav and top chrome outside the scrolling message list whil
 
   assert.match(markup, /<view wx:else class="workbench-content \{\{mode === 'chat' \? 'chat-workbench-content' : 'exact-workbench-content'\}\}">/)
   assert.match(markup, /<view class="segment-control-shell">[\s\S]*class="segment-control"/)
-  assert.match(markup, /<view class="segment-control-shell">[\s\S]*wx:if="\{\{mode === 'chat'\}\}" class="ai-notice"/)
+  assert.doesNotMatch(markup, /AI 生成内容不代表声音本人真实表达|class="ai-notice"/)
+  assert.doesNotMatch(style, /\.ai-notice\s*\{/)
   assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll"/)
   assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*class="segment-control"/)
   assert.match(markup, /<scroll-view wx:else class="exact-scroll" scroll-y="\{\{true\}\}" enhanced="\{\{true\}\}" show-scrollbar="\{\{false\}\}">[\s\S]*class="exact-panel"/)
@@ -555,7 +556,7 @@ test('assistant reply feedback records both like and dislike directly without op
   assert.equal(showModalCalls, 0)
 })
 
-test('chat viewport uses measured notice and composer boundaries on a real-device layout', async () => {
+test('chat viewport uses measured top chrome and composer boundaries on a real-device layout', async () => {
   let pageDefinition: any
   const selected: string[] = []
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
@@ -567,7 +568,7 @@ test('chat viewport uses measured notice and composer boundaries on a real-devic
       select(selector: string) { selected.push(selector); return this },
       boundingClientRect() { return this },
       exec(callback: (rects: any[]) => void) {
-        callback([{ bottom: 186 }, { top: 770 }])
+        callback([{ bottom: 145 }, { top: 770 }])
       }
     })
   }
@@ -589,6 +590,6 @@ test('chat viewport uses measured notice and composer boundaries on a real-devic
 
   instance.syncChatViewport()
 
-  assert.deepEqual(selected, ['.ai-notice', '.chat-composer-shell'])
-  assert.equal(instance.data.messagesScrollStyle, 'height:572px;')
+  assert.deepEqual(selected, ['.segment-control-shell', '.chat-composer-shell'])
+  assert.equal(instance.data.messagesScrollStyle, 'height:613px;')
 })

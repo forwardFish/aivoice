@@ -76,16 +76,6 @@
   color: #ed6a4f;
 }
 
-.ai-notice {
-  margin: 30rpx 42rpx 0;
-  padding: 0 22rpx 10rpx;
-  color: #8890a7;
-  background: transparent;
-  text-align: center;
-  font-size: 30rpx;
-  line-height: 1.6;
-}
-
 .messages-scroll {
   width: 100%;
   min-height: 320rpx;
@@ -662,11 +652,6 @@
 
   .segment-item {
     height: 74rpx;
-    font-size: 28rpx;
-  }
-
-  .ai-notice {
-    margin-top: 24rpx;
     font-size: 28rpx;
   }
 

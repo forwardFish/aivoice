@@ -23,8 +23,6 @@
         <view class="segment-item {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话</view>
         <view class="segment-item {{mode === 'exact' ? 'active warm' : ''}}" data-mode="exact" bindtap="switchMode">说一句</view>
       </view>
-
-      <view wx:if="{{mode === 'chat'}}" class="ai-notice">AI 生成内容不代表声音本人真实表达</view>
     </view>
 
     <view wx:if="{{mode === 'chat'}}" class="chat-panel">

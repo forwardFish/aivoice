@@ -598,13 +598,13 @@ Page({
     const windowHeight = Number(system?.windowHeight || 0)
     if (!windowHeight || typeof (wx as any).createSelectorQuery !== 'function') return
     const query = (wx as any).createSelectorQuery().in(this)
-    query.select('.ai-notice').boundingClientRect()
+    query.select('.segment-control-shell').boundingClientRect()
     query.select('.chat-composer-shell').boundingClientRect()
     query.exec((rects: Array<{ bottom?: number; top?: number } | null>) => {
       if (this.destroyed || this.data.mode !== 'chat') return
-      const noticeRect = rects?.[0]
+      const topChromeRect = rects?.[0]
       const composerRect = rects?.[1]
-      const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(noticeRect?.bottom || 0) - 12)
+      const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(topChromeRect?.bottom || 0) - 12)
       if (availableHeight < 120) return
       const nextStyle = `height:${availableHeight}px;`
       if (nextStyle !== this.data.messagesScrollStyle) {
