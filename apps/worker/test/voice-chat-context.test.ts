@@ -407,6 +407,28 @@ test('structured current user wrapper applies to non-affection personality phase
   assert.ok(wrappedCurrent.forbidden.some((item: string) => item.startsWith('INVENTED_LOSS_OR_SCHEDULE：')));
 });
 
+test('conversation prompt treats vague distress as an opening instead of a reason to end the topic', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'vitality-prompt',
+    voiceName: '爸爸', ageYears: 56, gender: 'MALE', userAgeYears: 32,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '',
+    relationshipNote: '父子平时说话直接。', personalityNote: '愿意听孩子说。', speechHabitNote: '自然日常口语。',
+    history: [], currentInput: '今天不太顺利呀。',
+  });
+  const system = systemText(result.messages);
+  assert.match(system, /人物不是等用户一句句喂问题的答题器/);
+  assert.match(system, /通常还应有一份人物自己的贡献/);
+  assert.match(system, /不要让推进对话的责任一直只落在用户身上/);
+  assert.match(system, /不得只做字面问答/);
+  assert.match(system, /人物要先发生自己的反应/);
+  assert.match(system, /感情色彩不等于统一温柔、心疼或煽情/);
+  assert.match(system, /是在递出话头/);
+  assert.match(system, /简短不等于用一句万能安慰把话题封住/);
+  assert.match(system, /先给一个人物自己的具体反应，再问一个低压力的具体问题/);
+  assert.match(system, /不是每轮越短越好/);
+});
+
 test('resolved affection context omits the finished conflict from model history', () => {
   const result = compileVoiceChatMessages({
     structuredOutput: true,

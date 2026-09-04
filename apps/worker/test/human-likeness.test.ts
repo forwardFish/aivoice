@@ -17,6 +17,20 @@ test('human-likeness signals detect pure acknowledgements and repeated structure
   assert.ok(trigramJaccard('你先别急，我问清楚再说。', '今天特别开心。') < 0.2);
 });
 
+test('human-likeness signals reject generic emotional brush-offs but keep a relational hook', () => {
+  assert.ok(assessHumanLikenessSignals('那就先歇会儿，别急着复盘。', [], '不顺利呀。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(assessHumanLikenessSignals('有些事本来就没法马上想通。', [], '为什么想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(assessHumanLikenessSignals('想不通就先放放，别把自己逼太紧。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(assessHumanLikenessSignals('想不通就先搁一搁，有时候越琢磨越绕。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(assessHumanLikenessSignals('那就先别硬想了，有时候越琢磨越钻牛角尖。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(assessHumanLikenessSignals('是工作上的事还是别的？', [], '今天不太顺利呀。').includes('FLAT_EMOTIONAL_QUESTION'));
+
+  assert.ok(!assessHumanLikenessSignals('听着是真烦。你愿意的话，跟我说说卡在哪儿。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(!assessHumanLikenessSignals('怎么了，谁又给你添堵了？', [], '今天不太顺利呀。').includes('FLAT_EMOTIONAL_QUESTION'));
+  assert.ok(!assessHumanLikenessSignals('想不通就先别硬想，妈在这儿听着。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(!assessHumanLikenessSignals('累了就先歇会儿，妈不催你。', [], '今天真累。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+});
+
 test('hard reply leak blocks internal state and assistant identity but allows justified anger', () => {
   assert.equal(hardReplyLeak('{"interactionState":{"emotion":"ANGRY"}}'), 'INTERNAL_STATE_LEAK_BLOCKED');
   assert.equal(hardReplyLeak('<explicit_personality_recap>温柔耐心</explicit_personality_recap>'), 'INTERNAL_STATE_LEAK_BLOCKED');
@@ -185,4 +199,12 @@ test('present-scene sanitizer removes only unsupported factual clauses', () => {
     reply: '你到了跟我说一声，我再出门。',
     currentUserText: '你先在家等我，我到了你再出门。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
   }), { reply: '你到了跟我说一声，我再出门。', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '听着就累，是工作上的事还是别的？',
+    currentUserText: '今天不太顺利呀。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '听着就累，是工作上的事还是别的？', removed: false });
+  assert.deepEqual(sanitizeUnsupportedPresentSceneClaims({
+    reply: '到了先走走吧，我都累了。',
+    currentUserText: '我现在出发。', recentUserInputs: [], recentCharacterReplies: [], subjectBackground: null,
+  }), { reply: '到了先走走吧。', removed: true });
 });

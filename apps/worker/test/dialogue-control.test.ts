@@ -14,6 +14,7 @@ const action = (stance: 'RESPOND' | 'ASK') => ({ stance, currentWant: null, caus
 test('dialogue control detects explicit conversational boundaries', () => {
   assert.equal(detectConversationBoundary('你别问那么多，我现在不想解释。'), 'NO_MORE_QUESTIONS');
   assert.equal(detectConversationBoundary('你别一直问，我就是不想见那个人。'), 'NO_MORE_QUESTIONS');
+  assert.equal(detectConversationBoundary('我今天很累，暂时不想聊了。'), 'NO_MORE_QUESTIONS');
   assert.equal(detectConversationBoundary('别替我决定，我只是想听意见。'), 'NO_DECISION_FOR_ME');
   assert.equal(detectConversationBoundary('先别讲大道理。'), 'NO_LECTURE');
   assert.equal(detectConversationBoundary('你别又跟我说深呼吸、列提纲那些套话。'), 'NO_COACHING');
@@ -26,6 +27,28 @@ test('dialogue control removes ASK after a question and blocks disguised re-aski
   assert.ok(!control.allowedActionStances.includes('ASK'));
   assert.deepEqual(validateQuestionBehavior('那你说说原因。', action('RESPOND'), control), ['ASK_COOLDOWN_VIOLATION']);
   assert.deepEqual(validateQuestionBehavior('老改口确实磨人，你先把退路想好。', action('RESPOND'), control), []);
+});
+
+test('dialogue control allows one emotional follow-up before enforcing the ask budget', () => {
+  const continuation = buildRuntimeDialogueControl({
+    recentActionStances: ['ASK'], currentUserText: '就是有件事一直想不通。', currentTurnId: 'emotion-2:USER',
+  });
+  assert.equal(continuation.askCooldown, false);
+  assert.equal(continuation.questionPolicy, 'AT_MOST_ONE');
+  assert.ok(continuation.allowedActionStances.includes('ASK'));
+
+  const budgetReached = buildRuntimeDialogueControl({
+    recentActionStances: ['ASK', 'ASK'], currentUserText: '还是觉得心里很乱。', currentTurnId: 'emotion-3:USER',
+  });
+  assert.equal(budgetReached.askCooldown, true);
+  assert.equal(budgetReached.questionPolicy, 'FORBIDDEN');
+  assert.ok(!budgetReached.allowedActionStances.includes('ASK'));
+
+  const userClosedTopic = buildRuntimeDialogueControl({
+    recentActionStances: ['ASK'], currentUserText: '我今天很累，暂时不想聊了。', currentTurnId: 'emotion-closed:USER',
+  });
+  assert.equal(userClosedTopic.questionPolicy, 'FORBIDDEN');
+  assert.ok(!userClosedTopic.allowedActionStances.includes('ASK'));
 });
 
 test('question validation rejects compound intents even when there is only one question mark', () => {

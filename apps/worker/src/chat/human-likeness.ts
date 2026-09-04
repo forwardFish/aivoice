@@ -1,3 +1,5 @@
+import { isVagueEmotionalDisclosure } from './dialogue-control.js';
+
 function compact(value: string): string {
   return String(value || '').replace(/[\s，。！？、；：,.!?;:]/gu, '');
 }
@@ -26,6 +28,14 @@ const COUNSELOR_GROUPS: RegExp[] = [
 
 const PURE_ACKNOWLEDGEMENT = /^(?:(?:嗯|哦|好|行|知道了|我知道了|谢谢|谢谢你|谢谢妈妈|谢谢爸爸|你去忙吧|晚安)[啊呀吧啦呢。！!，,\s]*)+$/u;
 const FACTUAL_MARKER = /(?:今天|昨天|刚才|刚刚|已经|终于|这次|上次|明天|拿了|得了|考了|去了|买了|做了|完成了|赢了|输了|收到|遇到|被|辞职|换了|第一名|奖金)/u;
+const GENERIC_EMOTIONAL_BRUSH_OFF_PATTERNS = [
+  /(?:想不通|难受|烦|累|不顺)[^。！？!?]{0,8}(?:先|就)(?:放放|放一放|歇(?:会儿|一会儿)?|休息(?:一下|一会儿)?|缓缓|缓一缓)/u,
+  /^(?:那就)?(?:想不通就)?先(?:歇|休息|放|缓|搁|别(?:硬)?(?:想|琢磨))[^。！？!?]{0,22}(?:别|不要|有时候|越|吧|。)/u,
+  /(?:有些事|有的事|事情)(?:本来|原本|有时候)?[^。！？!?]{0,5}(?:没法|不能|不一定能|很难)[^。！？!?]{0,8}(?:想通|想明白|解决|弄明白)/u,
+  /^(?:别想太多|慢慢来|给自己一点时间|都会过去|总会想通)[吧啊呀呢。！!]*$/u,
+] as const;
+const RELATIONAL_CONVERSATION_HOOK = /[？?]|(?:我|妈|爸|妈妈|爸爸|爷爷|奶奶|姥姥|姥爷|外婆|外公)[^。！？!?]{0,14}(?:听|陪|想|觉得|在|问|催|看看|琢磨)|(?:跟|同)(?:我|妈|爸|妈妈|爸爸)[^。！？!?]{0,8}(?:说|聊)|(?:你愿意|想说就说|慢慢说|说给[^。！？!?]{0,4}听)/u;
+const EMOTIONAL_REACTION_MARKER = /(?:哎|唉|啧|听着|真够|真是|挺|太|又给|心疼|担心|着急|烦|难受|憋|闷|委屈|不对劲|添堵|折腾|吓|可惜|生气|恼火|糟|受不了|别硬撑|我在|我听着)/u;
 
 function removeQuotedSpans(text: string): string {
   return text
@@ -137,7 +147,7 @@ export function sanitizeUnsupportedPresentSceneClaims(input: {
   const supportedExactDurationActivity = /(?:等|干等|站|坐|待).{0,5}(?:一|两|二|三|四|五|六|七|八|九|十|\d+)(?:个)?小时/u.test(authoritativeKnown);
   if (!supportedExactDurationActivity) unsupportedPatterns.push(exactDurationActivity);
   if (!/(?:饿|没吃|吃不上|肚子空)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:饿死我|我(?:有点|都)?饿了|等饿了|等久了有点饿|都等饿了|饿得.{0,8}|(?:快|都|要)?饿(?:扁|瘪|坏|慌)了?|饿过劲(?:儿)?了?|肚子(?:都)?饿)/u);
-  if (!/(?:累|疲惫|困|没休息好)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:已经|都|有点|挺|很)?(?:等得|等到)?(?:有点|挺|很)?累(?:了)?|(?:我)?(?:已经|都|有点|挺|很)?疲惫(?:了)?/u);
+  if (!/(?:累|疲惫|困|没休息好)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我(?:已经|都|有点|挺|很)?(?:等得|等到)?(?:有点|挺|很)?累(?:了)?|(?:我)?(?:等得|等到)(?:有点|挺|很)?累(?:了)?|我(?:已经|都|有点|挺|很)?疲惫(?:了)?)/u);
   if (!/(?:等你|等消息|等待|等了|干等)/u.test(authoritativeKnown)) unsupportedPatterns.push(/(?:我)?(?:在|一直)?(?:这儿|这里|这边)?(?:干)?等(?:你|消息)?(?:的?时候|着|了)?(?:确实|真的?|挺|很|多)?(?:不舒服|难受|烦|着急)|我等(?:着|的时候|消息)|(?:只能|只好)(?:在)?干等|干等(?:着|了)?(?:挺|很|有点)?(?:不舒服|难受|烦|着急)?/u);
   if (!/(?:半天|一晚上|一整天|几个小时)/u.test(known)) unsupportedPatterns.push(/(?:等消息)?等(?:了)?半天|等了一晚上|等了一整天/u);
   if (!/(?:饭|菜|汤|粥).{0,8}(?:做|煮|热|凉|准备)/u.test(known)) unsupportedPatterns.push(/(?:饭|菜|汤|粥).{0,8}(?:做好|煮好|热着|凉了|在锅里)/u);
@@ -180,10 +190,21 @@ export function hardReplyLeak(reply: string): string | null {
   return null;
 }
 
-export function assessHumanLikenessSignals(reply: string, recentReplies: string[]): string[] {
+export function assessHumanLikenessSignals(reply: string, recentReplies: string[], currentUserText = ''): string[] {
   const signals: string[] = [];
   if (COUNSELOR_GROUPS.filter((pattern) => pattern.test(reply)).length >= 2) signals.push('COUNSELOR_TEMPLATE');
   if (PURE_ACKNOWLEDGEMENT.test(reply.trim())) signals.push('PURE_ACKNOWLEDGEMENT');
+  if (isVagueEmotionalDisclosure(currentUserText)
+    && GENERIC_EMOTIONAL_BRUSH_OFF_PATTERNS.some((pattern) => pattern.test(reply.trim()))
+    && !RELATIONAL_CONVERSATION_HOOK.test(reply)) {
+    signals.push('GENERIC_EMOTIONAL_BRUSH_OFF');
+  }
+  if (isVagueEmotionalDisclosure(currentUserText)
+    && /[？?]/u.test(reply)
+    && !/[。！!]/u.test(reply)
+    && !EMOTIONAL_REACTION_MARKER.test(reply)) {
+    signals.push('FLAT_EMOTIONAL_QUESTION');
+  }
   if (recentReplies.some((item) => compact(item) === compact(reply) && compact(reply).length >= 6)) signals.push('EXACT_REPLY_REPEAT');
   if (recentReplies.some((item) => trigramJaccard(item, reply) >= 0.85)) signals.push('HIGH_REPLY_SIMILARITY');
   const opening = compact(reply).slice(0, 4);

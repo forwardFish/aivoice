@@ -28,6 +28,7 @@ export type RuntimeDialogueControl = TurnGenerationControl & {
 
 const QUESTION_INVITATION = /(?:你问吧|可以问|你可以问|有什么想问|你想问什么|还有什么要问)/u;
 const COACHING_REJECTION = /(?:别|不要|不用|少)(?:再|又)?(?:跟我说|给我|教我|讲)?[^，。！？]{0,10}(?:套话|建议|列提纲|提纲|深呼吸|方法|步骤|教我怎么做|怎么做)/u;
+const VAGUE_EMOTIONAL_DISCLOSURE = /(?:不太?顺利|不顺|想不通|没想通|想不明白|理不清|挺烦|好烦|烦死|心里乱|脑子(?:里)?乱|难受|不好受|不开心|委屈|心情不好|糟透了|撑不住|不知道怎么办|(?:真|好|太|很|挺)累)/u;
 const REASK_DIRECTIVE = /(?:你|那你)(?:先)?(?:说说|讲讲|告诉我)|说说原因|讲讲原因|到底怎么回事/u;
 const COMPOUND_QUESTION_INTENT_PATTERNS = [
   /(?:怎么|为什么|哪里|哪儿|什么时候|几点|多少)[^。！？?]{0,30}(?:是不是|有没有|要不要|能不能|会不会)/u,
@@ -104,6 +105,10 @@ function normalized(value: string): string {
   return String(value || '').normalize('NFC').replace(/\s+/gu, '');
 }
 
+export function isVagueEmotionalDisclosure(text: string): boolean {
+  return VAGUE_EMOTIONAL_DISCLOSURE.test(normalized(text));
+}
+
 function firstMatch(text: string, patterns: readonly RegExp[]): string | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
@@ -114,6 +119,7 @@ function firstMatch(text: string, patterns: readonly RegExp[]): string | null {
 
 export function detectConversationBoundary(text: string): ConversationBoundary {
   const value = normalized(text);
+  if (/(?:不想|先不|暂时不)(?:说|聊)(?:了)?/u.test(value)) return 'NO_MORE_QUESTIONS';
   if (/(?:别|不要|先别|别再|别老|别一直)(?:再)?(?:问我|追问我|问了|问那么多|问这个|问这件事|问)/u.test(value)) return 'NO_MORE_QUESTIONS';
   if (/(?:别|不要|不用)(?:替我|帮我)(?:决定|做决定|拿主意)/u.test(value)) return 'NO_DECISION_FOR_ME';
   if (COACHING_REJECTION.test(value)) return 'NO_COACHING';
@@ -181,7 +187,8 @@ export function buildRuntimeDialogueControl(input: {
 }): RuntimeDialogueControl {
   const recent = input.recentActionStances.slice(-4);
   const askCountInLastFour = recent.filter((stance) => stance === 'ASK').length;
-  const askCooldown = recent.at(-1) === 'ASK' || askCountInLastFour >= 2;
+  const continuesEmotionalTopic = isVagueEmotionalDisclosure(input.currentUserText);
+  const askCooldown = (recent.at(-1) === 'ASK' && !continuesEmotionalTopic) || askCountInLastFour >= 2;
   const conversationBoundary = detectConversationBoundary(input.currentUserText);
   const explicitlyInvitesQuestion = conversationBoundary === 'NONE' && QUESTION_INVITATION.test(normalized(input.currentUserText));
   const noMoreQuestionsActive = conversationBoundary === 'NO_MORE_QUESTIONS'

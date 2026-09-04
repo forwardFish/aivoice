@@ -32,6 +32,8 @@ const PRODUCTION_BLOCKING_STATE_ISSUES = new Set([
 const RETRYABLE_HUMAN_SIGNALS = new Set([
   'COUNSELOR_TEMPLATE',
   'PURE_ACKNOWLEDGEMENT',
+  'GENERIC_EMOTIONAL_BRUSH_OFF',
+  'FLAT_EMOTIONAL_QUESTION',
   'EXACT_REPLY_REPEAT',
   'HIGH_REPLY_SIMILARITY',
   'REPEATED_OPENING_SEQUENCE',
@@ -124,7 +126,7 @@ export function evaluateCharacterGenerationQuality(input: {
     subjectBackground: input.subjectBackground,
     recentCharacterReplies: input.recentCharacterReplies,
   }) ? 'SPEAKER_FACT_OWNERSHIP_VIOLATION' : null;
-  const humanSignals = assessHumanLikenessSignals(outputText, [...input.recentCharacterReplies]);
+  const humanSignals = assessHumanLikenessSignals(outputText, [...input.recentCharacterReplies], input.currentUserText);
   const qualitySignals = [
     ...humanSignals,
     ...normalized.qualityFlags,
@@ -172,6 +174,8 @@ const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   AUTHORITY_JUDGMENT: '上一版像上级评价对方认错。重写时不要再提“肯认、肯说、认错、知道”是否合格，也不要接“就行、就好、这次算了”；只表达人物自己的短暂余感，再自然推进一个当下回应。',
   UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED: '上一版把未确认的当前状态写成事实。用户说将会晚到不等于人物已经在等待；不得声称“我等的时候、让我干等、已经等累/等饿”，也不得补写疲劳、饥饿、寒冷、位置、现有安排、当前活动或损失。可以只表达对晚告知的不满，或用条件/未来语义说明可能影响。',
   PURE_ACKNOWLEDGEMENT: '上一版只有敷衍确认。重写时加入人物自己的具体反应或一个自然推进。',
+  GENERIC_EMOTIONAL_BRUSH_OFF: '上一版用“先休息、别急、慢慢来、想不通也正常”一类万能安慰把话题封住了。重写时接住用户已经递出的话头：先给一个符合人物关系和说话习惯、能听出当下感情色彩的具体反应；若本轮允许提问，再问一个低压力、开放且只索取一项信息的问题；若不允许提问，就表达人物自己的判断、在场感或可继续说下去的回应。不要只是把同一句安慰拉长，不要统一改成煽情的温柔陪伴，也不要补写用户没说过的事实。',
+  FLAT_EMOTIONAL_QUESTION: '上一版只把问题抛回给用户，没有让人物先产生任何可听见的反应。重写时先用符合人物关系和说话习惯的一小句表达当下的心疼、着急、好奇、不平、惊讶或克制在意，再问一个开放且只索取一项信息的问题；不要自造“是A还是B”的选择题，不要变成咨询师套话。',
   GENERIC_REPAIR_STAGE_PHRASE: '上一版直接用“翻篇、没事、不生气了”等词汇汇报修复阶段。保持人物已开始缓和，但要通过减少攻击、恢复普通交流、轻微调侃、小要求或具体选择表现变化，不要宣布阶段结束。',
   REPEATED_SAME_GRIEVANCE: '上一版重复了人物上一轮已经说过的同一项指责和边界。直接回应用户本轮新增的辩解或信息，保留立场但不要再次复述等待、晚告知或下次提醒；增加一个新的个人判断或当前选择。',
   REPEATED_EXPLICIT_CONFLICT_EMOTION: '上一版与上一轮连续使用同一个显式情绪词证明人物还在生气。情绪可以继续存在，但本轮必须回应用户新增的辩解、否认或压制动作；用新的个人判断、迟疑、让步或关系动作表现，不再重复同一个情绪名词。',
@@ -179,6 +183,10 @@ const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   MODELISH_BOUNDARY_TEMPLATE: '上一版用了“时间有变、我这边不好安排、影响安排”等公文化边界模板。保持人物的边界和现实期待不变，改成24岁伴侣会自然说出的第一人称感受或需要，不声称已有具体安排受损。',
   AFFECTION_ECHO_ONLY: '上一版只是把用户的“到了先抱一下”换词复述。保持温和接受，但加入人物自己的简短参与、感受或当下动作，不需要变得热烈，也不要重新讲边界。',
   MULTIPLE_QUESTION_INTENTS: '上一版包含复合提问或连续追问。本轮用户没有要求人物采访原因；改用陈述句表达一个不满和一个现实期待，reply不出现问号，也不要用“为什么、怎么、难吗”变相追问。',
+  MULTIPLE_QUESTIONS_IN_ONE_REPLY: '上一版一次问了不止一个问题。重写时只保留最自然的一个问题，其余内容改为人物自己的反应、判断或陈述；不能用一个问号包住两个问题。',
+  ASK_COOLDOWN_VIOLATION: '上一版在提问冷却期又把话题抛回给用户。重写时reply不得出现问号，也不得要求用户“说说、告诉我、选一个”或回答下一步怎么办；直接回应用户已经给出的具体内容，保留人物有原因的感情和立场，再贡献一个陈述式的支持、提醒、判断或人物自己的主意。',
+  ASK_BUDGET_EXCEEDED: '最近人物已经问得够多，本轮不得继续提问。直接消化用户新增的信息，用陈述句表达人物自己的感情、判断或关系动作；不要求用户当场解释、选择或决定。',
+  EXPLICIT_QUESTION_BOUNDARY_VIOLATION: '用户已经明确不想再被追问。本轮reply不得出现问号，也不得用“说说、告诉我、选一个”等方式变相提问；只回应已知内容，用人物自己的态度或在场感接住话题。',
   QUICK_TRIGGER_QUESTION: '上一版把快速不满写成了反问。保留明确不满，但改为第一人称陈述和一个现实期待，不出现问号或“不能、难吗、为什么”等审问句式。',
   MULTIPLE_NEXT_STEPS: '上一版同时塞入两个安排。本轮只保留人物最想做的一件事，不能用“然后、再、接着”追加第二项活动。',
   PREMATURE_AFFECTION_REPAIR: '上一版在用户尚未邀请亲近时就主动把修复收束为拥抱或靠着。保持温柔和已经缓和，但先恢复普通交流或提出一个非身体亲近的现实下一步；把亲近留到用户真正邀请时再回应。',

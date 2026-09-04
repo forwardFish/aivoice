@@ -145,6 +145,47 @@ test('an explicit preference answer restores the first-person subject without an
   assert.deepEqual(quality.retryReasons, []);
 });
 
+test('generic emotional brush-offs are retried instead of ending an opened topic', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'vitality-current',
+    voiceName: '爸爸', ageYears: 56, gender: 'MALE', userAgeYears: 32,
+    relationshipType: 'FATHER', relationshipLabel: '', userAddress: '',
+    relationshipNote: '父子平时说话直接。', personalityNote: '愿意听孩子说。', speechHabitNote: '自然日常口语。',
+    history: [], currentInput: '就是有件事一直想不通。',
+  });
+  const quality = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '想不通就先放放，别把自己逼太紧。', replyTone: 'CONCERNED', actionStance: 'RESPOND' }),
+    currentUserText: '就是有件事一直想不通。',
+    relationshipType: 'FATHER', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    profile: { personalityNote: '愿意听孩子说。', speechHabitNote: '自然日常口语。', relationshipNote: '父子平时说话直接。' },
+  });
+  assert.ok(quality.qualitySignals.includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+  assert.ok(quality.retryReasons.includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+
+  const flatQuestionQuality = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '是工作上的事还是别的？', replyTone: 'CONCERNED', actionStance: 'ASK' }),
+    currentUserText: '今天不太顺利呀。',
+    relationshipType: 'FATHER', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: { ...context.currentTurn, content: '今天不太顺利呀。' }, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    profile: { personalityNote: '愿意听孩子说。', speechHabitNote: '自然日常口语。', relationshipNote: '父子平时说话直接。' },
+  });
+  assert.ok(flatQuestionQuality.retryReasons.includes('FLAT_EMOTIONAL_QUESTION'));
+
+  const retry = qualityRetryMessages(context.messages, quality.retryReasons);
+  assert.match(retry.find((message) => message.content.includes('GENERIC_EMOTIONAL_BRUSH_OFF'))?.content || '', /接住用户已经递出的话头/);
+  assert.match(retry.find((message) => message.content.includes('GENERIC_EMOTIONAL_BRUSH_OFF'))?.content || '', /能听出当下感情色彩/);
+  assert.match(retry.find((message) => message.content.includes('GENERIC_EMOTIONAL_BRUSH_OFF'))?.content || '', /不要只是把同一句安慰拉长/);
+  assert.match(retry.find((message) => message.content.includes('GENERIC_EMOTIONAL_BRUSH_OFF'))?.content || '', /不要统一改成煽情的温柔陪伴/);
+});
+
 test('retry prompt preserves the original messages and adds only one correction system message', () => {
   const messages = [
     { role: 'system' as const, content: 'fixed-system' },
@@ -171,4 +212,9 @@ test('retry prompt preserves the original messages and adds only one correction 
   assert.match(echoRetry[3]?.content || '', /加入人物自己的简短参与、感受或当下动作/);
   const questionRetry = qualityRetryMessages(messages, ['MULTIPLE_QUESTION_INTENTS']);
   assert.match(questionRetry[3]?.content || '', /reply不出现问号/);
+  const cooldownRetry = qualityRetryMessages(messages, ['ASK_COOLDOWN_VIOLATION']);
+  assert.match(cooldownRetry[3]?.content || '', /不得出现问号/);
+  assert.match(cooldownRetry[3]?.content || '', /贡献一个陈述式的支持、提醒、判断或人物自己的主意/);
+  const explicitBoundaryRetry = qualityRetryMessages(messages, ['EXPLICIT_QUESTION_BOUNDARY_VIOLATION']);
+  assert.match(explicitBoundaryRetry[3]?.content || '', /用户已经明确不想再被追问/);
 });
