@@ -147,24 +147,28 @@ test('an explicit preference answer restores the first-person subject without an
 
 test('retry prompt preserves the original messages and adds only one correction system message', () => {
   const messages = [
-    { role: 'system' as const, content: 'system' },
+    { role: 'system' as const, content: 'fixed-system' },
+    { role: 'system' as const, content: 'profile-system' },
+    { role: 'system' as const, content: 'dynamic-system' },
     { role: 'user' as const, content: 'hello' },
   ];
   const retry = qualityRetryMessages(messages, ['COUNSELOR_TEMPLATE']);
-  assert.equal(retry.length, 3);
+  assert.equal(retry.length, 5);
   assert.equal(retry[0], messages[0]);
-  assert.match(retry[1]?.content || '', /COUNSELOR_TEMPLATE/);
-  assert.equal(retry[2], messages[1]);
+  assert.equal(retry[1], messages[1]);
+  assert.equal(retry[2], messages[2]);
+  assert.match(retry[3]?.content || '', /COUNSELOR_TEMPLATE/);
+  assert.equal(retry[4], messages[3]);
   const affectionRetry = qualityRetryMessages(messages, ['AFFECTION_PASSIVE_PERMISSION']);
-  assert.match(affectionRetry[1]?.content || '', /用第一人称表达自己的亲近意愿或主动动作/);
-  assert.match(affectionRetry[1]?.content || '', /不能只说可以、行、好吧、随你/);
+  assert.match(affectionRetry[3]?.content || '', /用第一人称表达自己的亲近意愿或主动动作/);
+  assert.match(affectionRetry[3]?.content || '', /不能只说可以、行、好吧、随你/);
   const currentStateRetry = qualityRetryMessages(messages, ['UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED']);
-  assert.match(currentStateRetry[1]?.content || '', /用户说将会晚到不等于人物已经在等待/);
-  assert.match(currentStateRetry[1]?.content || '', /我等的时候、让我干等、已经等累\/等饿/);
+  assert.match(currentStateRetry[3]?.content || '', /用户说将会晚到不等于人物已经在等待/);
+  assert.match(currentStateRetry[3]?.content || '', /我等的时候、让我干等、已经等累\/等饿/);
   const modelishRetry = qualityRetryMessages(messages, ['MODELISH_BOUNDARY_TEMPLATE']);
-  assert.match(modelishRetry[1]?.content || '', /24岁伴侣会自然说出的第一人称感受或需要/);
+  assert.match(modelishRetry[3]?.content || '', /24岁伴侣会自然说出的第一人称感受或需要/);
   const echoRetry = qualityRetryMessages(messages, ['AFFECTION_ECHO_ONLY']);
-  assert.match(echoRetry[1]?.content || '', /加入人物自己的简短参与、感受或当下动作/);
+  assert.match(echoRetry[3]?.content || '', /加入人物自己的简短参与、感受或当下动作/);
   const questionRetry = qualityRetryMessages(messages, ['MULTIPLE_QUESTION_INTENTS']);
-  assert.match(questionRetry[1]?.content || '', /reply不出现问号/);
+  assert.match(questionRetry[3]?.content || '', /reply不出现问号/);
 });

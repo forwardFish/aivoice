@@ -217,12 +217,14 @@ export async function withOneQualityRetry<TGeneration, TResult extends { retryRe
 
 export function qualityRetryMessages(messages: VoiceChatMessage[], reasons: string[]): VoiceChatMessage[] {
   const guidance = reasons.map((reason) => QUALITY_RETRY_GUIDANCE[reason]).filter(Boolean);
+  const firstNonSystemIndex = messages.findIndex((message) => message.role !== 'system');
+  const systemBoundary = firstNonSystemIndex < 0 ? messages.length : firstNonSystemIndex;
   return [
-    messages[0],
+    ...messages.slice(0, systemBoundary),
     {
       role: 'system',
       content: `上一版仅因以下确定性质量问题不合格：${reasons.join('、')}。${guidance.join(' ')}人物身份、已知事实、当前阶段、主次性格、本轮立场和其他已合格内容保持不变；只修正列出的失败项，不增加新事实，不改写成另一种人物。只重新输出reply、replyTone、actionStance三个字段，不解释重试原因，不输出第二份JSON。`,
     },
-    ...messages.slice(1),
+    ...messages.slice(systemBoundary),
   ];
 }

@@ -436,8 +436,8 @@ export function personalityTurnFocusInstructions(
 }
 
 const PASSIVE_AFFECTION_PERMISSION = [
-  /(?:抱|亲|牵|靠近|挨着|陪).{0,4}(?:可以|行|好吧|随你|都行)/u,
-  /(?:可以|行|好吧|随你|都行).{0,4}(?:抱|亲|牵|靠近|挨着|陪)/u,
+  /(?:抱|亲|牵|靠近|挨着|陪).{0,4}(?:可以|行|好吧|好了|随你|都行)/u,
+  /(?:可以|行|好吧|好了|随你|都行).{0,4}(?:抱|亲|牵|靠近|挨着|陪)/u,
 ];
 
 const ACTIVE_AFFECTION_AGENCY = [
@@ -536,6 +536,14 @@ export function personalityTurnFocusReplyViolation(
     return 'AFFECTION_ECHO_ONLY';
   }
   if (focus.phase !== 'AFFECTION' || focus.primary.label !== '喜欢亲近') return null;
+  if (/(?:你|等你).{0,4}(?:主动点|主动一点|先主动)/u.test(reply)
+    && !/(?:我也|我想|我来|让我|抱紧|抱够|别松手)/u.test(reply)) {
+    return 'AFFECTION_PASSIVE_PERMISSION';
+  }
+  if (/让你.{0,6}(?:抱|亲|牵|靠近|挨着|陪).{0,4}(?:好了|好吧|也行|可以)/u.test(reply)
+    && !/(?:我也|我想|我来|让我|过来|靠近点|挨着我)/u.test(reply)) {
+    return 'AFFECTION_PASSIVE_PERMISSION';
+  }
   const passivePermission = PASSIVE_AFFECTION_PERMISSION.some((pattern) => pattern.test(reply));
   const activeAgency = ACTIVE_AFFECTION_AGENCY.some((pattern) => pattern.test(reply));
   return passivePermission && !activeAgency ? 'AFFECTION_PASSIVE_PERMISSION' : null;

@@ -16,6 +16,7 @@ export interface OpenAICompatibleChatConfig {
   model: string;
   responseMode?: 'json_object' | 'minimal_json_schema';
   includeDashscopeThinkingFlags?: boolean;
+  enableExplicitPromptCache?: boolean;
   timeoutMs?: number;
 }
 
@@ -25,6 +26,44 @@ function required(value: string, name: string): string {
   return normalized;
 }
 
+type OpenAICompatibleUsage = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+  prompt_tokens_details?: {
+    cached_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
+};
+
+function insertAfterLeadingSystemMessages(messages: VoiceChatMessage[], message: VoiceChatMessage): VoiceChatMessage[] {
+  const firstNonSystemIndex = messages.findIndex((item) => item.role !== 'system');
+  const systemBoundary = firstNonSystemIndex < 0 ? messages.length : firstNonSystemIndex;
+  return [...messages.slice(0, systemBoundary), message, ...messages.slice(systemBoundary)];
+}
+
+function logPromptCacheUsage(input: {
+  provider: string;
+  model: string;
+  attempt: number;
+  usage?: OpenAICompatibleUsage;
+}): void {
+  if (!input.usage) return;
+  const promptTokens = Number(input.usage?.prompt_tokens || 0);
+  const cachedTokens = Number(input.usage?.prompt_tokens_details?.cached_tokens || 0);
+  const cacheCreationTokens = Number(input.usage?.prompt_tokens_details?.cache_creation_input_tokens || 0);
+  console.info('chat_prompt_cache', JSON.stringify({
+    event: 'chat_prompt_cache',
+    provider: input.provider,
+    model: input.model,
+    attempt: input.attempt,
+    promptTokens,
+    cachedTokens,
+    cacheCreationTokens,
+    cacheHitRatio: promptTokens > 0 ? Number((cachedTokens / promptTokens).toFixed(4)) : 0,
+  }));
+}
+
 export class OpenAICompatibleChatProvider implements ChatProviderPort {
   readonly providerName: string;
   readonly modelName: string;
@@ -32,6 +71,7 @@ export class OpenAICompatibleChatProvider implements ChatProviderPort {
   private readonly endpoint: string;
   private readonly responseMode: 'json_object' | 'minimal_json_schema';
   private readonly includeDashscopeThinkingFlags: boolean;
+  private readonly enableExplicitPromptCache: boolean;
   private readonly timeoutMs: number;
 
   constructor(config: OpenAICompatibleChatConfig) {
@@ -43,23 +83,44 @@ export class OpenAICompatibleChatProvider implements ChatProviderPort {
     this.endpoint = `${host}${endpointPath}`;
     this.responseMode = config.responseMode || 'json_object';
     this.includeDashscopeThinkingFlags = Boolean(config.includeDashscopeThinkingFlags);
+    this.enableExplicitPromptCache = Boolean(config.enableExplicitPromptCache);
     this.timeoutMs = config.timeoutMs || 60_000;
+  }
+
+  private requestMessages(messages: VoiceChatMessage[]): Array<Record<string, unknown>> {
+    return messages.map((message) => {
+      const cacheControlAt = Number(message.cacheControlAt || 0);
+      if (this.enableExplicitPromptCache
+        && message.role === 'system'
+        && cacheControlAt > 0
+        && cacheControlAt <= message.content.length) {
+        const dynamicSuffix = message.content.slice(cacheControlAt);
+        return {
+          role: message.role,
+          content: [
+            {
+              type: 'text',
+              text: message.content.slice(0, cacheControlAt),
+              cache_control: { type: 'ephemeral' },
+            },
+            ...(dynamicSuffix ? [{ type: 'text', text: dynamicSuffix }] : []),
+          ],
+        };
+      }
+      return { role: message.role, content: message.content };
+    });
   }
 
   async reply(messages: VoiceChatMessage[], options: ChatReplyOptions = {}): Promise<MinimalCharacterTurnGeneration> {
     const maxAttempts = options.maxAttempts || 2;
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const requestMessages = attempt === 0 ? messages : [
-        messages[0],
-        {
+      const requestMessages = attempt === 0 ? messages : insertAfterLeadingSystemMessages(messages, {
           role: 'system' as const,
           content: '上一版reply违反身份表达规则。只重写reply、replyTone、actionStance三个字段：禁止出现AI、人工智能、机器人、模型，也禁止“没有真实经历、没有真实情绪、没法真的、无法真的”等免责声明；自然回应当前话题，不解释改写原因，不输出第二份JSON。',
-        },
-        ...messages.slice(1),
-      ];
+        });
       const body: Record<string, unknown> = {
         model: this.modelName,
-        messages: requestMessages,
+        messages: this.requestMessages(requestMessages),
         temperature: options.temperature ?? 0.65,
         response_format: this.responseMode === 'minimal_json_schema'
           ? { type: 'json_schema', json_schema: MINIMAL_CHARACTER_TURN_JSON_SCHEMA }
@@ -78,7 +139,14 @@ export class OpenAICompatibleChatProvider implements ChatProviderPort {
       if (!response.ok) throw new Error(`${this.providerName} chat failed: ${(await response.text()).slice(0, 800)}`);
       const result = await response.json() as {
         choices?: Array<{ message?: { content?: string | Record<string, unknown> } }>;
+        usage?: OpenAICompatibleUsage;
       };
+      logPromptCacheUsage({
+        provider: this.providerName,
+        model: this.modelName,
+        attempt: attempt + 1,
+        usage: result.usage,
+      });
       const raw = result.choices?.[0]?.message?.content;
       if (!raw) throw new Error(`${this.providerName} chat returned no structured output`);
       const parsed = typeof raw === 'string' ? parseFirstStructuredJson(raw) : raw;

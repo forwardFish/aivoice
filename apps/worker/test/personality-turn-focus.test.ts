@@ -168,6 +168,8 @@ test('affection agency quality marker catches passive permission without rewriti
     promptTurns: turns('到了先抱一下，别还板着脸了。'), previousState: null,
   });
   assert.equal(personalityTurnFocusReplyViolation(focus, '抱可以，但脸还得再板一会儿。'), 'AFFECTION_PASSIVE_PERMISSION');
+  assert.equal(personalityTurnFocusReplyViolation(focus, '那见面先让你抱一会儿好了。'), 'AFFECTION_PASSIVE_PERMISSION');
+  assert.equal(personalityTurnFocusReplyViolation(focus, '就知道抱，那到了你主动点啊。'), 'AFFECTION_PASSIVE_PERMISSION');
   assert.equal(personalityTurnFocusReplyViolation(focus, '好，到了先抱一会儿。'), 'AFFECTION_ECHO_ONLY');
   assert.equal(personalityTurnFocusReplyViolation(focus, '过来吧，抱一会儿再说。'), null);
   assert.equal(personalityTurnFocusReplyViolation(focus, '可以抱，不过你先别笑我。'), 'AFFECTION_PASSIVE_PERMISSION');

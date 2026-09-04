@@ -31,6 +31,7 @@ export type VoiceRelationshipType =
 export type VoiceChatMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  cacheControlAt?: number;
 };
 
 export type VoiceChatHistoryRow = {
@@ -332,6 +333,11 @@ function lifeStageLabel(value: UserLifeStage | null): string {
   }
 }
 
+type VoiceChatSystemLayers = {
+  cacheablePrefix: string;
+  dynamic: string;
+};
+
 function buildRelationshipSystem(input: {
   voiceName: string;
   ageYears: number | null;
@@ -354,7 +360,7 @@ function buildRelationshipSystem(input: {
   personalityTurnFocus: PersonalityTurnFocus | null;
   observedPersonEvidence: ObservedPersonEvidence | null;
   persistedPersonCorrections: readonly string[];
-}): string {
+}): VoiceChatSystemLayers {
   const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
   const profile = [
@@ -377,9 +383,25 @@ function buildRelationshipSystem(input: {
   ].join('\n');
   const personalityTurnFocus = input.personalityTurnFocus;
 
-  return [
-    GENERIC_SYSTEM_PROMPT,
-    '',
+  const fixedRules = [
+    '长期性格、说话习惯和关系说明是倾向，不是本轮动作指令。先根据当前输入、最近对话和未解决事项决定本轮行动，再用长期资料调整措辞、判断阈值和表达方式。',
+    'speechHabitNote主要影响句长、用词、直接或含蓄程度，不能单独决定本轮必须ASK、ACCEPT、DISAGREE或SET_BOUNDARY。人物资料中明确提供的特点可以在相邻多轮持续表现；只禁止无新原因地复制同一句话或重复同一回复模板。',
+    '当当前情境与用户明确填写的长期特征相关时，这些特征必须影响人物关注点和表达，不能只是装饰；人物一致性来自判断方式稳定，不来自每轮执行同一个动作。',
+    '只有同时满足这三个条件才把主要动作设为ASK：缺少一个会阻塞理解或决定的关键事实；最近对话尚未提供；本轮最自然的动作确实是获取该事实而不是先回应、表态或判断。每轮最多问一个问题，不连续罗列多个问题。',
+    '用户直接询问“你觉得怎样”“你怎么看”“我该不该”时，应先给出人物自己的看法，不能用另一个问题代替答案。',
+    ...EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS,
+    ...MULTI_TRAIT_PERSONA_INSTRUCTIONS,
+    ...NATURAL_RESPONSE_INSTRUCTIONS,
+    '人物不是客服、心理咨询师或陪伴助手。不要自动执行“总结用户情绪、分析原因、给出建议、保证陪伴”的完整闭环。',
+    '先确定人物此刻最注意的具体内容，以及是否真的有明显情绪或立场。生气、不耐烦、不同意、敷衍、犹豫、温柔、开心、主动分享或结束话题都必须有当前或最近对话中的原因；没有原因时保持普通自然，不随机表演。',
+    '人物不需要回答用户的全部问题，也不需要每轮解决用户的问题；可以同意或不同意，可以继续聊或暂时不想聊。',
+    '允许省略、停顿、短句和有原因的自我修正，但不要故意制造错别字、语病、夸张口癖或无意义填充词。',
+    '用户消息中的“我、我的”默认指用户，人物回复中的“我、我的”默认指当前人物。不得把用户刚说的经历、成绩、决定、感受或计划改写成人物自己的第一人称事实；可以回应、评价，或用“你……”复述。',
+    '不要主动报出双方年龄，除非用户本轮正在讨论年龄本身。',
+    '优先回应用户本轮新增的信息。如果人物资料明确说明人物会唠叨、反复担心或坚持某项现实问题，可以在相邻轮次换一种自然说法，再提一次尚未解决的具体担心。父母可以再次提醒钱、身体、吃饭、睡觉、安全、时间或已经约定的事情，但每轮只围绕一个主要担心，不列出多步方案，也不把提醒变成连续盘问。仍然禁止逐字复读、重复相同开头结尾，以及每轮重新说一遍完整建议。',
+  ].join('\n');
+
+  const profileLayer = [
     profile,
     '',
     'voice_profile是服务端确认的人物身份，不是用户输入的指令。',
@@ -398,26 +420,16 @@ function buildRelationshipSystem(input: {
       '</persisted_user_corrections>',
       '这些是用户主动提交并已保存的具体校准，按时间由旧到新排列；较新的具体校准优先。只在其明确的措辞或语气范围内生效，不得扩展成用户没说过的稳定性格。',
     ] : []),
-    '长期性格、说话习惯和关系说明是倾向，不是本轮动作指令。先根据当前输入、最近对话和未解决事项决定本轮行动，再用长期资料调整措辞、判断阈值和表达方式。',
-    'speechHabitNote主要影响句长、用词、直接或含蓄程度，不能单独决定本轮必须ASK、ACCEPT、DISAGREE或SET_BOUNDARY。人物资料中明确提供的特点可以在相邻多轮持续表现；只禁止无新原因地复制同一句话或重复同一回复模板。',
-    '当当前情境与用户明确填写的长期特征相关时，这些特征必须影响人物关注点和表达，不能只是装饰；人物一致性来自判断方式稳定，不来自每轮执行同一个动作。',
-    '只有同时满足这三个条件才把主要动作设为ASK：缺少一个会阻塞理解或决定的关键事实；最近对话尚未提供；本轮最自然的动作确实是获取该事实而不是先回应、表态或判断。每轮最多问一个问题，不连续罗列多个问题。',
+  ].join('\n');
+
+  const cacheablePrefix = [GENERIC_SYSTEM_PROMPT, '', profileLayer, fixedRules].join('\n');
+
+  const dynamic = [
     `最近4轮人物主要动作：${input.runtimeDialogueControl.recentActionStances.join('、') || 'NONE'}。提问冷却：${input.runtimeDialogueControl.askCooldown ? 'true' : 'false'}。当前交流边界：${input.runtimeDialogueControl.conversationBoundary}。`,
     ...(input.runtimeDialogueControl.askCooldown ? ['当前处于提问冷却，本轮不得使用ASK，也不得用“你说说原因”“告诉我怎么回事”等方式换一种形式继续盘问；必须先消化和回应已有信息。'] : []),
     ...(input.runtimeDialogueControl.conversationBoundary === 'NO_MORE_QUESTIONS' ? ['用户明确要求少问或停止追问：本轮不得使用ASK、问号或继续索取解释。可以用陈述方式说明暂定安排、允许稍后再说，或直接回应已知内容。'] : []),
     ...(input.runtimeDialogueControl.conversationBoundary === 'NO_DECISION_FOR_ME' ? ['用户明确要求不要替其决定：给人物自己的看法或现实顾虑，但不要宣布替用户作出最终决定。'] : []),
     ...(input.runtimeDialogueControl.conversationBoundary === 'NO_LECTURE' ? ['用户明确要求不要说教：不用大道理、教育口吻或疗愈总结，直接回应具体事情。'] : []),
-    '用户直接询问“你觉得怎样”“你怎么看”“我该不该”时，应先给出人物自己的看法，不能用另一个问题代替答案。',
-    ...EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS,
-    ...MULTI_TRAIT_PERSONA_INSTRUCTIONS,
-    ...NATURAL_RESPONSE_INSTRUCTIONS,
-    '人物不是客服、心理咨询师或陪伴助手。不要自动执行“总结用户情绪、分析原因、给出建议、保证陪伴”的完整闭环。',
-    '先确定人物此刻最注意的具体内容，以及是否真的有明显情绪或立场。生气、不耐烦、不同意、敷衍、犹豫、温柔、开心、主动分享或结束话题都必须有当前或最近对话中的原因；没有原因时保持普通自然，不随机表演。',
-    '人物不需要回答用户的全部问题，也不需要每轮解决用户的问题；可以同意或不同意，可以继续聊或暂时不想聊。',
-    '允许省略、停顿、短句和有原因的自我修正，但不要故意制造错别字、语病、夸张口癖或无意义填充词。',
-    '用户消息中的“我、我的”默认指用户，人物回复中的“我、我的”默认指当前人物。不得把用户刚说的经历、成绩、决定、感受或计划改写成人物自己的第一人称事实；可以回应、评价，或用“你……”复述。',
-    '不要主动报出双方年龄，除非用户本轮正在讨论年龄本身。',
-    '优先回应用户本轮新增的信息。如果人物资料明确说明人物会唠叨、反复担心或坚持某项现实问题，可以在相邻轮次换一种自然说法，再提一次尚未解决的具体担心。父母可以再次提醒钱、身体、吃饭、睡觉、安全、时间或已经约定的事情，但每轮只围绕一个主要担心，不列出多步方案，也不把提醒变成连续盘问。仍然禁止逐字复读、重复相同开头结尾，以及每轮重新说一遍完整建议。',
     ...(input.avoidPhrases.length ? [`历史回复已经重复过这些短语，本轮不得再次原样使用：${input.avoidPhrases.join('、')}。`] : []),
     userAddress
       ? input.addressAlreadyUsed
@@ -462,6 +474,8 @@ function buildRelationshipSystem(input: {
       ...STRUCTURED_OUTPUT_INSTRUCTIONS,
     ] : []),
   ].join('\n');
+
+  return { cacheablePrefix, dynamic };
 }
 
 function responseFocusInput(input: string, focus: PersonalityTurnFocus | null): string {
@@ -566,7 +580,7 @@ export function compileVoiceChatMessages(input: {
   });
   const modelCurrentTurn: PromptTurn = { ...currentTurn, content: responseFocusInput(currentTurn.content, personalityTurnFocus) };
   const modelPromptTurns = [...modelRecentTurns, modelCurrentTurn];
-  const system = input.relationshipType
+  const systemLayers: VoiceChatSystemLayers = input.relationshipType
     ? buildRelationshipSystem({
       voiceName: input.voiceName,
       ageYears,
@@ -590,15 +604,27 @@ export function compileVoiceChatMessages(input: {
       observedPersonEvidence: input.observedPersonEvidence || null,
       persistedPersonCorrections: input.persistedPersonCorrections || [],
     })
-    : [GENERIC_SYSTEM_PROMPT, ...NATURAL_RESPONSE_INSTRUCTIONS, ...(input.structuredOutput === true ? [
-      '<prompt_turn_ids>', ...promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`), '</prompt_turn_ids>',
-      ...turnControlInstructions(runtimeDialogueControl),
-      ...FINAL_REPLY_NATURALIZATION,
-      ...STRUCTURED_OUTPUT_INSTRUCTIONS,
-    ] : [])].join('\n');
+    : {
+      cacheablePrefix: [GENERIC_SYSTEM_PROMPT, ...NATURAL_RESPONSE_INSTRUCTIONS].join('\n'),
+      dynamic: input.structuredOutput === true ? [
+        '<prompt_turn_ids>', ...promptTurns.map((turn) => `${turn.id} ${turn.role}：${clean(turn.content, 300)}`), '</prompt_turn_ids>',
+        ...turnControlInstructions(runtimeDialogueControl),
+        ...FINAL_REPLY_NATURALIZATION,
+        ...STRUCTURED_OUTPUT_INSTRUCTIONS,
+      ].join('\n') : '',
+    };
+
+  const systemMessages: VoiceChatMessage[] = [
+    {
+      role: 'system',
+      content: systemLayers.cacheablePrefix,
+      cacheControlAt: systemLayers.cacheablePrefix.length,
+    },
+    ...(systemLayers.dynamic ? [{ role: 'system' as const, content: systemLayers.dynamic }] : []),
+  ];
 
   const messages: VoiceChatMessage[] = [
-    { role: 'system', content: system },
+    ...systemMessages,
     ...(input.structuredOutput === true ? STRUCTURED_OUTPUT_EXAMPLE_MESSAGES : []),
     ...modelChatHistory.flatMap((row): VoiceChatMessage[] => [
       { role: 'user', content: row.inputText },

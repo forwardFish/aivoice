@@ -5,7 +5,7 @@ import { createSpeakerAnalysisProviderFromEnv } from '../src/providers/speaker-a
 import { createVoiceProviderFromEnv } from '../src/providers/voice-provider-factory.js';
 
 const KEYS = [
-  'AIVOICE_CHAT_PROVIDER', 'DASHSCOPE_API_KEY', 'DASHSCOPE_API_HOST', 'CHAT_MODEL',
+  'AIVOICE_CHAT_PROVIDER', 'DASHSCOPE_API_KEY', 'DASHSCOPE_API_HOST', 'CHAT_MODEL', 'AIVOICE_QWEN_EXPLICIT_PROMPT_CACHE',
   'DEEPSEEK_API_KEY', 'DEEPSEEK_API_HOST', 'DEEPSEEK_CHAT_MODEL',
   'AIVOICE_VOICE_PROVIDER', 'AIVOICE_SPEAKER_ANALYSIS_PROVIDER',
 ] as const;

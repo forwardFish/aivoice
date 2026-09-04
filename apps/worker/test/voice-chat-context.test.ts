@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileVoiceChatMessages, relationshipReplyViolation } from '../src/chat/voice-chat-context.js';
 
+function systemText(messages: readonly { role: string; content: string }[]): string {
+  return messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n');
+}
+
 test('relationship context keeps current user input last and filters exact speech rows', () => {
   const result = compileVoiceChatMessages({
     voiceName: '妈妈',
@@ -16,18 +20,55 @@ test('relationship context keeps current user input last and filters exact speec
   });
 
   assert.equal(result.messages[0]?.role, 'system');
-  assert.match(result.messages[0]?.content || '', /人物是用户的母亲/);
-  assert.match(result.messages[0]?.content || '', /任何回复都禁止出现“AI”/);
-  assert.match(result.messages[0]?.content || '', /用户直接询问身份时/);
-  assert.match(result.messages[0]?.content || '', /对用户称呼：小林/);
-  assert.match(result.messages[0]?.content || '', /连续会话首次回复/);
+  assert.match(systemText(result.messages), /人物是用户的母亲/);
+  assert.match(systemText(result.messages), /任何回复都禁止出现“AI”/);
+  assert.match(systemText(result.messages), /用户直接询问身份时/);
+  assert.match(systemText(result.messages), /对用户称呼：小林/);
+  assert.match(systemText(result.messages), /连续会话首次回复/);
   assert.deepEqual(result.includedMessageIds, ['chat-1']);
-  assert.deepEqual(result.messages.slice(1), [
+  assert.deepEqual(result.messages.filter((message) => message.role !== 'system'), [
     { role: 'user', content: '今天被批评了。' },
     { role: 'assistant', content: '听起来很委屈。' },
     { role: 'user', content: '后来他向我道歉了。' },
   ]);
   assert.match(result.contextHash, /^[a-f0-9]{64}$/);
+});
+
+test('relationship prompt keeps wording-stable content with an explicit cache boundary before dynamic state', () => {
+  const common = {
+    structuredOutput: true,
+    voiceName: '小雨', ageYears: 12, gender: 'FEMALE' as const, userAgeYears: 40,
+    relationshipType: 'CHILD' as const, relationshipLabel: '', userAddress: '妈妈',
+    personalityNote: '【用户明确选择】有自己的主意：被替决定时会表达不满；嘴硬心软：缓和时仍会有一点别扭。',
+    speechHabitNote: '句子不长，先回应具体事情。',
+    relationshipNote: '平时会聊学校里的事情。',
+  };
+  const first = compileVoiceChatMessages({
+    ...common,
+    currentMessageId: 'cache-turn-1',
+    history: [],
+    currentInput: '今天在学校怎么样？',
+  });
+  const second = compileVoiceChatMessages({
+    ...common,
+    currentMessageId: 'cache-turn-2',
+    history: [{ messageId: 'cache-turn-1', mode: 'CHAT' as const, inputText: '今天在学校怎么样？', outputText: '还行吧，就是作业有点多。' }],
+    currentInput: '那早点写完好不好？',
+  });
+  const firstSystems = first.messages.filter((message) => message.role === 'system');
+  const secondSystems = second.messages.filter((message) => message.role === 'system');
+  const firstBoundary = firstSystems[0]?.cacheControlAt || 0;
+  const secondBoundary = secondSystems[0]?.cacheControlAt || 0;
+
+  assert.equal(firstSystems.length, 2);
+  assert.equal(secondSystems.length, 2);
+  assert.equal(firstBoundary, secondBoundary);
+  assert.equal(firstSystems[0]?.content, secondSystems[0]?.content);
+  assert.notEqual(firstSystems[1]?.content, secondSystems[1]?.content);
+  assert.match(firstSystems[0]?.content || '', /<voice_profile>/);
+  assert.doesNotMatch(firstSystems[0]?.content || '', /<prompt_turn_ids>/);
+  assert.match(firstSystems[1]?.content || '', /<prompt_turn_ids>/);
+  assert.ok(firstBoundary >= 1024);
 });
 
 test('parent voice distinguishes an adult child and includes only confirmed relationship facts', () => {
@@ -47,7 +88,7 @@ test('parent voice distinguishes an adult child and includes only confirmed rela
     history: [],
     currentInput: '最近过得怎么样？',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /人物是用户的母亲/);
   assert.match(system, /用户人生阶段：成年阶段/);
   assert.match(system, /用户准确年龄：40岁/);
@@ -86,7 +127,7 @@ test('old voices without a relationship retain the generic assistant prompt', ()
     history: [],
     currentInput: '你好。',
   });
-  assert.doesNotMatch(result.messages[0]?.content || '', /relationship_context|voice_profile/);
+  assert.doesNotMatch(systemText(result.messages), /relationship_context|voice_profile/);
   assert.equal(result.messages.at(-1)?.role, 'user');
   assert.equal(result.messages.at(-1)?.content, '你好。');
 });
@@ -102,8 +143,8 @@ test('configured address is suppressed after it has already appeared in chat his
     ],
     currentInput: '我和朋友吵架了。',
   });
-  assert.match(result.messages[0]?.content || '', /历史回复已经使用过称呼/);
-  assert.match(result.messages[0]?.content || '', /本轮不要机械重复/);
+  assert.match(systemText(result.messages), /历史回复已经使用过称呼/);
+  assert.match(systemText(result.messages), /本轮不要机械重复/);
 });
 
 test('custom relationship is data and does not replace system boundaries', () => {
@@ -115,7 +156,7 @@ test('custom relationship is data and does not replace system boundaries', () =>
     history: [],
     currentInput: '今天有点烦。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /与用户关系：表姐/);
   assert.match(system, /服务端确认的人物身份/);
   assert.match(system, /根据已确认关系调整交流距离/);
@@ -134,7 +175,7 @@ test('self relationship uses inner-dialogue rules and suppresses self-name addre
     history: [],
     currentInput: '我明天要做汇报。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /同一个人的自我对话/);
   assert.match(system, /不得称呼人物姓名/);
   assert.match(system, /不得使用“这种感受很正常/);
@@ -157,7 +198,7 @@ test('child relationship uses structured age and gender instead of parsing the v
     history: [],
     currentInput: '今天在学校开心吗？',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /准确年龄：12岁/);
   assert.match(system, /性别身份：青少年女孩/);
   assert.match(system, /年龄阶段：青春期早期/);
@@ -178,7 +219,7 @@ test('40-year-old father speaking to a 12-year-old child keeps the parent direct
     relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨',
     history: [], currentInput: '我今天和同学吵架了。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /人物是用户的父亲，用户是人物的子女/);
   assert.match(system, /说话人物是40岁成年人，用户是12岁儿童/);
   assert.match(system, /人物比用户年长28岁/);
@@ -193,7 +234,7 @@ test('adult partners stay equal and do not inherit parent-child roles', () => {
     relationshipNote: '两个人遇到重要决定会先一起商量。',
     history: [], currentInput: '今天工作特别累。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /人物是用户的男性伴侣/);
   assert.match(system, /双方是平等亲密关系/);
   assert.match(system, /不是父母子女、老师学生或咨询师客户/);
@@ -206,7 +247,7 @@ test('legacy profiles retain coarse user life stage without pretending an exact 
     relationshipType: 'MOTHER', relationshipLabel: '', userAddress: '',
     history: [], currentInput: '我想换工作。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.doesNotMatch(system, /用户准确年龄/);
   assert.match(system, /用户是成年子女/);
   assert.match(system, /成年人之间的家庭交流/);
@@ -222,7 +263,7 @@ test('repeated assistant phrases become deterministic avoid-list input', () => {
     ],
     currentInput: '我还是有点害怕。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /历史回复已经重复过这些短语/);
   assert.match(system, /保护自己/);
   assert.match(system, /本轮不得再次原样使用/);
@@ -245,7 +286,7 @@ test('recent interaction state and causal turn ids enter the structured prompt',
     }],
     currentInput: '好，那我不问了。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /<previous_interaction_state>/);
   assert.match(system, /"emotion":"ANNOYED"/);
   assert.match(system, /previous-message:USER USER/);
@@ -267,7 +308,7 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
     }],
     currentInput: '主要是领导总改口。',
   });
-  const askedSystem = asked.messages[0]?.content || '';
+  const askedSystem = systemText(asked.messages);
   assert.match(askedSystem, /questionPolicy=FORBIDDEN/);
   assert.match(askedSystem, /本轮台词最终自然化检查/);
   assert.match(askedSystem, /不得自行构造“是A还是B”/);
@@ -295,7 +336,7 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
     relationshipType: 'FATHER', relationshipLabel: '', userAddress: '小雨', history: [],
     currentInput: '爸，我明天不想去了。',
   });
-  const planSystem = plan.messages[0]?.content || '';
+  const planSystem = systemText(plan.messages);
   assert.match(planSystem, /最多索取一个信息字段/);
   assert.match(planSystem, /反问也占一个问题/);
   assert.match(planSystem, /requestPolicy=FORCE_LOW_CURRENT/);
@@ -316,7 +357,7 @@ test('structured prompt ends with a dynamic stance whitelist and forced request 
   });
   assert.equal(carriedBoundary.runtimeDialogueControl.noMoreQuestionsActive, true);
   assert.equal(carriedBoundary.runtimeDialogueControl.questionPolicy, 'FORBIDDEN');
-  assert.match(carriedBoundary.messages[0]?.content || '', /noMoreQuestionsActive=true/);
+  assert.match(systemText(carriedBoundary.messages), /noMoreQuestionsActive=true/);
 });
 
 test('partner affection prompt lets runtime choose the action and personality own the final semantics', () => {
@@ -328,7 +369,7 @@ test('partner affection prompt lets runtime choose the action and personality ow
     personalityNote: '【用户明确选择】喜欢亲近：愿意主动恢复靠近；嘴硬心软：缓和时仍留一点别扭。',
     history: [], currentInput: '到了先抱一下，别还板着脸了。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.equal(result.personalityTurnFocus?.phase, 'AFFECTION');
   assert.equal(result.personalityTurnFocus?.primary.label, '喜欢亲近');
   assert.match(system, /成年伴侣的接受语义/);
@@ -384,10 +425,14 @@ test('resolved affection context omits the finished conflict from model history'
   assert.equal(result.personalityTurnFocus?.resolvedBoundary, true);
   assert.equal(result.personalityTurnFocus?.primary.label, '嘴硬心软');
   assert.deepEqual(result.includedMessageIds, ['t4']);
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.doesNotMatch(system, /我今晚会晚一个小时到/);
   assert.doesNotMatch(system, /别还板着脸/);
-  const modelHistoryText = result.messages.slice(3, -1).map((message) => message.content).join('\n');
+  const modelHistoryText = result.messages
+    .slice(0, -1)
+    .filter((message) => message.role !== 'system')
+    .map((message) => message.content)
+    .join('\n');
   assert.doesNotMatch(modelHistoryText, /我又不是故意|怪我|下次记得提前说/);
   const wrappedCurrent = JSON.parse(result.messages.at(-1)?.content || '{}');
   assert.equal(wrappedCurrent.user_input, '到了先抱一下');
@@ -434,7 +479,7 @@ test('authorized video evidence affects wording and cadence without inferring pe
     },
     history: [], currentInput: '今天在学校怎么样？',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /视频真实台词摘录：等一下，我马上就来/);
   assert.match(system, /语速偏快；停顿较少/);
   assert.match(system, /不得根据这段短视频自动推断嘴硬心软/);
@@ -450,7 +495,7 @@ test('explicit user correction outranks defaults only inside its stated scope', 
     history: [{ messageId: 'correction-old', mode: 'CHAT', inputText: '她生气时声音不会变大，只会停顿更多。', outputText: '知道了。' }],
     currentInput: '那你现在还生气吗？',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /<explicit_user_corrections>/);
   assert.match(system, /她生气时声音不会变大，只会停顿更多/);
   assert.match(system, /不得扩大成用户没有说出的稳定性格/);
@@ -466,7 +511,7 @@ test('persisted dislike corrections enter the prompt as bounded user evidence', 
     persistedPersonCorrections: ['用户明确反馈：TA很少讲大道理或完整说教。', '用户明确纠正TA的语气：她生气时声音反而会更低'],
     history: [], currentInput: '我今天又迟到了。',
   });
-  const system = result.messages[0]?.content || '';
+  const system = systemText(result.messages);
   assert.match(system, /<persisted_user_corrections>/);
   assert.match(system, /她生气时声音反而会更低/);
   assert.match(system, /较新的具体校准优先/);
