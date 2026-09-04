@@ -33,6 +33,12 @@ test('production worker records every message generation stage with correlation 
   assert.match(runner, /stages\.primary_ready/);
   assert.match(runner, /overThreeSecondTarget/);
   assert.match(runner, /jobId:\s*job\.id[\s\S]*messageId:\s*job\.messageId/);
+  assert.match(runner, /ageYears:\s*message\.ageYears[\s\S]*gender:\s*message\.gender[\s\S]*relationshipType:\s*message\.relationshipType/);
+  assert.match(runner, /identityLocked:\s*speechPlan\.identityLocked/);
+  assert.match(runner, /voiceIdentityLocked:\s*speechPlan\.identityLocked/);
+  assert.match(runner, /voiceInstructionApplied:\s*Boolean\(speechPlan\.instruction\)/);
+  assert.match(runner, /voiceAcousticOverridesApplied:\s*speechPlan\.applyAcousticOverrides/);
+  assert.match(runner, /voiceSeed:\s*speechPlan\.seed/);
   assert.match(provider, /cosyvoice_synthesis_timing/);
   assert.match(provider, /requestMs[\s\S]*downloadMs[\s\S]*totalMs/);
   assert.match(provider, /provider_synthesis_request[\s\S]*provider_audio_download/);

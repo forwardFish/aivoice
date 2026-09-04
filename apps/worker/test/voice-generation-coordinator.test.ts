@@ -135,6 +135,31 @@ test('ordinary replies never reserve companion budget', async () => {
   assert.deepEqual(calls, ['registered:speaker-id']);
 });
 
+test('identity-locked adult requests never switch provider on expressive turns', async () => {
+  const calls: string[] = [];
+  let budgetChecks = 0;
+  const registered = provider('registered', 'REGISTERED_VOICE', calls);
+  const companion = provider('companion', 'REFERENCE_AUDIO', calls);
+  const registry: VoiceProviderRegistry = {
+    active: { id: 'registered', qualityRank: 10, provider: registered },
+    registered: { id: 'registered', qualityRank: 10, provider: registered },
+    companions: [{ id: 'companion', qualityRank: 100, provider: companion }],
+  };
+  const expression = buildEmotionExpressionPlan({
+    replyTone: 'IRRITATED', text: '这事我想自己决定，我真的很不高兴。', interactionState: null,
+  });
+  const generated = await new VoiceGenerationCoordinator(registry, () => 'SELECTIVE_PARALLEL').generate({
+    ...request(expression, async () => 'reference.wav'),
+    identityLocked: true,
+    allowCompanion: () => { budgetChecks += 1; return true; },
+  });
+  await generated.bestUpgrade;
+
+  assert.equal(generated.primary.id, 'registered');
+  assert.equal(budgetChecks, 0);
+  assert.deepEqual(calls, ['registered:speaker-id']);
+});
+
 test('budget reservation never delays the registered primary provider', async () => {
   const calls: string[] = [];
   const registered = provider('registered', 'REGISTERED_VOICE', calls);

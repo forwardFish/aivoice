@@ -119,18 +119,19 @@ test('a compact plain preference reply does not become a spoken command', () => 
   assert.match(buildVoicePlanInstruction(casual), /不是在要求对方/);
 });
 
-test('CosyVoice receives the same concrete boundary and playful acting direction as Seed Audio', () => {
+test('CosyVoice keeps concrete acting direction without global mother-daughter wording', () => {
   const boundary = buildVoicePlanInstruction({
     act: 'ASSERT_BOUNDARY', affect: 'IRRITATED', intensity: 2, cadence: 'FIRM_TWO_BEAT',
   });
   const playful = buildVoicePlanInstruction({
     act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE',
   });
-  assert.match(boundary, /觉得不被尊重/);
+  assert.match(boundary, /自己的意见没被.*听见/);
   assert.match(boundary, /有点委屈又不服气/);
-  assert.match(boundary, /只想让妈妈先听完/);
+  assert.match(boundary, /只想让对方先听完/);
   assert.match(playful, /顺口逗一句/);
   assert.match(playful, /问句后半带试探/);
+  assert.doesNotMatch(`${boundary}${playful}`, /妈妈|她/u);
   assert.ok(instructionWeightedLength(boundary) <= 100);
   assert.ok(instructionWeightedLength(playful) <= 100);
 });
@@ -143,9 +144,10 @@ test('CosyVoice preserves the individually accepted direction for concern, hurt 
   ];
   assert.match(instructions[0], /前一句带担心/);
   assert.match(instructions[0], /后一句更直接/);
-  assert.match(instructions[1], /气息发紧、声音微颤/);
-  assert.match(instructions[1], /最后压低收住/);
+  assert.match(instructions[1], /声音微颤/);
+  assert.match(instructions[1], /句尾压低收住/);
   assert.match(instructions[2], /前半保留一点硬/);
   assert.match(instructions[2], /转折后恢复日常节奏/);
+  assert.doesNotMatch(instructions.join(''), /妈妈|她/u);
   for (const instruction of instructions) assert.ok(instructionWeightedLength(instruction) <= 100);
 });

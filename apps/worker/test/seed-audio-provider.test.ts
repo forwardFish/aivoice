@@ -80,9 +80,10 @@ test('four-field plans produce distinct observable speaking actions', () => {
     relationshipType: 'CHILD', deliveryPlan: plans.hurt,
   });
   assert.match(deny, /先急着否认，紧接着把原因说出来/);
-  assert.match(boundary, /妈妈正替她做决定，她马上顶回去/);
+  assert.match(boundary, /父母正替说话人做决定，马上顶回去/);
   assert.match(boundary, /边界句说重，后半不放软/);
-  assert.match(playful, /妈妈今天反常好说话，她顺口逗一句/);
+  assert.match(playful, /父母今天反常好说话，顺口逗一句/);
+  assert.doesNotMatch(`${boundary}${playful}`, /妈妈|她/u);
   assert.match(hurt, /委屈但认真说出来/);
   assert.match(hurt, /表达真实感受的语义单元稍微加重/);
   assert.equal(boundary.match(/这是我的事/gu)?.length, 1);

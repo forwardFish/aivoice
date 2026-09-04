@@ -676,23 +676,33 @@ export class CloudBaseJobRunner {
         speechBaseline,
         emotionExpression,
         deliveryPlan,
-      );
-      const synthesisOptions = {
-          jobId: job.id,
-          messageId: job.messageId || '',
-          instruction: speechPlan.instruction,
-          seed: speechPlan.seed,
-          ...(speechPlan.applyAcousticOverrides ? {
-            rate: speechPlan.rate,
-            pitch: speechPlan.pitch,
-            volume: speechPlan.volume,
-          } : {}),
-          enableSsml: speechPlan.enableSsml,
+        {
+          ageYears: message.ageYears,
+          gender: message.gender,
           relationshipType: message.relationshipType,
-          deliveryMode: emotionExpression.deliveryMode,
-          speechAct: emotionExpression.speechAct,
-          observedBaseline: voiceObservedBaseline,
-          deliveryPlan,
+        },
+      );
+      const synthesisOptions = speechPlan.identityLocked ? {
+        jobId: job.id,
+        messageId: job.messageId || '',
+        seed: 0,
+        relationshipType: message.relationshipType,
+      } : {
+        jobId: job.id,
+        messageId: job.messageId || '',
+        instruction: speechPlan.instruction,
+        seed: speechPlan.seed,
+        ...(speechPlan.applyAcousticOverrides ? {
+          rate: speechPlan.rate,
+          pitch: speechPlan.pitch,
+          volume: speechPlan.volume,
+        } : {}),
+        enableSsml: speechPlan.enableSsml,
+        relationshipType: message.relationshipType,
+        deliveryMode: emotionExpression.deliveryMode,
+        speechAct: emotionExpression.speechAct,
+        observedBaseline: voiceObservedBaseline,
+        deliveryPlan,
       };
       const referencePath = path.join(workDir, 'reference.wav');
       const generationSession = await measure('voice_generation_primary', () => this.voiceGenerationCoordinator.generate({
@@ -700,6 +710,7 @@ export class CloudBaseJobRunner {
         visibleText: outputText,
         synthesisText: speechPlan.text,
         expression: emotionExpression,
+        identityLocked: speechPlan.identityLocked,
         registeredBinding: providerBinding,
         resolveReference: async () => {
           const downloadStartedAt = Date.now();
@@ -773,6 +784,10 @@ export class CloudBaseJobRunner {
         interactionStateIssues,
         replyLength: outputTextLength,
         outputTextLength,
+        voiceIdentityLocked: speechPlan.identityLocked,
+        voiceInstructionApplied: Boolean(speechPlan.instruction),
+        voiceAcousticOverridesApplied: speechPlan.applyAcousticOverrides,
+        voiceSeed: speechPlan.seed,
         audioDurationMs,
         audioBytes,
         stages,

@@ -705,8 +705,18 @@ export class JobRunner {
       speechBaseline,
       emotionExpression,
       deliveryPlan,
+      {
+        ageYears: message.age_years,
+        gender: message.gender,
+        relationshipType: message.relationship_type,
+      },
     );
-    const synthesisOptions = {
+    const synthesisOptions = speechPlan.identityLocked ? {
+      jobId: job.id,
+      messageId: job.message_id,
+      seed: 0,
+      relationshipType: message.relationship_type,
+    } : {
       jobId: job.id,
       messageId: job.message_id,
       instruction: speechPlan.instruction,
@@ -729,6 +739,7 @@ export class JobRunner {
       visibleText: outputText,
       synthesisText: speechPlan.text,
       expression: emotionExpression,
+      identityLocked: speechPlan.identityLocked,
       registeredBinding: providerBinding,
       resolveReference: async () => referencePath,
       options: synthesisOptions,

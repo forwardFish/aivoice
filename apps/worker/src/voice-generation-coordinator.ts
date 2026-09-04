@@ -17,6 +17,7 @@ export interface VoiceGenerationRequest {
   registeredBinding: string;
   resolveReference: () => Promise<string>;
   options: VoiceSynthesisOptions;
+  identityLocked?: boolean;
   allowCompanion?: (provider: RankedVoiceProvider) => boolean | Promise<boolean>;
 }
 
@@ -52,7 +53,8 @@ export class VoiceGenerationCoordinator {
       },
     });
 
-    const parallel = this.strategy() === 'SELECTIVE_PARALLEL'
+    const parallel = !request.identityLocked
+      && this.strategy() === 'SELECTIVE_PARALLEL'
       && shouldUseParallelVoice({ mode: request.mode, text: request.visibleText, expression: request.expression });
     if (!parallel) return startVoiceGeneration([candidate(this.registry.active)]);
     return startVoiceGeneration([
