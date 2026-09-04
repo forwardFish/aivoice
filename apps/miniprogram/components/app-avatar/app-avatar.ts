@@ -7,7 +7,7 @@ Component({
     src: {
       type: String,
       value: '',
-      observer(_next: string, _prev: string) {
+      observer(_next, _prev) {
         if (this.data.imageFailed) this.setData({ imageFailed: false })
       }
     },
