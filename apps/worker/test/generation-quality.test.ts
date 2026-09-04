@@ -186,6 +186,35 @@ test('generic emotional brush-offs are retried instead of ending an opened topic
   assert.match(retry.find((message) => message.content.includes('GENERIC_EMOTIONAL_BRUSH_OFF'))?.content || '', /不要统一改成煽情的温柔陪伴/);
 });
 
+test('self voice-similarity complaints retry meta explanations as in-character banter', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'self-voice-similarity',
+    voiceName: '本人', ageYears: 40, gender: 'MALE', userAgeYears: 40,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '',
+    personalityNote: '', speechHabitNote: '说话直接，偶尔顺口调侃。', relationshipNote: '',
+    history: [], currentInput: '声音不像本人呀。',
+  });
+  const quality = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({
+      reply: '这是根据已提供资料生成的模拟回应，不是真实声音本人。',
+      replyTone: 'PLAIN', actionStance: 'RESPOND',
+    }),
+    currentUserText: '声音不像本人呀。', relationshipType: 'SELF', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    profile: { personalityNote: null, speechHabitNote: '说话直接，偶尔顺口调侃。', relationshipNote: null },
+  });
+  assert.ok(quality.retryReasons.includes('VOICE_SIMILARITY_META_EXPLANATION'));
+  const retry = qualityRetryMessages(context.messages, quality.retryReasons);
+  const instruction = retry.find((message) => message.content.includes('VOICE_SIMILARITY_META_EXPLANATION'))?.content || '';
+  assert.match(instruction, /不是身份询问/);
+  assert.match(instruction, /轻微自嘲、挑剔、调侃或不服气/);
+  assert.match(instruction, /不得解释模拟原理/);
+});
+
 test('retry prompt preserves the original messages and adds only one correction system message', () => {
   const messages = [
     { role: 'system' as const, content: 'fixed-system' },

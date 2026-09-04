@@ -6,6 +6,7 @@
     bindrighttap="openSettings"
     back="{{true}}"
     transparent="{{true}}"
+    fixed="{{state === 'success' && mode === 'chat'}}"
   ></app-nav>
 
   <view wx:if="{{state === 'loading'}}" class="workbench-state">
@@ -16,15 +17,17 @@
     <page-state mode="error" title="工作台暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadData"></page-state>
   </view>
 
-  <view wx:else class="workbench-content">
-    <view>
+  <view wx:else class="workbench-content {{mode === 'chat' ? 'chat-workbench-content' : 'exact-workbench-content'}}">
+    <view class="segment-control-shell">
       <view class="segment-control">
         <view class="segment-item {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话</view>
         <view class="segment-item {{mode === 'exact' ? 'active warm' : ''}}" data-mode="exact" bindtap="switchMode">说一句</view>
       </view>
 
-      <view wx:if="{{mode === 'chat'}}" class="chat-panel">
-        <view class="ai-notice">AI 生成内容不代表声音本人真实表达</view>
+      <view wx:if="{{mode === 'chat'}}" class="ai-notice">AI 生成内容不代表声音本人真实表达</view>
+    </view>
+
+    <view wx:if="{{mode === 'chat'}}" class="chat-panel">
         <scroll-view
           class="messages-scroll"
           style="{{messagesScrollStyle}}"
@@ -130,7 +133,7 @@
           <view wx:if="{{bottomAnchorId}}" id="{{bottomAnchorId}}" class="scroll-bottom-anchor"></view>
         </scroll-view>
 
-        <view class="chat-composer-shell">
+        <view class="chat-composer-shell" style="{{chatComposerStyle}}">
           <view class="chat-composer">
             <view class="composer-input-shell">
               <input
@@ -145,6 +148,7 @@
                 show-confirm-bar="{{false}}"
                 confirm-type="send"
                 bindfocus="onChatFocus"
+                bindkeyboardheightchange="onChatKeyboardHeightChange"
                 bindinput="onChatInput"
                 bindblur="onChatBlur"
                 bindconfirm="sendChat"
@@ -154,9 +158,10 @@
             <button class="primary-button send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
           </view>
         </view>
-      </view>
+    </view>
 
-      <view wx:else class="exact-panel">
+    <scroll-view wx:else class="exact-scroll" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="exact-panel">
         <text class="exact-label">输入你希望 TA 说的话</text>
         <view class="exact-input-card soft-card">
           <textarea class="exact-textarea" value="{{exactText}}" placeholder="例如：祝妈妈生日快乐，永远年轻漂亮！" maxlength="50" bindinput="onExactInput" disabled="{{sending}}"></textarea>
@@ -189,9 +194,9 @@
           </view>
         </view>
       </view>
+    </scroll-view>
 
-      <text wx:if="{{errorMessage && mode === 'chat'}}" class="chat-error">{{errorMessage}}</text>
-    </view>
+    <text wx:if="{{errorMessage && mode === 'chat'}}" class="chat-error">{{errorMessage}}</text>
   </view>
 
   <quota-purchase-dialog

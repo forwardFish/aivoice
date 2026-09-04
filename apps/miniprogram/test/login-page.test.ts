@@ -2,43 +2,25 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 
-test('login profile actions use compact native buttons with visible sibling spacing', () => {
+test('login page exposes one WeChat action without profile or phone forms', () => {
   const wxml = readFileSync(new URL('../pages/login/index.wxml', import.meta.url), 'utf8')
-  const wxss = readFileSync(new URL('../pages/login/index.wxss', import.meta.url), 'utf8')
   const pageJson = readFileSync(new URL('../pages/login/index.json', import.meta.url), 'utf8')
 
-  assert.match(wxml, /<button[^>]*class="ui-form-action secondary-button"[^>]*bindtap="closeProfileSheet"[^>]*>取消<\/button>/)
-  assert.match(wxml, /<button[^>]*class="ui-form-action primary-button"[^>]*bindtap="confirmProfileLogin"/)
-  assert.match(wxml, /type="nickname"[\s\S]*maxlength="10"/)
-  assert.doesNotMatch(wxml, /<app-button\b/)
-  assert.doesNotMatch(pageJson, /"app-button"\s*:/)
-  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*flex/s)
-  assert.doesNotMatch(wxss, /\.ui-form-actions\s*\{[^}]*display:\s*grid/s)
-  assert.match(wxss, /\.ui-form-actions\s*\{[^}]*justify-content:\s*center[^}]*padding:\s*0;/s)
-  assert.doesNotMatch(wxss, /\.ui-form-actions\s*\{[^}]*\bgap:/s)
-  assert.match(wxss, /\.ui-form-action\s*\{[^}]*flex:\s*0\s+0\s+230rpx[^}]*width:\s*230rpx[^}]*margin:\s*0;/s)
-  assert.match(wxss, /\.ui-form-action\s*\+\s*\.ui-form-action\s*\{[^}]*margin-left:\s*24rpx/s)
+  assert.match(wxml, /class="wechat-login-button[^>]*bindtap="submitLogin"/)
+  assert.match(wxml, /微信一键登录/)
+  assert.match(wxml, /登录即代表你已阅读并同意/)
+  assert.match(wxml, /data-type="terms"[\s\S]*《用户协议》/)
+  assert.match(wxml, /data-type="privacy"[\s\S]*《隐私政策》/)
+  assert.doesNotMatch(wxml, /bottom-sheet|chooseAvatar|type="nickname"|手机号登录|profile-sheet|avatar-picker/)
+  assert.doesNotMatch(pageJson, /"bottom-sheet"\s*:|"app-chevron"\s*:/)
 })
 
-test('login waits for avatar and nickname before using real wx.login code', async () => {
+test('one-click login sends only the WeChat code and persists the returned user', async () => {
   const storage = new Map<string, any>()
   let pageDefinition: any
   let loginCalled = false
   let requestBody: any
   let switchedTo = ''
-  let avatarUpload: any
-  class SharedCloud {
-    init() {}
-    uploadFile(options: any) {
-      avatarUpload = options
-      queueMicrotask(() => options.success({ fileID: 'cloud://env.profile-avatars/avatar.jpg' }))
-      return {}
-    }
-    downloadFile(options: any) {
-      queueMicrotask(() => options.success({ tempFilePath: 'wxfile://resolved-profile-avatar.jpg' }))
-      return {}
-    }
-  }
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
   ;(globalThis as any).wx = {
@@ -60,52 +42,29 @@ test('login waits for avatar and nickname before using real wx.login code', asyn
     },
     switchTab: ({ url }: { url: string }) => { switchedTo = url },
     reLaunch: ({ url }: { url: string }) => { switchedTo = url },
-    showModal: () => undefined,
-    cloud: { Cloud: SharedCloud }
+    showModal: () => undefined
   }
 
   await import('../pages/login/index')
   const instance: any = {
     ...pageDefinition,
-    data: { ...structuredClone(pageDefinition.data), agreed: true },
+    data: { ...structuredClone(pageDefinition.data) },
     setData(patch: Record<string, unknown>) { Object.assign(this.data, patch) }
   }
 
-  instance.submitLogin()
-  assert.equal(instance.data.showProfileSheet, true)
-  assert.equal(loginCalled, false)
-
-  instance.onNicknameInput({ detail: { value: '123456789012' } })
-  assert.equal(instance.data.nickname, '1234567890')
-
-  await instance.confirmProfileLogin({ detail: { value: { nickname: '测试用户' } } })
-  assert.equal(loginCalled, false)
-  assert.equal(instance.data.errorMessage, '请先选择微信头像。')
-
-  instance.setData({ avatarUrl: 'wxfile://selected-avatar.jpg' })
-  await instance.confirmProfileLogin({ detail: { value: { nickname: '测试用户' } } })
+  await instance.submitLogin()
   await new Promise(resolve => setTimeout(resolve, 500))
 
   assert.equal(loginCalled, true)
-  assert.equal(requestBody.code, 'real-wx-code')
-  assert.deepEqual(requestBody.profile, {
-    nickname: '测试用户',
-    avatarUrl: 'cloud://env.profile-avatars/avatar.jpg'
-  })
-  assert.equal(avatarUpload.filePath, 'wxfile://selected-avatar.jpg')
-  assert.match(avatarUpload.cloudPath, /^profile-avatars\/.+\.jpg$/)
+  assert.deepEqual(requestBody, { code: 'real-wx-code' })
   assert.equal(storage.get('nashide_ta_token'), 'server-session-token')
   assert.deepEqual(storage.get('nashide_ta_user'), {
     id: 'user-1',
     nickname: '测试用户',
-    avatarUrl: 'cloud://env.profile-avatars/avatar.jpg',
+    avatarUrl: undefined,
     status: undefined
   })
-  const avatarPicker = await import('../utils/avatar-picker')
-  assert.equal(
-    await avatarPicker.resolveProfileAvatarSource('cloud://env.profile-avatars/avatar.jpg'),
-    'wxfile://resolved-profile-avatar.jpg'
-  )
+  assert.equal(instance.data.success, true)
   assert.equal(switchedTo, '/pages/home/index')
   assert.equal(storage.has('session_key'), false)
 })

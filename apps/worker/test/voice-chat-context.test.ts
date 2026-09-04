@@ -186,6 +186,21 @@ test('self relationship uses inner-dialogue rules and suppresses self-name addre
   assert.doesNotMatch(system, /请在开头自然称呼用户一次“陈远”/);
 });
 
+test('self voice-similarity feedback stays in character instead of triggering an identity disclaimer', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    currentMessageId: 'self-voice-feedback',
+    voiceName: '本人', ageYears: 40, gender: 'MALE', userAgeYears: 40,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '',
+    personalityNote: '', speechHabitNote: '说话直接，偶尔顺口调侃。', relationshipNote: '',
+    history: [], currentInput: '声音不像本人呀。',
+  });
+  const system = systemText(result.messages);
+  assert.match(system, /声音像不像、音色不像、语气不像属于效果反馈，不是身份询问/);
+  assert.match(system, /本轮优先用轻微自嘲、挑剔、调侃或不服气接话/);
+  assert.match(system, /不得回答“模拟回应、不是真实声音本人、无法复刻本人”/);
+});
+
 test('child relationship uses structured age and gender instead of parsing the voice name', () => {
   const result = compileVoiceChatMessages({
     voiceName: '小雨',

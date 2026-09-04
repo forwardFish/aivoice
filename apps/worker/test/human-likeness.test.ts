@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, sanitizeUnsupportedPresentSceneClaims, trigramJaccard } from '../src/chat/human-likeness.js';
+import { assessHumanLikenessSignals, detectSpeakerFactOwnershipViolation, hardReplyLeak, sanitizeSelfUnsupportedPersonalHistory, sanitizeUnsupportedPresentSceneClaims, trigramJaccard, voiceSimilarityReplyViolation } from '../src/chat/human-likeness.js';
 
 test('human-likeness signals flag compound counselor templates without blocking natural emotion', () => {
   assert.deepEqual(
@@ -29,6 +29,26 @@ test('human-likeness signals reject generic emotional brush-offs but keep a rela
   assert.ok(!assessHumanLikenessSignals('怎么了，谁又给你添堵了？', [], '今天不太顺利呀。').includes('FLAT_EMOTIONAL_QUESTION'));
   assert.ok(!assessHumanLikenessSignals('想不通就先别硬想，妈在这儿听着。', [], '就是有件事一直想不通。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
   assert.ok(!assessHumanLikenessSignals('累了就先歇会儿，妈不催你。', [], '今天真累。').includes('GENERIC_EMOTIONAL_BRUSH_OFF'));
+});
+
+test('voice similarity feedback rejects meta explanations without confusing a real identity question', () => {
+  assert.equal(voiceSimilarityReplyViolation({
+    currentUserText: '声音不像本人呀。',
+    reply: '这是根据已提供资料生成的模拟回应，不是真实声音本人。',
+  }), 'VOICE_SIMILARITY_META_EXPLANATION');
+  assert.equal(voiceSimilarityReplyViolation({
+    currentUserText: '为什么呀？',
+    recentUserInputs: ['声音不像本人呀。'],
+    reply: '毕竟只是模拟，没法完全复刻本人的语气和习惯。',
+  }), 'VOICE_SIMILARITY_META_EXPLANATION');
+  assert.equal(voiceSimilarityReplyViolation({
+    currentUserText: '声音不像本人呀。',
+    reply: '啧，看来还没偷师到精髓。你听着最不像哪儿？',
+  }), null);
+  assert.equal(voiceSimilarityReplyViolation({
+    currentUserText: '你到底是谁？',
+    reply: '这是根据已提供资料生成的模拟回应，不是真实声音本人。',
+  }), null);
 });
 
 test('hard reply leak blocks internal state and assistant identity but allows justified anger', () => {

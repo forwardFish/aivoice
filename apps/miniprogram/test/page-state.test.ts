@@ -21,3 +21,14 @@ test('progress page error states use shared app buttons instead of raw native bu
   assert.match(markup, /<app-button label="重新选择视频" bindaction="retry"><\/app-button>/)
   assert.doesNotMatch(markup, /<button class="primary-button" bindtap="retry">重新选择视频<\/button>/)
 })
+
+test('progress page uses motion-only processing hero without numeric percent badge', () => {
+  const markup = readFileSync(new URL('../pages/create/progress.wxml', import.meta.url), 'utf8')
+  const styles = readFileSync(new URL('../pages/create/progress.wxss', import.meta.url), 'utf8')
+
+  assert.match(markup, /processing-spinner/)
+  assert.doesNotMatch(markup, /progress-badge|progress-number|progress-unit|\{\{progress\}\}/)
+  assert.match(styles, /\.processing-spinner\s*\{[^}]*animation:\s*processing-orbit-spin/s)
+  assert.match(styles, /@keyframes processing-orbit-spin/)
+  assert.equal(styles.match(/animation\s*:/g)?.length, 1)
+})

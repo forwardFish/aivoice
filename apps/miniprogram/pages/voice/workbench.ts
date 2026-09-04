@@ -89,6 +89,8 @@ Page({
     exactResults: [] as any[],
     chatText: '',
     chatInputFocused: false,
+    chatKeyboardHeight: 0,
+    chatComposerStyle: '',
     exactText: '',
     chatCount: 0,
     exactCount: 0,
@@ -239,13 +241,34 @@ Page({
   },
   onChatFocus() {
     if (this.data.chatInputFocused) return
-    this.setData({ chatInputFocused: true })
+    this.setData({ chatInputFocused: true }, () => {
+      this.scheduleChatViewportSync()
+      this.scheduleChatBottomScroll()
+    })
+  },
+  onChatKeyboardHeightChange(event: any) {
+    const keyboardHeight = Math.max(0, Math.floor(Number(event?.detail?.height || event?.detail?.keyboardHeight || 0)))
+    const chatComposerStyle = keyboardHeight > 0 ? `bottom:${keyboardHeight}px;` : ''
+    if (keyboardHeight === this.data.chatKeyboardHeight && chatComposerStyle === this.data.chatComposerStyle) return
+    this.setData({ chatKeyboardHeight: keyboardHeight, chatComposerStyle }, () => {
+      this.scheduleChatViewportSync()
+      this.scheduleChatBottomScroll()
+    })
   },
   onChatBlur() {
     const chatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText).slice(0, 200)
     this.chatDraftText = chatText
     this.chatDraftDirty = false
-    this.setData({ chatText, chatCount: chatText.length, chatInputFocused: false })
+    this.setData({
+      chatText,
+      chatCount: chatText.length,
+      chatInputFocused: false,
+      chatKeyboardHeight: 0,
+      chatComposerStyle: ''
+    }, () => {
+      this.scheduleChatViewportSync()
+      this.scheduleChatBottomScroll()
+    })
     this.persistDraft('chat', { chatText })
   },
   onExactInput(event: any) {
@@ -582,7 +605,7 @@ Page({
       const noticeRect = rects?.[0]
       const composerRect = rects?.[1]
       const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(noticeRect?.bottom || 0) - 12)
-      if (availableHeight < 240) return
+      if (availableHeight < 120) return
       const nextStyle = `height:${availableHeight}px;`
       if (nextStyle !== this.data.messagesScrollStyle) {
         this.setData({ messagesScrollStyle: nextStyle })

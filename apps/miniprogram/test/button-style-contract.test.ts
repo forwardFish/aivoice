@@ -20,7 +20,10 @@ test('button families share color tokens without forcing page-specific geometry'
   assert.match(appStyle, /\.primary-button\s*\{[^}]*var\(--action-primary-start\)[^}]*var\(--action-primary-end\)/s)
   assert.match(appStyle, /\.secondary-button\s*\{[^}]*var\(--action-secondary-text\)[^}]*var\(--action-secondary-bg\)/s)
   assert.match(componentStyle, /\.is-primary[^}]*var\(--action-primary-start/)
-  assert.match(loginStyle, /\.wechat-login-button[^}]*width:590rpx[^}]*height:120rpx[^}]*var\(--action-primary-start\)/s)
+  assert.match(
+    loginStyle,
+    /\.wechat-login-button\s*\{[^}]*width:\s*100%\s*!important[^}]*min-height:\s*112rpx[^}]*#31d34d[^}]*#20c243/s
+  )
   assert.match(progressStyle, /\.leave-button[^}]*width:\s*100%[^}]*min-height:\s*96rpx[^}]*var\(--action-primary-start\)/s)
   const sendButtonBlock = workbenchStyle.match(/\.send-button\s*\{([^}]*)\}/s)?.[1] || ''
   const sendButtonMinWidth = Number(sendButtonBlock.match(/min-width:\s*(\d+)rpx/)?.[1] || 0)

@@ -3,18 +3,14 @@
 .state-action-stack { padding: 0 30rpx 30rpx; display: flex; flex-direction: column; gap: 16rpx; }
 
 .processing-content { padding: 58rpx 36rpx 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.process-visual { width: 360rpx; height: 360rpx; margin-top: 18rpx; margin-bottom: 66rpx; position: relative; display: flex; align-items: center; justify-content: center; }
-.orbit { position: absolute; border-radius: 50%; border: 1rpx solid rgba(132,113,241,.20); }
-.orbit-outer { width: 350rpx; height: 350rpx; animation: pulse-soft 2.5s ease-in-out infinite; }
-.orbit-middle { width: 290rpx; height: 290rpx; border-color: rgba(132,113,241,.27); box-shadow: 0 0 50rpx rgba(132,113,241,.12); }
-.sound-orb { width: 220rpx; height: 220rpx; position: relative; z-index: 3; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 20%,rgba(255,255,255,.94),rgba(221,213,255,.92) 30%,#9178f2 70%,#6453e8); border: 3rpx solid rgba(255,255,255,.72); box-shadow: 0 29rpx 61rpx rgba(101,82,245,.27), inset 0 4rpx 0 rgba(255,255,255,.57); }
-.sound-wave-image { width:150rpx; height:82rpx; position:relative; z-index:2; }
-.progress-badge { min-width: 166rpx; height: 82rpx; padding: 0 22rpx; position: absolute; z-index: 4; right: 50%; bottom: -28rpx; display: flex; align-items: baseline; justify-content: center; color: #6552f5; background: rgba(255,255,255,.96); border: 1rpx solid rgba(214,206,255,.92); border-radius: 999rpx; box-shadow: 0 18rpx 36rpx rgba(88,72,193,.14); transform:translateX(50%); }
-.progress-number { font-size: 56rpx; font-weight: 760; }
-.progress-unit { margin-left: 4rpx; font-size: 30rpx; font-weight: 700; }
-.spark { position: absolute; z-index: 4; border-radius: 50%; background: #fff; box-shadow: 0 0 17rpx rgba(255,224,151,.94); }
-.spark-a { width: 9rpx; height: 9rpx; top: 47rpx; left: 43rpx; }
-.spark-b { width: 7rpx; height: 7rpx; top: 71rpx; right: 28rpx; }
+.process-visual { width: 360rpx; height: 326rpx; margin-top: 22rpx; margin-bottom: 46rpx; position: relative; display: flex; align-items: center; justify-content: center; }
+.orbit { position: absolute; border-radius: 50%; }
+.orbit-outer { width: 344rpx; height: 344rpx; border: 1rpx solid rgba(132, 113, 241, 0.17); }
+.orbit-middle { width: 282rpx; height: 282rpx; border: 1rpx solid rgba(132, 113, 241, 0.22); box-shadow: 0 0 46rpx rgba(132, 113, 241, 0.10); }
+.processing-spinner { width: 318rpx; height: 318rpx; position: absolute; z-index: 2; border: 3rpx solid rgba(128, 110, 236, 0.07); border-top-color: rgba(124, 103, 240, 0.66); border-right-color: rgba(177, 164, 255, 0.36); border-radius: 50%; display: flex; align-items: flex-start; justify-content: center; animation: processing-orbit-spin 3s linear infinite; }
+.processing-spinner-dot { width: 16rpx; height: 16rpx; margin-top: -7rpx; border-radius: 50%; background: linear-gradient(135deg, #ffffff, #e6deff 62%, #9b82f4); box-shadow: 0 0 16rpx rgba(118, 96, 236, 0.44); }
+.sound-orb { width: 220rpx; height: 220rpx; position: relative; z-index: 3; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.96), rgba(221, 213, 255, 0.92) 28%, #9178f2 68%, #6453e8); border: 3rpx solid rgba(255, 255, 255, 0.76); box-shadow: 0 29rpx 61rpx rgba(101, 82, 245, 0.24), inset 0 4rpx 0 rgba(255, 255, 255, 0.60); }
+.sound-wave-image { width: 150rpx; height: 82rpx; position: relative; z-index: 2; }
 
 .processing-kicker { display: block; color: #7f72dc; font-size: 24rpx; line-height: 1.4; font-weight: 700; letter-spacing: 4rpx; }
 .processing-title { display: block; margin-top: 12rpx; color: #11172d; font-size: 50rpx; line-height: 1.22; font-weight: 780; letter-spacing: -1rpx; }
@@ -28,7 +24,7 @@
 .stage-icon { flex: 0 0 auto; width: 46rpx; height: 46rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: #f0eff5; border: 3rpx solid #d9d9e5; font-size: 20rpx; font-weight: 700; }
 .stage-row.is-done .stage-icon { border-color: #6552f5; background: linear-gradient(135deg,#6552f5,#9670f5); }
 .stage-row.is-active .stage-icon { border-color: #8b72f2; background: #fff; box-shadow: 0 0 0 6rpx rgba(101,82,245,.07); }
-.stage-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #7865ef; box-shadow: 0 0 11rpx rgba(101,82,245,.48); animation: pulse-soft 1.2s ease-in-out infinite; }
+.stage-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #7865ef; box-shadow: 0 0 11rpx rgba(101,82,245,.48); }
 .stage-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
 .stage-label { color: #8c91a4; font-size: 29rpx; line-height: 1.4; }
 .stage-state { flex: 0 0 auto; min-width: 88rpx; padding: 9rpx 14rpx; border-radius: 999rpx; color: #9aa2b7; background: #f5f6fb; font-size: 20rpx; font-weight: 650; text-align: center; }
@@ -43,13 +39,12 @@
 
 @media (max-height: 740px) {
   .processing-content { padding-top: 22rpx; }
-  .process-visual { width: 320rpx; height: 320rpx; margin-top:14rpx; margin-bottom:54rpx; }
-  .orbit-outer { width: 310rpx; height: 310rpx; }
-  .orbit-middle { width: 258rpx; height: 258rpx; }
+  .process-visual { width: 324rpx; height: 292rpx; margin-top: 16rpx; margin-bottom: 38rpx; }
+  .orbit-outer { width: 306rpx; height: 306rpx; }
+  .orbit-middle { width: 252rpx; height: 252rpx; }
+  .processing-spinner { width: 284rpx; height: 284rpx; }
   .sound-orb { width: 190rpx; height: 190rpx; }
-  .progress-badge { min-width: 142rpx; height: 68rpx; bottom: -22rpx; }
-  .progress-number { font-size: 44rpx; }
-  .progress-unit { font-size: 24rpx; }
+  .sound-wave-image { width: 130rpx; height: 72rpx; }
   .processing-kicker { font-size: 22rpx; }
   .processing-title { font-size: 42rpx; }
   .processing-subtitle { font-size: 28rpx; }
@@ -59,4 +54,9 @@
   .stage-label { font-size: 26rpx; }
   .time-note { margin-top: 14rpx; font-size: 24rpx; }
   .leave-button { margin-top: 12rpx; }
+}
+
+@keyframes processing-orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

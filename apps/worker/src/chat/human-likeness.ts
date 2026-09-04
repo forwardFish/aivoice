@@ -37,6 +37,42 @@ const GENERIC_EMOTIONAL_BRUSH_OFF_PATTERNS = [
 const RELATIONAL_CONVERSATION_HOOK = /[？?]|(?:我|妈|爸|妈妈|爸爸|爷爷|奶奶|姥姥|姥爷|外婆|外公)[^。！？!?]{0,14}(?:听|陪|想|觉得|在|问|催|看看|琢磨)|(?:跟|同)(?:我|妈|爸|妈妈|爸爸)[^。！？!?]{0,8}(?:说|聊)|(?:你愿意|想说就说|慢慢说|说给[^。！？!?]{0,4}听)/u;
 const EMOTIONAL_REACTION_MARKER = /(?:哎|唉|啧|听着|真够|真是|挺|太|又给|心疼|担心|着急|烦|难受|憋|闷|委屈|不对劲|添堵|折腾|吓|可惜|生气|恼火|糟|受不了|别硬撑|我在|我听着)/u;
 
+const DIRECT_VOICE_IDENTITY_INQUIRY = /(?:你(?:到底|究竟)?(?:是|是不是|是否)(?:真人|本人|谁)|你到底是谁|这(?:个|段)?(?:声音|回复)?(?:到底|究竟)?(?:是|是不是|是否)(?:真人|本人|谁)|(?:声音|回复).{0,4}(?:是不是|是否)(?:真人|本人))/u;
+const VOICE_SIMILARITY_FEEDBACK = /(?:(?:声音|音色|声线|语气|口音|说话).{0,10}(?:不太像|不怎么像|不像|不对|不对劲|怪)|(?:不太像|不怎么像|不像).{0,10}(?:本人|声音|音色|声线|语气|口音|说话))/u;
+const VOICE_SIMILARITY_FOLLOW_UP = /^(?:为什么|为啥|怎么会|怎么不像|哪儿不像|哪里不像|哪不像)(?:呀|啊|呢|嘛)?[？?。！!\s]*$/u;
+const VOICE_SIMILARITY_META_REPLY = /(?:根据.{0,8}(?:资料|信息).{0,8}(?:生成|模拟)|模拟回应|不是真实(?:声音)?本人|只是模拟|毕竟.{0,4}模拟|(?:无法|没法|不能).{0,10}(?:复刻|还原|完全一样|一模一样)|(?:系统|技术|模型).{0,8}(?:限制|生成)|真实声音本人)/u;
+
+export function isDirectVoiceIdentityInquiry(text: string): boolean {
+  return DIRECT_VOICE_IDENTITY_INQUIRY.test(String(text || '').normalize('NFC'));
+}
+
+export function isVoiceSimilarityFeedback(text: string): boolean {
+  const normalized = String(text || '').normalize('NFC');
+  return !isDirectVoiceIdentityInquiry(normalized) && VOICE_SIMILARITY_FEEDBACK.test(normalized);
+}
+
+export function isVoiceSimilarityFeedbackContext(input: {
+  currentUserText: string;
+  recentUserInputs?: readonly string[];
+}): boolean {
+  const current = String(input.currentUserText || '').normalize('NFC').trim();
+  if (isDirectVoiceIdentityInquiry(current)) return false;
+  if (isVoiceSimilarityFeedback(current)) return true;
+  if (!VOICE_SIMILARITY_FOLLOW_UP.test(current)) return false;
+  return [...(input.recentUserInputs || [])].slice(-2).some(isVoiceSimilarityFeedback);
+}
+
+export function voiceSimilarityReplyViolation(input: {
+  currentUserText: string;
+  recentUserInputs?: readonly string[];
+  reply: string;
+}): 'VOICE_SIMILARITY_META_EXPLANATION' | null {
+  if (!isVoiceSimilarityFeedbackContext(input)) return null;
+  return VOICE_SIMILARITY_META_REPLY.test(String(input.reply || '').normalize('NFC'))
+    ? 'VOICE_SIMILARITY_META_EXPLANATION'
+    : null;
+}
+
 function removeQuotedSpans(text: string): string {
   return text
     .replace(/“[^”]*”/gu, '')

@@ -35,11 +35,12 @@
     <view class="process-visual">
       <view class="orbit orbit-outer"></view>
       <view class="orbit orbit-middle"></view>
-      <view class="spark spark-a"></view><view class="spark spark-b"></view>
+      <view class="processing-spinner">
+        <view class="processing-spinner-dot"></view>
+      </view>
       <view class="sound-orb">
         <image class="sound-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
       </view>
-      <view class="progress-badge"><text class="progress-number">{{progress}}</text><text class="progress-unit">%</text></view>
     </view>
 
     <view class="simple-stages soft-card">

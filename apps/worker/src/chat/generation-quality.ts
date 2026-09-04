@@ -7,6 +7,7 @@ import {
   normalizeExplicitPreferenceSubject,
   sanitizeSelfUnsupportedPersonalHistory,
   sanitizeUnsupportedPresentSceneClaims,
+  voiceSimilarityReplyViolation,
 } from './human-likeness.js';
 import {
   buildInteractionStateCandidateFromMinimal,
@@ -126,6 +127,11 @@ export function evaluateCharacterGenerationQuality(input: {
     subjectBackground: input.subjectBackground,
     recentCharacterReplies: input.recentCharacterReplies,
   }) ? 'SPEAKER_FACT_OWNERSHIP_VIOLATION' : null;
+  const voiceSimilarityViolation = voiceSimilarityReplyViolation({
+    currentUserText: input.currentUserText,
+    recentUserInputs: input.recentUserInputs,
+    reply: outputText,
+  });
   const humanSignals = assessHumanLikenessSignals(outputText, [...input.recentCharacterReplies], input.currentUserText);
   const qualitySignals = [
     ...humanSignals,
@@ -135,6 +141,7 @@ export function evaluateCharacterGenerationQuality(input: {
     ...(presentSceneSanitization.removed ? ['UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED'] : []),
     ...(personalityViolation ? [personalityViolation] : []),
     ...(boundaryReopenViolation ? [boundaryReopenViolation] : []),
+    ...(voiceSimilarityViolation ? [voiceSimilarityViolation] : []),
     ...questionIssues,
   ];
   const retryReasons = [
@@ -146,6 +153,7 @@ export function evaluateCharacterGenerationQuality(input: {
     identityViolation,
     relationshipViolation,
     ownershipViolation,
+    voiceSimilarityViolation,
     selfHistorySanitization.removed ? 'SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED' : null,
     presentSceneSanitization.removed ? 'UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED' : null,
     ...humanSignals.filter((signal) => RETRYABLE_HUMAN_SIGNALS.has(signal)),
@@ -176,6 +184,7 @@ const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   PURE_ACKNOWLEDGEMENT: '上一版只有敷衍确认。重写时加入人物自己的具体反应或一个自然推进。',
   GENERIC_EMOTIONAL_BRUSH_OFF: '上一版用“先休息、别急、慢慢来、想不通也正常”一类万能安慰把话题封住了。重写时接住用户已经递出的话头：先给一个符合人物关系和说话习惯、能听出当下感情色彩的具体反应；若本轮允许提问，再问一个低压力、开放且只索取一项信息的问题；若不允许提问，就表达人物自己的判断、在场感或可继续说下去的回应。不要只是把同一句安慰拉长，不要统一改成煽情的温柔陪伴，也不要补写用户没说过的事实。',
   FLAT_EMOTIONAL_QUESTION: '上一版只把问题抛回给用户，没有让人物先产生任何可听见的反应。重写时先用符合人物关系和说话习惯的一小句表达当下的心疼、着急、好奇、不平、惊讶或克制在意，再问一个开放且只索取一项信息的问题；不要自造“是A还是B”的选择题，不要变成咨询师套话。',
+  VOICE_SIMILARITY_META_EXPLANATION: '用户说“声音不像、音色不像、语气不像”是在吐槽呈现效果，不是身份询问。上一版跳出人物解释了模拟原理。重写时继续以人物身份接话；本人关系优先用轻微自嘲、挑剔、调侃或不服气回应，可以顺势问一句最不像哪里，但不得解释模拟原理，不得提“模拟回应、不是真实声音本人、模型、系统、技术限制或无法复刻”。',
   GENERIC_REPAIR_STAGE_PHRASE: '上一版直接用“翻篇、没事、不生气了”等词汇汇报修复阶段。保持人物已开始缓和，但要通过减少攻击、恢复普通交流、轻微调侃、小要求或具体选择表现变化，不要宣布阶段结束。',
   REPEATED_SAME_GRIEVANCE: '上一版重复了人物上一轮已经说过的同一项指责和边界。直接回应用户本轮新增的辩解或信息，保留立场但不要再次复述等待、晚告知或下次提醒；增加一个新的个人判断或当前选择。',
   REPEATED_EXPLICIT_CONFLICT_EMOTION: '上一版与上一轮连续使用同一个显式情绪词证明人物还在生气。情绪可以继续存在，但本轮必须回应用户新增的辩解、否认或压制动作；用新的个人判断、迟疑、让步或关系动作表现，不再重复同一个情绪名词。',

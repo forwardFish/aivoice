@@ -107,17 +107,21 @@ test('workbench moves voice name and points into app nav only after success', ()
   assert.match(markup, /title="\{\{state === 'success' \? voiceName : ''\}\}"/)
   assert.match(markup, /subtitle="\{\{state === 'success' \? pointsText : ''\}\}"/)
   assert.match(markup, /rightText="\{\{state === 'success' \? '声音设置' : ''\}\}"/)
+  assert.match(markup, /fixed="\{\{state === 'success' && mode === 'chat'\}\}"/)
   assert.match(markup, /bindrighttap="openSettings"/)
   assert.doesNotMatch(markup, /workbench-hero|hero-title|hero-quota/)
   assert.doesNotMatch(markup, /生成音频会明确显示“AI生成”标识/)
   assert.match(markup, /tag="AI生成"/)
+  assert.match(style, /\.workbench-screen\s*\{[^}]*height:\s*100vh[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/s)
+  assert.match(style, /\.workbench-content\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0[^}]*display:\s*flex[^}]*flex-direction:\s*column/s)
+  assert.match(style, /\.segment-control-shell\s*\{[^}]*flex:\s*0 0 auto[^}]*z-index:\s*5/s)
   assert.match(style, /\.segment-control\s*\{[^}]*width:\s*540rpx[^}]*max-width:\s*calc\(100% - 104rpx\)[^}]*margin:\s*16rpx auto 0[^}]*padding:\s*7rpx[^}]*border-radius:\s*23rpx/s)
   assert.match(style, /\.segment-item\s*\{[^}]*height:\s*78rpx[^}]*border-radius:\s*18rpx[^}]*font-size:\s*29rpx[^}]*text-align:\s*center/s)
-  assert.match(style, /\.chat-panel\s*\{[^}]*min-height:\s*0/s)
-  assert.match(style, /\.messages-scroll\s*\{[^}]*min-height:\s*320rpx[^}]*margin-top:\s*12rpx/s)
+  assert.match(style, /\.chat-panel\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0[^}]*overflow:\s*hidden/s)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*width:\s*100%[^}]*min-height:\s*320rpx[^}]*margin-top:\s*12rpx[^}]*padding:\s*24rpx 30rpx calc\(188rpx \+ env\(safe-area-inset-bottom\)\)/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-control\s*\{[^}]*margin-top:\s*8rpx/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-item\s*\{[^}]*height:\s*74rpx[^}]*font-size:\s*28rpx/s)
-  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.messages-scroll\s*\{[^}]*min-height:\s*300rpx[^}]*margin-top:\s*10rpx/s)
+  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.messages-scroll\s*\{[^}]*min-height:\s*300rpx[^}]*margin-top:\s*10rpx[^}]*padding-bottom:\s*calc\(172rpx \+ env\(safe-area-inset-bottom\)\)/s)
   assert.match(source, /openSettings\(\)\s*\{[\s\S]*\/pages\/voice\/settings\?voiceId=/)
 })
 
@@ -192,6 +196,20 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(playerMarkup, /durationOnly \? durationLabel : currentText/)
 })
 
+test('chat mode keeps nav and top chrome outside the scrolling message list while exact mode keeps its own scroll container', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+
+  assert.match(markup, /<view wx:else class="workbench-content \{\{mode === 'chat' \? 'chat-workbench-content' : 'exact-workbench-content'\}\}">/)
+  assert.match(markup, /<view class="segment-control-shell">[\s\S]*class="segment-control"/)
+  assert.match(markup, /<view class="segment-control-shell">[\s\S]*wx:if="\{\{mode === 'chat'\}\}" class="ai-notice"/)
+  assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll"/)
+  assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*class="segment-control"/)
+  assert.match(markup, /<scroll-view wx:else class="exact-scroll" scroll-y="\{\{true\}\}" enhanced="\{\{true\}\}" show-scrollbar="\{\{false\}\}">[\s\S]*class="exact-panel"/)
+  assert.match(style, /\.chat-workbench-content,\s*\.exact-workbench-content\s*\{[^}]*overflow:\s*hidden/s)
+  assert.match(style, /\.exact-scroll\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0[^}]*width:\s*100%/s)
+})
+
 test('chat composer keeps the native single-line input stable while typing', async () => {
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
   const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
@@ -210,6 +228,7 @@ test('chat composer keeps the native single-line input stable while typing', asy
   await import('../pages/voice/workbench?case=stable-composer')
   assert.ok(pageDefinition)
   assert.match(markup, /<input[\s\S]*class="composer-input"/)
+  assert.match(markup, /class="chat-composer-shell" style="\{\{chatComposerStyle\}\}"/)
   assert.match(markup, /class="composer-input-shell"[\s\S]*<input/)
   assert.doesNotMatch(markup, /composer-leading|composer-leading-icon|mic-mode\.png/)
   assert.match(markup, /placeholder-class="composer-input-placeholder"/)
@@ -217,11 +236,15 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.match(markup, /hold-keyboard="\{\{true\}\}"/)
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
+  assert.match(markup, /bindkeyboardheightchange="onChatKeyboardHeightChange"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
   assert.match(style, /\.chat-composer\s*\{[^}]*min-height:\s*108rpx[^}]*padding:\s*12rpx 12rpx 12rpx 16rpx/s)
   assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*80rpx[^}]*padding:\s*0 24rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
   assert.match(style, /\.composer-input\s*\{[^}]*width:\s*100%[^}]*height:\s*80rpx[^}]*padding:\s*0[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
   assert.match(style, /\.composer-input-placeholder\s*\{[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
+  assert.match(source, /chatKeyboardHeight:\s*0,\s*chatComposerStyle:\s*''/)
+  assert.match(source, /onChatKeyboardHeightChange\(event: any\)\s*\{/)
+  assert.match(source, /const chatComposerStyle = keyboardHeight > 0 \? `bottom:\$\{keyboardHeight\}px;` : ''/)
   assert.match(source, /message_delivery_timing/)
   assert.match(source, /idempotencyMs[\s\S]*submitRequestMs[\s\S]*pollCount[\s\S]*pollRequestMs[\s\S]*firstTextMs[\s\S]*totalMs/)
   assert.match(source, /waitingForBackendAndPollMs[\s\S]*overThreeSecondTarget/)
@@ -246,6 +269,54 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.equal(instance.data.chatInputFocused, false)
   assert.equal(instance.data.chatText, '今天不开心')
   assert.equal(renderCount, 2)
+})
+
+test('chat composer follows keyboard height and keeps viewport sync on keyboard open and close', async () => {
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => '',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined,
+    showToast: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=keyboard-follow')
+  assert.ok(pageDefinition)
+  let viewportSyncCount = 0
+  let bottomScrollCount = 0
+  const instance: any = {
+    ...pageDefinition,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      state: 'success',
+      mode: 'chat',
+      bottomAnchorId: 'chat-bottom-9'
+    },
+    setData(patch: Record<string, unknown>, callback?: () => void) {
+      Object.assign(this.data, patch)
+      callback?.()
+    },
+    scheduleChatViewportSync() { viewportSyncCount += 1 },
+    scheduleChatBottomScroll() { bottomScrollCount += 1 }
+  }
+
+  instance.onChatFocus()
+  instance.onChatKeyboardHeightChange({ detail: { height: 336.8 } })
+  assert.equal(instance.data.chatInputFocused, true)
+  assert.equal(instance.data.chatKeyboardHeight, 336)
+  assert.equal(instance.data.chatComposerStyle, 'bottom:336px;')
+
+  instance.onChatKeyboardHeightChange({ detail: { keyboardHeight: 0 } })
+  assert.equal(instance.data.chatKeyboardHeight, 0)
+  assert.equal(instance.data.chatComposerStyle, '')
+
+  instance.onChatBlur()
+  assert.equal(instance.data.chatInputFocused, false)
+  assert.ok(viewportSyncCount >= 3)
+  assert.ok(bottomScrollCount >= 3)
 })
 
 test('non-ready exact results never present themselves as generated audio', () => {
