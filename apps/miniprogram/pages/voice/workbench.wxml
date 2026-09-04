@@ -17,30 +17,7 @@
   </view>
 
   <view wx:else class="workbench-content">
-    <view wx:if="{{showModeChooser}}" class="mode-chooser">
-      <text class="chooser-title">想用 TA 的声音做什么？</text>
-      <text class="chooser-subtitle">选择一种模式开始体验</text>
-
-      <view class="mode-card chat-mode" data-mode="chat" bindtap="selectMode">
-        <view class="mode-copy">
-          <text class="mode-title">对话模式</text>
-          <text class="mode-description">和 TA 自由聊天，获得 AI 生成的声音回复</text>
-        </view>
-        <view class="chat-visual"><text class="chat-dot"></text><text class="chat-dot"></text><text class="chat-dot"></text></view>
-      </view>
-
-      <view class="mode-card exact-mode" data-mode="exact" bindtap="selectMode">
-        <view class="mode-copy">
-          <text class="mode-title warm">说一句模式</text>
-          <text class="mode-description">输入精确文字，让这个声音原样朗读</text>
-        </view>
-        <view class="mic-visual"><view class="mic-core"></view></view>
-      </view>
-
-      <text class="chooser-note">对话和“说一句”共用账户积分。</text>
-    </view>
-
-    <view wx:else>
+    <view>
       <view class="segment-control">
         <view class="segment-item {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话</view>
         <view class="segment-item {{mode === 'exact' ? 'active warm' : ''}}" data-mode="exact" bindtap="switchMode">说一句</view>
@@ -48,7 +25,15 @@
 
       <view wx:if="{{mode === 'chat'}}" class="chat-panel">
         <view class="ai-notice">AI 生成内容不代表声音本人真实表达</view>
-        <scroll-view class="messages-scroll" scroll-y="{{true}}" scroll-into-view="{{scrollTarget}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <scroll-view
+          class="messages-scroll"
+          style="{{messagesScrollStyle}}"
+          scroll-y="{{true}}"
+          scroll-top="{{chatScrollTop}}"
+          scroll-into-view="{{scrollTarget}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+        >
           <view wx:if="{{chatMessages.length === 0 && !sending}}" class="chat-empty">
             <view class="assistant-avatar-shell">
               <view class="assistant-avatar {{voiceAvatar ? 'has-image' : ''}}">
@@ -142,13 +127,11 @@
             </view>
           </block>
           <view class="scroll-spacer"></view>
+          <view wx:if="{{bottomAnchorId}}" id="{{bottomAnchorId}}" class="scroll-bottom-anchor"></view>
         </scroll-view>
 
         <view class="chat-composer-shell">
           <view class="chat-composer">
-            <view class="composer-leading" aria-label="语音输入入口">
-              <image class="composer-leading-icon" src="/assets/ui/mic-mode.png" mode="aspectFit"></image>
-            </view>
             <view class="composer-input-shell">
               <input
                 class="composer-input"

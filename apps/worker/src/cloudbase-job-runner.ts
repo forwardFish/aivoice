@@ -15,7 +15,7 @@ import { VoiceGenerationCoordinator } from './voice-generation-coordinator.js';
 import type { GeneratedVoiceCandidate } from './voice-generation-strategy.js';
 import { voiceCompanionBudgetPolicy } from './voice-companion-budget.js';
 import { embedAigcMetadata } from './media/aigc.js';
-import { extractReference, probeWav } from './media/ffmpeg.js';
+import { extractReference, extractSpeakerCheckAudio, probeWav } from './media/ffmpeg.js';
 import { inspectReferenceQuality, inspectSentenceFinalProsody, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
 import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
@@ -68,6 +68,25 @@ interface JobRow {
   payload: Record<string, unknown>;
 }
 
+interface VoiceProcessInput {
+  jobId: string;
+  userId: string;
+  voiceId: string;
+  clipStartMs: number | null;
+  clipEndMs: number | null;
+  sourceMediaId: string;
+  sourceObjectKey: string;
+  sourceMimeType: string;
+  ageYears: number | null;
+  gender: 'FEMALE' | 'MALE' | null;
+  userAgeYears: number | null;
+  relationshipType: VoiceRelationshipType | null;
+  existingProviderVoiceIdEncrypted: string | null;
+  existingProviderStatus: string | null;
+  sourceSpeakerCheckPassed?: boolean;
+  sourceSpeakerCheckReport?: Record<string, unknown> | null;
+}
+
 export interface CloudBaseWorkerDependencies {
   runtime?: CloudBaseRuntimeClient;
   voiceProvider?: VoiceProviderPort;
@@ -104,6 +123,12 @@ async function sha256(filePath: string): Promise<string> {
   const hash = crypto.createHash('sha256');
   for await (const chunk of createReadStream(filePath)) hash.update(chunk as Buffer);
   return hash.digest('hex');
+}
+
+class SourceSpeakerRejectedHandledError extends Error {
+  constructor(readonly code: string) {
+    super(code);
+  }
 }
 
 function slowestStage(stages: Record<string, number>): { slowestStage: string; slowestStageMs: number } {
@@ -180,29 +205,84 @@ export class CloudBaseJobRunner {
     }
   }
 
+  private sourceSpeakerCheckReport(report: SpeakerDiarizationReport, sourceMediaId: string): Record<string, unknown> {
+    return {
+      provider: this.speakerDetector.providerName || 'unknown',
+      model: report.model,
+      sourceMediaId,
+      speakerCount: report.speakerCount,
+      segmentCount: report.segmentCount,
+      speechMs: report.speechMs,
+      overlapMs: report.overlapMs,
+      overlapRatio: report.overlapRatio,
+      acceptable: report.acceptable,
+      failureCode: report.failureCode || '',
+      checkedAt: new Date().toISOString(),
+    };
+  }
+
+  private sourceSpeakerFailureMessage(code: string): string {
+    if (code === 'OVERLAPPING_SPEECH') return '检测到多人同时说话，请重新上传只有 TA 一人说话的视频。';
+    if (code === 'SPEAKER_UNCERTAIN') return '无法确认视频中只有一个说话人，请重新上传声音更清晰的单人视频。';
+    return '检测到多个说话人，请重新上传只有 TA 一人说话的视频。';
+  }
+
+  private async checkSourceSpeakers(job: JobRow, input: VoiceProcessInput, workDir: string): Promise<void> {
+    const sourcePath = path.join(workDir, 'source-video');
+    const checkAudioPath = path.join(workDir, 'source-speaker-check.wav');
+    await this.download(this.sourceBucket, input.sourceObjectKey, sourcePath);
+    await extractSpeakerCheckAudio({ videoPath: sourcePath, outputPath: checkAudioPath });
+    const checkObjectKey = `quality/source-check/${input.userId}/${job.voiceProfileId}/${job.id}.wav`;
+    const checkStoredKey = await this.runtime.uploadFile(this.audioBucket, checkObjectKey, checkAudioPath, 'audio/wav');
+    try {
+      const checkUrl = await this.runtime.signDownload(this.audioBucket, checkStoredKey, 600);
+      const report = await this.speakerDetector.inspect(checkUrl);
+      const persistedReport = this.sourceSpeakerCheckReport(report, input.sourceMediaId);
+      if (!report.acceptable && report.failureCode) {
+        await this.deleteObject(this.sourceBucket, input.sourceObjectKey);
+        await this.runtime.rpc('rpc_voice_source_speaker_check_rejected', {
+          pJobId: job.id,
+          pWorkerId: this.workerId,
+          pVoiceId: input.voiceId,
+          pMediaId: input.sourceMediaId,
+          pErrorCode: report.failureCode,
+          pErrorMessage: this.sourceSpeakerFailureMessage(report.failureCode),
+          pReport: persistedReport,
+        });
+        throw new SourceSpeakerRejectedHandledError(report.failureCode);
+      }
+      await this.runtime.rpc('rpc_voice_source_speaker_check_passed', {
+        pJobId: job.id,
+        pWorkerId: this.workerId,
+        pVoiceId: input.voiceId,
+        pMediaId: input.sourceMediaId,
+        pReport: persistedReport,
+      });
+    } finally {
+      await this.deleteObject(this.audioBucket, checkStoredKey).catch((error) => {
+        console.error('source speaker check temporary object cleanup failed', error);
+      });
+    }
+  }
+
   private async processVoice(job: JobRow, workDir: string): Promise<void> {
     if (!job.voiceProfileId) throw new Error('PROCESS_VOICE job has no voice_profile_id');
-    await this.runtime.rpc('rpc_voice_processing_started', {
-      pJobId: job.id,
-      pVoiceId: job.voiceProfileId,
-      pWorkerId: this.workerId,
-    });
-    const input = one(await this.runtime.rpc<{
-      jobId: string;
-      userId: string;
-      voiceId: string;
-      clipStartMs: number | null;
-      clipEndMs: number | null;
-      sourceMediaId: string;
-      sourceObjectKey: string;
-      sourceMimeType: string;
-      ageYears: number | null;
-      gender: 'FEMALE' | 'MALE' | null;
-      userAgeYears: number | null;
-      relationshipType: VoiceRelationshipType | null;
-      existingProviderVoiceIdEncrypted: string | null;
-      existingProviderStatus: string | null;
-    } | Array<never>>('rpc_job_get_voice_input', { pJobId: job.id, pWorkerId: this.workerId }));
+    const sourceSpeakerCheck = String(job.payload.phase || '') === 'SOURCE_SPEAKER_CHECK';
+    if (!sourceSpeakerCheck) {
+      await this.runtime.rpc('rpc_voice_processing_started', {
+        pJobId: job.id,
+        pVoiceId: job.voiceProfileId,
+        pWorkerId: this.workerId,
+      });
+    }
+    const input = one(await this.runtime.rpc<VoiceProcessInput | Array<never>>(
+      'rpc_job_get_voice_input',
+      { pJobId: job.id, pWorkerId: this.workerId },
+    ));
+    if (sourceSpeakerCheck) {
+      await this.checkSourceSpeakers(job, input, workDir);
+      return;
+    }
     if (input.clipStartMs === null || input.clipEndMs === null) throw new Error('voice source or clip is missing');
 
     const sourcePath = path.join(workDir, 'source-video');
@@ -218,7 +298,7 @@ export class CloudBaseJobRunner {
     const quality = await inspectReferenceQuality(referencePath);
     if (!quality.acceptable && quality.failureCode) throw new ReferenceQualityError(quality.failureCode, quality);
     let qualityReport: ReferenceQualityReport = quality;
-    if (process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED !== 'false') {
+    if (!input.sourceSpeakerCheckPassed && process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED !== 'false') {
       const qualityObjectKey = `quality/${input.userId}/${job.voiceProfileId}/${job.id}.wav`;
       const qualityStoredKey = await this.runtime.uploadFile(this.audioBucket, qualityObjectKey, referencePath, 'audio/wav');
       try {
@@ -238,6 +318,8 @@ export class CloudBaseJobRunner {
           console.error('speaker diarization temporary object cleanup failed', error);
         });
       }
+    } else if (input.sourceSpeakerCheckReport) {
+      qualityReport = { ...quality, sourceSpeakerCheck: input.sourceSpeakerCheckReport } as ReferenceQualityReport;
     }
     const existingProviderVoiceId = input.existingProviderVoiceIdEncrypted
       ? decryptProviderId(input.existingProviderVoiceIdEncrypted)
@@ -784,6 +866,9 @@ export class CloudBaseJobRunner {
       await this.execute(job, workDir);
       return { jobId: job.id, status: 'SUCCEEDED' };
     } catch (error) {
+      if (error instanceof SourceSpeakerRejectedHandledError) {
+        return { jobId: job.id, status: 'FAILED' };
+      }
       if (error instanceof ContentBlockedError) {
         if (job.messageId) {
           await this.runtime.rpc('rpc_message_complete_blocked', {

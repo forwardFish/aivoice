@@ -190,7 +190,7 @@ Page({
   },
   onUserAgeInput(event: any) {
     const userAgeYears = String(event.detail.value || '').replace(/\D/g, '').slice(0, 3)
-    const parsed = Number(userAgeYears)
+    const parsed = userAgeYears ? Number(userAgeYears) : Number.NaN
     const userLifeStage = Number.isInteger(parsed) && parsed >= 0 && parsed <= 120
       ? parsed < 13 ? 'CHILD' : parsed < 18 ? 'TEEN' : parsed < 65 ? 'ADULT' : 'OLDER_ADULT'
       : ''
@@ -265,7 +265,12 @@ Page({
       toast('请填写你与 TA 的关系')
       return
     }
-    const userAgeYears = this.data.relationshipType === 'SELF' ? ageYears : Number(this.data.userAgeYears)
+    const userAgeText = String(this.data.userAgeYears || '').trim()
+    const userAgeYears = this.data.relationshipType === 'SELF'
+      ? ageYears
+      : userAgeText
+        ? Number(userAgeText)
+        : Number.NaN
     if (!Number.isInteger(userAgeYears) || userAgeYears < 0 || userAgeYears > 120) {
       toast('请填写你自己的准确年龄')
       return

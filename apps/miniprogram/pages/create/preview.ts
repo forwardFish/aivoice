@@ -146,7 +146,7 @@ Page({
       this.setData({ accepting: false })
       const nextPath = SHOW_PERSONALITY_GUIDE_AFTER_ACCEPT
         ? `/pages/create/personality-guide?voiceId=${encodeURIComponent(this.data.voiceId)}`
-        : `/pages/voice/workbench?voiceId=${encodeURIComponent(this.data.voiceId)}&choose=1`
+        : `/pages/voice/workbench?voiceId=${encodeURIComponent(this.data.voiceId)}&mode=chat`
       wx.redirectTo({ url: nextPath })
     } catch (error: any) {
       this.setData({ accepting: false, errorMessage: error.message || '暂时无法使用这个声音，请重试。' })

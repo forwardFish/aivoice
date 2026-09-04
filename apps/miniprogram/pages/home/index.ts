@@ -55,7 +55,7 @@ Page({
   },
   openVoice(event: any) {
     const voiceId = String(event.currentTarget.dataset.id || '')
-    if (voiceId) openWorkbench(voiceId)
+    if (voiceId) openWorkbench(voiceId, 'chat')
   },
   openVoiceMenu(event: any) {
     const voiceId = String(event.currentTarget.dataset.id || '')

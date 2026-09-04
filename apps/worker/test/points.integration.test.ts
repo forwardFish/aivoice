@@ -115,6 +115,17 @@ test('successful generation consumes points once while provider and disk failure
        VALUES ($1,$2,'fake','fake-model',$3,'READY','',NOW(),NOW())`,
       [crypto.randomUUID(), voiceId, encryptProviderId('provider-points-test')],
     );
+    const referenceObjectKey = path.join('reference', userId, voiceId, 'reference.wav').replaceAll('\\', '/');
+    const referencePath = path.resolve(mediaRoot, referenceObjectKey);
+    const referenceAudio = silentPcmWav();
+    await fs.mkdir(path.dirname(referencePath), { recursive: true });
+    await fs.writeFile(referencePath, referenceAudio);
+    await database.pool.query(
+      `INSERT INTO media_assets
+       (id,user_id,voice_profile_id,kind,status,object_key,mime_type,bytes,duration_ms,sha256,created_at,updated_at)
+       VALUES ($1,$2,$3,'REFERENCE_AUDIO','READY',$4,'audio/wav',$5,100,'reference-test-sha',NOW(),NOW())`,
+      [crypto.randomUUID(), userId, voiceId, referenceObjectKey, referenceAudio.length],
+    );
     await database.pool.query(
       `INSERT INTO conversations (id,voice_profile_id,created_at,updated_at)
        VALUES ($1,$2,NOW(),NOW())`,

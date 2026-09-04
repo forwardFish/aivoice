@@ -23,6 +23,8 @@
 .guide-title {
   display: block;
   margin-top: 12rpx;
+  color: #24314d;
+  font-weight: 680;
 }
 
 .guide-subtitle {
@@ -30,6 +32,7 @@
   max-width: 650rpx;
   margin-left: auto;
   margin-right: auto;
+  color: #7b849e;
 }
 
 .guide-card {
@@ -43,6 +46,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
+}
+
+.section-title {
+  color: #33405c;
+  font-weight: 620;
+}
+
+.section-caption {
+  color: #8b93ab;
+  font-weight: 560;
 }
 
 .trait-grid {
@@ -82,14 +95,15 @@
 }
 
 .trait-label {
-  color: #26304a;
+  color: #5f6f8d;
   font-size: 27rpx;
   line-height: 1.32;
-  font-weight: 620;
+  font-weight: 560;
 }
 
 .trait-chip.is-selected .trait-label {
   color: #5f50e6;
+  font-weight: 650;
 }
 
 .trait-check {
@@ -119,6 +133,8 @@
 
 .description-label {
   margin-bottom: 0;
+  color: #33405c;
+  font-weight: 620;
 }
 
 .description-optional {
@@ -199,7 +215,8 @@
 }
 
 .action-skip {
-  color: #11172d;
+  color: #7c79a8;
+  font-weight: 620;
   background: #ffffff;
   border: 1rpx solid rgba(224, 227, 238, 0.98);
   box-shadow: 0 14rpx 30rpx rgba(50, 56, 88, 0.06);

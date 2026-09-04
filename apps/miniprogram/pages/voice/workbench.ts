@@ -77,14 +77,13 @@ Page({
     errorMessage: '',
     voiceName: '这个声音',
     voiceInitial: '声',
-    voiceAvatar: '/assets/avatars/age-30-49-female.webp',
+    voiceAvatar: '/assets/avatars/age-30-49-female.png',
     userAvatar: '/assets/ui/user-outline.png',
     points: {
       availablePoints: 0
     } as PointsBalanceResponse,
     pointsText: '剩余 0 积分',
     mode: 'chat' as 'chat' | 'exact',
-    showModeChooser: false,
     messages: [] as any[],
     chatMessages: [] as any[],
     exactResults: [] as any[],
@@ -99,6 +98,9 @@ Page({
     pendingMode: '',
     generationStatusText: '',
     scrollTarget: '',
+    chatScrollTop: 0,
+    bottomAnchorId: '',
+    messagesScrollStyle: '',
     purchaseVisible: false,
     purchaseOption: null as PurchaseOption | null,
     paying: false,
@@ -107,6 +109,8 @@ Page({
   },
   onLoad(options: Record<string, string>) {
     this.destroyed = false
+    this.chatBottomSequence = 0
+    this.chatScrollPositionSequence = 0
     if (!ensureAuthenticated()) return
     const voiceId = String(options.voiceId || '')
     if (!voiceId) {
@@ -117,12 +121,10 @@ Page({
     const initialChatText = stored?.chatText || ''
     this.chatDraftText = initialChatText
     this.chatDraftDirty = false
-    const mode = options.mode === 'exact' ? 'exact' : stored?.mode || 'chat'
-    const showModeChooser = options.choose === '1'
+    const mode = options.mode === 'exact' ? 'exact' : 'chat'
     this.setData({
       voiceId,
       mode,
-      showModeChooser,
       chatText: initialChatText,
       exactText: stored?.exactText || '',
       chatCount: initialChatText.length,
@@ -133,12 +135,17 @@ Page({
   onShow() {
     if (this.data.voiceId && this.data.state === 'success' && !this.data.sending && !this.data.paymentPending) {
       this.loadData(false)
+    } else {
+      this.scheduleChatViewportSync()
     }
   },
   onUnload() {
     if (this.chatDraftDirty && this.data.voiceId) this.persistDraft('chat')
     this.finishGenerationTiming('CANCELLED')
     this.destroyed = true
+    if (this.chatViewportTimer) clearTimeout(this.chatViewportTimer)
+    if (this.chatBottomTimer) clearTimeout(this.chatBottomTimer)
+    if (this.chatBottomSettleTimer) clearTimeout(this.chatBottomSettleTimer)
     if (this.pollTimer) clearTimeout(this.pollTimer)
   },
   async loadData(showLoading = true) {
@@ -170,7 +177,8 @@ Page({
       const messages = conversation.messages.map(item => messageView(item, initial, replyFeedback[item.id]))
       const chatMessages = messages.filter(item => item.mode === 'CHAT')
       const exactResults = messages.filter(item => item.mode === 'EXACT_TTS' && item.isAssistant).reverse()
-      const scrollTarget = chatMessages.length ? `message-${chatMessages[chatMessages.length - 1].id}` : ''
+      this.chatBottomSequence = Number(this.chatBottomSequence || 0) + 1
+      const bottomAnchorId = `chat-bottom-${this.chatBottomSequence}`
       const userAvatar = await this.resolveUserAvatar()
       this.setData({
         state: 'success',
@@ -185,8 +193,11 @@ Page({
         messages,
         chatMessages,
         exactResults,
-        scrollTarget
+        bottomAnchorId,
+        scrollTarget: ''
       })
+      this.scheduleChatViewportSync()
+      this.scheduleChatBottomScroll(bottomAnchorId)
       const pendingOrderId = getPendingOrderId(this.data.voiceId)
       if (pendingOrderId && !this.data.paymentPending && !this.data.paying) {
         wx.navigateTo({
@@ -194,7 +205,7 @@ Page({
         })
       }
     } catch (error: any) {
-      this.setData({ state: 'error', errorMessage: error.message || '工作台加载失败，请重试。' })
+      this.setData({ state: 'error', errorMessage: error.message || '工作台加载失败，请重试。', messagesScrollStyle: '' })
     }
   },
   async resolveUserAvatar() {
@@ -206,18 +217,11 @@ Page({
       return /^cloud:\/\//i.test(source) ? '/assets/ui/user-outline.png' : source
     }
   },
-  selectMode(event: any) {
-    const mode = event.currentTarget.dataset.mode === 'exact' ? 'exact' : 'chat'
-    this.setData({ mode, showModeChooser: false })
-    this.persistDraft(mode)
-  },
   switchMode(event: any) {
     const mode = event.currentTarget.dataset.mode === 'exact' ? 'exact' : 'chat'
     this.setData({ mode })
     this.persistDraft(mode)
-  },
-  chooseAnotherMode() {
-    this.setData({ showModeChooser: true })
+    this.scheduleChatViewportSync()
   },
   onVoiceAvatarError() {
     if (!this.data.voiceAvatar) return
@@ -265,30 +269,8 @@ Page({
   markReplyDislike(event: any) {
     const messageId = String(event.currentTarget.dataset.messageId || '')
     if (!messageId) return
-    wx.showActionSheet({
-      itemList: DISLIKE_REASONS.map(item => item.label),
-      success: (result: { tapIndex: number }) => {
-        const reason = DISLIKE_REASONS[Number(result.tapIndex)]
-        if (!reason) return
-        if (reason.needsDetail) {
-          wx.showModal({
-            title: reason.label,
-            content: '可以补充一句具体差别，也可以直接记录。',
-            editable: true,
-            placeholderText: reason.code === 'TONE_NOT_LIKE' ? '例如：她生气时声音反而会更低' : '例如：她不会说“我理解你的感受”',
-            confirmText: '记录',
-            success: (modalResult: { confirm?: boolean; content?: string }) => {
-              if (!modalResult.confirm) return
-              this.saveReplyFeedback(messageId, 'DISLIKE', reason.code, String(modalResult.content || '').trim())
-              toast('已记录这次反馈')
-            }
-          })
-          return
-        }
-        this.saveReplyFeedback(messageId, 'DISLIKE', reason.code)
-        toast('已记录这次反馈')
-      }
-    })
+    this.saveReplyFeedback(messageId, 'DISLIKE')
+    toast('已标记为不像 TA')
   },
   saveReplyFeedback(messageId: string, verdict: 'LIKE' | 'DISLIKE', reason = '', detail = '') {
     setReplyFeedback(this.data.voiceId, messageId, { verdict, ...(reason ? { reason } : {}) })
@@ -330,14 +312,32 @@ Page({
       toast('“说一句”最多 50 个字符')
       return
     }
-    this.persistDraft(mode)
+    if (mode === 'chat') {
+      this.chatDraftText = ''
+      this.chatDraftDirty = false
+      this.chatBottomSequence = Number(this.chatBottomSequence || 0) + 1
+    }
+    const submittedBottomAnchorId = mode === 'chat' ? `chat-bottom-${this.chatBottomSequence}` : this.data.bottomAnchorId
+    this.persistDraft(mode, mode === 'chat' ? { chatText: '' } : {})
     this.setData({
+      ...(mode === 'chat' ? {
+        chatText: '',
+        chatCount: 0,
+        chatInputFocused: false,
+        bottomAnchorId: submittedBottomAnchorId,
+        scrollTarget: ''
+      } : {}),
       sending: true,
       errorMessage: '',
       pendingText: text,
       pendingReplyText: '',
       pendingMode: mode,
       generationStatusText: mode === 'chat' ? '正在生成 AI 回复…' : '正在生成 AI 语音…'
+    }, () => {
+      if (mode !== 'chat') return
+      this.setData({ scrollTarget: 'pending-assistant' })
+      this.scheduleChatViewportSync()
+      this.scheduleChatBottomScroll(submittedBottomAnchorId)
     })
     this.generationClientTiming = {
       startedAt: Date.now(),
@@ -363,12 +363,19 @@ Page({
       await this.pollMessage(accepted.messageId)
     } catch (error: any) {
       this.finishGenerationTiming('FAILED', error)
+      const restoredChatDraft = mode === 'chat' ? { chatText: text, chatCount: text.length } : {}
+      if (mode === 'chat') {
+        this.chatDraftText = text
+        this.chatDraftDirty = false
+        this.persistDraft('chat', { chatText: text })
+      }
       if (error instanceof ApiError && ['POINTS_EXHAUSTED', 'QUOTA_EXHAUSTED'].includes(error.code)) {
         if (!error.purchaseOption && !this.data.purchaseOption) {
-          this.setData({ sending: false, pendingText: '', pendingReplyText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
+          this.setData({ ...restoredChatDraft, sending: false, pendingText: '', pendingReplyText: '', pendingMode: '', errorMessage: '服务端未返回可购买商品，请稍后重试。' })
           return
         }
         this.setData({
+          ...restoredChatDraft,
           sending: false,
           pendingText: '',
           pendingReplyText: '',
@@ -380,6 +387,7 @@ Page({
         return
       }
       this.setData({
+        ...restoredChatDraft,
         sending: false,
         pendingText: '',
         pendingReplyText: '',
@@ -408,6 +416,7 @@ Page({
             generationStatusText: '声音生成中…',
             scrollTarget: 'pending-assistant'
           })
+          this.scheduleChatBottomScroll(this.data.bottomAnchorId)
         }
       }
       if (result.status === 'READY') {
@@ -438,6 +447,7 @@ Page({
           pendingMode: '',
           generationStatusText: ''
         })
+        this.scheduleChatViewportSync()
         this.finishGenerationTiming('READY')
         return
       }
@@ -461,6 +471,7 @@ Page({
           generationStatusText: '',
           errorMessage: ''
         })
+        this.scheduleChatViewportSync()
         this.finishGenerationTiming('FAILED', new Error('声音生成失败，文字回复已保留，本次未扣积分。'))
         toast('文字回复已保留，声音生成失败，本次未扣积分')
         return
@@ -523,5 +534,59 @@ Page({
     })
     if (!accepted) return
     wx.navigateTo({ url: `/pages/voice/settings?voiceId=${encodeURIComponent(this.data.voiceId)}&focus=conversation` })
+  },
+  scheduleChatViewportSync() {
+    if (this.chatViewportTimer) clearTimeout(this.chatViewportTimer)
+    if (this.data.state !== 'success' || this.data.mode !== 'chat') {
+      if (this.data.messagesScrollStyle) this.setData({ messagesScrollStyle: '' })
+      return
+    }
+    this.chatViewportTimer = setTimeout(() => {
+      this.chatViewportTimer = null
+      this.syncChatViewport()
+    }, 30)
+  },
+  scheduleChatBottomScroll(anchorId = this.data.bottomAnchorId) {
+    if (this.chatBottomTimer) clearTimeout(this.chatBottomTimer)
+    if (this.chatBottomSettleTimer) clearTimeout(this.chatBottomSettleTimer)
+    if (!anchorId || this.data.mode !== 'chat') return
+    const apply = () => {
+      if (this.destroyed || this.data.mode !== 'chat' || this.data.bottomAnchorId !== anchorId) return
+      this.chatScrollPositionSequence = Number(this.chatScrollPositionSequence || 0) + 1
+      const chatScrollTop = 1000000 + this.chatScrollPositionSequence
+      this.setData({ scrollTarget: '', chatScrollTop: 0 }, () => this.setData({ scrollTarget: anchorId, chatScrollTop }))
+    }
+    this.chatBottomTimer = setTimeout(() => {
+      this.chatBottomTimer = null
+      apply()
+    }, 80)
+    this.chatBottomSettleTimer = setTimeout(() => {
+      this.chatBottomSettleTimer = null
+      apply()
+    }, 650)
+  },
+  syncChatViewport() {
+    const getWindowInfo = (wx as any).getWindowInfo
+    const system = typeof getWindowInfo === 'function'
+      ? getWindowInfo.call(wx)
+      : typeof (wx as any).getSystemInfoSync === 'function'
+        ? (wx as any).getSystemInfoSync()
+        : null
+    const windowHeight = Number(system?.windowHeight || 0)
+    if (!windowHeight || typeof (wx as any).createSelectorQuery !== 'function') return
+    const query = (wx as any).createSelectorQuery().in(this)
+    query.select('.ai-notice').boundingClientRect()
+    query.select('.chat-composer-shell').boundingClientRect()
+    query.exec((rects: Array<{ bottom?: number; top?: number } | null>) => {
+      if (this.destroyed || this.data.mode !== 'chat') return
+      const noticeRect = rects?.[0]
+      const composerRect = rects?.[1]
+      const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(noticeRect?.bottom || 0) - 12)
+      if (availableHeight < 240) return
+      const nextStyle = `height:${availableHeight}px;`
+      if (nextStyle !== this.data.messagesScrollStyle) {
+        this.setData({ messagesScrollStyle: nextStyle })
+      }
+    })
   }
 })

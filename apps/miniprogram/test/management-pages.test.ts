@@ -10,15 +10,15 @@ test('voice settings contains no account balance or account points navigation', 
   assert.doesNotMatch(source, /\bgetPoints\b|\bavailablePoints\b|\bopenPurchasePage\b/)
 })
 
-test('account profile resolves and retries persistence for the selected WeChat avatar', () => {
+test('account profile keeps persistence support while the launch UI hides profile editing', () => {
   const markup = readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
   const source = readFileSync(new URL('../pages/account/index.ts', import.meta.url), 'utf8')
 
   assert.match(markup, /wx:if="\{\{avatarDisplayUrl\}\}"/)
   assert.match(markup, /src="\{\{avatarDisplayUrl\}\}"/)
   assert.match(markup, /binderror="onAvatarLoadError"/)
-  assert.match(markup, /bindtap="editAvatar"/)
-  assert.match(markup, /bindtap="editProfile"/)
+  assert.doesNotMatch(markup, /bindtap="editAvatar"/)
+  assert.doesNotMatch(markup, /bindtap="editProfile"/)
   assert.match(source, /const localUser = getUser\(\)/)
   assert.match(source, /persistProfileAvatar\(source\)/)
   assert.match(source, /updateMeProfile\(\{ avatarUrl \}\)/)
@@ -194,6 +194,67 @@ test('settings clear chat returns immediately when the confirmation is canceled'
   assert.equal(instance.data.clearing, false)
   assert.equal(instance.data.successMessage, '')
   assert.equal(instance.data.errorMessage, '')
+})
+
+test('voice settings groups stacked profile fields into separate containers', () => {
+  const wxml = readFileSync(new URL('../pages/voice/settings.wxml', import.meta.url), 'utf8')
+  const style = readFileSync(new URL('../pages/voice/settings.wxss', import.meta.url), 'utf8')
+
+  assert.match(
+    wxml,
+    /<view class="settings-profile-block">\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">TA 的年龄<\/text>[\s\S]*?<\/view>\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">TA 的性别<\/text>/,
+  )
+  assert.match(
+    wxml,
+    /<view wx:if="\{\{relationshipType !== 'SELF'\}\}" class="settings-profile-block">\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">TA 怎么称呼你<\/text>[\s\S]*?<\/view>\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">你的准确年龄<\/text>/,
+  )
+  assert.match(style, /\.settings-profile-field \+ \.settings-profile-field\s*\{[^}]*margin-top:\s*24rpx/s)
+  assert.match(wxml, /class="settings-profile-textarea-wrap"/)
+  assert.match(wxml, /class="settings-profile-textarea"/)
+  assert.match(wxml, /placeholder-class="settings-profile-textarea-placeholder"/)
+  assert.match(style, /\.settings-profile-textarea-wrap\s*\{[^}]*margin-top:\s*14rpx/s)
+  assert.match(style, /\.settings-profile-textarea\s*\{[^}]*min-height:\s*176rpx[^}]*box-sizing:\s*border-box[^}]*line-height:\s*1\.68/s)
+  assert.match(style, /\.settings-profile-textarea-placeholder\s*\{[^}]*font-size:\s*24rpx/s)
+})
+
+test('voice settings treats a blank user age as missing instead of zero years old', async () => {
+  let pageDefinition: any
+  const toastTitles: string[] = []
+  let requestCount = 0
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => 'test-token',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    showToast: ({ title }: { title: string }) => { toastTitles.push(title) },
+    request: () => { requestCount += 1; return {} },
+    navigateTo: () => undefined
+  }
+
+  await import('../pages/voice/settings?case=blank-user-age')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      voiceId: 'voice-child',
+      nameDraft: '小雨-3岁',
+      permissionType: 'MINOR',
+      relationshipType: 'CHILD',
+      relationshipOther: '',
+      ageYears: '3',
+      gender: 'FEMALE',
+      userAgeYears: '',
+      saving: false
+    },
+    setData(patch: Record<string, unknown>) { Object.assign(this.data, patch) }
+  }
+
+  await instance.saveName()
+
+  assert.equal(toastTitles.at(-1), '请填写你自己的准确年龄')
+  assert.equal(requestCount, 0)
 })
 
 test('settings remove voice stops after the first confirmation is canceled', async () => {

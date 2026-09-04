@@ -13,6 +13,7 @@ import { DatabaseService } from '../src/db/database.service.js';
 import { mediaAssets, orders, pointAccounts, voiceProfiles } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import { QuotaService } from '../src/quota/quota.service.js';
+import { loadPointsConfig } from '../src/quota/points.config.js';
 
 const execFileAsync = promisify(execFile);
 const hasDatabase = Boolean(process.env.DATABASE_URL);
@@ -31,6 +32,8 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
   process.env.NODE_ENV = 'test';
   process.env.PUBLIC_BASE_URL = 'http://127.0.0.1:8787';
   process.env.MEDIA_SIGNING_SECRET = 'http-flow-media-secret';
+  process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED = 'false';
+  const pointsConfig = loadPointsConfig();
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication();
   app.setGlobalPrefix('v1');
@@ -99,6 +102,9 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .attach('file', videoPath, { contentType: 'video/mp4' })
       .expect(201);
     assert.equal(upload.body.durationMs, 12_000);
+    const sourceCheck = await request(app.getHttpServer())
+      .post(`/v1/voices/${voiceId}/source-speaker-check`).set(auth).send({}).expect(201);
+    assert.equal(sourceCheck.body.status, 'DRAFT');
 
     await request(app.getHttpServer())
       .put(`/v1/voices/${voiceId}/clip`).set(auth).send({ startMs: 0, endMs: 10_000 }).expect(200);
@@ -139,7 +145,7 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       .post(`/v1/voices/${voiceId}/preview-played`).set(auth).send({}).expect(201);
     const accepted = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/accept-preview`).set(auth).send({}).expect(201);
-    assert.equal(accepted.body.paidQuotaRemaining, 10);
+    assert.equal(accepted.body.paidQuotaRemaining, pointsConfig.signupBonusPoints);
     const ledgers = await request(app.getHttpServer()).get('/v1/points/ledgers').set(auth).expect(200);
     assert.equal(ledgers.body.ledgers[0].type, 'REGISTER_GRANT');
 
@@ -183,7 +189,10 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       transactionId: 'http-flow-paid-transaction',
       paidAt: new Date(),
     });
-    assert.equal(paidQuota.paidQuotaRemaining, 59);
+    assert.equal(
+      paidQuota.paidQuotaRemaining,
+      pointsConfig.signupBonusPoints - pointsConfig.generationCost + pointsConfig.product.points,
+    );
     const chat = await request(app.getHttpServer())
       .post(`/v1/voices/${voiceId}/messages`)
       .set(auth).set('Idempotency-Key', 'http-flow-chat-1')
@@ -192,14 +201,14 @@ test('HTTP flow keeps the server authoritative from login through quota exhausti
       userId: login.body.user.id,
       voiceId,
       messageId: chat.body.messageId,
-      outputText: '这是由 AI 生成的简短回复。',
+      outputText: '今天过得很好，谢谢你惦记。',
     });
     const conversation = await request(app.getHttpServer())
       .get(`/v1/voices/${voiceId}/conversation`).set(auth).expect(200);
     assert.ok(conversation.body.messages.some((item: { role: string; text: string }) =>
       item.role === 'USER' && item.text === '今天过得怎么样？'));
     assert.ok(conversation.body.messages.some((item: { role: string; text: string }) =>
-      item.role === 'ASSISTANT' && item.text === '这是由 AI 生成的简短回复。'));
+      item.role === 'ASSISTANT' && item.text === '今天过得很好，谢谢你惦记。'));
 
     await database.db.update(pointAccounts).set({ balance: 0, updatedAt: new Date() })
       .where(eq(pointAccounts.userId, login.body.user.id));

@@ -14,7 +14,7 @@ import {
 type PersonalityTraitOption = Pick<PersonalityTagDefinition, 'id' | 'label'> & { selected: boolean }
 
 function workbenchUrl(voiceId: string): string {
-  return `/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&choose=1`
+  return `/pages/voice/workbench?voiceId=${encodeURIComponent(voiceId)}&mode=chat`
 }
 
 function selectedIdsFromExistingNote(note: string, options: PersonalityTraitOption[]): string[] {

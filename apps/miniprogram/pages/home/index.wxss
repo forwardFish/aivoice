@@ -20,10 +20,10 @@
   display: block;
   color: #132047;
   font-family: "Songti SC", "STSong", serif;
-  font-size: 72rpx;
-  line-height: 1.08;
-  font-weight: 700;
-  letter-spacing: -1.6rpx;
+  font-size: 56rpx;
+  line-height: 1.12;
+  font-weight: 680;
+  letter-spacing: -1.1rpx;
 }
 
 .brand-subtitle {
@@ -224,10 +224,10 @@
 
 .section-title {
   color: #12204a;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 62rpx;
-  line-height: 1.08;
-  font-weight: 700;
+  font-family: "PingFang SC", "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 38rpx;
+  line-height: 1.2;
+  font-weight: 650;
 }
 
 .section-link-wrap {

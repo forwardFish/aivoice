@@ -25,6 +25,19 @@ export async function extractReference(input: {
   ], { timeout: 60_000 });
 }
 
+export async function extractSpeakerCheckAudio(input: {
+  videoPath: string;
+  outputPath: string;
+}): Promise<void> {
+  await fs.mkdir(path.dirname(input.outputPath), { recursive: true });
+  await execFileAsync(ffmpegPath, [
+    '-hide_banner', '-nostdin', '-loglevel', 'error', '-y',
+    '-i', input.videoPath,
+    '-vn', '-ac', '1', '-ar', '24000', '-c:a', 'pcm_s16le',
+    input.outputPath,
+  ], { timeout: 90_000 });
+}
+
 export async function probeWav(filePath: string): Promise<{ durationMs: number; bytes: number }> {
   const buffer = await fs.readFile(filePath);
   if (buffer.length < 44 || buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WAVE') {

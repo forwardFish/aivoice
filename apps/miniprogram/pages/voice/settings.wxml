@@ -42,11 +42,15 @@
       </view>
 
       <view class="settings-profile-block">
-        <text class="settings-profile-label">TA 的年龄</text>
-        <input class="settings-profile-input" type="number" value="{{ageYears}}" placeholder="请输入准确年龄" maxlength="3" bindinput="onAgeInput" />
-        <text class="settings-profile-label">TA 的性别</text>
-        <view class="settings-relationship-grid">
-          <view wx:for="{{genderOptions}}" wx:key="key" class="settings-relationship-chip {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
+        <view class="settings-profile-field">
+          <text class="settings-profile-label">TA 的年龄</text>
+          <input class="settings-profile-input" type="number" value="{{ageYears}}" placeholder="请输入准确年龄" maxlength="3" bindinput="onAgeInput" />
+        </view>
+        <view class="settings-profile-field">
+          <text class="settings-profile-label">TA 的性别</text>
+          <view class="settings-relationship-grid">
+            <view wx:for="{{genderOptions}}" wx:key="key" class="settings-relationship-chip {{gender === item.key ? 'selected' : ''}}" data-key="{{item.key}}" bindtap="selectGender">{{item.title}}</view>
+          </view>
         </view>
       </view>
 
@@ -77,27 +81,37 @@
         </view>
         <input wx:if="{{relationshipType === 'OTHER'}}" class="settings-profile-input" value="{{relationshipOther}}" placeholder="请输入关系，如：表姐" maxlength="10" bindinput="onRelationshipOtherInput" />
         <view wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-block">
-          <text class="settings-profile-label">TA 怎么称呼你</text>
-          <text class="settings-profile-caption">可选，填写后 AI 对话会更自然。</text>
-          <input class="settings-profile-input" value="{{userAddress}}" placeholder="如：小林、小名" maxlength="10" bindinput="onUserAddressInput" />
-          <text class="settings-profile-label">你的准确年龄</text>
-          <text class="settings-profile-caption">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
-          <input class="settings-profile-input" type="number" value="{{userAgeYears}}" placeholder="请输入你自己的年龄" maxlength="3" bindinput="onUserAgeInput" />
+          <view class="settings-profile-field">
+            <text class="settings-profile-label">TA 怎么称呼你</text>
+            <text class="settings-profile-caption">可选，填写后 AI 对话会更自然。</text>
+            <input class="settings-profile-input" value="{{userAddress}}" placeholder="如：小林、小名" maxlength="10" bindinput="onUserAddressInput" />
+          </view>
+          <view class="settings-profile-field">
+            <text class="settings-profile-label">你的准确年龄</text>
+            <text class="settings-profile-caption">用于确定双方代际位置和交流边界，不会从年龄推断性格。</text>
+            <input class="settings-profile-input" type="number" value="{{userAgeYears}}" placeholder="请输入你自己的年龄" maxlength="3" bindinput="onUserAgeInput" />
+          </view>
         </view>
         <view class="settings-profile-block">
           <text class="settings-profile-label">TA 平时怎么说话</text>
           <text class="settings-profile-caption">可选，填写句长、直接或含蓄、常用表达等。</text>
-          <textarea class="settings-profile-input" value="{{speechHabitNote}}" placeholder="例如：句子不长，先问具体事情，很少说大道理" maxlength="300" auto-height bindinput="onSpeechHabitNoteInput" />
+          <view class="settings-profile-textarea-wrap">
+            <textarea class="settings-profile-textarea" value="{{speechHabitNote}}" placeholder="例如：句子不长，先问具体事情，很少说大道理" placeholder-class="settings-profile-textarea-placeholder" maxlength="300" auto-height bindinput="onSpeechHabitNoteInput" />
+          </view>
         </view>
         <view class="settings-profile-block">
           <text class="settings-profile-label">补充 TA 的基本情况</text>
           <text class="settings-profile-caption">可选，例如退休前做什么、现在平时做什么、生活在哪里。</text>
-          <textarea class="settings-profile-input" value="{{background}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onBackgroundInput" />
+          <view class="settings-profile-textarea-wrap">
+            <textarea class="settings-profile-textarea" value="{{background}}" placeholder="不了解可以不填" placeholder-class="settings-profile-textarea-placeholder" maxlength="300" auto-height bindinput="onBackgroundInput" />
+          </view>
         </view>
         <view wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-block">
           <text class="settings-profile-label">补充你们平时怎样相处</text>
           <text class="settings-profile-caption">可选，例如经常联系、偶尔联系、遇到大事会商量。</text>
-          <textarea class="settings-profile-input" value="{{relationshipNote}}" placeholder="不了解可以不填" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
+          <view class="settings-profile-textarea-wrap">
+            <textarea class="settings-profile-textarea" value="{{relationshipNote}}" placeholder="不了解可以不填" placeholder-class="settings-profile-textarea-placeholder" maxlength="300" auto-height bindinput="onRelationshipNoteInput" />
+          </view>
         </view>
       </view>
     </view>

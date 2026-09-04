@@ -5,11 +5,11 @@ import { ProductsController } from '../src/orders/order.controller.js';
 import { OrderService } from '../src/orders/order.service.js';
 import { loadPointsConfig } from '../src/quota/points.config.js';
 
-test('registration bonus defaults to the approved 10 points', () => {
+test('registration bonus defaults to the approved 8 points', () => {
   const previous = process.env.SIGNUP_BONUS_POINTS;
   delete process.env.SIGNUP_BONUS_POINTS;
   try {
-    assert.equal(loadPointsConfig().signupBonusPoints, 10);
+    assert.equal(loadPointsConfig().signupBonusPoints, 8);
   } finally {
     if (previous === undefined) delete process.env.SIGNUP_BONUS_POINTS;
     else process.env.SIGNUP_BONUS_POINTS = previous;

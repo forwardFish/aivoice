@@ -14,19 +14,16 @@
 .aurora-middle { width: 430rpx; height: 360rpx; left: -210rpx; top: 650rpx; background: radial-gradient(circle, rgba(212, 205, 255, 0.18), transparent 68%); }
 .account-content { position: relative; z-index: 2; }
 
-.account-hero { height: 250rpx; position: relative; }
-.profile-avatar { width: 124rpx; height: 124rpx; position: absolute; left: 10rpx; top: 31rpx; z-index: 3; border-radius: 50%; overflow: hidden; border: 4rpx solid rgba(255, 255, 255, 0.96); background: #efedff; box-shadow: 0 14rpx 34rpx rgba(63, 62, 98, 0.14); }
+.account-hero { min-height: 248rpx; padding: 16rpx 6rpx 8rpx; display: flex; align-items: center; justify-content: space-between; gap: 18rpx; position: relative; }
+.profile-identity { min-width: 0; flex: 1; display: flex; align-items: center; gap: 26rpx; padding-left: 10rpx; }
+.profile-avatar { flex: 0 0 124rpx; width: 124rpx; height: 124rpx; position: relative; z-index: 3; border-radius: 50%; overflow: hidden; border: 4rpx solid rgba(255, 255, 255, 0.96); background: #efedff; box-shadow: 0 14rpx 34rpx rgba(63, 62, 98, 0.14); }
 .profile-avatar.fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #f4f2ff, #e7e3fa); }
 .profile-avatar.fallback image { width: 112rpx; height: 112rpx; }
-.profile-copy { position: absolute; left: 164rpx; right: 230rpx; top: 47rpx; z-index: 4; }
-.profile-name { display: block; max-width: 260rpx; overflow: hidden; color: #111b3c; font-size: 36rpx; line-height: 1.2; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
-.wechat-profile-row { margin-top: 17rpx; display: flex; align-items: center; gap: 10rpx; color: #7f87a0; font-size: 22rpx; }
+.profile-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16rpx; z-index: 4; }
+.profile-name { display: block; max-width: 100%; overflow: hidden; color: #111b3c; font-size: 36rpx; line-height: 1.2; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
+.wechat-profile-row { display: flex; align-items: center; gap: 10rpx; color: #7f87a0; font-size: 22rpx; }
 .wechat-profile-row image { width: 29rpx; height: 25rpx; opacity: 0.5; filter: grayscale(1) brightness(0.72); }
-
-.edit-profile-button { width: 156rpx !important; min-width: 156rpx; max-width: 156rpx; min-height: 54rpx; margin: 23rpx 0 0; padding: 0 12rpx; border-radius: 999rpx; display: flex; align-items: center; justify-content: center; gap: 4rpx; color: var(--action-secondary-text); background: var(--action-secondary-bg); border: 2rpx solid var(--action-secondary-border); font-size: 21rpx; font-weight: 630; white-space: nowrap; box-shadow: none; box-sizing: border-box; }
-.edit-profile-button image { flex: 0 0 auto; width: 30rpx; height: 30rpx; margin-left: 0; }
-.edit-profile-label { display: block; max-width: 168rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.identity-visual { width: 250rpx; height: 230rpx; position: absolute; right: -10rpx; top: 2rpx; opacity: 0.94; }
+.identity-visual { flex: 0 0 244rpx; width: 244rpx; height: 220rpx; margin-right: -8rpx; opacity: 0.94; }
 
 .account-notice { margin: 10rpx 0 20rpx; padding: 22rpx 24rpx; border-radius: 28rpx; display: flex; align-items: center; justify-content: space-between; gap: 20rpx; background: rgba(255, 245, 235, 0.92); border: 2rpx solid rgba(255, 211, 171, 0.9); box-shadow: 0 14rpx 30rpx rgba(122, 84, 35, 0.08); }
 .account-notice-disabled { opacity: 0.72; }
@@ -83,13 +80,12 @@ button::after { border: 0; }
 
 @media (max-height: 740px) {
   .account-screen { padding-bottom: calc(195rpx + env(safe-area-inset-bottom)); }
-  .account-hero { height: 220rpx; }
-  .profile-avatar { width: 108rpx; height: 108rpx; top: 22rpx; }
-  .profile-copy { left: 145rpx; right: 205rpx; top: 32rpx; }
+  .account-hero { min-height: 220rpx; padding-top: 10rpx; }
+  .profile-identity { gap: 20rpx; padding-left: 6rpx; }
+  .profile-avatar { flex-basis: 108rpx; width: 108rpx; height: 108rpx; }
   .profile-name { font-size: 32rpx; }
-  .edit-profile-button { width: 146rpx !important; min-width: 146rpx; max-width: 146rpx; min-height: 50rpx; margin-top: 18rpx; }
-  .edit-profile-label { max-width: 152rpx; }
-  .identity-visual { width: 210rpx; height: 198rpx; right: -8rpx; top: 1rpx; }
+  .profile-copy { gap: 12rpx; }
+  .identity-visual { flex-basis: 210rpx; width: 210rpx; height: 198rpx; margin-right: -6rpx; }
   .account-summary { min-height: 168rpx; padding: 24rpx; }
   .summary-icon { width: 64rpx; height: 64rpx; }
   .summary-value { font-size: 38rpx; }

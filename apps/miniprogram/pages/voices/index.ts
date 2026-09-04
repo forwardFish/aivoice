@@ -18,6 +18,38 @@ const FILTERS = [
   { key: 'FAILED', label: '失败' }
 ]
 
+function readyPriority(status: VoiceStatus): number {
+  return status === 'READY' ? 0 : 1
+}
+
+function effectiveTimeMs(voice: VoiceSummary): number | null {
+  const source = voice.status === 'READY'
+    ? voice.lastUsedAt || voice.updatedAt || voice.createdAt
+    : voice.updatedAt || voice.createdAt
+  const value = Date.parse(String(source || ''))
+  return Number.isFinite(value) ? value : null
+}
+
+function sortVoicesReadyFirst(voices: VoiceSummary[]): VoiceSummary[] {
+  return voices
+    .map((voice, index) => ({
+      voice,
+      index,
+      priority: readyPriority(voice.status),
+      timeMs: effectiveTimeMs(voice)
+    }))
+    .sort((left, right) => {
+      if (left.priority !== right.priority) return left.priority - right.priority
+      if (left.timeMs != null && right.timeMs != null && left.timeMs !== right.timeMs) {
+        return right.timeMs - left.timeMs
+      }
+      if (left.timeMs != null && right.timeMs == null) return -1
+      if (left.timeMs == null && right.timeMs != null) return 1
+      return left.index - right.index
+    })
+    .map(item => item.voice)
+}
+
 function groupForStatus(status: VoiceStatus): string {
   if (status === 'READY') return 'READY'
   if (status === 'UPLOADING' || status === 'QUEUED' || status === 'PROCESSING' || status === 'DELETING') return 'PROCESSING'
@@ -74,7 +106,7 @@ function viewModel(voice: VoiceSummary, availablePoints: number): any {
     progress,
     progressStage: showProgress ? processingStageText(voice) : '',
     pointsText: `剩余 ${availablePoints} 积分`,
-    avatarSize: isReady ? 154 : 144,
+    avatarSize: isReady ? 132 : 124,
     metaText: isReady
       ? `最近使用 ${readyMetaTime}`
       : showProgress
@@ -113,9 +145,9 @@ Page({
     this.setData({ state: 'loading', errorMessage: '' })
     try {
       const [response, points] = await Promise.all([listVoices(), getPoints()])
-      this.allVoiceItems = response.voices
+      this.allVoiceItems = sortVoicesReadyFirst(response.voices
         .filter(item => item.status !== 'DELETED')
-        .map(item => viewModel(item, points.availablePoints))
+      ).map(item => viewModel(item, points.availablePoints))
       this.applyFilter()
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '声音列表加载失败，请重试。' })

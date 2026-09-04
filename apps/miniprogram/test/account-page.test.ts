@@ -18,6 +18,35 @@ test('account page keeps content mounted and uses an inline retry notice', () =>
   assert.doesNotMatch(source, /state:\s*'loading'/)
 })
 
+test('account page uses png assets for account icons to avoid real-device webp rendering failures', () => {
+  const markup = readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
+
+  assert.doesNotMatch(markup, /\/assets\/ui\/account-(?:edit|help|orders|points|service|stat-points|stat-voices)\.webp/)
+  assert.match(markup, /\/assets\/ui\/account-stat-voices\.png/)
+  assert.match(markup, /\/assets\/ui\/account-stat-points\.png/)
+  assert.match(markup, /\/assets\/ui\/account-orders\.png/)
+  assert.match(markup, /\/assets\/ui\/account-points\.png/)
+  assert.match(markup, /\/assets\/ui\/account-help\.png/)
+  assert.match(markup, /\/assets\/ui\/account-service\.png/)
+  assert.doesNotMatch(markup, /\/assets\/ui\/account-edit\.(?:png|webp)/)
+})
+
+test('account page hides edit-profile entry points and keeps the hero as a read-only identity card', () => {
+  const markup = readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
+  const style = readFileSync(new URL('../pages/account/index.wxss', import.meta.url), 'utf8')
+
+  assert.match(markup, /class="account-hero"/)
+  assert.match(markup, /class="profile-identity"/)
+  assert.doesNotMatch(markup, /edit-profile-button/)
+  assert.doesNotMatch(markup, /bindtap="editProfile"/)
+  assert.doesNotMatch(markup, /bindtap="editAvatar"/)
+  assert.doesNotMatch(markup, /aria-label="更换头像"/)
+  assert.doesNotMatch(markup, /role="button" aria-label="更换头像"/)
+  assert.match(style, /\.profile-identity\s*\{[^}]*display:\s*flex;/)
+  assert.match(style, /\.account-hero\s*\{[^}]*display:\s*flex;/)
+  assert.doesNotMatch(style, /\.edit-profile-button\s*\{/)
+})
+
 test('account page hydrates local profile first and preserves prior sections when refresh only partially succeeds', async () => {
   const storage = new Map<string, any>([
     ['nashide_ta_token', 'test-token'],

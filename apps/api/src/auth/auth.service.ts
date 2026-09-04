@@ -77,7 +77,7 @@ export class AuthService {
         pUnionid: wechat.unionid || null,
         pNickname: nickname,
         pAvatarUrl: avatarUrl,
-        pSignupBonusPoints: Number(process.env.SIGNUP_BONUS_POINTS || 10),
+        pSignupBonusPoints: Number(process.env.SIGNUP_BONUS_POINTS || 8),
       });
       const user = loginResult.user;
       if (!user) throw new UnauthorizedException('user not found');

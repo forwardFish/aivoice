@@ -2,8 +2,8 @@
 .app-avatar { overflow: hidden; border: 3rpx solid rgba(255, 255, 255, 0.96); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #efedff, #dedaf8); box-sizing: border-box; }
 .is-elevated { box-shadow: 0 10rpx 25rpx rgba(58, 62, 94, 0.13); }
 .avatar-image { width: 100%; height: 100%; }
-.fallback-user { width: 55%; height: 55%; opacity: 0.78; }
-.fallback-wave { display: flex; align-items: center; gap: 4rpx; }
+.fallback-user { width: 56%; height: 56%; opacity: 0.9; }
+.fallback-wave { display: flex; align-items: center; gap: 4rpx; padding: 0 2rpx; }
 .avatar-wave-bar { width: 5rpx; border-radius: 999rpx; background: #6d5ce7; }
 .avatar-wave-bar:nth-child(1), .avatar-wave-bar:nth-child(3) { height: 22%; min-height: 14rpx; }
 .avatar-wave-bar:nth-child(2) { height: 38%; min-height: 26rpx; }

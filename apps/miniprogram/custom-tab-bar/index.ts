@@ -5,19 +5,22 @@ const TAB_LIST = [
     pagePath: '/pages/home/index',
     text: '首页',
     iconPath: '/assets/ui/tab-home-filled.png',
-    selectedIconPath: '/assets/ui/tab-home-filled.png'
+    selectedIconPath: '/assets/ui/tab-home-filled.png',
+    iconRole: 'default'
   },
   {
     pagePath: '/pages/voices/index',
     text: '我的声音',
-    iconPath: '/assets/ui/tab-voices-outline.png',
-    selectedIconPath: '/assets/ui/tab-voices-outline.png'
+    iconPath: '/assets/ui/tab-voices-waveform-v2.png',
+    selectedIconPath: '/assets/ui/tab-voices-waveform-v2.png',
+    iconRole: 'voices'
   },
   {
     pagePath: '/pages/account/index',
     text: '我的',
     iconPath: '/assets/ui/tab-account-outline.png',
-    selectedIconPath: '/assets/ui/tab-account-outline.png'
+    selectedIconPath: '/assets/ui/tab-account-outline.png',
+    iconRole: 'default'
   }
 ]
 

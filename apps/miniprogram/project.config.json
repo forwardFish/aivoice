@@ -35,5 +35,6 @@
       }
     ]
   },
-  "condition": {}
+  "condition": {},
+  "simulatorPluginLibVersion": {}
 }

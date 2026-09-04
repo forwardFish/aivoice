@@ -141,21 +141,21 @@ test('guide defaults to no traits, saves explicit multi-selection, and redirects
   assert.equal(harness.saveCount, 1)
   assert.match(harness.savedBody.personalityNote, /【用户明确选择】/)
   assert.match(harness.savedBody.personalityNote, /【用户补充，优先于标签】/)
-  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&choose=1')
+  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&mode=chat')
 })
 
 test('guide skip is silent and does not persist a personality', async () => {
   const harness = await createPageHarness('skip')
   harness.instance.skipGuide()
   assert.equal(harness.saveCount, 0)
-  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&choose=1')
+  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&mode=chat')
 })
 
 test('saving an empty guide behaves like skip and preserves the existing profile', async () => {
   const harness = await createPageHarness('empty-save')
   await harness.instance.saveAndContinue()
   assert.equal(harness.saveCount, 0)
-  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&choose=1')
+  assert.equal(harness.redirectUrl, '/pages/voice/workbench?voiceId=voice-1&mode=chat')
 })
 
 test('edit mode restores an existing non-recommended tag and allows clearing personality', async () => {
@@ -196,4 +196,17 @@ test('voice settings exposes one personality editor entry and no raw personality
   assert.match(wxml, /personalityConfigured \? '已设置' : '未设置'/)
   assert.doesNotMatch(wxml, /bindinput="onPersonalityNoteInput"/)
   assert.match(source, /pages\/create\/personality-guide\?voiceId=.*&mode=edit/)
+})
+
+test('personality guide typography keeps unselected options and secondary actions out of black heavy text', () => {
+  const style = readFileSync(new URL('../pages/create/personality-guide.wxss', import.meta.url), 'utf8')
+  assert.match(style, /\.guide-title\s*\{[^}]*color:\s*#24314d[^}]*font-weight:\s*680/s)
+  assert.match(style, /\.guide-subtitle\s*\{[^}]*color:\s*#7b849e/s)
+  assert.match(style, /\.section-title\s*\{[^}]*color:\s*#33405c[^}]*font-weight:\s*620/s)
+  assert.match(style, /\.section-caption\s*\{[^}]*color:\s*#8b93ab[^}]*font-weight:\s*560/s)
+  assert.match(style, /\.trait-label\s*\{[^}]*color:\s*#5f6f8d[^}]*font-weight:\s*560/s)
+  assert.match(style, /\.trait-chip\.is-selected \.trait-label\s*\{[^}]*color:\s*#5f50e6[^}]*font-weight:\s*650/s)
+  assert.match(style, /\.description-label\s*\{[^}]*color:\s*#33405c[^}]*font-weight:\s*620/s)
+  assert.match(style, /\.action-skip\s*\{[^}]*color:\s*#7c79a8[^}]*font-weight:\s*620/s)
+  assert.match(style, /\.action-save\s*\{[^}]*color:\s*#ffffff/s)
 })

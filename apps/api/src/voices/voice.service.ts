@@ -135,6 +135,7 @@ export class VoiceService {
     const knownConflict = [
       'CONSENT_REQUIRED',
       'VOICE_NOT_READY',
+      'VOICE_NOT_READY_FOR_SOURCE_CHECK',
       'PREVIEW_NOT_PLAYED',
       'PREVIEW_RETRY_EXHAUSTED',
       'source video is required',
@@ -591,6 +592,38 @@ export class VoiceService {
     } finally {
       client.release();
     }
+  }
+
+  async sourceSpeakerCheck(userId: string, voiceId: string) {
+    if (this.database.isCloudBase) {
+      try {
+        await this.ownedVoice(userId, voiceId);
+        const result = await this.database.requireCloud().rpc<VoiceJobRpcResult>('rpc_voice_queue_source_speaker_check', {
+          pUserId: userId,
+          pVoiceId: voiceId,
+        });
+        await this.triggerJob(result.jobId, 'PROCESS_VOICE');
+        return this.get(userId, voiceId);
+      } catch (error) {
+        this.rethrowCloud(error);
+      }
+    }
+
+    const voice = await this.ownedVoice(userId, voiceId);
+    const source = await this.database.db.query.mediaAssets.findFirst({
+      where: and(
+        eq(mediaAssets.voiceProfileId, voiceId),
+        eq(mediaAssets.userId, userId),
+        eq(mediaAssets.kind, 'SOURCE_VIDEO'),
+        eq(mediaAssets.status, 'READY'),
+      ),
+      orderBy: [desc(mediaAssets.createdAt)],
+    });
+    if (!source) throw new ConflictException('source video is required');
+    if (process.env.AIVOICE_SPEAKER_DIARIZATION_ENABLED !== 'false') {
+      throw new ConflictException('source speaker check requires the CloudBase worker runtime');
+    }
+    return this.get(userId, voice.id);
   }
 
   async acceptPreview(userId: string, voiceId: string) {

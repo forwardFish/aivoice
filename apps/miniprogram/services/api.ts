@@ -559,6 +559,15 @@ export async function confirmVoiceMedia(voiceId: string, metadata: {
   return normalizeVoice(raw.voice || raw)
 }
 
+export async function startSourceSpeakerCheck(voiceId: string): Promise<VoiceDetail> {
+  const raw = await requestRaw<any>({
+    path: `/voices/${encodeURIComponent(voiceId)}/source-speaker-check`,
+    method: 'POST',
+    data: {}
+  })
+  return normalizeVoice(raw.voice || raw)
+}
+
 export async function saveVoiceClip(voiceId: string, startMs: number, endMs: number): Promise<VoiceDetail> {
   const raw = await requestRaw<any>({
     path: `/voices/${encodeURIComponent(voiceId)}/clip`,

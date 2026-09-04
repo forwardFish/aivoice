@@ -2,6 +2,7 @@
   "usingComponents": {
     "app-nav": "/components/app-nav/app-nav",
     "page-state": "/components/page-state/page-state",
-    "app-icon-button": "/components/app-icon-button/app-icon-button"
+    "app-icon-button": "/components/app-icon-button/app-icon-button",
+    "app-button": "/components/app-button/app-button"
   }
 }

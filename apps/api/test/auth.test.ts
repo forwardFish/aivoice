@@ -83,7 +83,7 @@ test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or 
     },
     selectOne: async (table: string) => {
       assert.equal(table, 'point_accounts');
-      return { balance: 10 };
+      return { balance: 8 };
     },
   };
   const database = {
@@ -102,14 +102,14 @@ test('CloudBase login uses atomic signup RPC and session RPC without Drizzle or 
   });
 
   assert.equal(result.user.id, 'user-cloud');
-  assert.equal(result.points.balance, 10);
+  assert.equal(result.points.balance, 8);
   assert.ok(result.token.length > 20);
   assert.deepEqual(calls.map((item) => item.name), [
     'rpc_auth_login_wechat',
     'rpc_auth_issue_session',
   ]);
   assert.equal(calls[0]?.args.pNickname, '云端用户123456');
-  assert.equal(calls[0]?.args.pSignupBonusPoints, 10);
+  assert.equal(calls[0]?.args.pSignupBonusPoints, 8);
   assert.equal(typeof calls[1]?.args.pTokenHash, 'string');
 });
 

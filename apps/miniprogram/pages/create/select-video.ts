@@ -1,34 +1,52 @@
 import {
   confirmVoiceMedia,
   createVoice,
+  getVoice,
   getUploadPolicy,
+  startSourceSpeakerCheck,
   uploadToPolicy
 } from '../../services/api'
+import { POLL_INTERVAL_MS } from '../../config'
 import { formatDurationMs } from '../../utils/format'
 import { DEFAULT_MEDIA_TILE_INDEX, normalizeMediaTileIndex } from '../../utils/media-selection'
 import { ensureAuthenticated } from '../../utils/navigation'
-import { getCreationSession, setCreationSession } from '../../utils/storage'
+import { clearCreationSession, getCreationSession, patchCreationSession, setCreationSession } from '../../utils/storage'
 
 const MIN_DURATION_MS = 8000
 const MAX_DURATION_MS = 60000
 const MAX_SIZE_BYTES = 100 * 1024 * 1024
+const SOURCE_CHECK_MAX_POLLS = 60
+const SINGLE_SPEAKER_FAILURE_CODES = new Set([
+  'MULTIPLE_SPEAKERS',
+  'OVERLAPPING_SPEECH',
+  'SPEAKER_UNCERTAIN'
+])
 
 function fileNameFromPath(path: string): string {
   const clean = path.split('?')[0]
   return clean.slice(clean.lastIndexOf('/') + 1) || `video-${Date.now()}.mp4`
 }
 
-function confirmSingleSpeakerVideo(): Promise<boolean> {
-  return new Promise(resolve => {
-    wx.showModal({
-      title: '视频里只能有 TA 一个人说话',
-      content: '请不要选择包含旁白、电视声、其他人插话或多人同时说话的视频。后续标记的 8–20 秒片段中，只能有 TA 一个人清楚说话。',
-      confirmText: '选择视频',
-      cancelText: '暂不选择',
-      success: result => resolve(Boolean(result.confirm)),
-      fail: () => resolve(false)
-    })
-  })
+function normalizeSpeakerFailure(value: string): string {
+  const code = String(value || '').trim().toUpperCase()
+  return SINGLE_SPEAKER_FAILURE_CODES.has(code) ? code : ''
+}
+
+function speakerFailureTitle(failureCode: string): string {
+  if (failureCode === 'MULTIPLE_SPEAKERS') return '检测到多个声音'
+  if (failureCode === 'OVERLAPPING_SPEECH') return '检测到多人同时说话'
+  return '无法确认只有一个声音'
+}
+
+function speakerFailureMessage(failureCode: string, sourceDeleted = false): string {
+  const deletedPrefix = sourceDeleted ? '该视频已从服务器删除。' : ''
+  if (failureCode === 'OVERLAPPING_SPEECH') {
+    return `这段视频里有多人同时说话，系统无法稳定提取单一音色。${deletedPrefix}请重新选择一段只有 TA 单独说话的视频。`
+  }
+  if (failureCode === 'SPEAKER_UNCERTAIN') {
+    return `这段视频里的说话人不够明确，系统暂时无法确认只有 TA 一个人说话。${deletedPrefix}请重新选择一段更清晰、更单一的视频。`
+  }
+  return `这段视频里检测到了多个声音。${deletedPrefix}请重新选择一段只有 TA 一个人清楚说话的视频，不要包含旁白、电视声或其他人插话。`
 }
 
 Page({
@@ -39,21 +57,36 @@ Page({
     uploadProgress: 0,
     errorMessage: '',
     existingVoiceId: '',
-    mediaTiles: [
-      { id: 'memory-1', scene: 'sunset' }, { id: 'memory-2', scene: 'window' }, { id: 'memory-3', scene: 'sea' },
-      { id: 'memory-4', scene: 'garden' }, { id: 'memory-5', scene: 'lamp' }, { id: 'memory-6', scene: 'mountain' },
-      { id: 'memory-7', scene: 'cloud' }, { id: 'memory-8', scene: 'table' }, { id: 'memory-9', scene: 'night' }
-    ]
+    speakerFailureDialogVisible: false,
+    speakerFailureDialogTitle: '',
+    speakerFailureDialogMessage: ''
   },
   onLoad(options: Record<string, string>) {
     if (!ensureAuthenticated()) return
     const existingVoiceId = String(options.voiceId || '')
-    const session = getCreationSession()
-    if (existingVoiceId && session && session.voiceId === existingVoiceId && session.tempFilePath) {
-      const selectedIndex = normalizeMediaTileIndex(session.selectedTileIndex)
+    const speakerFailure = normalizeSpeakerFailure(String(options.speakerFailure || ''))
+    if (speakerFailure) {
+      clearCreationSession()
       this.setData({
         existingVoiceId,
-        state: 'selected',
+        state: 'idle',
+        selected: null,
+        selectedIndex: -1,
+        uploadProgress: 0,
+        errorMessage: '',
+        speakerFailureDialogVisible: true,
+        speakerFailureDialogTitle: speakerFailureTitle(speakerFailure),
+        speakerFailureDialogMessage: speakerFailureMessage(speakerFailure, String(options.sourceDeleted || '') === '1')
+      })
+      return
+    }
+    const session = getCreationSession()
+    const resumedVoiceId = existingVoiceId || (session?.sourceSpeakerCheckPending ? session.voiceId : '')
+    if (resumedVoiceId && session && session.voiceId === resumedVoiceId && session.tempFilePath) {
+      const selectedIndex = normalizeMediaTileIndex(session.selectedTileIndex)
+      this.setData({
+        existingVoiceId: resumedVoiceId,
+        state: session.sourceSpeakerCheckPending ? 'checking' : 'selected',
         selectedIndex,
         selected: {
           tempFilePath: session.tempFilePath,
@@ -69,14 +102,98 @@ Page({
       })
       return
     }
-    this.setData({ existingVoiceId, selectedIndex: -1 })
+    this.setData({
+      existingVoiceId,
+      selectedIndex: -1,
+      speakerFailureDialogVisible: false,
+      speakerFailureDialogTitle: '',
+      speakerFailureDialogMessage: ''
+    })
   },
-  openAlbumTab() {
-    this.chooseVideo()
+  onShow() {
+    if (this.data.state === 'checking' && this.data.existingVoiceId) {
+      void this.resumeSourceSpeakerCheck()
+    }
+  },
+  onHide() {
+    this.cancelSourceSpeakerCheck()
+  },
+  onUnload() {
+    this.cancelSourceSpeakerCheck()
+  },
+  cancelSourceSpeakerCheck() {
+    this.sourceSpeakerCheckRun = Number(this.sourceSpeakerCheckRun || 0) + 1
+    this.sourceSpeakerCheckActive = false
+  },
+  async resumeSourceSpeakerCheck() {
+    const voiceId = String(this.data.existingVoiceId || '')
+    if (!voiceId || this.sourceSpeakerCheckActive) return
+    this.sourceSpeakerCheckActive = true
+    const run = Number(this.sourceSpeakerCheckRun || 0) + 1
+    this.sourceSpeakerCheckRun = run
+    try {
+      await this.waitForSourceSpeakerCheck(voiceId, run)
+    } finally {
+      if (this.sourceSpeakerCheckRun === run) this.sourceSpeakerCheckActive = false
+    }
+  },
+  async waitForSourceSpeakerCheck(voiceId: string, run: number, initialVoice?: any) {
+    let voice = initialVoice
+    for (let attempt = 0; attempt < SOURCE_CHECK_MAX_POLLS; attempt += 1) {
+      if (this.sourceSpeakerCheckRun !== run) return
+      if (!voice) voice = await getVoice(voiceId)
+      const failureCode = normalizeSpeakerFailure(String(voice?.error?.code || ''))
+      if (voice?.status === 'FAILED' && failureCode) {
+        clearCreationSession()
+        this.setData({
+          state: 'idle',
+          selected: null,
+          selectedIndex: -1,
+          uploadProgress: 0,
+          errorMessage: '',
+          existingVoiceId: voiceId,
+          speakerFailureDialogVisible: true,
+          speakerFailureDialogTitle: speakerFailureTitle(failureCode),
+          speakerFailureDialogMessage: speakerFailureMessage(failureCode, true)
+        })
+        return
+      }
+      if (voice?.status === 'FAILED') {
+        patchCreationSession({ sourceSpeakerCheckPending: false })
+        this.setData({
+          state: 'error',
+          errorMessage: voice?.error?.message || '视频声音检查失败，请重试。'
+        })
+        return
+      }
+      if (voice?.status === 'DRAFT') {
+        patchCreationSession({ sourceSpeakerCheckPending: false })
+        this.setData({ state: 'success', uploadProgress: 100 })
+        wx.redirectTo({
+          url: `/pages/create/select-clip?voiceId=${encodeURIComponent(voiceId)}`,
+          fail: (navigationError: any) => this.setData({
+            state: 'error',
+            errorMessage: navigationError.errMsg || navigationError.message || '无法进入片段选择页，请重试。'
+          })
+        })
+        return
+      }
+      voice = undefined
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+    }
+    if (this.sourceSpeakerCheckRun === run) {
+      this.setData({ state: 'error', errorMessage: '视频声音检查时间较长，请稍后重试。' })
+    }
+  },
+  dismissSpeakerFailureDialog() {
+    this.setData({ speakerFailureDialogVisible: false })
+  },
+  noop() {},
+  onSpeakerFailureOverlayTap() {
+    return
   },
   async chooseVideo(event?: any) {
-    if (this.data.state === 'uploading') return
-    if (!await confirmSingleSpeakerVideo()) return
+    if (this.data.state === 'uploading' || this.data.state === 'checking') return
     const requestedIndex = event && event.currentTarget && event.currentTarget.dataset
       ? event.currentTarget.dataset.index
       : undefined
@@ -128,11 +245,11 @@ Page({
     }
   },
   resetSelection() {
-    if (this.data.state === 'uploading') return
+    if (this.data.state === 'uploading' || this.data.state === 'checking') return
     this.setData({ state: 'idle', selected: null, selectedIndex: -1, uploadProgress: 0, errorMessage: '' })
   },
   async uploadAndContinue() {
-    if (this.data.state === 'uploading' || !this.data.selected) return
+    if (this.data.state === 'uploading' || this.data.state === 'checking' || !this.data.selected) return
     const selected = this.data.selected
     this.setData({ state: 'uploading', uploadProgress: 0, errorMessage: '' })
     try {
@@ -140,6 +257,7 @@ Page({
         ? { id: this.data.existingVoiceId }
         : await createVoice()
       if (!voice.id) throw new Error('创建声音草稿失败。')
+      this.setData({ existingVoiceId: voice.id })
       const policy = await getUploadPolicy(voice.id, {
         fileName: selected.fileName,
         mimeType: selected.mimeType,
@@ -168,16 +286,19 @@ Page({
         sizeBytes: selected.sizeBytes,
         durationMs: selected.durationMs,
         objectKey: uploaded.objectKey || policy.objectKey,
-        mediaId: uploaded.mediaId || policy.mediaId
+        mediaId: uploaded.mediaId || policy.mediaId,
+        sourceSpeakerCheckPending: true
       })
-      this.setData({ state: 'success', uploadProgress: 100 })
-      wx.redirectTo({
-        url: `/pages/create/select-clip?voiceId=${encodeURIComponent(voice.id)}`,
-        fail: (navigationError: any) => this.setData({
-          state: 'error',
-          errorMessage: navigationError.errMsg || navigationError.message || '无法进入片段选择页，请重试。'
-        })
-      })
+      this.setData({ state: 'checking', uploadProgress: 100 })
+      const run = Number(this.sourceSpeakerCheckRun || 0) + 1
+      this.sourceSpeakerCheckRun = run
+      this.sourceSpeakerCheckActive = true
+      try {
+        const started = await startSourceSpeakerCheck(voice.id)
+        await this.waitForSourceSpeakerCheck(voice.id, run, started)
+      } finally {
+        if (this.sourceSpeakerCheckRun === run) this.sourceSpeakerCheckActive = false
+      }
     } catch (error: any) {
       this.setData({ state: 'error', errorMessage: error.message || '视频上传失败，请重试。' })
     }

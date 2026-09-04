@@ -46,7 +46,7 @@ try {
     p_unionid: null,
     p_nickname: 'CloudBase payment probe',
     p_avatar_url: '',
-    p_signup_bonus_points: 10,
+    p_signup_bonus_points: 8,
   });
   userId = login.user.id;
   evidence.signupBalance = login.points.balance;

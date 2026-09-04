@@ -1,26 +1,26 @@
 import { formatDurationMs } from './format'
 
 const DEFAULT_AVATARS = {
-  female00To02: '/assets/avatars/age-00-02-female.webp',
-  male00To02: '/assets/avatars/age-00-02-male.webp',
-  female03To05: '/assets/avatars/age-03-05-female.webp',
-  male03To05: '/assets/avatars/age-03-05-male.webp',
-  female06To08: '/assets/avatars/age-06-08-female.webp',
-  male06To08: '/assets/avatars/age-06-08-male.webp',
-  female09To12: '/assets/avatars/age-09-12-female.webp',
-  male09To12: '/assets/avatars/age-09-12-male.webp',
-  female13To17: '/assets/avatars/age-13-17-female.webp',
-  male13To17: '/assets/avatars/age-13-17-male.webp',
-  female18To29: '/assets/avatars/age-18-29-female.webp',
-  male18To29: '/assets/avatars/age-18-29-male.webp',
-  female30To49: '/assets/avatars/age-30-49-female.webp',
-  male30To49: '/assets/avatars/age-30-49-male.webp',
-  female50To64: '/assets/avatars/age-50-64-female.webp',
-  male50To64: '/assets/avatars/age-50-64-male.webp',
-  female65To79: '/assets/avatars/age-65-79-female.webp',
-  male65To79: '/assets/avatars/age-65-79-male.webp',
-  female80Plus: '/assets/avatars/age-80-plus-female.webp',
-  male80Plus: '/assets/avatars/age-80-plus-male.webp'
+  female00To02: '/assets/avatars/age-00-02-female.png',
+  male00To02: '/assets/avatars/age-00-02-male.png',
+  female03To05: '/assets/avatars/age-03-05-female.png',
+  male03To05: '/assets/avatars/age-03-05-male.png',
+  female06To08: '/assets/avatars/age-06-08-female.png',
+  male06To08: '/assets/avatars/age-06-08-male.png',
+  female09To12: '/assets/avatars/age-09-12-female.png',
+  male09To12: '/assets/avatars/age-09-12-male.png',
+  female13To17: '/assets/avatars/age-13-17-female.png',
+  male13To17: '/assets/avatars/age-13-17-male.png',
+  female18To29: '/assets/avatars/age-18-29-female.png',
+  male18To29: '/assets/avatars/age-18-29-male.png',
+  female30To49: '/assets/avatars/age-30-49-female.png',
+  male30To49: '/assets/avatars/age-30-49-male.png',
+  female50To64: '/assets/avatars/age-50-64-female.png',
+  male50To64: '/assets/avatars/age-50-64-male.png',
+  female65To79: '/assets/avatars/age-65-79-female.png',
+  male65To79: '/assets/avatars/age-65-79-male.png',
+  female80Plus: '/assets/avatars/age-80-plus-female.png',
+  male80Plus: '/assets/avatars/age-80-plus-male.png'
 }
 
 type AvatarVoice = {

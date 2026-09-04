@@ -7,63 +7,116 @@
       <text class="upload-percent">{{uploadProgress}}%</text>
     </view>
     <text class="upload-title">正在安全上传视频</text>
-    <text class="upload-copy">稍后会检查片段中是否只有 TA 一个人说话，请暂时保持小程序在前台。</text>
+    <text class="upload-copy">上传完成后会立即检查是否只有 TA 一个人说话，请暂时保持小程序在前台。</text>
     <view class="progress-track"><view class="progress-value" style="width: {{uploadProgress}}%;"></view></view>
   </view>
 
+  <view wx:elif="{{state === 'checking'}}" class="upload-state fade-in">
+    <view class="upload-orb upload-orb-checking glass-card">
+      <view class="upload-orb-halo upload-orb-halo-a"></view>
+      <view class="upload-orb-halo upload-orb-halo-b"></view>
+      <image class="upload-wave-image" src="/assets/ui/icon-waveform.png" mode="aspectFit"></image>
+      <view class="upload-checking-dot"></view>
+    </view>
+    <text class="upload-title">正在检查视频声音</text>
+    <text class="upload-copy">确认视频中只有 TA 一个人清楚说话，请稍候。</text>
+  </view>
+
   <block wx:else>
-    <view class="page-body fade-in">
-      <view class="speaker-rule-card" role="note">
-        <view class="speaker-rule-mark">!</view>
-        <view class="speaker-rule-copy">
-          <text class="speaker-rule-title">只能有 TA 一个人说话</text>
-          <text class="speaker-rule-description">不要包含旁白、电视声、其他人插话或多人同时说话，否则无法创建声音。</text>
+    <view
+      wx:if="{{speakerFailureDialogVisible}}"
+      class="speaker-failure-dialog-overlay"
+      catchtouchmove="noop"
+      catchtap="onSpeakerFailureOverlayTap"
+    >
+      <view class="speaker-failure-dialog glass-card" catchtap="noop">
+        <view class="speaker-failure-dialog-badge">!</view>
+        <text class="speaker-failure-dialog-title">{{speakerFailureDialogTitle}}</text>
+        <text class="speaker-failure-dialog-message">{{speakerFailureDialogMessage}}</text>
+        <view class="speaker-failure-dialog-action">
+          <app-button
+            class="speaker-failure-dialog-button-host"
+            custom-class="speaker-failure-dialog-button"
+            label="确定"
+            bindaction="dismissSpeakerFailureDialog"
+          ></app-button>
+        </view>
+      </view>
+    </view>
+
+    <view class="page-body fade-in {{selected ? 'page-body-with-footer' : ''}}">
+      <view wx:if="{{selected}}" class="preview-card soft-card">
+        <view class="preview-copy-block">
+          <text class="preview-title">已选好这段视频</text>
+          <text class="preview-copy">确认内容没问题后继续，下一步会进入声音片段标记。</text>
+        </view>
+
+        <view class="preview-shell">
+          <image
+            wx:if="{{selected.thumbTempFilePath}}"
+            class="selected-preview"
+            src="{{selected.thumbTempFilePath}}"
+            mode="aspectFill"
+          ></image>
+          <video
+            wx:else
+            class="selected-preview"
+            src="{{selected.tempFilePath}}"
+            controls="{{false}}"
+            muted="{{true}}"
+            show-center-play-btn="{{false}}"
+            enable-progress-gesture="{{false}}"
+            object-fit="cover"
+          ></video>
+          <view class="preview-gradient"></view>
+          <view class="preview-duration-chip">{{selected.durationText}}</view>
+        </view>
+
+        <view class="video-meta">
+          <view class="video-meta-card">
+            <text class="meta-label">视频时长</text>
+            <text class="meta-value">{{selected.durationText}}</text>
+          </view>
+          <view class="video-meta-card">
+            <text class="meta-label">文件大小</text>
+            <text class="meta-value">{{selected.sizeText}}</text>
+          </view>
+        </view>
+
+        <view class="selected-actions">
+          <view role="button" class="secondary-pill" bindtap="chooseVideo"><text>重新选择</text></view>
+          <view role="button" class="secondary-pill secondary-pill-danger" bindtap="resetSelection"><text>移除</text></view>
         </view>
       </view>
 
-      <view class="media-tabs">
-        <button class="media-tab is-active" bindtap="openAlbumTab">相册</button>
-        <view class="media-tab">视频</view>
-      </view>
+      <view wx:else class="hero-panel">
+        <image class="hero-memory-image" src="/assets/ui/select-video-memory-hero.jpg" mode="widthFix"></image>
 
-      <view class="media-browser">
-        <view class="media-grid">
-          <view wx:for="{{mediaTiles}}" wx:key="id" class="media-tile {{selected && selectedIndex === index ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="chooseVideo">
-            <block wx:if="{{selected && selectedIndex === index}}">
-              <image wx:if="{{selected.thumbTempFilePath}}" class="selected-media" src="{{selected.thumbTempFilePath}}" mode="aspectFill"></image>
-              <video wx:else class="selected-media" src="{{selected.tempFilePath}}" controls="{{false}}" muted="{{true}}" show-center-play-btn="{{false}}" enable-progress-gesture="{{false}}" object-fit="cover"></video>
-              <view class="media-shade"></view>
-              <view class="duration-chip">{{selected.durationText}}</view>
-              <view class="selection-circle is-selected">✓</view>
-            </block>
-            <block wx:else>
-              <view class="neutral-scene scene-{{item.scene}}"><view class="scene-orb"></view><view class="scene-line line-a"></view><view class="scene-line line-b"></view></view>
-              <view class="selection-circle"></view>
-            </block>
-          </view>
+        <view class="hero-copy-block">
+          <text class="hero-title">从一段视频，找回熟悉的声音</text>
+          <text class="hero-copy">选择一段 TA 说话清楚的视频</text>
+        </view>
+
+        <view role="button" class="hero-select-button primary-button" bindtap="chooseVideo"><text>选择视频</text></view>
+
+        <view class="hero-footnotes">
+          <text class="hero-footnote">支持 8–60 秒，最大 100MB</text>
+          <text class="hero-footnote">仅处理你主动选择的视频</text>
         </view>
       </view>
 
       <view wx:if="{{errorMessage}}" class="inline-error">{{errorMessage}}</view>
     </view>
 
-    <view class="selection-footer">
-      <view wx:if="{{selected}}" class="selected-summary">
-        <view class="summary-copy"><text class="summary-title">已选择 1 个视频</text><text class="summary-meta">可继续上传并进入标记片段</text></view>
-        <view role="button" aria-label="移除已选视频" class="summary-remove-button" bindtap="resetSelection">
-          <view class="summary-remove-icon" aria-hidden="true">
-            <text class="summary-remove-stroke stroke-a"></text>
-            <text class="summary-remove-stroke stroke-b"></text>
-          </view>
-          <text class="summary-remove-label">移除</text>
+    <view wx:if="{{selected}}" class="selection-footer">
+      <view class="selected-summary">
+        <view class="summary-copy">
+          <text class="summary-title">已选择 1 个视频</text>
+          <text class="summary-meta">可以继续上传，也可以重新选择</text>
         </view>
       </view>
-      <view wx:else class="selected-summary">
-        <view class="summary-copy"><text class="summary-title">请选择 1 个视频</text><text class="summary-meta">支持 8–60 秒，最大 100MB</text></view>
-      </view>
       <view class="selection-footer-action">
-        <view role="button" wx:if="{{selected}}" class="selection-action-button primary-button" bindtap="uploadAndContinue"><text>下一步</text></view>
-        <view role="button" wx:else class="selection-action-button primary-button" bindtap="chooseVideo"><text>选择视频</text></view>
+        <view role="button" class="selection-action-button primary-button" bindtap="uploadAndContinue"><text>下一步</text></view>
       </view>
     </view>
   </block>

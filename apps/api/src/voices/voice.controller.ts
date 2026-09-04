@@ -96,6 +96,12 @@ export class VoiceController {
     return this.voices.process(user.id, voiceId);
   }
 
+  @Post('voices/:voiceId/source-speaker-check')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  sourceSpeakerCheck(@CurrentUser() user: AuthenticatedUser, @Param('voiceId') voiceId: string) {
+    return this.voices.sourceSpeakerCheck(user.id, voiceId);
+  }
+
   @Post('voices/:voiceId/accept-preview')
   accept(@CurrentUser() user: AuthenticatedUser, @Param('voiceId') voiceId: string) {
     return this.voices.acceptPreview(user.id, voiceId);

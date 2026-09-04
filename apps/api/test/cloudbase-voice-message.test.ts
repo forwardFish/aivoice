@@ -105,6 +105,9 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
     selectOne: async (table: string) => table === 'voice_profiles' ? voice : null,
     rpc: async (name: string, args: Record<string, unknown>) => {
       calls.push({ name, args });
+      if (name === 'rpc_voice_queue_source_speaker_check') {
+        return { voiceId: voice.id, status: 'QUEUED', idempotent: false };
+      }
       if (name === 'rpc_voice_queue_processing') {
         return { voiceId: voice.id, status: 'QUEUED', idempotent: false };
       }
@@ -134,6 +137,8 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
   const media = { latestAsset: async () => null, signedUrl: () => 'unused' };
   const service = new VoiceService(cloudDatabase(cloud) as any, quota as any, media as any);
 
+  const sourceChecked = await service.sourceSpeakerCheck('user-id', 'voice-id');
+  assert.equal(sourceChecked.id, 'voice-id');
   const processed = await service.process('user-id', 'voice-id');
   assert.equal(processed.id, 'voice-id');
   await service.markPreviewStarted('user-id', 'voice-id');
@@ -142,14 +147,15 @@ test('CloudBase voice mutations use RPC without pg or Drizzle', async () => {
   assert.deepEqual(await service.deleteVoice('user-id', 'voice-id'), { status: 'DELETING' });
 
   assert.deepEqual(calls.map((call) => call.name), [
+    'rpc_voice_queue_source_speaker_check',
     'rpc_voice_queue_processing',
     'rpc_voice_mark_preview_started',
     'rpc_voice_mark_preview_played',
     'rpc_voice_retry_preview',
     'rpc_voice_delete_request',
   ]);
-  assert.equal(calls[0].args.pConsentVersion, 'voice-consent-v0.6');
-  assert.match(String(calls[0].args.pConsentTextHash), /^[a-f0-9]{64}$/);
+  assert.equal(calls[1].args.pConsentVersion, 'voice-consent-v0.6');
+  assert.match(String(calls[1].args.pConsentTextHash), /^[a-f0-9]{64}$/);
 });
 
 test('voice clip accepts 8-20 seconds and rejects values outside that range', async () => {

@@ -5,11 +5,65 @@ import path from 'node:path'
 
 test('pending chat keeps the user message out of the assistant bubble', () => {
   const view = fs.readFileSync(path.resolve(process.cwd(), 'apps/miniprogram/pages/voice/workbench.wxml'), 'utf8')
+  const source = fs.readFileSync(path.resolve(process.cwd(), 'apps/miniprogram/pages/voice/workbench.ts'), 'utf8')
   assert.match(view, /class="message-row user-row pending-user-row"[\s\S]*\{\{pendingText\}\}/)
   assert.match(view, /class="message-row assistant-row pending-row"[\s\S]*\{\{generationStatusText\}\}/)
   assert.doesNotMatch(view, /pending-user-copy|你：\{\{pendingText\}\}/)
   assert.match(view, /id="pending-assistant"[\s\S]*wx:if="\{\{pendingReplyText\}\}"[\s\S]*\{\{pendingReplyText\}\}/)
   assert.match(view, /wx:else class="typing-wave"/)
+  assert.match(source, /if \(mode === 'chat'\) \{\s*this\.chatDraftText = ''\s*this\.chatDraftDirty = false/)
+  assert.match(source, /chatText: '',\s*chatCount: 0,\s*chatInputFocused: false,/)
+  assert.match(source, /pendingText: text,\s*pendingReplyText: '',\s*pendingMode: mode/)
+  assert.doesNotMatch(source, /\/assets\/avatars\/[^'"\s]+\.webp/)
+  assert.match(source, /voiceAvatar:\s*'\/assets\/avatars\/age-30-49-female\.png'/)
+  assert.match(source, /\}, \(\) => \{\s*if \(mode !== 'chat'\) return\s*this\.setData\(\{ scrollTarget: 'pending-assistant' \}\)/)
+  assert.match(source, /const restoredChatDraft = mode === 'chat' \? \{ chatText: text, chatCount: text\.length \} : \{\}/)
+})
+
+test('sending a chat clears the composer and scrolls the pending reply into view immediately', async () => {
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: (key: string) => key === 'nashide_ta_token' ? 'test-token' : '',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    getRandomValues: () => undefined,
+    showToast: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=send-scroll-bottom')
+  assert.ok(pageDefinition)
+  let scheduledAnchor = ''
+  const instance: any = {
+    ...pageDefinition,
+    chatDraftText: '刚发送的消息',
+    chatDraftDirty: true,
+    chatBottomSequence: 1,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      voiceId: 'voice-scroll',
+      state: 'success',
+      mode: 'chat',
+      chatText: '刚发送的消息',
+      chatCount: 6
+    },
+    setData(patch: Record<string, unknown>, callback?: () => void) {
+      Object.assign(this.data, patch)
+      callback?.()
+    },
+    scheduleChatViewportSync() {},
+    scheduleChatBottomScroll(anchorId: string) { scheduledAnchor = anchorId }
+  }
+
+  void instance.sendChat()
+
+  assert.equal(instance.data.chatText, '')
+  assert.equal(instance.data.chatCount, 0)
+  assert.equal(instance.data.pendingText, '刚发送的消息')
+  assert.equal(instance.data.pendingMode, 'chat')
+  assert.equal(instance.data.scrollTarget, 'pending-assistant')
+  assert.equal(scheduledAnchor, 'chat-bottom-2')
 })
 
 test('processing chat publishes text first and keeps the same bubble waiting for audio', () => {
@@ -59,9 +113,44 @@ test('workbench moves voice name and points into app nav only after success', ()
   assert.match(markup, /tag="AI生成"/)
   assert.match(style, /\.segment-control\s*\{[^}]*width:\s*540rpx[^}]*max-width:\s*calc\(100% - 104rpx\)[^}]*margin:\s*16rpx auto 0[^}]*padding:\s*7rpx[^}]*border-radius:\s*23rpx/s)
   assert.match(style, /\.segment-item\s*\{[^}]*height:\s*78rpx[^}]*border-radius:\s*18rpx[^}]*font-size:\s*29rpx[^}]*text-align:\s*center/s)
+  assert.match(style, /\.chat-panel\s*\{[^}]*min-height:\s*0/s)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*min-height:\s*320rpx[^}]*margin-top:\s*12rpx/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-control\s*\{[^}]*margin-top:\s*8rpx/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-item\s*\{[^}]*height:\s*74rpx[^}]*font-size:\s*28rpx/s)
+  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.messages-scroll\s*\{[^}]*min-height:\s*300rpx[^}]*margin-top:\s*10rpx/s)
   assert.match(source, /openSettings\(\)\s*\{[\s\S]*\/pages\/voice\/settings\?voiceId=/)
+})
+
+test('workbench opens directly in chat without the redundant mode chooser', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+
+  assert.doesNotMatch(markup, /想用 TA 的声音做什么|mode-chooser|bindtap="selectMode"/)
+  assert.doesNotMatch(source, /showModeChooser|chooseAnotherMode|selectMode/)
+  assert.match(source, /const mode = options\.mode === 'exact' \? 'exact' : 'chat'/)
+})
+
+test('conversation entry scrolls to a fresh bottom anchor instead of the last message row', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+
+  assert.match(markup, /wx:if="\{\{bottomAnchorId\}\}" id="\{\{bottomAnchorId\}\}" class="scroll-bottom-anchor"/)
+  assert.match(source, /this\.chatBottomSequence = Number\(this\.chatBottomSequence \|\| 0\) \+ 1/)
+  assert.match(source, /const bottomAnchorId = `chat-bottom-\$\{this\.chatBottomSequence\}`/)
+  assert.match(source, /bottomAnchorId,\s*scrollTarget: ''/)
+  assert.match(source, /scheduleChatBottomScroll\(bottomAnchorId\)/)
+  assert.match(source, /scheduleChatBottomScroll\(anchorId = this\.data\.bottomAnchorId\)/)
+  assert.match(markup, /scroll-top="\{\{chatScrollTop\}\}"/)
+  assert.match(source, /const chatScrollTop = 1000000 \+ this\.chatScrollPositionSequence/)
+  assert.match(source, /setData\(\{ scrollTarget: '', chatScrollTop: 0 \}, \(\) => this\.setData\(\{ scrollTarget: anchorId, chatScrollTop \}\)\)/)
+  assert.match(source, /}, 650\)/)
+  assert.match(source, /const submittedBottomAnchorId = mode === 'chat' \? `chat-bottom-\$\{this\.chatBottomSequence\}` : this\.data\.bottomAnchorId/)
+  assert.match(source, /bottomAnchorId: submittedBottomAnchorId,\s*scrollTarget: ''/)
+  assert.match(source, /scheduleChatBottomScroll\(submittedBottomAnchorId\)/)
+  assert.match(source, /generationStatusText: '声音生成中…',[\s\S]*scheduleChatBottomScroll\(this\.data\.bottomAnchorId\)/)
+  assert.doesNotMatch(source, /const scrollTarget = chatMessages\.length \? `message-/)
+  assert.match(style, /\.scroll-bottom-anchor\s*\{[^}]*height:\s*1rpx/s)
 })
 
 test('chat workbench matches the approved bilateral conversation structure', () => {
@@ -85,15 +174,21 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(style, /\.assistant-avatar-image\s*\{[^}]*width:\s*100%[^}]*height:\s*100%/s)
   assert.match(style, /\.assistant-message-avatar-image\s*\{/)
   assert.match(style, /\.message-time\s*\{/)
-  assert.match(style, /\.messages-scroll\s*\{[^}]*height:\s*calc\(100vh - 694rpx/s)
-  assert.match(style, /\.send-button\s*\{[^}]*width:\s*200rpx\s*!important[^}]*min-width:\s*200rpx[^}]*min-height:\s*80rpx/s)
+  assert.match(style, /\.message-text\s*\{[^}]*font-size:\s*32rpx[^}]*line-height:\s*1\.62/s)
+  assert.match(style, /\.message-time\s*\{[^}]*font-size:\s*22rpx[^}]*line-height:\s*1\.3/s)
+  assert.match(style, /\.assistant-stack\s*\{[^}]*max-width:\s*82%/s)
+  assert.match(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*style="\{\{messagesScrollStyle\}\}"/)
+  assert.match(style, /\.scroll-spacer\s*\{[^}]*height:\s*32rpx/s)
+  assert.match(style, /\.send-button\s*\{[^}]*width:\s*184rpx\s*!important[^}]*min-width:\s*184rpx[^}]*min-height:\s*84rpx/s)
   assert.match(style, /\.reply-feedback\s*\{[^}]*display:\s*inline-flex[^}]*border-radius:\s*999rpx[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.78\)/s)
-  assert.match(style, /\.reply-feedback-action\s*\{[^}]*min-width:\s*124rpx[^}]*min-height:\s*56rpx[^}]*justify-content:\s*center/s)
+  assert.match(style, /\.reply-feedback-action\s*\{[^}]*min-width:\s*140rpx[^}]*min-height:\s*64rpx[^}]*justify-content:\s*center/s)
   assert.match(style, /\.reply-feedback-action\.like-action\.selected\s*\{[^}]*background:\s*rgba\(110,\s*93,\s*246,\s*0\.14\)/s)
   assert.match(style, /\.reply-feedback-action\.dislike-action\.selected\s*\{[^}]*background:\s*rgba\(107,\s*115,\s*141,\s*0\.13\)/s)
   assert.match(source, /timeText:\s*messageTimeLabel\(message\.createdAt\)/)
   assert.match(source, /onVoiceAvatarError\(\)\s*\{[\s\S]*this\.setData\(\{\s*voiceAvatar:\s*''\s*\}\)/)
   assert.match(source, /resolveProfileAvatarSource\(source\)/)
+  assert.match(source, /scheduleChatViewportSync\(\)/)
+  assert.match(source, /syncChatViewport\(\)\s*\{[\s\S]*createSelectorQuery\(\)\.in\(this\)[\s\S]*messagesScrollStyle/s)
   assert.match(playerMarkup, /durationOnly \? durationLabel : currentText/)
 })
 
@@ -116,15 +211,17 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.ok(pageDefinition)
   assert.match(markup, /<input[\s\S]*class="composer-input"/)
   assert.match(markup, /class="composer-input-shell"[\s\S]*<input/)
+  assert.doesNotMatch(markup, /composer-leading|composer-leading-icon|mic-mode\.png/)
   assert.match(markup, /placeholder-class="composer-input-placeholder"/)
   assert.match(markup, /adjust-position="\{\{false\}\}"/)
   assert.match(markup, /hold-keyboard="\{\{true\}\}"/)
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
-  assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*72rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
-  assert.match(style, /\.composer-input\s*\{[^}]*width:\s*100%[^}]*height:\s*72rpx[^}]*padding:\s*0[^}]*line-height:\s*72rpx/s)
-  assert.match(style, /\.composer-input-placeholder\s*\{[^}]*line-height:\s*72rpx/s)
+  assert.match(style, /\.chat-composer\s*\{[^}]*min-height:\s*108rpx[^}]*padding:\s*12rpx 12rpx 12rpx 16rpx/s)
+  assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*80rpx[^}]*padding:\s*0 24rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
+  assert.match(style, /\.composer-input\s*\{[^}]*width:\s*100%[^}]*height:\s*80rpx[^}]*padding:\s*0[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
+  assert.match(style, /\.composer-input-placeholder\s*\{[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
   assert.match(source, /message_delivery_timing/)
   assert.match(source, /idempotencyMs[\s\S]*submitRequestMs[\s\S]*pollCount[\s\S]*pollRequestMs[\s\S]*firstTextMs[\s\S]*totalMs/)
   assert.match(source, /waitingForBackendAndPollMs[\s\S]*overThreeSecondTarget/)
@@ -334,12 +431,12 @@ test('workbench auto-opens purchase recovery when a pending order exists', async
   assert.equal(storage.get('nashide_ta_pending_order:voice-pending').orderId, 'order-pending')
 })
 
-test('assistant reply feedback records like and asks for a reason before recording dislike', async () => {
+test('assistant reply feedback records both like and dislike directly without opening native prompts', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
   let pageDefinition: any
-  let actionSheetItems: string[] = []
-  let selectedTapIndex = 3
-  let modalPlaceholder = ''
+  const requestBodies: any[] = []
+  let showActionSheetCalls = 0
+  let showModalCalls = 0
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
   ;(globalThis as any).wx = {
@@ -348,15 +445,12 @@ test('assistant reply feedback records like and asks for a reason before recordi
     removeStorageSync: (key: string) => storage.delete(key),
     reLaunch: () => undefined,
     showToast: () => undefined,
-    showActionSheet: (options: any) => {
-      actionSheetItems = options.itemList
-      options.success({ tapIndex: selectedTapIndex })
-    },
-    showModal: (options: any) => {
-      modalPlaceholder = options.placeholderText
-      options.success({ confirm: true, content: '她生气时声音反而会更低' })
-    },
-    request: (options: any) => options.success({ statusCode: 200, data: { recorded: true, correctionApplied: true } })
+    showActionSheet: () => { showActionSheetCalls += 1 },
+    showModal: () => { showModalCalls += 1 },
+    request: (options: any) => {
+      requestBodies.push(options.data)
+      options.success({ statusCode: 200, data: { recorded: true, correctionApplied: true } })
+    }
   }
 
   await import('../pages/voice/workbench?case=reply-feedback')
@@ -375,17 +469,55 @@ test('assistant reply feedback records like and asks for a reason before recordi
 
   instance.markReplyLike({ currentTarget: { dataset: { messageId: 'message-1' } } })
   assert.equal(instance.data.chatMessages[0].feedbackVerdict, 'LIKE')
+  assert.equal(instance.data.chatMessages[0].feedbackReason, '')
   assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].verdict, 'LIKE')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, undefined)
+  assert.deepEqual(requestBodies[0], { messageId: 'message-1', verdict: 'LIKE' })
 
   instance.markReplyDislike({ currentTarget: { dataset: { messageId: 'message-1' } } })
-  assert.equal(actionSheetItems.length, 8)
   assert.equal(instance.data.chatMessages[0].feedbackVerdict, 'DISLIKE')
-  assert.equal(instance.data.chatMessages[0].feedbackReason, 'LESS_PREACHY')
-  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, 'LESS_PREACHY')
+  assert.equal(instance.data.chatMessages[0].feedbackReason, '')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].verdict, 'DISLIKE')
+  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, undefined)
+  assert.deepEqual(requestBodies[1], { messageId: 'message-1', verdict: 'DISLIKE' })
+  assert.equal(showActionSheetCalls, 0)
+  assert.equal(showModalCalls, 0)
+})
 
-  selectedTapIndex = 7
-  instance.markReplyDislike({ currentTarget: { dataset: { messageId: 'message-1' } } })
-  assert.match(modalPlaceholder, /生气时声音反而会更低/)
-  assert.equal(instance.data.chatMessages[0].feedbackReason, 'TONE_NOT_LIKE')
-  assert.equal(storage.get('nashide_ta_reply_feedback:voice-feedback')['message-1'].reason, 'TONE_NOT_LIKE')
+test('chat viewport uses measured notice and composer boundaries on a real-device layout', async () => {
+  let pageDefinition: any
+  const selected: string[] = []
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getWindowInfo: () => ({ windowHeight: 844 }),
+    createSelectorQuery: () => ({
+      in() { return this },
+      select(selector: string) { selected.push(selector); return this },
+      boundingClientRect() { return this },
+      exec(callback: (rects: any[]) => void) {
+        callback([{ bottom: 186 }, { top: 770 }])
+      }
+    })
+  }
+
+  await import('../pages/voice/workbench?case=measured-chat-viewport')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    destroyed: false,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      state: 'success',
+      mode: 'chat',
+    },
+    setData(patch: Record<string, unknown>) {
+      Object.assign(this.data, patch)
+    }
+  }
+
+  instance.syncChatViewport()
+
+  assert.deepEqual(selected, ['.ai-notice', '.chat-composer-shell'])
+  assert.equal(instance.data.messagesScrollStyle, 'height:572px;')
 })
