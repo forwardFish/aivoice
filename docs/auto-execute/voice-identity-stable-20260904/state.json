@@ -1,0 +1,20 @@
+{
+  "run_id": "voice-identity-stable-20260904",
+  "goal_status": "active",
+  "phase": "owner-listening-ready",
+  "checkpoint_commit": "dbd5f4bde2e80ec77477d718abe243292103cf77",
+  "final_verdict": "PASS_WITH_LIMITATION",
+  "orchestration": "native-subagents",
+  "progress": [
+    "checkpoint committed on local main",
+    "speech expressibility prompt implemented and tested",
+    "CloudBase runtime input migration added and tested",
+    "stable identity compiler and strict provider adapter integrated into both runners",
+    "registered provider/model/voice pinned with no companion or fallback route",
+    "workspace typecheck, test, and build gates passed",
+    "OFF, SAFE_ONLY, and BOUNDED_ALL five-turn evidence packs generated from the existing SELF binding",
+    "architecture review PASS and QA automation PASS",
+    "isolated auto-execute final gate PASS_WITH_LIMITATION with zero hard or in-scope gaps",
+    "owner blind listening remains the only open acceptance gate"
+  ]
+}

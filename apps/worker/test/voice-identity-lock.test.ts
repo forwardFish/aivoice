@@ -16,7 +16,7 @@ const adultSelf: VoiceIdentityContext = {
   relationshipType: 'SELF',
 };
 
-test('adult SELF keeps one identity-locked synthesis contract across conversational tones', () => {
+test('legacy synthesis rejects registered identities and routes them to the stable builder', () => {
   const cases: Array<{ tone: ReplyTone; text: string }> = [
     { tone: 'PLAIN', text: '老样子，没什么特别的。' },
     { tone: 'UNEASY', text: '就是不知道该怎么接才合适。' },
@@ -32,46 +32,29 @@ test('adult SELF keeps one identity-locked synthesis contract across conversatio
       interactionState: null,
     });
     const deliveryPlan = createVoiceDeliveryPlan(expression);
-    const synthesis = buildSpeechSynthesisPlan(
-      item.tone,
-      item.text,
-      null,
-      expression,
-      deliveryPlan,
-      adultSelf,
+    assert.throws(
+      () => buildSpeechSynthesisPlan(
+        item.tone,
+        item.text,
+        null,
+        expression,
+        deliveryPlan,
+        adultSelf,
+      ),
+      /buildIdentityStableVoicePlan/u,
     );
-    assert.deepEqual({
-      text: synthesis.text,
-      instruction: synthesis.instruction,
-      rate: synthesis.rate,
-      pitch: synthesis.pitch,
-      volume: synthesis.volume,
-      seed: synthesis.seed,
-      enableSsml: synthesis.enableSsml,
-      applyAcousticOverrides: synthesis.applyAcousticOverrides,
-      identityLocked: synthesis.identityLocked,
-    }, {
-      text: item.text,
-      instruction: '',
-      rate: 1,
-      pitch: 1,
-      volume: 50,
-      seed: 0,
-      enableSsml: false,
-      applyAcousticOverrides: false,
-      identityLocked: true,
-    });
   }
 });
 
-test('ordinary adult and unknown-age voices default to identity lock', () => {
+test('all legacy identity contexts fail closed, including registered children', () => {
   assert.equal(shouldLockVoiceIdentity({ ageYears: 70, gender: 'FEMALE', relationshipType: 'MOTHER' }), true);
   assert.equal(shouldLockVoiceIdentity({ ageYears: 40, gender: 'MALE', relationshipType: 'PARTNER' }), true);
   assert.equal(shouldLockVoiceIdentity({ ageYears: null, gender: null, relationshipType: 'OTHER' }), true);
-  assert.equal(shouldLockVoiceIdentity({ ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD' }), false);
+  assert.equal(shouldLockVoiceIdentity({ ageYears: 12, gender: 'FEMALE', relationshipType: 'CHILD' }), true);
+  assert.equal(shouldLockVoiceIdentity(undefined), true);
 });
 
-test('minor templates use the matching identity and relationship without global mother-daughter wording', () => {
+test('legacy templates never compile age gender or relationship into TTS instructions', () => {
   const child: VoiceIdentityContext = {
     ageYears: 12,
     gender: 'FEMALE',
@@ -84,9 +67,7 @@ test('minor templates use the matching identity and relationship without global 
     act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE',
   }, null, child);
 
-  assert.match(boundary, /12岁女孩/u);
-  assert.match(boundary, /家长/u);
-  assert.match(playful, /12岁女孩/u);
-  assert.match(playful, /家长/u);
-  assert.doesNotMatch(`${boundary}${playful}`, /妈妈|她/u);
+  assert.match(boundary, /表达自己的立场/u);
+  assert.match(playful, /顺口逗一句/u);
+  assert.doesNotMatch(`${boundary}${playful}`, /12岁|女孩|男孩|孩子|家长|妈妈|她|熟人/u);
 });

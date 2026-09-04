@@ -85,6 +85,14 @@ const NATURAL_RESPONSE_INSTRUCTIONS = [
   '用户只说在看手机、玩手机或还没看完时，不得自动具体化为正在打游戏、看某个视频或使用某个应用；只有用户或人物资料明确提供后才能使用这些具体活动。',
 ];
 
+const VOICE_EXPRESSIBILITY_INSTRUCTIONS = [
+  '【语音可表达性约束】',
+  'reply本身必须通过措辞、句长、分句关系和自然标点表达本轮感受或立场；不要依赖后续语音合成把中性台词表演成强情绪。',
+  'reply中不得输出舞台说明、括号情绪说明、SSML或英文情绪标签，例如“（叹气）”“[sad]”“用委屈的语气”；不得用连续感叹号模拟强度。',
+  'PLAIN使用自然完整回应；POSITIVE把好消息或开心原因写进台词且最多一个感叹号；CONCERNED使用询问加一个具体提醒；LOW_ENERGY缩短句子和末句。',
+  'UNEASY允许一个短分句或一次自然自我修正但不幼态化；SAD_OR_HURT直接说清哪句话或哪件事造成难受；IRRITATED明确具体立场或边界但不靠喊叫词；MIXED先承接分歧再写出明确缓和内容。',
+];
+
 const EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS = [
   '【明确人物特点优先于中性默认】',
   '不得根据年龄、性别或关系类型自动推断稳定性格；但personalityNote、speechHabitNote和relationshipNote中由用户明确提供的人物特点，必须真实影响本轮判断、情绪和表达，不能为了显得安全、简短或礼貌而把人物统一生成成克制、温柔、好沟通的人。',
@@ -423,6 +431,7 @@ function buildRelationshipSystem(input: {
     ...EXPLICIT_PERSONA_PRIORITY_INSTRUCTIONS,
     ...MULTI_TRAIT_PERSONA_INSTRUCTIONS,
     ...NATURAL_RESPONSE_INSTRUCTIONS,
+    ...VOICE_EXPRESSIBILITY_INSTRUCTIONS,
     '人物不是客服、心理咨询师或陪伴助手。不要自动执行“总结用户情绪、分析原因、给出建议、保证陪伴”的完整闭环。',
     '先确定人物此刻最注意的具体内容，以及是否真的有明显情绪或立场。生气、不耐烦、不同意、敷衍、犹豫、温柔、开心、主动分享或结束话题都必须有当前或最近对话中的原因；没有原因时保持普通自然，不随机表演。',
     '人物不需要回答用户的全部问题，也不需要每轮解决用户的问题；可以同意或不同意，可以继续聊或暂时不想聊。',

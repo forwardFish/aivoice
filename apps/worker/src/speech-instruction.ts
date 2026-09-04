@@ -1,22 +1,27 @@
 import type { ReplyTone } from './chat/interaction-state.js';
-import type { VoiceRelationshipType } from './chat/voice-chat-context.js';
 import type { EmotionExpressionPlan } from './emotion-expression.js';
 import type { VoiceAct, VoiceDeliveryMode, VoiceDeliveryPlan, VoiceSpeechAct } from './providers/voice-provider.js';
+import {
+  shouldLockVoiceIdentity as shouldLockStableVoiceIdentity,
+  type VoiceIdentityContext,
+} from './stable-voice.js';
 import { buildInternalTtsText } from './voice-delivery-plan.js';
 
+export type { VoiceIdentityContext } from './stable-voice.js';
+
 const INSTRUCTIONS: Record<ReplyTone, string> = {
-  PLAIN: '像熟人随口说，语气松一点，不要播报，也不要表演。',
+  PLAIN: '自然连贯地说，语气松一点，不要播报，也不要表演。',
   POSITIVE: '像见到亲近的人，明显开心，带一点笑意，语气轻快，不表演。',
-  CONCERNED: '像在认真关心熟人，语气轻柔，句尾放低，不说教。',
+  CONCERNED: '认真关心，语气轻柔，句尾放低，不说教。',
   LOW_ENERGY: '像真的有点累，语速稍慢，停顿自然，气息弱但清楚。',
   UNEASY: '像心里有点不安，起句轻，稍有犹豫，尾音不确定。',
   SAD_OR_HURT: '像真的有点受伤，语速稍慢，句尾收住，不哭喊。',
-  IRRITATED: '像熟人之间有点不高兴，正常说话，不加速，不抬高音量，不表演发火。',
+  IRRITATED: '有点不高兴但正常说话，不加速，不抬高音量，不表演发火。',
   MIXED: '前半还在不满，停顿后自然放软，像已经愿意和好。',
 };
 
 const COMPACT_TONE_INSTRUCTIONS: Record<ReplyTone, string> = {
-  PLAIN: '像熟人随口说，不播报不表演',
+  PLAIN: '自然连贯地说，不播报不表演',
   POSITIVE: '带一点笑意，轻快但不表演',
   CONCERNED: '认真关心，句尾放低，不说教',
   LOW_ENERGY: '气息稍弱，清楚但不表演疲惫',
@@ -68,21 +73,10 @@ export interface SpeechPlanBaseline {
   instructionFragment: string;
 }
 
-export interface VoiceIdentityContext {
-  ageYears: number | null;
-  gender: 'FEMALE' | 'MALE' | null;
-  relationshipType: VoiceRelationshipType | null;
-}
-
 export function shouldLockVoiceIdentity(
   context: VoiceIdentityContext | null | undefined,
 ): boolean {
-  // Undefined preserves the legacy offline analysis helpers. Production always
-  // supplies a context; unknown production identities take the safe locked path.
-  if (context === undefined) return false;
-  if (!context) return true;
-  if (context.relationshipType === 'SELF') return true;
-  return context.ageYears === null || context.ageYears >= 18;
+  return shouldLockStableVoiceIdentity(context, null);
 }
 
 const PROSODY: Record<ReplyTone, { rate: number; pitch: number; volume: number; breakMs: number }> = {
@@ -130,42 +124,26 @@ export function instructionWeightedLength(value: string): number {
   return Array.from(value).reduce((sum, character) => sum + (/\p{Script=Han}/u.test(character) ? 2 : 1), 0);
 }
 
-const VOICE_PLAN_INSTRUCTIONS: Record<VoiceAct, (speaker: string, audience: string) => string> = {
-  CASUAL_EXPLAIN: (speaker, audience) => `${speaker}在${audience}面前随口回应，表达自己的想法，不是在要求对方；整句连着说，最后轻轻收住。`,
-  DENY_THEN_EXPLAIN: (speaker, audience) => `${speaker}被${audience}说中后先否认，紧接着解释；逗号后不减速，最后短收。`,
-  ASSERT_BOUNDARY: (speaker, audience) => `${speaker}觉得自己的意见没被${audience}听见，有点委屈又不服气；不是吵架，只想让对方先听完。`,
-  PLAYFUL_PROBE: (speaker, audience) => `${speaker}和${audience}很熟，顺口逗一句；问句后半带试探，只在结尾轻轻上扬。`,
-  ADMIT_HURT: (speaker, audience) => `${speaker}被${audience}一句话刺到，停一下再开口；忍着难过说，声音微颤，句尾压低收住。`,
-  EXPRESS_DELIGHT: (speaker) => `${speaker}突然听到好消息，起句真实惊喜，中间轻快，最后自然上扬后短收。`,
-  SHOW_PRACTICAL_CARE: (speaker, audience) => `${speaker}发现${audience}状态不对，先问再提醒；前一句带担心，后一句更直接，不说教。`,
-  HESITATE_OR_SHY: (speaker) => `${speaker}有点紧张，开头轻，第一处分句短停，后面小心说完，结尾带一点不确定。`,
-  SPEAK_LOW_ENERGY: (speaker) => `${speaker}确实有点累，第一句气息沉一点，第二句更轻更短，说完就停。`,
-  SOFTEN_AFTER_TENSION: (speaker) => `${speaker}刚才还有点不高兴，现在愿意缓下来；前半保留一点硬，转折后恢复日常节奏，最后短收。`,
+const VOICE_PLAN_INSTRUCTIONS: Record<VoiceAct, string> = {
+  CASUAL_EXPLAIN: '自然回应并表达自己的想法，不是在要求对方；整句连着说，最后轻轻收住。',
+  DENY_THEN_EXPLAIN: '先短促否认，紧接着解释；逗号后不减速，最后短收。',
+  ASSERT_BOUNDARY: '清楚表达自己的立场；不是吵架，关键词稍重，句尾平收。',
+  PLAYFUL_PROBE: '顺口逗一句；问句后半带试探，只在结尾轻轻上扬。',
+  ADMIT_HURT: '先说清受到影响的原因，首个分句后短停，后半句平收。',
+  EXPRESS_DELIGHT: '起句真实惊喜，中间轻快，最后自然上扬后短收。',
+  SHOW_PRACTICAL_CARE: '先问再提醒；前一句带担心，后一句更直接，不说教。',
+  HESITATE_OR_SHY: '开头轻，第一处分句短停，后面小心说完，结尾带一点不确定。',
+  SPEAK_LOW_ENERGY: '分句间短停，第二句更短，说完就停。',
+  SOFTEN_AFTER_TENSION: '前半保留一点硬，转折后恢复日常节奏，最后短收。',
 };
-
-function identityInstructionLabels(context: VoiceIdentityContext | null | undefined): {
-  speaker: string;
-  audience: string;
-} {
-  const age = context?.ageYears;
-  const speaker = age !== null && age !== undefined && age < 18
-    ? `${age}岁${context?.gender === 'FEMALE' ? '女孩' : context?.gender === 'MALE' ? '男孩' : '孩子'}`
-    : '说话人';
-  const audience = context?.relationshipType === 'CHILD'
-    ? '熟悉的家长'
-    : context?.relationshipType === 'FRIEND'
-      ? '熟悉的朋友'
-      : '熟悉的人';
-  return { speaker, audience };
-}
 
 export function buildVoicePlanInstruction(
   plan: VoiceDeliveryPlan,
   baseline: SpeechPlanBaseline | null = null,
   identityContext?: VoiceIdentityContext | null,
 ): string {
-  const { speaker, audience } = identityInstructionLabels(identityContext);
-  const base = VOICE_PLAN_INSTRUCTIONS[plan.act](speaker, audience);
+  void identityContext;
+  const base = VOICE_PLAN_INSTRUCTIONS[plan.act];
   const correction = baseline?.instructionFragment.match(/校准：[^；。]+/u)?.[0] || '';
   const withCorrection = correction ? `${base}${correction}。` : base;
   return instructionWeightedLength(withCorrection) <= 100 ? withCorrection : base;
@@ -220,35 +198,22 @@ export function buildSpeechSynthesisPlan(
   identityLocked: boolean;
 } {
   const effectiveTone = expression?.effectiveTone || replyTone;
-  if (shouldLockVoiceIdentity(identityContext)) {
-    return {
-      text: String(text || '').trim(),
-      instruction: '',
-      rate: 1,
-      pitch: 1,
-      volume: 50,
-      seed: 0,
-      effectiveTone,
-      emotionIntensity: expression?.intensity || 0,
-      enableSsml: false,
-      applyAcousticOverrides: false,
-      identityLocked: true,
-    };
+  if (identityContext !== undefined) {
+    throw new Error('Registered identities require buildIdentityStableVoicePlan.');
   }
   if (deliveryPlan) {
     const hasExplicitCorrection = Boolean(baseline?.instructionFragment.includes('校准：'));
-    const lowerBoundaryPitch = deliveryPlan.act === 'ASSERT_BOUNDARY';
     return {
       text: buildInternalTtsText(text, deliveryPlan),
       instruction: buildVoicePlanInstruction(deliveryPlan, baseline, identityContext),
       rate: hasExplicitCorrection ? Number(bounded(baseline?.rateFactor || 1, 0.85, 1.15).toFixed(3)) : 1,
-      pitch: lowerBoundaryPitch ? 0.97 : 1,
+      pitch: 1,
       volume: hasExplicitCorrection ? Math.round(bounded(50 + (baseline?.volumeOffset || 0), 45, 55)) : 50,
-      seed: deliveryPlan.act === 'ADMIT_HURT' ? 1 : 0,
+      seed: 0,
       effectiveTone,
       emotionIntensity: expression?.intensity || 0,
       enableSsml: false,
-      applyAcousticOverrides: hasExplicitCorrection || lowerBoundaryPitch,
+      applyAcousticOverrides: hasExplicitCorrection,
       identityLocked: false,
     };
   }

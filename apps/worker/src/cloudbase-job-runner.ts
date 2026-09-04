@@ -19,10 +19,16 @@ import { extractReference, extractSpeakerCheckAudio, probeWav } from './media/ff
 import { inspectReferenceQuality, inspectSentenceFinalProsody, ReferenceQualityError, type ReferenceQualityReport } from './media/quality.js';
 import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
-import { buildSpeechSynthesisPlan } from './speech-instruction.js';
+import {
+  buildIdentityStableVoicePlan,
+  buildPinnedCosyVoiceRoute,
+  buildRegisteredCloneRuntime,
+  parseStableEmotionMode,
+  toCosyVoiceProviderRequest,
+} from './stable-voice.js';
 import { createVoiceDeliveryPlan } from './voice-delivery-plan.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
-import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport } from './observed-person-evidence.js';
 import {
   type SpeakerDiarizationReport,
 } from './providers/aliyun-speaker-diarization.js';
@@ -522,18 +528,14 @@ export class CloudBaseJobRunner {
       personalityNote: string;
       speechHabitNote: string;
       qualityReport: unknown;
+      provider: string;
+      targetModel: string;
       providerVoiceIdEncrypted: string;
       referenceObjectKey: string;
         history: Array<{ messageId?: string; mode: string; inputText: string; outputText: string; interactionState?: unknown }>;
       } | Array<never>>('rpc_job_get_message_input', { pJobId: job.id, pWorkerId: this.workerId })));
       mode = message.mode;
       const providerBinding = decryptProviderId(message.providerVoiceIdEncrypted);
-      if (usesReferenceAudio(this.voiceProvider) && !message.referenceObjectKey) {
-        throw new VoiceGenerationError(
-          'Existing voice has no retained reference audio for Seed Audio use',
-          'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
-        );
-      }
       const observedPersonEvidence = observedPersonEvidenceFromQualityReport(message.qualityReport);
       const persistedPersonCorrections = persistedPersonCorrectionsFromQualityReport(message.qualityReport);
       let outputText = message.inputText;
@@ -667,58 +669,54 @@ export class CloudBaseJobRunner {
         personalityNote: message.personalityNote,
         personalityTurnFocus,
       });
-      const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
-      const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.qualityReport);
       const deliveryPlan = createVoiceDeliveryPlan(emotionExpression);
-      const speechPlan = buildSpeechSynthesisPlan(
-        speechTone,
-        outputText,
-        speechBaseline,
-        emotionExpression,
-        deliveryPlan,
-        {
-          ageYears: message.ageYears,
-          gender: message.gender,
-          relationshipType: message.relationshipType,
-        },
-      );
-      const synthesisOptions = speechPlan.identityLocked ? {
+      const voiceRuntime = buildRegisteredCloneRuntime({
+        storedProvider: message.provider,
+        storedModel: message.targetModel,
+        providerName: this.registeredProvider().providerName,
+        providerTargetModel: this.registeredProvider().targetModel,
+        voiceId: providerBinding,
+        continuity: message.mode === 'CHAT' ? 'MULTI_TURN' : 'SINGLE_TURN',
+        endpoint: process.env.DASHSCOPE_API_HOST,
+      });
+      const speechPlan = buildIdentityStableVoicePlan({
+        text: outputText,
+        delivery: deliveryPlan,
+        runtime: voiceRuntime,
+        emotionMode: parseStableEmotionMode(process.env.AIVOICE_STABLE_EMOTION_MODE),
+      });
+      const providerRequest = toCosyVoiceProviderRequest({
         jobId: job.id,
         messageId: job.messageId || '',
-        seed: 0,
-        relationshipType: message.relationshipType,
-      } : {
+        runtime: voiceRuntime,
+        plan: speechPlan,
+      });
+      const stableRoute = buildPinnedCosyVoiceRoute(voiceRuntime);
+      console.info('cosyvoice_stable_plan', JSON.stringify({
+        event: 'cosyvoice_stable_plan',
         jobId: job.id,
         messageId: job.messageId || '',
-        instruction: speechPlan.instruction,
-        seed: speechPlan.seed,
-        ...(speechPlan.applyAcousticOverrides ? {
-          rate: speechPlan.rate,
-          pitch: speechPlan.pitch,
-          volume: speechPlan.volume,
-        } : {}),
-        enableSsml: speechPlan.enableSsml,
-        relationshipType: message.relationshipType,
-        deliveryMode: emotionExpression.deliveryMode,
-        speechAct: emotionExpression.speechAct,
-        observedBaseline: voiceObservedBaseline,
-        deliveryPlan,
-      };
-      const referencePath = path.join(workDir, 'reference.wav');
+        identityFingerprint: speechPlan.identityFingerprint,
+        identityPolicyVersion: speechPlan.identityPolicyVersion,
+        speechAct: speechPlan.speechAct,
+        requestedEmotionIntensity: speechPlan.requestedEmotionIntensity,
+        appliedEmotionCueCount: speechPlan.appliedEmotionCueCount,
+        instructionRisk: speechPlan.instructionRisk,
+        instructionReason: speechPlan.instructionReason,
+        instructionApplied: Boolean(speechPlan.instruction),
+      }));
       const generationSession = await measure('voice_generation_primary', () => this.voiceGenerationCoordinator.generate({
         mode: message.mode,
         visibleText: outputText,
         synthesisText: speechPlan.text,
         expression: emotionExpression,
-        identityLocked: speechPlan.identityLocked,
+        identityLocked: true,
+        stableRequest: providerRequest,
+        stableRoute,
         registeredBinding: providerBinding,
         resolveReference: async () => {
-          const downloadStartedAt = Date.now();
-          await this.download(this.audioBucket, message.referenceObjectKey, referencePath);
-          stages.download_reference = Date.now() - downloadStartedAt;
-          return referencePath;
+          throw new Error('Identity-stable voice route must not resolve reference audio');
         },
-        options: synthesisOptions,
         allowCompanion: (provider) => this.reserveVoiceCompanionBudget(job, provider.id),
       }));
       const primaryCandidate = generationSession.primary;

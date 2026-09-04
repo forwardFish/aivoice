@@ -1,5 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {
+  assertIdentityStableProviderPayload,
+  parseCosyVoiceModelId,
+  type CosyVoiceProviderRequest,
+} from '../stable-voice.js';
+import type { VoiceSynthesisOptions } from './voice-provider.js';
 
 interface UploadPolicy {
   upload_dir: string;
@@ -41,6 +47,12 @@ export class AliyunCosyVoiceProvider {
   private readonly apiKey = required('DASHSCOPE_API_KEY');
   private readonly apiHost = trustedAliyunUrl(required('DASHSCOPE_API_HOST')).toString().replace(/\/$/, '');
   readonly targetModel = process.env.AIVOICE_TARGET_MODEL?.trim() || 'cosyvoice-v3.5-plus';
+
+  get stableRegion(): 'cn-beijing' | 'ap-southeast-1' {
+    return this.apiHost.includes('ap-southeast-1') || this.apiHost.includes('dashscope-intl')
+      ? 'ap-southeast-1'
+      : 'cn-beijing';
+  }
 
   private headers(extra: Record<string, string> = {}): Record<string, string> {
     return {
@@ -130,8 +142,67 @@ export class AliyunCosyVoiceProvider {
   async synthesize(
     voiceId: string,
     text: string,
-    options: { jobId?: string; messageId?: string; instruction?: string; rate?: number; pitch?: number; volume?: number; enableSsml?: boolean; seed?: number } = {},
+    options: VoiceSynthesisOptions = {},
   ): Promise<Buffer> {
+    return this.synthesizeTransport({
+      jobId: options.jobId || '',
+      messageId: options.messageId || '',
+      model: this.targetModel,
+      voice: voiceId,
+      text,
+      format: 'wav',
+      sampleRate: 24000,
+      languageHints: ['zh'],
+      seed: options.seed ?? 0,
+      ...(options.instruction ? { instruction: options.instruction } : {}),
+      ...(options.rate !== undefined ? { rate: options.rate } : {}),
+      ...(options.pitch !== undefined ? { pitch: options.pitch } : {}),
+      ...(options.volume !== undefined ? { volume: options.volume } : {}),
+      enableSsml: options.enableSsml === true,
+    });
+  }
+
+  async synthesizeStable(request: CosyVoiceProviderRequest): Promise<Buffer> {
+    assertIdentityStableProviderPayload(request);
+    const configuredModel = parseCosyVoiceModelId(this.targetModel);
+    if (request.model !== configuredModel) {
+      throw new Error(
+        `Stable voice model mismatch: request=${request.model}, provider=${configuredModel}.`,
+      );
+    }
+    return this.synthesizeTransport({
+      jobId: request.jobId,
+      messageId: request.messageId,
+      model: request.model,
+      voice: request.voice,
+      text: request.text,
+      format: request.format,
+      sampleRate: request.sampleRate,
+      languageHints: request.languageHints,
+      seed: request.seed,
+      textType: request.textType,
+      ...(request.instruction ? { instruction: request.instruction } : {}),
+      enableSsml: false,
+    });
+  }
+
+  private async synthesizeTransport(request: {
+    jobId: string;
+    messageId: string;
+    model: string;
+    voice: string;
+    text: string;
+    format: 'wav' | 'mp3' | 'pcm';
+    sampleRate: number;
+    languageHints?: readonly string[];
+    seed: number;
+    textType?: 'PlainText';
+    instruction?: string;
+    rate?: number;
+    pitch?: number;
+    volume?: number;
+    enableSsml: boolean;
+  }): Promise<Buffer> {
     const totalStartedAt = Date.now();
     let requestMs = 0;
     let downloadMs = 0;
@@ -141,19 +212,23 @@ export class AliyunCosyVoiceProvider {
         method: 'POST',
         headers: this.headers(),
         body: JSON.stringify({
-          model: this.targetModel,
+          model: request.model,
           input: {
-            text,
-            voice: voiceId,
-            format: 'wav',
-            sample_rate: 24000,
-            language_hints: ['zh'],
-            seed: options.seed ?? 0,
-            ...(options.instruction ? { instruction: options.instruction } : {}),
-            ...(options.rate !== undefined ? { rate: options.rate } : {}),
-            ...(options.pitch !== undefined ? { pitch: options.pitch } : {}),
-            ...(options.volume !== undefined ? { volume: options.volume } : {}),
-            ...(options.enableSsml ? { enable_ssml: true } : {}),
+            text: request.text,
+            voice: request.voice,
+            format: request.format,
+            sample_rate: request.sampleRate,
+            ...(request.languageHints ? { language_hints: request.languageHints } : {}),
+            seed: request.seed,
+            ...(request.textType ? {
+              text_type: request.textType,
+              enable_ssml: false,
+            } : {}),
+            ...(request.instruction ? { instruction: request.instruction } : {}),
+            ...(request.rate !== undefined ? { rate: request.rate } : {}),
+            ...(request.pitch !== undefined ? { pitch: request.pitch } : {}),
+            ...(request.volume !== undefined ? { volume: request.volume } : {}),
+            ...(!request.textType && request.enableSsml ? { enable_ssml: true } : {}),
           },
         }),
         signal: AbortSignal.timeout(120_000),
@@ -171,10 +246,10 @@ export class AliyunCosyVoiceProvider {
       console.info('cosyvoice_synthesis_timing', JSON.stringify({
         event: 'cosyvoice_synthesis_timing',
         status: 'SUCCEEDED',
-        jobId: options.jobId || '',
-        messageId: options.messageId || '',
-        instructionApplied: Boolean(options.instruction),
-        textLength: Array.from(text).length,
+        jobId: request.jobId,
+        messageId: request.messageId,
+        instructionApplied: Boolean(request.instruction),
+        textLength: Array.from(request.text).length,
         requestMs,
         downloadMs,
         slowestStage: requestMs >= downloadMs ? 'provider_synthesis_request' : 'provider_audio_download',
@@ -188,10 +263,10 @@ export class AliyunCosyVoiceProvider {
       console.error('cosyvoice_synthesis_timing', JSON.stringify({
         event: 'cosyvoice_synthesis_timing',
         status: 'FAILED',
-        jobId: options.jobId || '',
-        messageId: options.messageId || '',
-        instructionApplied: Boolean(options.instruction),
-        textLength: Array.from(text).length,
+        jobId: request.jobId,
+        messageId: request.messageId,
+        instructionApplied: Boolean(request.instruction),
+        textLength: Array.from(request.text).length,
         requestMs,
         downloadMs,
         slowestStage: requestMs >= downloadMs ? 'provider_synthesis_request' : 'provider_audio_download',

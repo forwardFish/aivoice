@@ -30,10 +30,16 @@ import { extractReference, probeWav } from './media/ffmpeg.js';
 import { cleanupUnpersistedReference, inspectReferenceQuality, ReferenceQualityError } from './media/quality.js';
 import { createVoiceProviderRegistry, type VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, VoiceGenerationError, type VoiceProviderPort } from './providers/voice-provider.js';
-import { buildSpeechSynthesisPlan } from './speech-instruction.js';
+import {
+  buildIdentityStableVoicePlan,
+  buildPinnedCosyVoiceRoute,
+  buildRegisteredCloneRuntime,
+  parseStableEmotionMode,
+  toCosyVoiceProviderRequest,
+} from './stable-voice.js';
 import { createVoiceDeliveryPlan } from './voice-delivery-plan.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
-import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport, speechPlanBaselineWithCorrections, voiceObservedDeliveryBaselineWithCorrections } from './observed-person-evidence.js';
+import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport } from './observed-person-evidence.js';
 import { createChatProviderFromEnv } from './providers/chat-provider-factory.js';
 import type { ChatProviderPort } from './providers/chat-provider.js';
 import {
@@ -550,6 +556,8 @@ export class JobRunner {
       input_text: string;
       mode: 'CHAT' | 'EXACT_SPEECH';
       conversation_id: string;
+      provider: string;
+      target_model: string;
       provider_voice_id_encrypted: string;
       reference_object_key: string;
       voice_name: string;
@@ -567,7 +575,7 @@ export class JobRunner {
       quality_report: unknown;
       cleared_at: Date | null;
     }>(
-      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider_voice_id_encrypted,ra.object_key AS reference_object_key,
+      `SELECT m.input_text,m.mode,m.conversation_id,vm.provider,vm.target_model,vm.provider_voice_id_encrypted,ra.object_key AS reference_object_key,
               vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
               vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,
               vp.personality_note,vp.speech_habit_note,vp.quality_report,c.cleared_at
@@ -575,20 +583,18 @@ export class JobRunner {
        JOIN conversations c ON c.id=m.conversation_id
        JOIN voice_profiles vp ON vp.id=m.voice_profile_id AND vp.user_id=m.user_id AND vp.deleted_at IS NULL
        JOIN voice_models vm ON vm.voice_profile_id=m.voice_profile_id AND vm.status='READY'
-       JOIN media_assets ra ON ra.voice_profile_id=m.voice_profile_id AND ra.kind='REFERENCE_AUDIO'
-         AND ra.status='READY' AND ra.deleted_at IS NULL
+       LEFT JOIN LATERAL (
+         SELECT ma.object_key FROM media_assets ma
+         WHERE ma.voice_profile_id=m.voice_profile_id AND ma.kind='REFERENCE_AUDIO'
+           AND ma.status='READY' AND ma.deleted_at IS NULL
+         ORDER BY ma.created_at DESC LIMIT 1
+       ) ra ON true
        WHERE m.id=$1 AND m.user_id=$2`,
       [job.message_id, job.user_id],
     );
     const message = result.rows[0];
     if (!message) throw new Error('message or ready voice model not found');
     const providerBinding = decryptProviderId(message.provider_voice_id_encrypted);
-    if (usesReferenceAudio(this.voiceProvider) && !message.reference_object_key) {
-      throw new VoiceGenerationError(
-        'Existing voice has no retained reference audio for Seed Audio use',
-        'VOICE_REPROCESS_REQUIRED_FOR_SEED_AUDIO',
-      );
-    }
     const observedPersonEvidence = observedPersonEvidenceFromQualityReport(message.quality_report);
     const persistedPersonCorrections = persistedPersonCorrectionsFromQualityReport(message.quality_report);
     let outputText = message.input_text;
@@ -696,53 +702,54 @@ export class JobRunner {
       personalityNote: message.personality_note,
       personalityTurnFocus,
     });
-    const speechBaseline = speechPlanBaselineWithCorrections(observedPersonEvidence, message.quality_report);
-    const voiceObservedBaseline = voiceObservedDeliveryBaselineWithCorrections(observedPersonEvidence, message.quality_report);
     const deliveryPlan = createVoiceDeliveryPlan(emotionExpression);
-    const speechPlan = buildSpeechSynthesisPlan(
-      speechTone,
-      outputText,
-      speechBaseline,
-      emotionExpression,
-      deliveryPlan,
-      {
-        ageYears: message.age_years,
-        gender: message.gender,
-        relationshipType: message.relationship_type,
-      },
-    );
-    const synthesisOptions = speechPlan.identityLocked ? {
+    const voiceRuntime = buildRegisteredCloneRuntime({
+      storedProvider: message.provider,
+      storedModel: message.target_model,
+      providerName: this.registeredProvider().providerName,
+      providerTargetModel: this.registeredProvider().targetModel,
+      voiceId: providerBinding,
+      continuity: message.mode === 'CHAT' ? 'MULTI_TURN' : 'SINGLE_TURN',
+      endpoint: process.env.DASHSCOPE_API_HOST,
+    });
+    const speechPlan = buildIdentityStableVoicePlan({
+      text: outputText,
+      delivery: deliveryPlan,
+      runtime: voiceRuntime,
+      emotionMode: parseStableEmotionMode(process.env.AIVOICE_STABLE_EMOTION_MODE),
+    });
+    const providerRequest = toCosyVoiceProviderRequest({
       jobId: job.id,
       messageId: job.message_id,
-      seed: 0,
-      relationshipType: message.relationship_type,
-    } : {
+      runtime: voiceRuntime,
+      plan: speechPlan,
+    });
+    const stableRoute = buildPinnedCosyVoiceRoute(voiceRuntime);
+    console.info('cosyvoice_stable_plan', JSON.stringify({
+      event: 'cosyvoice_stable_plan',
       jobId: job.id,
       messageId: job.message_id,
-      instruction: speechPlan.instruction,
-      seed: speechPlan.seed,
-      ...(speechPlan.applyAcousticOverrides ? {
-        rate: speechPlan.rate,
-        pitch: speechPlan.pitch,
-        volume: speechPlan.volume,
-      } : {}),
-      enableSsml: speechPlan.enableSsml,
-      relationshipType: message.relationship_type,
-      deliveryMode: emotionExpression.deliveryMode,
-      speechAct: emotionExpression.speechAct,
-      observedBaseline: voiceObservedBaseline,
-      deliveryPlan,
-    };
-    const referencePath = this.safePath(message.reference_object_key);
+      identityFingerprint: speechPlan.identityFingerprint,
+      identityPolicyVersion: speechPlan.identityPolicyVersion,
+      speechAct: speechPlan.speechAct,
+      requestedEmotionIntensity: speechPlan.requestedEmotionIntensity,
+      appliedEmotionCueCount: speechPlan.appliedEmotionCueCount,
+      instructionRisk: speechPlan.instructionRisk,
+      instructionReason: speechPlan.instructionReason,
+      instructionApplied: Boolean(speechPlan.instruction),
+    }));
     const generationSession = await this.voiceGenerationCoordinator.generate({
       mode: message.mode,
       visibleText: outputText,
       synthesisText: speechPlan.text,
       expression: emotionExpression,
-      identityLocked: speechPlan.identityLocked,
+      identityLocked: true,
+      stableRequest: providerRequest,
+      stableRoute,
       registeredBinding: providerBinding,
-      resolveReference: async () => referencePath,
-      options: synthesisOptions,
+      resolveReference: async () => {
+        throw new Error('Identity-stable voice route must not resolve reference audio');
+      },
       allowCompanion: (provider) => this.reserveVoiceCompanionBudget(job, provider.id),
     });
     const primaryCandidate = generationSession.primary;

@@ -1,0 +1,31 @@
+{
+  "mode": "native-subagents",
+  "runtime_surface": "codex-app",
+  "orchestrator": "/root",
+  "agents": [
+    {
+      "id": "stable-core",
+      "role": "Builder",
+      "assigned_tasks": ["CORE-001"],
+      "allowed_paths": ["apps/worker/src/stable-voice.ts", "apps/worker/test/stable-voice.test.ts"],
+      "evidence": ["stable core implemented", "14/14 initial core tests", "integrated by orchestrator"]
+    },
+    {
+      "id": "architecture-review",
+      "role": "Architect",
+      "assigned_tasks": ["REV-001"],
+      "allowed_paths": [],
+      "evidence": ["final read-only architecture review PASS"]
+    },
+    {
+      "id": "qa-design",
+      "role": "Tester",
+      "assigned_tasks": ["QA-001"],
+      "allowed_paths": ["apps/worker/test/five-turn-voice-continuity.test.ts", "scripts/acceptance/stable-voice-five-turn.mts"],
+      "evidence": ["five-turn contract implemented", "final QA automation PASS", "owner listening pending"]
+    }
+  ],
+  "handoff_paths": ["HANDOFF.md"],
+  "verification_paths": ["08-test-matrix.md", "11-final-acceptance-report.md"],
+  "fallback_reason": null
+}

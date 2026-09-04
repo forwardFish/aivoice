@@ -1,4 +1,9 @@
 import type { EmotionExpressionPlan } from './emotion-expression.js';
+import {
+  assertIdentityStableProviderPayload,
+  type CosyVoiceProviderRequest,
+  type PinnedCosyVoiceRoute,
+} from './stable-voice.js';
 import type { RankedVoiceProvider, VoiceProviderRegistry } from './providers/voice-provider-registry.js';
 import { usesReferenceAudio, type VoiceSynthesisOptions } from './providers/voice-provider.js';
 import {
@@ -16,8 +21,10 @@ export interface VoiceGenerationRequest {
   expression: EmotionExpressionPlan;
   registeredBinding: string;
   resolveReference: () => Promise<string>;
-  options: VoiceSynthesisOptions;
+  options?: VoiceSynthesisOptions;
   identityLocked?: boolean;
+  stableRequest?: CosyVoiceProviderRequest;
+  stableRoute?: PinnedCosyVoiceRoute;
   allowCompanion?: (provider: RankedVoiceProvider) => boolean | Promise<boolean>;
 }
 
@@ -53,13 +60,51 @@ export class VoiceGenerationCoordinator {
       },
     });
 
+    if (request.stableRequest) {
+      if (request.identityLocked !== true) {
+        throw new Error('Stable voice request requires identityLocked=true');
+      }
+      assertIdentityStableProviderPayload(request.stableRequest);
+      if (!request.stableRoute
+        || request.stableRoute.strategy !== 'PINNED_SINGLE'
+        || request.stableRoute.allowSelectiveParallel
+        || request.stableRoute.allowProviderFallback
+        || request.stableRoute.allowModelFallback
+        || request.stableRoute.provider !== 'ALIYUN_COSYVOICE'
+        || request.stableRoute.modelId !== request.stableRequest.model
+        || request.stableRoute.voiceId !== request.stableRequest.voice) {
+        throw new Error('Stable voice request requires a matching pinned route');
+      }
+      if (request.stableRequest.voice !== request.registeredBinding) {
+        throw new Error('Stable voice request does not match the registered binding');
+      }
+      const registered = this.registry.registered;
+      const provider = registered.provider as unknown as VoiceProviderPortWithStableSynthesis;
+      if (typeof provider.synthesizeStable !== 'function') {
+        throw new Error('Registered voice provider does not support stable synthesis');
+      }
+      return startVoiceGeneration([{
+        id: registered.id,
+        qualityRank: registered.qualityRank,
+        generate: () => provider.synthesizeStable(request.stableRequest!),
+      }]);
+    }
+
     const parallel = !request.identityLocked
       && this.strategy() === 'SELECTIVE_PARALLEL'
       && shouldUseParallelVoice({ mode: request.mode, text: request.visibleText, expression: request.expression });
-    if (!parallel) return startVoiceGeneration([candidate(this.registry.active)]);
+    if (!parallel) {
+      return startVoiceGeneration([
+        candidate(request.identityLocked ? this.registry.registered : this.registry.active),
+      ]);
+    }
     return startVoiceGeneration([
       candidate(this.registry.registered),
       ...this.registry.companions.map((entry) => candidate(entry, request.allowCompanion)),
     ]);
   }
+}
+
+interface VoiceProviderPortWithStableSynthesis {
+  synthesizeStable(request: CosyVoiceProviderRequest): Promise<Buffer>;
 }

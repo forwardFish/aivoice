@@ -4,6 +4,8 @@ import { buildEmotionExpressionPlan } from '../src/emotion-expression.js';
 import { VoiceGenerationCoordinator } from '../src/voice-generation-coordinator.js';
 import type { VoiceProviderRegistry } from '../src/providers/voice-provider-registry.js';
 import type { VoiceProviderPort } from '../src/providers/voice-provider.js';
+import type { CosyVoiceProviderRequest } from '../src/stable-voice.js';
+import { buildPinnedCosyVoiceRoute } from '../src/stable-voice.js';
 
 function provider(name: string, referenceMode: 'REGISTERED_VOICE' | 'REFERENCE_AUDIO', calls: string[]): VoiceProviderPort {
   return {
@@ -158,6 +160,45 @@ test('identity-locked adult requests never switch provider on expressive turns',
   assert.equal(generated.primary.id, 'registered');
   assert.equal(budgetChecks, 0);
   assert.deepEqual(calls, ['registered:speaker-id']);
+});
+
+test('stable requests force the registered provider and its strict synthesis entry point', async () => {
+  const calls: string[] = [];
+  const active = provider('seed-active', 'REFERENCE_AUDIO', calls);
+  const registered = {
+    ...provider('registered', 'REGISTERED_VOICE', calls),
+    async synthesizeStable(input: CosyVoiceProviderRequest) {
+      calls.push(`stable:${input.voice}:${input.seed}:${input.textType}`);
+      return Buffer.from('stable');
+    },
+  };
+  const registry: VoiceProviderRegistry = {
+    active: { id: 'seed-active', qualityRank: 100, provider: active },
+    registered: { id: 'registered', qualityRank: 10, provider: registered },
+    companions: [],
+  };
+  const expression = buildEmotionExpressionPlan({ replyTone: 'PLAIN', text: '我知道了。', interactionState: null });
+  const stableRequest: CosyVoiceProviderRequest = {
+    jobId: 'job-1', messageId: 'message-1', model: 'cosyvoice-v3.5-plus',
+    voice: 'speaker-id', text: '我知道了。', seed: 0, textType: 'PlainText',
+    enableSsml: false, format: 'wav', sampleRate: 24000, languageHints: ['zh'],
+  };
+  const stableRoute = buildPinnedCosyVoiceRoute({
+    provider: 'ALIYUN_COSYVOICE', region: 'cn-beijing',
+    modelId: 'cosyvoice-v3.5-plus', enrolledForModelId: 'cosyvoice-v3.5-plus',
+    voiceId: 'speaker-id', origin: 'REGISTERED_CLONE', continuity: 'MULTI_TURN',
+    languageHint: 'zh', audioFormat: 'wav', sampleRate: 24000,
+  });
+  const generated = await new VoiceGenerationCoordinator(registry, () => 'SELECTIVE_PARALLEL').generate({
+    ...request(expression, async () => 'reference.wav'),
+    identityLocked: true,
+    stableRequest,
+    stableRoute,
+  });
+  await generated.bestUpgrade;
+
+  assert.equal(generated.primary.id, 'registered');
+  assert.deepEqual(calls, ['stable:speaker-id:0:PlainText']);
 });
 
 test('budget reservation never delays the registered primary provider', async () => {

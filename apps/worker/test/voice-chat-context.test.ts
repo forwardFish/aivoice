@@ -71,6 +71,24 @@ test('relationship prompt keeps wording-stable content with an explicit cache bo
   assert.ok(firstBoundary >= 1024);
 });
 
+test('text generation carries audible emotion without leaking TTS stage directions', () => {
+  const result = compileVoiceChatMessages({
+    structuredOutput: true,
+    voiceName: '本人', ageYears: 43, gender: 'MALE', userAgeYears: 43,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '',
+    history: [], currentInput: '这次我真的有点不高兴。',
+  });
+  const system = systemText(result.messages);
+
+  assert.match(system, /【语音可表达性约束】/u);
+  assert.match(system, /措辞、句长、分句关系和自然标点/u);
+  assert.match(system, /不要依赖后续语音合成/u);
+  assert.match(system, /不得输出舞台说明/u);
+  assert.match(system, /SAD_OR_HURT直接说清/u);
+  assert.match(system, /IRRITATED明确具体立场或边界/u);
+  assert.match(system, /MIXED先承接分歧/u);
+});
+
 test('parent voice distinguishes an adult child and includes only confirmed relationship facts', () => {
   const result = compileVoiceChatMessages({
     voiceName: '桂兰',

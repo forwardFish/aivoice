@@ -30,8 +30,8 @@ test('personality expression collapses into one four-field provider-neutral plan
     }),
     autonomy,
   );
-  assert.equal(autonomySynthesis.pitch, 0.97);
-  assert.equal(autonomySynthesis.applyAcousticOverrides, true);
+  assert.equal(autonomySynthesis.pitch, 1);
+  assert.equal(autonomySynthesis.applyAcousticOverrides, false);
 });
 
 test('the four-field plan covers all eight MVP emotional processes without adding fields', () => {
@@ -64,10 +64,10 @@ test('the four-field plan covers all eight MVP emotional processes without addin
     const synthesis = buildSpeechSynthesisPlan(item.tone, item.text, null, expression, deliveryPlan);
     assert.equal(synthesis.enableSsml, false);
     assert.equal(synthesis.rate, 1);
-    assert.equal(synthesis.pitch, deliveryPlan.act === 'ASSERT_BOUNDARY' ? 0.97 : 1);
+    assert.equal(synthesis.pitch, 1);
     assert.equal(synthesis.volume, 50);
-    assert.equal(synthesis.seed, deliveryPlan.act === 'ADMIT_HURT' ? 1 : 0);
-    assert.equal(synthesis.applyAcousticOverrides, deliveryPlan.act === 'ASSERT_BOUNDARY');
+    assert.equal(synthesis.seed, 0);
+    assert.equal(synthesis.applyAcousticOverrides, false);
   }
 });
 
@@ -126,9 +126,9 @@ test('CosyVoice keeps concrete acting direction without global mother-daughter w
   const playful = buildVoicePlanInstruction({
     act: 'PLAYFUL_PROBE', affect: 'PLAYFUL', intensity: 1, cadence: 'LIGHT_FINAL_RISE',
   });
-  assert.match(boundary, /自己的意见没被.*听见/);
-  assert.match(boundary, /有点委屈又不服气/);
-  assert.match(boundary, /只想让对方先听完/);
+  assert.match(boundary, /表达自己的立场/);
+  assert.match(boundary, /关键词稍重/);
+  assert.match(boundary, /句尾平收/);
   assert.match(playful, /顺口逗一句/);
   assert.match(playful, /问句后半带试探/);
   assert.doesNotMatch(`${boundary}${playful}`, /妈妈|她/u);
@@ -144,8 +144,8 @@ test('CosyVoice preserves the individually accepted direction for concern, hurt 
   ];
   assert.match(instructions[0], /前一句带担心/);
   assert.match(instructions[0], /后一句更直接/);
-  assert.match(instructions[1], /声音微颤/);
-  assert.match(instructions[1], /句尾压低收住/);
+  assert.match(instructions[1], /首个分句后短停/);
+  assert.match(instructions[1], /后半句平收/);
   assert.match(instructions[2], /前半保留一点硬/);
   assert.match(instructions[2], /转折后恢复日常节奏/);
   assert.doesNotMatch(instructions.join(''), /妈妈|她/u);
