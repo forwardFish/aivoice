@@ -125,7 +125,7 @@ async function resolveStoredBinding(): Promise<{
 }
 
 function modeFromEnvironment(): StableEmotionMode {
-  const raw = (process.env.AIVOICE_STABLE_FIVE_TURN_MODE || 'SAFE_ONLY').trim().toUpperCase();
+  const raw = (process.env.AIVOICE_STABLE_FIVE_TURN_MODE || 'OFF').trim().toUpperCase();
   if (raw === 'OFF' || raw === 'SAFE_ONLY' || raw === 'BOUNDED_ALL') return raw;
   throw new Error(`unsupported AIVOICE_STABLE_FIVE_TURN_MODE: ${raw}`);
 }

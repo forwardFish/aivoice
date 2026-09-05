@@ -17,3 +17,11 @@
 ## Remaining limitation
 
 - Familiar-owner auditory scoring is required to close the identity and emotion hard gate.
+
+## Round 3
+
+- Owner A/C evidence isolated a five-point loss from adding even a minimal instruction: same cloned Plus voice scored 85 with no instruction and 80 with instruction; Plus and Flash both scored 85 with no instruction.
+- Changed the production default from SAFE_ONLY to OFF while retaining both bounded modes as explicit experiments.
+- Reused the ten most recent real chat reply texts and generated exactly ten new OFF-mode samples with the same registered binding; no text-model call or new enrollment was made.
+- Ten-turn contract: one identity fingerprint, one registered voice hash, seed 0, PlainText, SSML false, no instruction, no acoustic override.
+- Automated prosody: pitch median remained within 96.4–103.9 Hz across all ten replies; owner listening remains required.

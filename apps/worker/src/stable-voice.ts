@@ -154,7 +154,7 @@ export type CueCount = 0 | 1 | 2;
 export const STABLE_POLICY_VERSION = 'identity-stable-v2' as const;
 
 export function parseStableEmotionMode(value: unknown): StableEmotionMode {
-  const normalized = String(value ?? 'SAFE_ONLY').trim().toUpperCase();
+  const normalized = String(value ?? 'OFF').trim().toUpperCase();
   if (normalized === 'OFF' || normalized === 'SAFE_ONLY' || normalized === 'BOUNDED_ALL') {
     return normalized;
   }
@@ -466,7 +466,7 @@ export function buildIdentityStableVoicePlan(
   input: BuildStableVoicePlanInput,
 ): StableVoiceSynthesisPlan {
   assertVoiceBinding(input.runtime);
-  const emotionMode = input.emotionMode ?? 'SAFE_ONLY';
+  const emotionMode = input.emotionMode ?? 'OFF';
   const overlay = buildBoundedEmotionOverlay(input.delivery, input.runtime, emotionMode);
   return Object.freeze({
     identityLocked: true,

@@ -8,7 +8,7 @@ Verdict: PASS.
 - Stable coordinator requests consume a matching `PINNED_SINGLE` route and call only `registered.synthesizeStable`; active providers, companions, selective parallel, reference audio, and fallbacks are unreachable.
 - Strict CosyVoice request validation rejects acoustic overrides, relationship/persona fields, delivery internals, unexpected keys, empty instruction, SSML, nonzero seed, and model/binding mismatch.
 - Legacy `speech-instruction` rejects every identity-bearing call and no longer compiles age, gender, or relationship wording into TTS instructions.
-- `SAFE_ONLY` is the default. `BOUNDED_ALL` remains an explicit test/override mode.
+- `OFF` is the default after owner A/C calibration. `SAFE_ONLY` and `BOUNDED_ALL` remain explicit test/override modes.
 - CloudBase `0022` replaces an RPC only and adds no table or column.
 
 ## Review evidence
@@ -20,4 +20,4 @@ Verdict: PASS.
 
 ## Residual risk
 
-The output can still sound like a different person even when the request contract is fixed. Automated prosody showed the largest shifts at delight in SAFE_ONLY and at boundary/tired turns in BOUNDED_ALL. Only the user, who knows the source voice, can close that gate.
+The output can still sound like a different person when dialogue text changes even if the request contract is fixed. The new ten-turn OFF pack removes all secondary TTS control channels and keeps median pitch tightly grouped, but only the user, who knows the source voice, can close that gate.

@@ -13,6 +13,8 @@
     "registered provider/model/voice pinned with no companion or fallback route",
     "workspace typecheck, test, and build gates passed",
     "OFF, SAFE_ONLY, and BOUNDED_ALL five-turn evidence packs generated from the existing SELF binding",
+    "owner calibration changed the production default to OFF",
+    "ten distinct recent real-dialogue replies generated with the fixed OFF identity contract",
     "architecture review PASS and QA automation PASS",
     "isolated auto-execute final gate PASS_WITH_LIMITATION with zero hard or in-scope gaps",
     "owner blind listening remains the only open acceptance gate"

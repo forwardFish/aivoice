@@ -270,13 +270,13 @@ test('plan/runtime fingerprints prevent cross-voice request substitution', () =>
   }), /plan\/runtime identity mismatch/u);
 });
 
-test('default stable emotion mode is SAFE_ONLY', () => {
+test('default stable emotion mode is OFF after owner no-instruction calibration', () => {
   const plan = buildIdentityStableVoicePlan({
     text: '真的啊？', delivery: delivery('EXPRESS_DELIGHT', 1), runtime,
   });
-  assert.equal(plan.instruction, '句尾轻微上扬，其余照常。');
-  assert.equal(plan.instructionReason, 'BOUNDED_INSTRUCTION_APPLIED');
-  assert.equal(plan.appliedEmotionCueCount, 1);
+  assert.equal(plan.instruction, undefined);
+  assert.equal(plan.instructionReason, 'POLICY_DISABLED');
+  assert.equal(plan.appliedEmotionCueCount, 0);
 });
 
 test('all supported modes preserve the fixed acoustic baseline', () => {
@@ -335,8 +335,8 @@ test('stored registered binding pins provider model region and voice without pro
   }), /model mismatch/u);
 });
 
-test('production emotion mode defaults to SAFE_ONLY and rejects unknown configuration', () => {
-  assert.equal(parseStableEmotionMode(undefined), 'SAFE_ONLY');
+test('production emotion mode defaults to OFF and rejects unknown configuration', () => {
+  assert.equal(parseStableEmotionMode(undefined), 'OFF');
   assert.equal(parseStableEmotionMode('off'), 'OFF');
   assert.equal(parseStableEmotionMode(' bounded_all '), 'BOUNDED_ALL');
   assert.throws(() => parseStableEmotionMode('full-acting'), /Unsupported stable emotion mode/u);

@@ -12,7 +12,7 @@
 | text sanitizer | SSML/provider tags/stage directions | stripped/fails empty |
 | full regression | workspace | zero task-caused failures |
 | audio pack | OFF, SAFE_ONLY, BOUNDED_ALL | five playable PCM16/24kHz/mono WAVs per mode |
-| production owner pack | SAFE_ONLY | reference plus five anonymized files and scoring sheet |
+| production owner pack | OFF | reference plus ten recent real-dialogue replies and scoring sheet |
 | stress owner pack | BOUNDED_ALL | reference plus five anonymized files and scoring sheet |
 
 Result: all automated rows PASS. Owner score rows remain pending.
