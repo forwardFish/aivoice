@@ -248,6 +248,28 @@ test('CloudBase message reads preserve the public response shape without pg or D
   });
 });
 
+test('public voice response never exposes transcript, fingerprint, acoustic or source-check evidence', async () => {
+  const sensitiveVoice = {
+    ...voice,
+    qualityReport: {
+      duration_seconds: 12,
+      acceptable: true,
+      warnings: [],
+      source_speaker_check: { speech_evidence: { transcript_excerpt: '私人原话' } },
+      acoustic_evidence: { pitch_range_semitones: 8 },
+      passive_corrections: [{ instruction: '私人校准' }],
+    },
+  };
+  const service = new VoiceService(
+    cloudDatabase({ selectOne: async () => sensitiveVoice }) as any,
+    { getQuota: async () => ({ availableQuota: 1 }) } as any,
+    { latestAsset: async () => null } as any,
+  );
+  const result = await service.get('user-id', 'voice-id');
+  assert.deepEqual(result.qualityReport, { durationSeconds: 12, acceptable: true, warnings: [] });
+  assert.doesNotMatch(JSON.stringify(result), /私人原话|私人校准|speech_evidence|acoustic_evidence/u);
+});
+
 test('CloudBase reply feedback persists a bounded server-authored correction without pg or Drizzle', async () => {
   const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
   const cloud = {

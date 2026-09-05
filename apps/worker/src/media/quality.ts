@@ -19,6 +19,11 @@ export interface ReferenceQualityReport {
   clippingRatio: number;
   activeSeconds: number;
   acousticEvidence?: {
+    version: 'acoustic-evidence/2';
+    method: 'LOCAL_AUTOCORRELATION_RMS_V1';
+    windowStartMs: number;
+    windowEndMs: number;
+    validOneSecondWindows: number;
     volumeDynamicRangeDb: number;
     pitchMedianHz: number;
     pitchRangeSemitones: number;
@@ -27,11 +32,19 @@ export interface ReferenceQualityReport {
     sentenceFinalEnergyDeltaDb?: number;
     sentenceFinalPitchSampleCount?: number;
     sentenceFinalEnergySampleCount?: number;
+    sentenceEndingObservations?: Array<{
+      segmentIndex: number;
+      deltaSemitones?: number;
+      energyDeltaDb?: number;
+      voicedRatio: number;
+    }>;
   };
   acceptable: boolean;
   warnings: string[];
   speakerDiarization?: {
+    version?: 'observed-evidence/2';
     model: string;
+    asrTaskId?: string;
     speakerCount: number;
     segmentCount: number;
     speechMs: number;
@@ -39,18 +52,11 @@ export interface ReferenceQualityReport {
     overlapRatio: number;
     acceptable: boolean;
     segments: Array<{ speakerId: string; beginMs: number; endMs: number; text: string }>;
-    speechEvidence?: {
-      transcript: string;
-      characterCount: number;
-      charactersPerSecond: number;
-      medianSentenceCharacters: number;
-      pauseCount: number;
-      averagePauseMs: number;
-      affectCues: string[];
-      recurringPhrases: string[];
-    };
+    speechEvidence?: import('../speech-habit-fingerprint.js').SpeechEvidenceV2;
+    scope?: import('../speech-habit-fingerprint.js').EvidenceScope;
     failureCode?: ReferenceQualityFailureCode;
   };
+  sourceSpeakerCheck?: Record<string, unknown>;
   failureCode?: ReferenceQualityFailureCode;
 }
 
@@ -170,7 +176,13 @@ export async function inspectSentenceFinalProsody(
   const { sampleRate, samples } = await readPcmSamples(filePath);
   const pitchDeltas: number[] = [];
   const energyDeltas: number[] = [];
-  for (const segment of segments) {
+  const sentenceEndingObservations: Array<{
+    segmentIndex: number;
+    deltaSemitones?: number;
+    energyDeltaDb?: number;
+    voicedRatio: number;
+  }> = [];
+  for (const [segmentIndex, segment] of segments.entries()) {
     if (segment.endMs - segment.beginMs < 700) continue;
     const end = Math.min(samples.length, Math.round(segment.endMs / 1000 * sampleRate));
     const tailStart = Math.max(0, end - Math.round(sampleRate * 0.28));
@@ -179,16 +191,29 @@ export async function inspectSentenceFinalProsody(
     if (bodyEnd <= bodyStart || end <= tailStart) continue;
     const bodyRms = rangeRms(samples, bodyStart, bodyEnd);
     const tailRms = rangeRms(samples, tailStart, end);
-    if (bodyRms > 1 && tailRms > 1) energyDeltas.push(20 * Math.log10(tailRms / bodyRms));
+    const energyDeltaDb = bodyRms > 1 && tailRms > 1
+      ? 20 * Math.log10(tailRms / bodyRms)
+      : undefined;
+    if (energyDeltaDb !== undefined) energyDeltas.push(energyDeltaDb);
     const bodyPitch = estimatePitchHz(samples, bodyStart, bodyEnd, sampleRate);
     const tailPitch = estimatePitchHz(samples, tailStart, end, sampleRate);
-    if (bodyPitch > 0 && tailPitch > 0) pitchDeltas.push(12 * Math.log2(tailPitch / bodyPitch));
+    const deltaSemitones = bodyPitch > 0 && tailPitch > 0
+      ? 12 * Math.log2(tailPitch / bodyPitch)
+      : undefined;
+    if (deltaSemitones !== undefined) pitchDeltas.push(deltaSemitones);
+    sentenceEndingObservations.push({
+      segmentIndex,
+      ...(deltaSemitones !== undefined ? { deltaSemitones: rounded(deltaSemitones, 3) } : {}),
+      ...(energyDeltaDb !== undefined ? { energyDeltaDb: rounded(energyDeltaDb, 3) } : {}),
+      voicedRatio: deltaSemitones === undefined ? 0 : 1,
+    });
   }
   return {
     ...(pitchDeltas.length ? { sentenceFinalPitchDeltaSemitones: rounded(percentile(pitchDeltas, 0.5), 3) } : {}),
     ...(energyDeltas.length ? { sentenceFinalEnergyDeltaDb: rounded(percentile(energyDeltas, 0.5), 3) } : {}),
     ...(pitchDeltas.length ? { sentenceFinalPitchSampleCount: pitchDeltas.length } : {}),
     ...(energyDeltas.length ? { sentenceFinalEnergySampleCount: energyDeltas.length } : {}),
+    ...(sentenceEndingObservations.length ? { sentenceEndingObservations } : {}),
   };
 }
 
@@ -232,6 +257,11 @@ export async function inspectReferenceQuality(filePath: string): Promise<Referen
   const pitchP10 = percentile(pitchWindows, 0.1);
   const pitchP90 = percentile(pitchWindows, 0.9);
   const acousticEvidence = {
+    version: 'acoustic-evidence/2' as const,
+    method: 'LOCAL_AUTOCORRELATION_RMS_V1' as const,
+    windowStartMs: 0,
+    windowEndMs: Math.round(durationSeconds * 1000),
+    validOneSecondWindows: Math.floor(pitchWindows.length / 10),
     volumeDynamicRangeDb: rounded(Math.max(0, percentile(activeWindowDbfs, 0.9) - percentile(activeWindowDbfs, 0.1)), 3),
     pitchMedianHz: rounded(percentile(pitchWindows, 0.5), 3),
     pitchRangeSemitones: rounded(pitchP10 > 0 && pitchP90 > 0 ? 12 * Math.log2(pitchP90 / pitchP10) : 0, 3),

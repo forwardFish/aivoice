@@ -81,3 +81,56 @@ test('native storage keeps cloud file IDs across upload, metadata, download, pla
   await client.deleteObject('ignored', fileID);
   assert.deepEqual(deleted, [fileID]);
 });
+
+test('quality report JSON is opaque while database and RPC envelope keys still map', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestBody: Record<string, any> = {};
+  globalThis.fetch = async (_input, init) => {
+    requestBody = JSON.parse(String(init?.body || '{}'));
+    return new Response(JSON.stringify({
+      outer_value: 7,
+      quality_report: {
+        source_speaker_check: {
+          speech_evidence: { character_count: 42 },
+        },
+      },
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const client = new CloudBaseRuntimeClient('env-test', 'server-secret');
+    const result = await client.rpc<Record<string, any>>('rpc_test', {
+      pQualityReport: {
+        sourceSpeakerCheck: {
+          speechEvidence: { characterCount: 42 },
+        },
+      },
+    });
+    assert.equal(requestBody.p_quality_report.sourceSpeakerCheck.speechEvidence.characterCount, 42);
+    assert.equal(requestBody.p_quality_report.source_speaker_check, undefined);
+    assert.equal(result.outerValue, 7);
+    assert.equal(result.qualityReport.source_speaker_check.speech_evidence.character_count, 42);
+    assert.equal(result.qualityReport.sourceSpeakerCheck, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('source-check pReport stays opaque without changing unrelated nested RPC arguments', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestBody: Record<string, any> = {};
+  globalThis.fetch = async (_input, init) => {
+    requestBody = JSON.parse(String(init?.body || '{}'));
+    return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const client = new CloudBaseRuntimeClient('env-test', 'server-secret');
+    await client.rpc('rpc_test', {
+      pReport: { sourceSpeakerCheck: { speechEvidence: { characterCount: 42 } } },
+      ordinaryObject: { nestedValue: 9 },
+    });
+    assert.equal(requestBody.p_report.sourceSpeakerCheck.speechEvidence.characterCount, 42);
+    assert.equal(requestBody.ordinary_object.nested_value, 9);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

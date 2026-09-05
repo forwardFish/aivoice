@@ -63,11 +63,27 @@ function camel(value: string): string {
   return value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
 }
 
+const OPAQUE_JSON_KEYS = new Set([
+  'qualityReport',
+  'quality_report',
+  'pQualityReport',
+  'p_quality_report',
+  'pReport',
+  'p_report',
+  'sourceSpeakerCheckReport',
+  'source_speaker_check_report',
+]);
+
 function mapKeys(value: unknown, keyMapper: (key: string) => string): unknown {
   if (Array.isArray(value)) return value.map((item) => mapKeys(item, keyMapper));
   if (!value || typeof value !== 'object' || value instanceof Date || Buffer.isBuffer(value)) return value;
   return Object.fromEntries(Object.entries(value as Record<string, unknown>)
-    .map(([key, item]) => [keyMapper(key), mapKeys(item, keyMapper)]));
+    .map(([key, item]) => {
+      const mappedKey = keyMapper(key);
+      return [mappedKey, OPAQUE_JSON_KEYS.has(key) || OPAQUE_JSON_KEYS.has(mappedKey)
+        ? item
+        : mapKeys(item, keyMapper)];
+    }));
 }
 
 function encodeFilter(value: unknown): string {

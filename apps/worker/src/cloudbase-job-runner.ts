@@ -29,7 +29,11 @@ import {
 import { createVoiceDeliveryPlan } from './voice-delivery-plan.js';
 import { buildEmotionExpressionPlan } from './emotion-expression.js';
 import { observedPersonEvidenceFromQualityReport, persistedPersonCorrectionsFromQualityReport } from './observed-person-evidence.js';
+import type { EvidenceScope } from './speech-habit-fingerprint.js';
 import {
+  cropSpeakerSegments,
+  storedSpeakerSegments,
+  summarizeObservedSpeech,
   type SpeakerDiarizationReport,
 } from './providers/aliyun-speaker-diarization.js';
 import {
@@ -131,6 +135,67 @@ async function sha256(filePath: string): Promise<string> {
   return hash.digest('hex');
 }
 
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function storedField(row: Record<string, unknown>, camel: string, snake: string): unknown {
+  if (Object.prototype.hasOwnProperty.call(row, camel)) return row[camel];
+  return row[snake];
+}
+
+export function buildSelectionScopedSourceSpeakerCheck(
+  value: Record<string, unknown>,
+  input: {
+    voiceId: string;
+    sourceMediaId: string;
+    clipStartMs: number;
+    clipEndMs: number;
+    sourceSpeakerCheckPassed: boolean;
+  },
+): Record<string, unknown> {
+  const source = record(value);
+  const allSegments = storedSpeakerSegments(source);
+  const selected = cropSpeakerSegments(allSegments, input.clipStartMs, input.clipEndMs);
+  const speechEvidence = summarizeObservedSpeech(selected.segments, input.clipStartMs, input.clipEndMs);
+  const localSpeakerId = selected.segments[0]?.speakerId || allSegments[0]?.speakerId || '';
+  return {
+    version: 'observed-evidence/2',
+    passed: storedField(source, 'passed', 'passed') === true
+      || storedField(source, 'acceptable', 'acceptable') === true,
+    provider: String(storedField(source, 'provider', 'provider') || 'unknown'),
+    model: String(storedField(source, 'model', 'model') || ''),
+    asrTaskId: String(storedField(source, 'asrTaskId', 'asr_task_id') || ''),
+    sourceMediaId: input.sourceMediaId,
+    speakerCount: Number(storedField(source, 'speakerCount', 'speaker_count') || 0),
+    segmentCount: selected.segments.length,
+    speechMs: selected.segments.reduce((sum, segment) => sum + segment.endMs - segment.beginMs, 0),
+    overlapMs: 0,
+    overlapRatio: 0,
+    acceptable: input.sourceSpeakerCheckPassed,
+    failureCode: '',
+    scope: {
+      assetId: input.sourceMediaId,
+      selectionId: `${input.voiceId}:${input.clipStartMs}-${input.clipEndMs}`,
+      asrTaskId: String(storedField(source, 'asrTaskId', 'asr_task_id') || ''),
+      localSpeakerId,
+      selectionStartMs: input.clipStartMs,
+      selectionEndMs: input.clipEndMs,
+      windowStartMs: input.clipStartMs,
+      windowEndMs: input.clipEndMs,
+      targetOnly: input.sourceSpeakerCheckPassed && localSpeakerId.length > 0,
+      knownOverlap: false,
+      originalTimeline: true,
+    },
+    segments: selected.segments,
+    ...(speechEvidence ? { speechEvidence } : {}),
+    boundaryCrossed: selected.boundaryCrossed,
+    checkedAt: String(storedField(source, 'checkedAt', 'checked_at') || ''),
+  };
+}
+
 class SourceSpeakerRejectedHandledError extends Error {
   constructor(readonly code: string) {
     super(code);
@@ -211,10 +276,18 @@ export class CloudBaseJobRunner {
     }
   }
 
-  private sourceSpeakerCheckReport(report: SpeakerDiarizationReport, sourceMediaId: string): Record<string, unknown> {
+  private sourceSpeakerCheckReport(
+    report: SpeakerDiarizationReport,
+    sourceMediaId: string,
+    windowEndMs: number,
+  ): Record<string, unknown> {
+    const localSpeakerId = report.segments[0]?.speakerId || '';
     return {
+      version: 'observed-evidence/2',
+      passed: report.acceptable,
       provider: this.speakerDetector.providerName || 'unknown',
       model: report.model,
+      asrTaskId: report.asrTaskId,
       sourceMediaId,
       speakerCount: report.speakerCount,
       segmentCount: report.segmentCount,
@@ -223,7 +296,59 @@ export class CloudBaseJobRunner {
       overlapRatio: report.overlapRatio,
       acceptable: report.acceptable,
       failureCode: report.failureCode || '',
+      scope: {
+        assetId: sourceMediaId,
+        selectionId: `precheck:${sourceMediaId}`,
+        asrTaskId: report.asrTaskId,
+        localSpeakerId,
+        selectionStartMs: 0,
+        selectionEndMs: windowEndMs,
+        windowStartMs: 0,
+        windowEndMs,
+        targetOnly: report.acceptable && report.speakerCount === 1,
+        knownOverlap: report.overlapMs > 0,
+        originalTimeline: true,
+      },
+      segments: report.segments,
+      ...(report.speechEvidence ? { speechEvidence: report.speechEvidence } : {}),
       checkedAt: new Date().toISOString(),
+    };
+  }
+
+  private selectedSourceSpeakerCheckReport(
+    value: Record<string, unknown>,
+    input: VoiceProcessInput,
+  ): Record<string, unknown> {
+    return buildSelectionScopedSourceSpeakerCheck(value, {
+      voiceId: input.voiceId,
+      sourceMediaId: input.sourceMediaId,
+      clipStartMs: input.clipStartMs as number,
+      clipEndMs: input.clipEndMs as number,
+      sourceSpeakerCheckPassed: input.sourceSpeakerCheckPassed === true,
+    });
+  }
+
+  private selectedFormalDiarization(
+    report: SpeakerDiarizationReport,
+    input: VoiceProcessInput,
+  ): SpeakerDiarizationReport & { scope: EvidenceScope } {
+    const selectionDurationMs = (input.clipEndMs as number) - (input.clipStartMs as number);
+    return {
+      ...report,
+      speechEvidence: summarizeObservedSpeech(report.segments, 0, selectionDurationMs),
+      scope: {
+        assetId: input.sourceMediaId,
+        selectionId: `${input.voiceId}:${input.clipStartMs}-${input.clipEndMs}`,
+        asrTaskId: report.asrTaskId,
+        localSpeakerId: report.segments[0]?.speakerId || '',
+        selectionStartMs: input.clipStartMs as number,
+        selectionEndMs: input.clipEndMs as number,
+        windowStartMs: 0,
+        windowEndMs: selectionDurationMs,
+        targetOnly: report.acceptable && report.speakerCount === 1,
+        knownOverlap: report.overlapMs > 0,
+        originalTimeline: false,
+      },
     };
   }
 
@@ -238,12 +363,13 @@ export class CloudBaseJobRunner {
     const checkAudioPath = path.join(workDir, 'source-speaker-check.wav');
     await this.download(this.sourceBucket, input.sourceObjectKey, sourcePath);
     await extractSpeakerCheckAudio({ videoPath: sourcePath, outputPath: checkAudioPath });
+    const checkProbe = await probeWav(checkAudioPath);
     const checkObjectKey = `quality/source-check/${input.userId}/${job.voiceProfileId}/${job.id}.wav`;
     const checkStoredKey = await this.runtime.uploadFile(this.audioBucket, checkObjectKey, checkAudioPath, 'audio/wav');
     try {
       const checkUrl = await this.runtime.signDownload(this.audioBucket, checkStoredKey, 600);
       const report = await this.speakerDetector.inspect(checkUrl);
-      const persistedReport = this.sourceSpeakerCheckReport(report, input.sourceMediaId);
+      const persistedReport = this.sourceSpeakerCheckReport(report, input.sourceMediaId, checkProbe.durationMs);
       if (!report.acceptable && report.failureCode) {
         await this.deleteObject(this.sourceBucket, input.sourceObjectKey);
         await this.runtime.rpc('rpc_voice_source_speaker_check_rejected', {
@@ -309,7 +435,8 @@ export class CloudBaseJobRunner {
       const qualityStoredKey = await this.runtime.uploadFile(this.audioBucket, qualityObjectKey, referencePath, 'audio/wav');
       try {
         const qualityUrl = await this.runtime.signDownload(this.audioBucket, qualityStoredKey, 600);
-        const speakerDiarization = await this.speakerDetector.inspect(qualityUrl);
+        const inspectedDiarization = await this.speakerDetector.inspect(qualityUrl);
+        const speakerDiarization = this.selectedFormalDiarization(inspectedDiarization, input);
         const sentenceFinalProsody = await inspectSentenceFinalProsody(referencePath, speakerDiarization.segments);
         qualityReport = {
           ...quality,
@@ -325,7 +452,18 @@ export class CloudBaseJobRunner {
         });
       }
     } else if (input.sourceSpeakerCheckReport) {
-      qualityReport = { ...quality, sourceSpeakerCheck: input.sourceSpeakerCheckReport } as ReferenceQualityReport;
+      const sourceSpeakerCheck = this.selectedSourceSpeakerCheckReport(input.sourceSpeakerCheckReport, input);
+      const relativeSegments = storedSpeakerSegments(sourceSpeakerCheck).map((segment) => ({
+        ...segment,
+        beginMs: Math.max(0, segment.beginMs - (input.clipStartMs as number)),
+        endMs: Math.max(0, segment.endMs - (input.clipStartMs as number)),
+      }));
+      const sentenceFinalProsody = await inspectSentenceFinalProsody(referencePath, relativeSegments);
+      qualityReport = {
+        ...quality,
+        acousticEvidence: { ...quality.acousticEvidence!, ...sentenceFinalProsody },
+        sourceSpeakerCheck,
+      } as ReferenceQualityReport;
     }
     const existingProviderVoiceId = input.existingProviderVoiceIdEncrypted
       ? decryptProviderId(input.existingProviderVoiceIdEncrypted)

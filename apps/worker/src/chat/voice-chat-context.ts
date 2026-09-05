@@ -378,6 +378,7 @@ type VoiceChatSystemLayers = {
 };
 
 function buildRelationshipSystem(input: {
+  currentMessageId?: string;
   voiceName: string;
   ageYears: number | null;
   gender: VoiceGender | null;
@@ -402,6 +403,10 @@ function buildRelationshipSystem(input: {
 }): VoiceChatSystemLayers {
   const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
+  const recentAssistantReplies = input.promptTurns
+    .filter((turn) => turn.role === 'CHARACTER')
+    .map((turn) => turn.content)
+    .slice(-5);
   const profile = [
     '<voice_profile>',
     `人物姓名：${clean(input.voiceName, 40) || '未命名人物'}`,
@@ -453,7 +458,11 @@ function buildRelationshipSystem(input: {
       userLifeStage: input.userLifeStage,
       gender: input.gender,
     }),
-    ...observedPersonEvidencePrompt(input.observedPersonEvidence),
+    ...observedPersonEvidencePrompt(input.observedPersonEvidence, {
+      turnKey: input.currentMessageId || `${input.relationshipType}:${input.promptTurns.length}`,
+      recentReplies: recentAssistantReplies,
+      historyComplete: recentAssistantReplies.length >= 5,
+    }),
     ...(input.persistedPersonCorrections.length ? [
       '<persisted_user_corrections>',
       ...input.persistedPersonCorrections.map((correction) => clean(correction, 100)),
@@ -623,6 +632,7 @@ export function compileVoiceChatMessages(input: {
   const modelPromptTurns = [...modelRecentTurns, modelCurrentTurn];
   const systemLayers: VoiceChatSystemLayers = input.relationshipType
     ? buildRelationshipSystem({
+      currentMessageId: input.currentMessageId,
       voiceName: input.voiceName,
       ageYears,
       gender,

@@ -55,6 +55,10 @@ test('reference quality accepts clear continuous speech-like PCM', async () => {
     assert.ok((report.acousticEvidence?.pitchMedianHz || 0) < 230);
     assert.ok((report.acousticEvidence?.pitchRangeSemitones || 0) < 0.5);
     assert.ok((report.acousticEvidence?.volumeDynamicRangeDb ?? 99) < 0.5, JSON.stringify(report.acousticEvidence));
+    assert.equal(report.acousticEvidence?.version, 'acoustic-evidence/2');
+    assert.equal(report.acousticEvidence?.method, 'LOCAL_AUTOCORRELATION_RMS_V1');
+    assert.equal(report.acousticEvidence?.windowEndMs, 12_000);
+    assert.ok((report.acousticEvidence?.validOneSecondWindows || 0) >= 3);
   });
 });
 
@@ -71,6 +75,8 @@ test('sentence-final prosody measures a rising tail from the existing PCM refere
     assert.equal(ending.sentenceFinalPitchSampleCount, 1);
     assert.equal(ending.sentenceFinalEnergySampleCount, 1);
     assert.ok((ending.sentenceFinalPitchDeltaSemitones || 0) > 2, JSON.stringify(ending));
+    assert.equal(ending.sentenceEndingObservations?.length, 1);
+    assert.equal(ending.sentenceEndingObservations?.[0]?.voicedRatio, 1);
   });
 });
 

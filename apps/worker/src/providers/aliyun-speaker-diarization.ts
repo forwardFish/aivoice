@@ -1,4 +1,8 @@
 import { trustedAliyunUrl } from './aliyun-cosyvoice.js';
+import type {
+  SpeechEvidenceV2,
+  SpeechParticleEvidenceV2,
+} from '../speech-habit-fingerprint.js';
 
 export type SpeakerDiarizationFailureCode =
   | 'MULTIPLE_SPEAKERS'
@@ -12,19 +16,10 @@ export interface SpeakerDiarizationSegment {
   text: string;
 }
 
-export interface ObservedSpeechEvidence {
-  transcript: string;
-  characterCount: number;
-  charactersPerSecond: number;
-  medianSentenceCharacters: number;
-  pauseCount: number;
-  averagePauseMs: number;
-  affectCues: string[];
-  recurringPhrases: string[];
-}
-
 export interface SpeakerDiarizationReport {
+  version: 'observed-evidence/2';
   model: string;
+  asrTaskId: string;
   speakerCount: number;
   segmentCount: number;
   speechMs: number;
@@ -32,7 +27,7 @@ export interface SpeakerDiarizationReport {
   overlapRatio: number;
   acceptable: boolean;
   segments: SpeakerDiarizationSegment[];
-  speechEvidence?: ObservedSpeechEvidence;
+  speechEvidence?: SpeechEvidenceV2;
   failureCode?: SpeakerDiarizationFailureCode;
 }
 
@@ -45,39 +40,119 @@ function rounded(value: number, digits: number): number {
   return Math.round(value * scale) / scale;
 }
 
-function occurrences(text: string, phrase: string): number {
-  let count = 0;
-  let offset = 0;
-  while ((offset = text.indexOf(phrase, offset)) >= 0) {
-    count += 1;
-    offset += phrase.length;
-  }
-  return count;
+function hanCount(value: string): number {
+  return Array.from(value).filter((character) => /\p{Script=Han}/u.test(character)).length;
 }
 
-function recurringPhrasesFromTranscript(transcript: string): string[] {
-  const discourseMarkers = ['其实', '说实话', '就是', '然后', '真的', '我觉得', '你知道', '怎么说', '反正', '有点', '蛮', '还是'];
-  const selected = discourseMarkers.filter((phrase) => occurrences(transcript, phrase) >= 2);
-  const counts = new Map<string, number>();
-  for (const sequence of transcript.match(/[\p{Script=Han}]{2,}/gu) || []) {
-    for (const length of [4, 3, 2]) {
-      for (let index = 0; index <= sequence.length - length; index += 1) {
-        const phrase = sequence.slice(index, index + length);
-        counts.set(phrase, (counts.get(phrase) || 0) + 1);
-      }
+function lexicalCount(value: string): number {
+  return Array.from(value).filter((character) => /[\p{L}\p{N}]/u.test(character)).length;
+}
+
+function clausesFromSegments(segments: readonly SpeakerDiarizationSegment[]): string[] {
+  return segments.flatMap((segment) => segment.text
+    .split(/[，,。！？!?；;：:]+/u)
+    .map((clause) => clause.trim())
+    .filter((clause) => hanCount(clause) >= 2));
+}
+
+function recurringParticlesFromClauses(clauses: readonly string[]): SpeechParticleEvidenceV2[] {
+  const candidates = ['嗯', '哦', '啊', '呀', '呢', '吧'] as const;
+  const evidence: SpeechParticleEvidenceV2[] = [];
+  for (const particle of candidates) {
+    for (const position of ['INITIAL', 'FINAL'] as const) {
+      const clauseIndices = clauses.flatMap((clause, index) => {
+        const compact = clause.replace(/[“”"'‘’（）()【】\[\]\s]/gu, '');
+        if (!compact) return [];
+        const matched = position === 'INITIAL'
+          ? compact.startsWith(particle)
+          : compact.endsWith(particle);
+        return matched ? [index] : [];
+      });
+      if (new Set(clauseIndices).size < 2) continue;
+      evidence.push({
+        text: particle,
+        position,
+        count: clauseIndices.length,
+        clauseIndices,
+        opportunities: clauses.length,
+      });
     }
   }
-  const stop = new Set(['我们', '你们', '他们', '我的', '你的', '他的', '一个', '这个', '那个', '没有', '可以', '是有']);
-  const repeated = [...counts.entries()]
-    .filter(([phrase, count]) => count >= 2 && !stop.has(phrase) && !selected.some((marker) => phrase.includes(marker)))
-    .sort((left, right) => (right[1] * right[0].length) - (left[1] * left[0].length) || right[0].length - left[0].length)
-    .map(([phrase]) => phrase)
-    .filter((phrase, index, all) => !all.slice(0, index).some((prior) => prior.includes(phrase) || phrase.includes(prior)))
-    .slice(0, Math.max(0, 6 - selected.length));
-  return [...selected, ...repeated].slice(0, 6);
+  return evidence.slice(0, 6);
 }
 
-export function evaluateSpeakerDiarization(input: unknown, model = 'fun-asr'): SpeakerDiarizationReport {
+export function summarizeObservedSpeech(
+  segments: readonly SpeakerDiarizationSegment[],
+  windowStartMs: number,
+  windowEndMs: number,
+): SpeechEvidenceV2 | undefined {
+  const ordered = [...segments]
+    .filter((segment) => segment.endMs > segment.beginMs && segment.text.trim())
+    .sort((left, right) => left.beginMs - right.beginMs || left.endMs - right.endMs);
+  if (!ordered.length || windowEndMs <= windowStartMs) return undefined;
+  const fullTranscript = ordered.map((segment) => segment.text.trim()).filter(Boolean).join(' ');
+  const characterCount = hanCount(fullTranscript);
+  const lexicalCodePointCount = lexicalCount(fullTranscript);
+  const speechSpanMs = Math.max(0, ordered[ordered.length - 1].endMs - ordered[0].beginMs);
+  if (!characterCount || !speechSpanMs) return undefined;
+  const sentenceCharacterCounts = ordered.map((segment) => hanCount(segment.text)).filter((count) => count >= 2);
+  const clauses = clausesFromSegments(ordered);
+  const clauseCharacterCounts = clauses.map(hanCount).filter((count) => count >= 2);
+  const internalGaps = ordered.slice(1).map((segment, index) => Math.max(0, segment.beginMs - ordered[index].endMs));
+  const pauses = internalGaps.filter((gap) => gap >= 200 && gap <= 2_000);
+  const excerptCharacters = Array.from(fullTranscript);
+  return {
+    version: 'speech-evidence/2',
+    countDefinition: 'HAN_CODEPOINTS',
+    transcriptExcerpt: excerptCharacters.slice(0, 300).join(''),
+    transcriptTruncated: excerptCharacters.length > 300,
+    characterCount,
+    lexicalCodePointCount,
+    speechSpanMs,
+    charactersPerSecond: rounded(characterCount / (speechSpanMs / 1000), 3),
+    sentenceCharacterCounts,
+    clauseCharacterCounts,
+    pauses: {
+      method: 'ASR_GAP_V1',
+      durationsMs: pauses,
+      coverage: ordered.length >= 2 ? 1 : 0,
+      boundaryAlignedCount: pauses.length,
+      longGapCount: internalGaps.filter((gap) => gap > 2_000).length,
+      analyzedSpanMs: Math.max(0, windowEndMs - windowStartMs),
+    },
+    recurringParticles: recurringParticlesFromClauses(clauses),
+  };
+}
+
+export function storedSpeakerSegments(value: unknown): SpeakerDiarizationSegment[] {
+  const row = object(value);
+  const rawSegments = Array.isArray(row.segments) ? row.segments : [];
+  return rawSegments.flatMap((item): SpeakerDiarizationSegment[] => {
+    const segment = object(item);
+    const beginMs = Number(segment.beginMs ?? segment.begin_ms);
+    const endMs = Number(segment.endMs ?? segment.end_ms);
+    const speakerId = String(segment.speakerId ?? segment.speaker_id ?? '').trim();
+    const segmentText = String(segment.text ?? '').normalize('NFKC').replace(/\s+/gu, ' ').trim();
+    if (!Number.isFinite(beginMs) || !Number.isFinite(endMs) || endMs <= beginMs || !speakerId || !segmentText) return [];
+    return [{ speakerId, beginMs, endMs, text: Array.from(segmentText).slice(0, 300).join('') }];
+  }).sort((left, right) => left.beginMs - right.beginMs || left.endMs - right.endMs).slice(0, 100);
+}
+
+export function cropSpeakerSegments(
+  segments: readonly SpeakerDiarizationSegment[],
+  startMs: number,
+  endMs: number,
+): { segments: SpeakerDiarizationSegment[]; boundaryCrossed: boolean } {
+  const overlapping = segments.filter((segment) => segment.endMs > startMs && segment.beginMs < endMs);
+  const contained = overlapping.filter((segment) => segment.beginMs >= startMs && segment.endMs <= endMs);
+  return { segments: contained, boundaryCrossed: contained.length !== overlapping.length };
+}
+
+export function evaluateSpeakerDiarization(
+  input: unknown,
+  model = 'fun-asr',
+  asrTaskId = '',
+): SpeakerDiarizationReport {
   const raw = object(input);
   const transcripts = Array.isArray(raw.transcripts) ? raw.transcripts : [];
   const sentences = transcripts.flatMap((transcript) => {
@@ -98,39 +173,15 @@ export function evaluateSpeakerDiarization(input: unknown, model = 'fun-asr'): S
       speakerId: String(rawSpeaker),
       beginMs,
       endMs,
-      text: String(row.text ?? row.transcript ?? '').normalize('NFKC').replace(/\s+/gu, ' ').trim().slice(0, 200),
+      text: String(row.text ?? row.transcript ?? '').normalize('NFKC').replace(/\s+/gu, ' ').trim(),
     }];
   }).sort((left, right) => left.beginMs - right.beginMs || left.endMs - right.endMs);
 
   const speakerIds = new Set(segments.map((segment) => segment.speakerId));
   const speechMs = segments.reduce((sum, segment) => sum + segment.endMs - segment.beginMs, 0);
-  const sentenceCharacterCounts = segments
-    .map((segment) => Array.from(segment.text).filter((character) => /[\p{L}\p{N}]/u.test(character)).length)
-    .filter((count) => count > 0)
-    .sort((left, right) => left - right);
-  const characterCount = sentenceCharacterCounts.reduce((sum, count) => sum + count, 0);
-  const pauses = segments.slice(1).map((segment, index) => Math.max(0, segment.beginMs - segments[index].endMs)).filter((gap) => gap >= 150);
-  const transcript = Array.from(segments.map((segment) => segment.text).filter(Boolean).join(' ')).slice(0, 600).join('');
-  const affectCuePatterns: Array<[string, RegExp]> = [
-    ['开心', /开心|高兴|兴奋|惊喜/u],
-    ['难过', /难过|伤心|委屈|心疼/u],
-    ['生气', /生气|不高兴|恼火|气愤/u],
-    ['烦躁', /烦躁|很烦|烦死/u],
-    ['担心', /担心|紧张|害怕|不安/u],
-    ['疲惫', /疲惫|很累|困了|没精神/u],
-  ];
-  const affectCues = affectCuePatterns.filter(([, pattern]) => pattern.test(transcript)).map(([label]) => label).slice(0, 4);
-  const recurringPhrases = recurringPhrasesFromTranscript(transcript);
-  const speechEvidence = transcript && characterCount > 0 && speechMs > 0 ? {
-    transcript,
-    characterCount,
-    charactersPerSecond: rounded(characterCount / (speechMs / 1000), 3),
-    medianSentenceCharacters: sentenceCharacterCounts[Math.floor(sentenceCharacterCounts.length / 2)] || characterCount,
-    pauseCount: pauses.length,
-    averagePauseMs: pauses.length ? Math.round(pauses.reduce((sum, gap) => sum + gap, 0) / pauses.length) : 0,
-    affectCues,
-    recurringPhrases,
-  } : undefined;
+  const windowStartMs = segments[0]?.beginMs ?? 0;
+  const windowEndMs = segments[segments.length - 1]?.endMs ?? 0;
+  const speechEvidence = summarizeObservedSpeech(segments, windowStartMs, windowEndMs);
   let overlapMs = 0;
   for (let index = 1; index < segments.length; index += 1) {
     const previous = segments[index - 1];
@@ -146,7 +197,9 @@ export function evaluateSpeakerDiarization(input: unknown, model = 'fun-asr'): S
   else if (speakerIds.size > 1) failureCode = 'MULTIPLE_SPEAKERS';
 
   return {
+    version: 'observed-evidence/2',
     model,
+    asrTaskId,
     speakerCount: speakerIds.size,
     segmentCount: segments.length,
     speechMs,
@@ -222,7 +275,7 @@ export class AliyunSpeakerDiarizationProvider {
       if (!transcriptionUrl) throw new Error('Aliyun speaker diarization returned no transcription URL');
       const transcriptionResponse = await fetch(trustedAliyunUrl(transcriptionUrl), { signal: AbortSignal.timeout(30_000) });
       if (!transcriptionResponse.ok) throw new Error(`Aliyun speaker diarization result download failed: ${transcriptionResponse.status}`);
-      return evaluateSpeakerDiarization(await transcriptionResponse.json(), this.model);
+      return evaluateSpeakerDiarization(await transcriptionResponse.json(), this.model, taskId);
     }
     throw new Error('Aliyun speaker diarization timed out');
   }

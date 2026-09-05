@@ -97,6 +97,32 @@ function correctionInstruction(reason: string, detail: string): string {
   return REPLY_FEEDBACK_INSTRUCTIONS[reason] || '';
 }
 
+function publicQualityReport(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const report = value as Record<string, unknown>;
+  const read = (camel: string, snake: string) => Object.prototype.hasOwnProperty.call(report, camel)
+    ? report[camel]
+    : report[snake];
+  const result: Record<string, unknown> = {};
+  for (const [camel, snake] of [
+    ['durationSeconds', 'duration_seconds'],
+    ['sampleRate', 'sample_rate'],
+    ['channels', 'channels'],
+    ['averageDbfs', 'average_dbfs'],
+    ['silentRatio', 'silent_ratio'],
+    ['clippingRatio', 'clipping_ratio'],
+    ['activeSeconds', 'active_seconds'],
+    ['acceptable', 'acceptable'],
+    ['failureCode', 'failure_code'],
+  ] as const) {
+    const entry = read(camel, snake);
+    if (entry !== undefined) result[camel] = entry;
+  }
+  const warnings = read('warnings', 'warnings');
+  if (Array.isArray(warnings)) result.warnings = warnings.map(String).slice(0, 10);
+  return result;
+}
+
 @Injectable()
 export class VoiceService {
   constructor(
@@ -201,7 +227,7 @@ export class VoiceService {
       availableQuota: voice.trialQuotaRemaining + voice.paidQuotaRemaining,
       failureCode: voice.failureCode,
       failureMessage: voice.failureMessage,
-      qualityReport: voice.qualityReport,
+      qualityReport: publicQualityReport(voice.qualityReport),
       lastUsedAt: voice.lastUsedAt,
       createdAt: voice.createdAt,
       updatedAt: voice.updatedAt,

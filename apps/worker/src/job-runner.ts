@@ -799,7 +799,7 @@ export class JobRunner {
       await client.query('BEGIN');
       await client.query(`UPDATE media_assets SET status='DELETED',deleted_at=NOW(),updated_at=NOW() WHERE voice_profile_id=$1`, [job.voice_profile_id]);
       await client.query(`UPDATE voice_models SET status='DELETED',deleted_at=NOW(),deletion_error='',updated_at=NOW() WHERE voice_profile_id=$1`, [job.voice_profile_id]);
-      await client.query(`UPDATE voice_profiles SET status='DELETED',deleted_at=NOW(),updated_at=NOW() WHERE id=$1`, [job.voice_profile_id]);
+      await client.query(`UPDATE voice_profiles SET status='DELETED',quality_report='{}'::jsonb,deleted_at=NOW(),updated_at=NOW() WHERE id=$1`, [job.voice_profile_id]);
       await client.query('COMMIT');
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);
@@ -835,7 +835,7 @@ export class JobRunner {
          WHERE voice_profile_id IN (SELECT id FROM voice_profiles WHERE user_id=$1)`,
         [job.user_id],
       );
-      await client.query(`UPDATE voice_profiles SET status='DELETED',deleted_at=NOW(),updated_at=NOW() WHERE user_id=$1`, [job.user_id]);
+      await client.query(`UPDATE voice_profiles SET status='DELETED',quality_report='{}'::jsonb,deleted_at=NOW(),updated_at=NOW() WHERE user_id=$1`, [job.user_id]);
       await client.query('COMMIT');
     } catch (error) {
       await client.query('ROLLBACK').catch(() => undefined);

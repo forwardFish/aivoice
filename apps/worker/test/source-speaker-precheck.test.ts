@@ -6,7 +6,8 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 import type { CloudBaseRuntimeClient } from '@aivoice/cloudbase-runtime';
-import { CloudBaseJobRunner } from '../src/cloudbase-job-runner.js';
+import { buildSelectionScopedSourceSpeakerCheck, CloudBaseJobRunner } from '../src/cloudbase-job-runner.js';
+import { observedPersonEvidenceFromQualityReport } from '../src/observed-person-evidence.js';
 import type { SpeakerDiarizationReport } from '../src/providers/aliyun-speaker-diarization.js';
 
 const execFileAsync = promisify(execFile);
@@ -104,19 +105,31 @@ async function runSourceCheck(report: SpeakerDiarizationReport) {
 
 test('source speaker precheck keeps a single-speaker source and marks the check passed', async () => {
   const outcome = await runSourceCheck({
-    model: 'fake', speakerCount: 1, segmentCount: 1, speechMs: 900,
+    version: 'observed-evidence/2', model: 'fake', asrTaskId: 'asr-task-1', speakerCount: 1, segmentCount: 1, speechMs: 900,
     overlapMs: 0, overlapRatio: 0, acceptable: true,
     segments: [{ speakerId: '0', beginMs: 0, endMs: 900, text: '你好' }],
+    speechEvidence: {
+      version: 'speech-evidence/2', countDefinition: 'HAN_CODEPOINTS', transcriptExcerpt: '你好', transcriptTruncated: false,
+      characterCount: 2, lexicalCodePointCount: 2, speechSpanMs: 900, charactersPerSecond: 2.222,
+      sentenceCharacterCounts: [2], clauseCharacterCounts: [2],
+      pauses: { method: 'ASR_GAP_V1', durationsMs: [], coverage: 0, boundaryAlignedCount: 0, longGapCount: 0, analyzedSpanMs: 900 },
+      recurringParticles: [],
+    },
   });
   assert.equal(outcome.result.status, 'SUCCEEDED');
   assert.ok(outcome.calls.some((call) => call.name === 'rpc_voice_source_speaker_check_passed'));
+  const persisted = outcome.calls.find((call) => call.name === 'rpc_voice_source_speaker_check_passed')?.args.pReport as Record<string, any>;
+  assert.equal(persisted.version, 'observed-evidence/2');
+  assert.equal(persisted.speechEvidence.version, 'speech-evidence/2');
+  assert.equal(persisted.scope.assetId, '33333333-3333-4333-8333-333333333333');
+  assert.equal(persisted.scope.originalTimeline, true);
   assert.ok(!outcome.deleted.some((item) => item.key === outcome.sourceKey));
   assert.ok(outcome.deleted.some((item) => item.key.includes('quality/source-check/')));
 });
 
 test('source speaker precheck deletes a multi-speaker source and marks the check rejected', async () => {
   const outcome = await runSourceCheck({
-    model: 'fake', speakerCount: 2, segmentCount: 2, speechMs: 900,
+    version: 'observed-evidence/2', model: 'fake', asrTaskId: 'asr-task-2', speakerCount: 2, segmentCount: 2, speechMs: 900,
     overlapMs: 0, overlapRatio: 0, acceptable: false, failureCode: 'MULTIPLE_SPEAKERS',
     segments: [
       { speakerId: '0', beginMs: 0, endMs: 400, text: '你好' },
@@ -127,4 +140,30 @@ test('source speaker precheck deletes a multi-speaker source and marks the check
   assert.ok(outcome.calls.some((call) => call.name === 'rpc_voice_source_speaker_check_rejected'));
   assert.ok(outcome.deleted.some((item) => item.key === outcome.sourceKey));
   assert.ok(outcome.deleted.some((item) => item.key.includes('quality/source-check/')));
+});
+
+test('formal processing crops retained ASR sentences to the selected clip without another ASR call', () => {
+  const selected = buildSelectionScopedSourceSpeakerCheck({
+    version: 'observed-evidence/2', passed: true, acceptable: true,
+    provider: 'aliyun', model: 'fun-asr', asrTaskId: 'existing-task', speakerCount: 1,
+    segments: [
+      { speakerId: '0', beginMs: 0, endMs: 3_000, text: '边界外面的第一句话内容。' },
+      { speakerId: '0', beginMs: 3_100, endMs: 7_000, text: '这是完整保留的一句话啊。' },
+      { speakerId: '0', beginMs: 7_100, endMs: 11_000, text: '这个事情还是慢慢处理呀。' },
+      { speakerId: '0', beginMs: 11_100, endMs: 15_000, text: '你先不用着急等我一下。' },
+      { speakerId: '0', beginMs: 15_100, endMs: 19_000, text: '有结果以后我马上告诉你。' },
+      { speakerId: '0', beginMs: 19_100, endMs: 23_000, text: '边界外面的最后一句内容。' },
+    ],
+  }, {
+    voiceId: 'voice-1', sourceMediaId: 'asset-1', clipStartMs: 2_000, clipEndMs: 22_000,
+    sourceSpeakerCheckPassed: true,
+  });
+  assert.equal(selected.version, 'observed-evidence/2');
+  assert.equal(selected.boundaryCrossed, true);
+  assert.equal((selected.segments as unknown[]).length, 4);
+  assert.equal((selected.speechEvidence as Record<string, unknown>).version, 'speech-evidence/2');
+  const fingerprint = observedPersonEvidenceFromQualityReport({ sourceSpeakerCheck: selected });
+  assert.ok(fingerprint);
+  assert.equal(fingerprint?.source.selectionStartMs, 2_000);
+  assert.equal(fingerprint?.source.selectionEndMs, 22_000);
 });

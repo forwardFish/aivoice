@@ -203,6 +203,14 @@ test('runtime provider payload guard rejects forbidden, unexpected, and arbitrar
     /Unexpected.*relationship/u,
   );
   assert.throws(
+    () => assertIdentityStableProviderPayload({ ...valid, fingerprint: { version: 'shf/1.0' } } as CosyVoiceProviderRequest),
+    /Unexpected.*fingerprint/u,
+  );
+  assert.throws(
+    () => assertIdentityStableProviderPayload({ ...valid, speechEvidence: {} } as CosyVoiceProviderRequest),
+    /Unexpected.*speechEvidence/u,
+  );
+  assert.throws(
     () => assertIdentityStableProviderPayload({ ...valid, instruction: '更悲伤地说。' } as CosyVoiceProviderRequest),
     /allowlist/u,
   );

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileVoiceChatMessages, relationshipReplyViolation } from '../src/chat/voice-chat-context.js';
+import { observedPersonEvidenceFromQualityReport } from '../src/observed-person-evidence.js';
 
 function systemText(messages: readonly { role: string; content: string }[]): string {
   return messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n');
@@ -516,28 +517,40 @@ test('post-generation guard blocks high-confidence role reversals and service to
 });
 
 test('authorized video evidence affects wording and cadence without inferring personality', () => {
+  const observedPersonEvidence = observedPersonEvidenceFromQualityReport({
+    sourceSpeakerCheck: {
+      version: 'observed-evidence/2', passed: true, acceptable: true,
+      scope: {
+        assetId: 'asset-1', selectionId: 'selection-1', asrTaskId: 'asr-1', localSpeakerId: '0',
+        selectionStartMs: 0, selectionEndMs: 12_000, windowStartMs: 0, windowEndMs: 12_000,
+        targetOnly: true, knownOverlap: false, originalTimeline: true,
+      },
+      speechEvidence: {
+        version: 'speech-evidence/2', countDefinition: 'HAN_CODEPOINTS',
+        transcriptExcerpt: '等一下，我马上就来。', transcriptTruncated: true,
+        characterCount: 40, lexicalCodePointCount: 40, speechSpanMs: 11_000, charactersPerSecond: 3.636,
+        sentenceCharacterCounts: [8, 9, 10, 9], clauseCharacterCounts: [4, 4, 5, 4, 5, 5, 4, 4],
+        pauses: { method: 'ASR_GAP_V1', durationsMs: [200, 240], coverage: 1, boundaryAlignedCount: 2, longGapCount: 0, analyzedSpanMs: 12_000 },
+        recurringParticles: [],
+      },
+    },
+  });
+  assert.ok(observedPersonEvidence);
   const result = compileVoiceChatMessages({
     structuredOutput: true,
     currentMessageId: 'observed-evidence',
     voiceName: '小雨', ageYears: 12, gender: 'FEMALE', userAgeYears: 40,
     relationshipType: 'CHILD', relationshipLabel: '', userAddress: '妈妈',
     personalityNote: '', speechHabitNote: '', relationshipNote: '', background: '',
-    observedPersonEvidence: {
-      transcriptExcerpt: '等一下，我马上就来。',
-      charactersPerSecond: 5.8,
-      medianSentenceCharacters: 9,
-      speechRate: 'FAST', pauseStyle: 'LOW', volumeStyle: 'MEDIUM', averagePauseMs: 180,
-      pitchStyle: 'UNKNOWN', volumeDynamicsStyle: 'UNKNOWN', sentenceEndingStyle: 'UNKNOWN', sentenceEndingEnergyStyle: 'UNKNOWN',
-      pitchMedianHz: 0, pitchRangeSemitones: 0, volumeDynamicRangeDb: 0,
-      sentenceFinalPitchDeltaSemitones: 0, sentenceFinalEnergyDeltaDb: 0, sampleAffectCues: [],
-      recurringPhrases: [], activeSpeechRatio: 0.9,
-    },
+    observedPersonEvidence,
     history: [], currentInput: '今天在学校怎么样？',
   });
   const system = systemText(result.messages);
-  assert.match(system, /视频真实台词摘录：等一下，我马上就来/);
-  assert.match(system, /语速偏快；停顿较少/);
-  assert.match(system, /不得根据这段短视频自动推断嘴硬心软/);
+  assert.match(system, /speech_habit_text_style/);
+  assert.match(system, /分句长度可宽松参考/);
+  assert.doesNotMatch(system, /等一下，我马上就来/);
+  const styleBlock = system.match(/<speech_habit_text_style[\s\S]*?<\/speech_habit_text_style>/u)?.[0] || '';
+  assert.doesNotMatch(styleBlock, /音高|音量|嘴硬心软/u);
 });
 
 test('explicit user correction outranks defaults only inside its stated scope', () => {
