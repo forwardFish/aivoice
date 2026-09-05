@@ -32,6 +32,7 @@
           scroll-y="{{true}}"
           scroll-top="{{chatScrollTop}}"
           scroll-into-view="{{scrollTarget}}"
+          bounces="{{false}}"
           enhanced="{{true}}"
           show-scrollbar="{{false}}"
         >
@@ -150,7 +151,6 @@
                 bindinput="onChatInput"
                 bindblur="onChatBlur"
                 bindconfirm="sendChat"
-                disabled="{{sending}}"
               />
             </view>
             <button class="primary-button send-button {{sending ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>

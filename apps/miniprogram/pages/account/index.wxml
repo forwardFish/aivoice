@@ -92,7 +92,7 @@
       <menu-row itemKey="ai" icon="/assets/ui/account-points.png" title="AI生成标识说明" bindaction="showInfo"></menu-row>
     </view>
 
-    <button class="danger-button logout-button {{deletingAccount ? 'button-disabled' : ''}}" bindtap="removeAccount" disabled="{{deletingAccount}}">{{deletingAccount ? '正在注销…' : '注销账号'}}</button>
+    <button class="secondary-button logout-button {{signingOut ? 'button-disabled' : ''}}" bindtap="signOut" disabled="{{signingOut}}">{{signingOut ? '正在退出…' : '退出登录'}}</button>
     <text class="version-note">那年的TA · 微信原生小程序前端 v0.4</text>
   </view>
 

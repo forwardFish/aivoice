@@ -237,7 +237,13 @@ Page({
     const chatText = String(event.detail.value || '').slice(0, 200)
     this.chatDraftText = chatText
     this.chatDraftDirty = true
-    if (this.data.errorMessage) this.setData({ errorMessage: '' })
+    const patch: Record<string, any> = {}
+    if (this.data.sending) {
+      patch.chatText = chatText
+      patch.chatCount = chatText.length
+    }
+    if (this.data.errorMessage) patch.errorMessage = ''
+    if (Object.keys(patch).length > 0) this.setData(patch)
   },
   onChatFocus() {
     if (this.data.chatInputFocused) return
@@ -346,7 +352,6 @@ Page({
       ...(mode === 'chat' ? {
         chatText: '',
         chatCount: 0,
-        chatInputFocused: false,
         bottomAnchorId: submittedBottomAnchorId,
         scrollTarget: ''
       } : {}),
@@ -386,11 +391,15 @@ Page({
       await this.pollMessage(accepted.messageId)
     } catch (error: any) {
       this.finishGenerationTiming('FAILED', error)
-      const restoredChatDraft = mode === 'chat' ? { chatText: text, chatCount: text.length } : {}
+      const latestChatDraft = mode === 'chat'
+        ? String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
+        : ''
+      const retryChatText = latestChatDraft || text
+      const restoredChatDraft = mode === 'chat' ? { chatText: retryChatText, chatCount: retryChatText.length } : {}
       if (mode === 'chat') {
-        this.chatDraftText = text
+        this.chatDraftText = retryChatText
         this.chatDraftDirty = false
-        this.persistDraft('chat', { chatText: text })
+        this.persistDraft('chat', { chatText: retryChatText })
       }
       if (error instanceof ApiError && ['POINTS_EXHAUSTED', 'QUOTA_EXHAUSTED'].includes(error.code)) {
         if (!error.purchaseOption && !this.data.purchaseOption) {
@@ -444,9 +453,9 @@ Page({
       }
       if (result.status === 'READY') {
         const completedMode = this.data.pendingMode
-        const currentChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
-        const nextChatText = completedMode === 'chat' ? '' : currentChatText
         const nextExactText = completedMode === 'exact' ? '' : this.data.exactText
+        await this.loadData(false)
+        const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
         if (nextChatText || nextExactText) {
           setWorkbenchDraft(this.data.voiceId, {
             mode: completedMode === 'chat' && nextExactText ? 'exact' : completedMode === 'exact' && nextChatText ? 'chat' : this.data.mode,
@@ -458,7 +467,6 @@ Page({
         }
         this.chatDraftText = nextChatText
         this.chatDraftDirty = false
-        await this.loadData(false)
         this.setData({
           chatText: nextChatText,
           exactText: nextExactText,
@@ -476,17 +484,22 @@ Page({
       }
       if (result.status === 'FAILED' && this.data.pendingMode === 'chat' && String(result.text || '').trim()) {
         const nextExactText = this.data.exactText
-        if (nextExactText) {
-          setWorkbenchDraft(this.data.voiceId, { mode: 'exact', chatText: '', exactText: nextExactText })
+        await this.loadData(false)
+        const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
+        if (nextChatText || nextExactText) {
+          setWorkbenchDraft(this.data.voiceId, {
+            mode: nextChatText ? 'chat' : 'exact',
+            chatText: nextChatText,
+            exactText: nextExactText
+          })
         } else {
           clearWorkbenchDraft(this.data.voiceId)
         }
-        this.chatDraftText = ''
+        this.chatDraftText = nextChatText
         this.chatDraftDirty = false
-        await this.loadData(false)
         this.setData({
-          chatText: '',
-          chatCount: 0,
+          chatText: nextChatText,
+          chatCount: nextChatText.length,
           sending: false,
           pendingText: '',
           pendingReplyText: '',

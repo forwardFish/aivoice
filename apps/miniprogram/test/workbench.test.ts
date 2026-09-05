@@ -12,12 +12,13 @@ test('pending chat keeps the user message out of the assistant bubble', () => {
   assert.match(view, /id="pending-assistant"[\s\S]*wx:if="\{\{pendingReplyText\}\}"[\s\S]*\{\{pendingReplyText\}\}/)
   assert.match(view, /wx:else class="typing-wave"/)
   assert.match(source, /if \(mode === 'chat'\) \{\s*this\.chatDraftText = ''\s*this\.chatDraftDirty = false/)
-  assert.match(source, /chatText: '',\s*chatCount: 0,\s*chatInputFocused: false,/)
+  assert.match(source, /chatText: '',\s*chatCount: 0,\s*bottomAnchorId: submittedBottomAnchorId,/)
   assert.match(source, /pendingText: text,\s*pendingReplyText: '',\s*pendingMode: mode/)
   assert.doesNotMatch(source, /\/assets\/avatars\/[^'"\s]+\.webp/)
   assert.match(source, /voiceAvatar:\s*'\/assets\/avatars\/age-30-49-female\.png'/)
   assert.match(source, /\}, \(\) => \{\s*if \(mode !== 'chat'\) return\s*this\.setData\(\{ scrollTarget: 'pending-assistant' \}\)/)
-  assert.match(source, /const restoredChatDraft = mode === 'chat' \? \{ chatText: text, chatCount: text\.length \} : \{\}/)
+  assert.match(source, /const retryChatText = latestChatDraft \|\| text/)
+  assert.match(source, /const restoredChatDraft = mode === 'chat' \? \{ chatText: retryChatText, chatCount: retryChatText\.length \} : \{\}/)
 })
 
 test('sending a chat clears the composer and scrolls the pending reply into view immediately', async () => {
@@ -186,6 +187,7 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(style, /\.send-button\s*\{[^}]*width:\s*184rpx\s*!important[^}]*min-width:\s*184rpx[^}]*min-height:\s*84rpx/s)
   assert.match(style, /\.reply-feedback\s*\{[^}]*display:\s*inline-flex[^}]*border-radius:\s*999rpx[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.78\)/s)
   assert.match(style, /\.reply-feedback-action\s*\{[^}]*min-width:\s*140rpx[^}]*min-height:\s*64rpx[^}]*justify-content:\s*center/s)
+  assert.match(style, /\.reply-feedback-label\s*\{[^}]*font-size:\s*22rpx/s)
   assert.match(style, /\.reply-feedback-action\.like-action\.selected\s*\{[^}]*background:\s*rgba\(110,\s*93,\s*246,\s*0\.14\)/s)
   assert.match(style, /\.reply-feedback-action\.dislike-action\.selected\s*\{[^}]*background:\s*rgba\(107,\s*115,\s*141,\s*0\.13\)/s)
   assert.match(source, /timeText:\s*messageTimeLabel\(message\.createdAt\)/)
@@ -205,9 +207,12 @@ test('chat mode keeps nav and top chrome outside the scrolling message list whil
   assert.doesNotMatch(markup, /AI 生成内容不代表声音本人真实表达|class="ai-notice"/)
   assert.doesNotMatch(style, /\.ai-notice\s*\{/)
   assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll"/)
+  assert.match(markup, /class="messages-scroll"[\s\S]*bounces="\{\{false\}\}"[\s\S]*enhanced="\{\{true\}\}"/)
   assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*class="segment-control"/)
   assert.match(markup, /<scroll-view wx:else class="exact-scroll" scroll-y="\{\{true\}\}" enhanced="\{\{true\}\}" show-scrollbar="\{\{false\}\}">[\s\S]*class="exact-panel"/)
   assert.match(style, /\.chat-workbench-content,\s*\.exact-workbench-content\s*\{[^}]*overflow:\s*hidden/s)
+  assert.match(style, /\.chat-panel\s*\{[^}]*background:\s*transparent/s)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*background:\s*transparent/s)
   assert.match(style, /\.exact-scroll\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0[^}]*width:\s*100%/s)
 })
 
@@ -238,6 +243,10 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
   assert.match(markup, /bindkeyboardheightchange="onChatKeyboardHeightChange"/)
+  const composerInput = markup.match(/<input[\s\S]*?class="composer-input"[\s\S]*?\/>/)?.[0] || ''
+  assert.ok(composerInput)
+  assert.doesNotMatch(composerInput, /disabled=/)
+  assert.match(markup, /<button class="primary-button send-button[\s\S]*disabled="\{\{sending\}\}"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
   assert.match(style, /\.chat-composer\s*\{[^}]*min-height:\s*108rpx[^}]*padding:\s*12rpx 12rpx 12rpx 16rpx/s)
   assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*80rpx[^}]*padding:\s*0 24rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
@@ -270,6 +279,70 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.equal(instance.data.chatInputFocused, false)
   assert.equal(instance.data.chatText, '今天不开心')
   assert.equal(renderCount, 2)
+})
+
+test('chat composer accepts the next draft while a reply is generating and preserves it on completion', async () => {
+  const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: (key: string) => storage.get(key),
+    setStorageSync: (key: string, value: any) => storage.set(key, value),
+    removeStorageSync: (key: string) => storage.delete(key),
+    getDeviceInfo: () => ({ platform: 'devtools' }),
+    request: (options: any) => {
+      queueMicrotask(() => options.success({
+        statusCode: 200,
+        data: {
+          messageId: 'message-pending',
+          status: 'READY',
+          text: '上一条回复完成了',
+          audioUrl: 'https://example.test/reply.mp3',
+          durationMs: 1200
+        }
+      }))
+      return {}
+    },
+    showToast: () => undefined,
+    reLaunch: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=next-draft-while-generating')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    destroyed: false,
+    chatDraftText: '',
+    chatDraftDirty: false,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      state: 'success',
+      mode: 'chat',
+      voiceId: 'voice-next-draft',
+      sending: true,
+      pendingMode: 'chat',
+      pendingText: '上一条消息',
+      bottomAnchorId: 'chat-bottom-2'
+    },
+    setData(patch: Record<string, unknown>) {
+      Object.assign(this.data, patch)
+    },
+    async loadData() {},
+    scheduleChatViewportSync() {},
+    finishGenerationTiming() {}
+  }
+
+  instance.onChatInput({ detail: { value: '这是准备发送的下一条' } })
+  assert.equal(instance.data.chatText, '这是准备发送的下一条')
+  assert.equal(instance.data.chatCount, 10)
+  await instance.pollMessage('message-pending')
+
+  assert.equal(instance.data.chatText, '这是准备发送的下一条')
+  assert.equal(instance.data.chatCount, 10)
+  assert.equal(instance.chatDraftText, '这是准备发送的下一条')
+  assert.equal(instance.data.sending, false)
+  assert.equal(storage.get('nashide_ta_workbench_draft:voice-next-draft').chatText, '这是准备发送的下一条')
 })
 
 test('chat composer follows keyboard height and keeps viewport sync on keyboard open and close', async () => {

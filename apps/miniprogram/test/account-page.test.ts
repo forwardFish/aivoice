@@ -47,6 +47,66 @@ test('account page hides edit-profile entry points and keeps the hero as a read-
   assert.doesNotMatch(style, /\.edit-profile-button\s*\{/)
 })
 
+test('account page exits the session without deleting the account or local project data', async () => {
+  const markup = readFileSync(new URL('../pages/account/index.wxml', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../pages/account/index.ts', import.meta.url), 'utf8')
+  const storage = new Map<string, any>([
+    ['nashide_ta_token', 'test-token'],
+    ['nashide_ta_user', { id: 'user-1', nickname: '测试用户' }],
+    ['nashide_ta_workbench_draft:voice-1', { chatText: '保留的草稿' }]
+  ])
+  let pageDefinition: any
+  let requestCalled = false
+  let relaunchedTo = ''
+  let modalOptions: any
+
+  assert.match(markup, />\{\{signingOut \? '正在退出…' : '退出登录'\}\}<\/button>/)
+  assert.match(markup, /bindtap="signOut"/)
+  assert.doesNotMatch(markup, /注销账号|正在注销|danger-button/)
+  assert.doesNotMatch(source, /deleteAccount|clearLocalProjectData|removeAccount/)
+
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: (key: string) => storage.get(key),
+    setStorageSync: (key: string, value: any) => storage.set(key, value),
+    removeStorageSync: (key: string) => storage.delete(key),
+    request: () => {
+      requestCalled = true
+      throw new Error('logout must not call the account deletion API')
+    },
+    showModal: (options: any) => {
+      modalOptions = options
+      options.success({ confirm: true, cancel: false })
+    },
+    showToast: () => undefined,
+    reLaunch: ({ url }: { url: string }) => { relaunchedTo = url }
+  }
+
+  await import('../pages/account/index?case=logout-without-delete')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      signingOut: false
+    },
+    setData(patch: Record<string, unknown>) {
+      Object.assign(this.data, patch)
+    }
+  }
+
+  await instance.signOut()
+
+  assert.equal(modalOptions.title, '退出登录？')
+  assert.match(modalOptions.content, /不会删除/)
+  assert.equal(requestCalled, false)
+  assert.equal(storage.has('nashide_ta_token'), false)
+  assert.equal(storage.has('nashide_ta_user'), false)
+  assert.equal(storage.get('nashide_ta_workbench_draft:voice-1').chatText, '保留的草稿')
+  assert.equal(relaunchedTo, '/pages/login/index')
+})
+
 test('account page hydrates local profile first and preserves prior sections when refresh only partially succeeds', async () => {
   const storage = new Map<string, any>([
     ['nashide_ta_token', 'test-token'],

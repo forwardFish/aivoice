@@ -61,7 +61,9 @@
 .ledger-amount.positive { color: #3f9b64; }
 .sub-empty { padding: 27rpx 24rpx; color: #9298aa; font-size: 20rpx; text-align: center; }
 
-.logout-button { min-height: 86rpx; margin-top: 28rpx; border-radius: 25rpx; }
+.logout-button { min-height: 86rpx; margin-top: 28rpx; border-radius: 25rpx; box-shadow: none; }
+.logout-button.button-disabled,
+.logout-button[disabled] { color: #9b9fb1; background: #f5f4fa; border-color: #e3e1ec; }
 .version-note { display: block; margin-top: 22rpx; color: #a0a5b5; font-size: 20rpx; text-align: center; }
 
 .nickname-editor-backdrop { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 40rpx; background: rgba(20, 22, 35, 0.46); }

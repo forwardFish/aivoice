@@ -1,5 +1,4 @@
 import {
-  deleteAccount,
   getMe,
   getPoints,
   listOrders,
@@ -9,7 +8,7 @@ import {
 import { OrderDetail, PointsLedgerItem, UserProfile } from '../../models/api'
 import { formatDateTime, formatPrice, voiceInitial } from '../../utils/format'
 import { ensureAuthenticated } from '../../utils/navigation'
-import { clearLocalProjectData, getUser, setUser } from '../../utils/storage'
+import { clearAuth, getUser, setUser } from '../../utils/storage'
 import { syncTabBarSelection } from '../../utils/tab-bar'
 import { confirm, toast } from '../../utils/ui'
 import {
@@ -102,7 +101,7 @@ Page({
     showNicknameEditor: false,
     nicknameDraft: '',
     nicknameCount: 0,
-    deletingAccount: false,
+    signingOut: false,
     refreshing: false
   },
   onShow() {
@@ -328,23 +327,16 @@ Page({
     if (!target) return
     wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(target)}` })
   },
-  async removeAccount() {
-    if (this.data.deletingAccount) return
+  async signOut() {
+    if (this.data.signingOut) return
     const accepted = await confirm({
-      title: '注销账号？',
-      content: '注销将启动服务端数据删除流程。声音、对话和生成记录将无法恢复；必要的订单记录可能按法定期限保留。',
-      confirmText: '确认注销',
-      confirmColor: '#D85B63'
+      title: '退出登录？',
+      content: '退出后需要重新登录，账号、声音、积分和历史记录都不会删除。',
+      confirmText: '退出登录'
     })
     if (!accepted) return
-    this.setData({ deletingAccount: true })
-    try {
-      await deleteAccount()
-      clearLocalProjectData()
-      wx.reLaunch({ url: '/pages/login/index' })
-    } catch (error: any) {
-      this.setData({ deletingAccount: false })
-      toast(error.message || '账号注销失败，请稍后重试。')
-    }
+    this.setData({ signingOut: true })
+    clearAuth()
+    wx.reLaunch({ url: '/pages/login/index' })
   }
 })
