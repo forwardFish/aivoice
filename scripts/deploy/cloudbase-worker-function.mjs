@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
@@ -25,6 +26,12 @@ const volcengineEnv = fs.existsSync(volcengineEnvPath) ? parseDotEnv(fs.readFile
 const deepseekEnvPath = process.env.AIVOICE_DEEPSEEK_ENV_FILE || 'D:/lyh/secrets/aivoice/deepseek.env';
 const deepseekEnv = fs.existsSync(deepseekEnvPath) ? parseDotEnv(fs.readFileSync(deepseekEnvPath)) : {};
 const localEnv = { ...baseLocalEnv, ...aliyunEnv, ...volcengineEnv, ...deepseekEnv };
+const requiredWorkerEnvKeys = ['DASHSCOPE_API_KEY', 'DASHSCOPE_API_HOST', 'DASHSCOPE_WORKSPACE_ID'];
+const missingWorkerEnv = (values) => requiredWorkerEnvKeys.filter((key) => !String(values[key] || '').trim());
+const missingLocalWorkerEnv = missingWorkerEnv(localEnv);
+if (missingLocalWorkerEnv.length) {
+  throw new Error(`Worker runtime env is incomplete: ${missingLocalWorkerEnv.join(', ')}. Set AIVOICE_RUNTIME_ENV_FILE to the approved runtime env file.`);
+}
 const secretId = process.env.TENCENTCLOUD_SECRETID || credentials.TENCENTCLOUD_SECRETID;
 const secretKey = process.env.TENCENTCLOUD_SECRETKEY || credentials.TENCENTCLOUD_SECRETKEY;
 if (!secretId || !secretKey) throw new Error('Tencent Cloud deployment credentials are missing');
@@ -195,6 +202,28 @@ if (!exists) {
   });
 }
 
+const deployedFunction = await app.functions.getFunctionDetail(functionName);
+const deployedEnvironment = Object.fromEntries(
+  (deployedFunction.Environment?.Variables || []).map((item) => [item.Key, item.Value]),
+);
+const missingDeployedWorkerEnv = missingWorkerEnv(deployedEnvironment);
+if (deployedFunction.Status !== 'Active' || missingDeployedWorkerEnv.length) {
+  throw new Error(`Worker deployment verification failed: status=${deployedFunction.Status || 'UNKNOWN'}, missing=${missingDeployedWorkerEnv.join(', ') || 'none'}`);
+}
+const startupProbe = await app.functions.invokeFunction(functionName, {
+  jobId: randomUUID(),
+  type: 'DEPLOYMENT_STARTUP_PROBE',
+});
+let startupProbeResult;
+try {
+  startupProbeResult = JSON.parse(String(startupProbe.RetMsg || '{}'));
+} catch {
+  startupProbeResult = {};
+}
+if (Number(startupProbe.InvokeResult || 0) !== 0 || startupProbe.ErrMsg || startupProbeResult.status !== 'SKIPPED') {
+  throw new Error(`Worker startup probe failed: ${String(startupProbe.ErrMsg || startupProbe.RetMsg || 'unexpected result').slice(0, 500)}`);
+}
+
 state.workerFunctionName = functionName;
 state.workerFunctionEnvId = functionEnvId;
 state.workerFunctionTimeoutSeconds = 900;
@@ -215,6 +244,8 @@ console.log(JSON.stringify({
   memoryMb: 2048,
   ffmpegLayerConfigured: layers.length === 1,
   ffmpegDelivery: layers.length === 1 ? 'layer' : 'bundled-linux-x64',
+  runtimeEnvVerified: true,
+  startupProbe: startupProbeResult.status,
   requestId: result?.RequestId || '',
   statePath,
 }, null, 2));
