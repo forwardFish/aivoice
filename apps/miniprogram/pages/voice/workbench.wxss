@@ -84,6 +84,13 @@
   padding: 24rpx 30rpx 32rpx;
   box-sizing: border-box;
   background: transparent;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.messages-scroll.is-ready {
+  opacity: 1;
+  visibility: visible;
 }
 
 .messages-content.has-messages {

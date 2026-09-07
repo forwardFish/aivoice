@@ -279,7 +279,7 @@ Page({
     const keyboardHeight = Math.max(0, Math.floor(Number(event?.detail?.height || event?.detail?.keyboardHeight || 0)))
     const chatComposerStyle = keyboardHeight > 0 ? `bottom:${keyboardHeight}px;` : ''
     if (keyboardHeight === this.data.chatKeyboardHeight && chatComposerStyle === this.data.chatComposerStyle) return
-    this.setData({ chatKeyboardHeight: keyboardHeight, chatComposerStyle, chatViewportReady: false }, () => {
+    this.setData({ chatKeyboardHeight: keyboardHeight, chatComposerStyle }, () => {
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll()
     })
@@ -293,8 +293,7 @@ Page({
       chatCount: chatText.length,
       chatInputFocused: false,
       chatKeyboardHeight: 0,
-      chatComposerStyle: '',
-      chatViewportReady: false
+      chatComposerStyle: ''
     }, () => {
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll()
@@ -427,7 +426,6 @@ Page({
         chatInputFocused: false,
         chatKeyboardHeight: 0,
         chatComposerStyle: '',
-        chatViewportReady: false,
         bottomAnchorId: submittedBottomAnchorId,
         scrollTarget: ''
       } : {}),
