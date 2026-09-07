@@ -260,6 +260,8 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.match(markup, /bindkeyboardheightchange="onChatKeyboardHeightChange"/)
   const composerInput = markup.match(/<input[\s\S]*?class="composer-input"[\s\S]*?\/>/)?.[0] || ''
   assert.ok(composerInput)
+  assert.match(composerInput, /model:value="\{\{chatText\}\}"/)
+  assert.doesNotMatch(composerInput, /(?:^|\s)value="\{\{chatText\}\}"/)
   assert.doesNotMatch(composerInput, /disabled=/)
   assert.match(markup, /<button class="primary-button send-button[\s\S]*disabled="\{\{sending\}\}"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
@@ -349,8 +351,7 @@ test('chat composer accepts the next draft while a reply is generating and prese
   }
 
   instance.onChatInput({ detail: { value: '这是准备发送的下一条' } })
-  assert.equal(instance.data.chatText, '这是准备发送的下一条')
-  assert.equal(instance.data.chatCount, 10)
+  assert.equal(instance.chatDraftText, '这是准备发送的下一条')
   await instance.pollMessage('message-pending')
 
   assert.equal(instance.data.chatText, '这是准备发送的下一条')

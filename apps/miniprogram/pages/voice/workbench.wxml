@@ -139,7 +139,7 @@
               <input
                 class="composer-input"
                 type="text"
-                value="{{chatText}}"
+                model:value="{{chatText}}"
                 placeholder="{{chatInputFocused ? '' : '输入想说的话…'}}"
                 placeholder-class="composer-input-placeholder"
                 maxlength="200"

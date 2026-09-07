@@ -250,13 +250,6 @@ Page({
     const chatText = String(event.detail.value || '').slice(0, 200)
     this.chatDraftText = chatText
     this.chatDraftDirty = true
-    const patch: Record<string, any> = {}
-    if (this.data.sending) {
-      patch.chatText = chatText
-      patch.chatCount = chatText.length
-    }
-    if (this.data.errorMessage) patch.errorMessage = ''
-    if (Object.keys(patch).length > 0) this.setData(patch)
   },
   onChatFocus() {
     if (this.data.chatInputFocused) return
