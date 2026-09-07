@@ -154,7 +154,9 @@ test('conversation entry scrolls to a fresh bottom anchor instead of the last me
   assert.match(source, /const chatScrollTop = 1000000 \+ this\.chatScrollPositionSequence/)
   assert.doesNotMatch(bottomScrollSource, /chatScrollTop:\s*0/)
   assert.match(bottomScrollSource, /setData\(\{ scrollTarget: anchorId, chatScrollTop \}, \(\) => \{[\s\S]*chatViewportReady: true/s)
-  assert.match(source, /}, 650\)/)
+  assert.doesNotMatch(source, /chatBottomSettleTimer|}, 650\)/)
+  assert.match(source, /async loadData\(showLoading = true\) \{\s*if \(this\.dataLoading\) return\s*this\.dataLoading = true/)
+  assert.match(source, /finally \{\s*this\.dataLoading = false\s*\}/)
   assert.match(source, /const submittedBottomAnchorId = mode === 'chat' \? `chat-bottom-\$\{this\.chatBottomSequence\}` : this\.data\.bottomAnchorId/)
   assert.match(source, /bottomAnchorId: submittedBottomAnchorId,\s*scrollTarget: ''/)
   assert.match(source, /scheduleChatBottomScroll\(submittedBottomAnchorId\)/)
@@ -193,9 +195,9 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(style, /\.message-time\s*\{[^}]*font-size:\s*22rpx[^}]*line-height:\s*1\.3/s)
   assert.match(style, /\.assistant-stack\s*\{[^}]*max-width:\s*82%/s)
   assert.match(source, /chatViewportReady:\s*false/)
-  assert.match(markup, /<scroll-view[\s\S]*class="messages-scroll \{\{chatViewportReady \? 'is-ready' : ''\}\}"[\s\S]*style="\{\{messagesScrollStyle\}\}"/)
-  assert.match(style, /\.messages-scroll\s*\{[^}]*opacity:\s*0[^}]*visibility:\s*hidden/s)
-  assert.match(style, /\.messages-scroll\.is-ready\s*\{[^}]*opacity:\s*1[^}]*visibility:\s*visible/s)
+  assert.match(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*style="\{\{messagesScrollStyle\}\}"/)
+  assert.doesNotMatch(style, /\.messages-scroll\s*\{[^}]*(?:opacity|visibility):/s)
+  assert.doesNotMatch(style, /\.messages-scroll\.is-ready\s*\{/)
   assert.match(markup, /wx:else class="messages-content has-messages"[^>]*style="\{\{messagesContentStyle\}\}"/)
   assert.match(style, /\.messages-content\.has-messages\s*\{[^}]*min-height:\s*100%[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*justify-content:\s*flex-end/s)
   assert.match(style, /\.send-button\s*\{[^}]*width:\s*184rpx\s*!important[^}]*min-width:\s*184rpx[^}]*min-height:\s*84rpx/s)
@@ -221,9 +223,9 @@ test('chat mode keeps nav and top chrome outside the scrolling message list whil
   assert.match(markup, /<view class="segment-control-shell">[\s\S]*class="segment-control"/)
   assert.doesNotMatch(markup, /AI 生成内容不代表声音本人真实表达|class="ai-notice"/)
   assert.doesNotMatch(style, /\.ai-notice\s*\{/)
-  assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll [^"]*"/)
-  assert.match(markup, /class="messages-scroll [^"]*"[\s\S]*bounces="\{\{false\}\}"[\s\S]*enhanced="\{\{true\}\}"/)
-  assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll [^"]*"[\s\S]*class="segment-control"/)
+  assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll"/)
+  assert.match(markup, /class="messages-scroll"[\s\S]*bounces="\{\{false\}\}"[\s\S]*enhanced="\{\{true\}\}"/)
+  assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*class="segment-control"/)
   assert.match(markup, /<scroll-view wx:else class="exact-scroll" scroll-y="\{\{true\}\}" enhanced="\{\{true\}\}" show-scrollbar="\{\{false\}\}">[\s\S]*class="exact-panel"/)
   assert.match(style, /\.chat-workbench-content,\s*\.exact-workbench-content\s*\{[^}]*overflow:\s*hidden/s)
   assert.match(style, /\.chat-panel\s*\{[^}]*background:\s*transparent/s)
@@ -727,7 +729,7 @@ test('chat viewport uses measured top chrome and composer boundaries on a real-d
   assert.equal(instance.data.messagesContentStyle, 'min-height:calc(625px - 56rpx);')
 })
 
-test('initial chat waits for the first bottom-anchor render before becoming visible', async () => {
+test('initial chat applies only one bottom position without a delayed second repaint', async () => {
   let pageDefinition: any
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
@@ -766,5 +768,5 @@ test('initial chat waits for the first bottom-anchor render before becoming visi
   assert.equal(instance.data.scrollTarget, 'chat-bottom-stable')
   assert.equal(instance.data.chatViewportReady, true)
   assert.equal(instance.appliedPatches.some((patch: Record<string, unknown>) => patch.chatScrollTop === 0), false)
-  if (instance.chatBottomSettleTimer) clearTimeout(instance.chatBottomSettleTimer)
+  assert.equal(instance.appliedPatches.filter((patch: Record<string, unknown>) => typeof patch.chatScrollTop === 'number').length, 1)
 })

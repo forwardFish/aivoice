@@ -27,7 +27,7 @@
 
     <view wx:if="{{mode === 'chat'}}" class="chat-panel">
         <scroll-view
-          class="messages-scroll {{chatViewportReady ? 'is-ready' : ''}}"
+          class="messages-scroll"
           style="{{messagesScrollStyle}}"
           scroll-y="{{true}}"
           scroll-top="{{chatScrollTop}}"

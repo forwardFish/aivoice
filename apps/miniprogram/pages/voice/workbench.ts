@@ -116,6 +116,7 @@ Page({
   },
   onLoad(options: Record<string, string>) {
     this.destroyed = false
+    this.dataLoading = false
     this.chatBottomSequence = 0
     this.chatScrollPositionSequence = 0
     if (!ensureAuthenticated()) return
@@ -152,10 +153,11 @@ Page({
     this.destroyed = true
     if (this.chatViewportTimer) clearTimeout(this.chatViewportTimer)
     if (this.chatBottomTimer) clearTimeout(this.chatBottomTimer)
-    if (this.chatBottomSettleTimer) clearTimeout(this.chatBottomSettleTimer)
     if (this.pollTimer) clearTimeout(this.pollTimer)
   },
   async loadData(showLoading = true) {
+    if (this.dataLoading) return
+    this.dataLoading = true
     if (showLoading) this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false })
     try {
       const voice = await getVoice(this.data.voiceId)
@@ -227,6 +229,8 @@ Page({
         messagesContentStyle: '',
         chatViewportReady: false
       })
+    } finally {
+      this.dataLoading = false
     }
   },
   async resolveUserAvatar() {
@@ -679,7 +683,6 @@ Page({
   },
   scheduleChatBottomScroll(anchorId = this.data.bottomAnchorId) {
     if (this.chatBottomTimer) clearTimeout(this.chatBottomTimer)
-    if (this.chatBottomSettleTimer) clearTimeout(this.chatBottomSettleTimer)
     if (!anchorId || this.data.mode !== 'chat') return
     const apply = () => {
       if (this.destroyed || this.data.mode !== 'chat' || this.data.bottomAnchorId !== anchorId) return
@@ -693,10 +696,6 @@ Page({
       this.chatBottomTimer = null
       apply()
     }, 80)
-    this.chatBottomSettleTimer = setTimeout(() => {
-      this.chatBottomSettleTimer = null
-      apply()
-    }, 650)
   },
   syncChatViewport() {
     const getWindowInfo = (wx as any).getWindowInfo
