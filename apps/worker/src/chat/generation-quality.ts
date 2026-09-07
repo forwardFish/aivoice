@@ -41,6 +41,17 @@ const RETRYABLE_HUMAN_SIGNALS = new Set([
   'GENERIC_PERFECT_SUPPORT',
 ]);
 
+const EXPLICIT_GOOD_NEWS = /(?:终于|总算|可算).{0,16}(?:弄明白|解决|搞定|通过|成功|上线|做好|完成)(?:了|啦)?|(?:问题|事情).{0,10}(?:解决|弄明白|搞定)了/u;
+const AUDIBLE_POSITIVE_REACTION = /(?:可算|太好了|真好|这下|踏实|松口气|不容易|成了|稳了|行啊|可以啊|厉害|开心|高兴)/u;
+const SMALL_TALK_TOPIC_PAIRS: ReadonlyArray<{ output: RegExp; input: RegExp }> = [
+  { output: /(?:吃(?:点|饭|什么)|喝(?:点|口|什么)|晚上想吃)/u, input: /(?:吃|饭|菜|餐|饿|喝|水|饮料|咖啡)/u },
+  { output: /(?:早点睡|去休息|先歇|歇会儿)/u, input: /(?:睡|休息|歇|累|困)/u },
+  { output: /(?:天气|下雨|冷不冷|热不热)/u, input: /(?:天气|雨|冷|热|风)/u },
+  { output: /(?:明天打算|明天安排|周末安排)/u, input: /(?:明天|后天|周末|安排)/u },
+];
+const EMOTIONLESS_VOICE_FEEDBACK = /(?:太平|没(?:什么)?情绪|听不出.{0,8}(?:高兴|生气|难过|情绪)|语气.{0,8}(?:太平|没劲|没情绪))/u;
+const INVENTED_EMOTIONAL_RESERVE = /(?:平时|一向|向来|我(?:本来)?就).{0,12}(?:不太?(?:把情绪|表现|表露)|不爱(?:表现|表露)|情绪不挂)|(?:这|这个)(?:毛病|习惯).{0,10}(?:改不了|改不掉)/u;
+
 export type CharacterGenerationQuality = {
   outputText: string;
   replyTone: CharacterTurnGeneration['replyTone'];
@@ -70,6 +81,7 @@ export function evaluateCharacterGenerationQuality(input: {
   previousState: ConversationInteractionState | null;
   control: RuntimeDialogueControl;
   personalityTurnFocus: PersonalityTurnFocus | null;
+  requireAudiblePositiveReaction?: boolean;
   profile: { personalityNote: string | null; speechHabitNote: string | null; relationshipNote: string | null };
 }): CharacterGenerationQuality {
   const preferenceSubject = normalizeExplicitPreferenceSubject({
@@ -133,8 +145,32 @@ export function evaluateCharacterGenerationQuality(input: {
     reply: outputText,
   });
   const humanSignals = assessHumanLikenessSignals(outputText, [...input.recentCharacterReplies], input.currentUserText);
+  const flatPositiveReaction = input.requireAudiblePositiveReaction === true
+    && EXPLICIT_GOOD_NEWS.test(input.currentUserText)
+    && (input.generation.replyTone !== 'POSITIVE' || !AUDIBLE_POSITIVE_REACTION.test(outputText));
+  const unrelatedPositiveTopicPivot = input.requireAudiblePositiveReaction === true
+    && EXPLICIT_GOOD_NEWS.test(input.currentUserText)
+    && SMALL_TALK_TOPIC_PAIRS.some((topic) => topic.output.test(outputText) && !topic.input.test(input.currentUserText));
+  const flatVoiceFeedbackResponse = input.requireAudiblePositiveReaction === true
+    && input.relationshipType === 'SELF'
+    && EMOTIONLESS_VOICE_FEEDBACK.test(input.currentUserText)
+    && input.generation.replyTone === 'PLAIN';
+  const explicitEmotionalReserve = /(?:不爱|不太|不会).{0,8}(?:表达|表露|表现).{0,8}情绪|情绪.{0,8}(?:不外露|不挂在嘴上|比较克制)/u.test([
+    input.profile.personalityNote,
+    input.profile.speechHabitNote,
+    input.profile.relationshipNote,
+  ].filter(Boolean).join(' '));
+  const inventedEmotionalReserve = input.requireAudiblePositiveReaction === true
+    && input.relationshipType === 'SELF'
+    && EMOTIONLESS_VOICE_FEEDBACK.test(input.currentUserText)
+    && INVENTED_EMOTIONAL_RESERVE.test(outputText)
+    && !explicitEmotionalReserve;
   const qualitySignals = [
     ...humanSignals,
+    ...(flatPositiveReaction ? ['FLAT_POSITIVE_REACTION'] : []),
+    ...(unrelatedPositiveTopicPivot ? ['UNRELATED_POSITIVE_TOPIC_PIVOT'] : []),
+    ...(flatVoiceFeedbackResponse ? ['FLAT_VOICE_FEEDBACK_RESPONSE'] : []),
+    ...(inventedEmotionalReserve ? ['INVENTED_EMOTIONAL_RESERVE_IDENTITY'] : []),
     ...normalized.qualityFlags,
     ...(preferenceSubject.changed ? ['EXPLICIT_PREFERENCE_SUBJECT_RESTORED'] : []),
     ...(selfHistorySanitization.removed ? ['SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED'] : []),
@@ -157,6 +193,10 @@ export function evaluateCharacterGenerationQuality(input: {
     selfHistorySanitization.removed ? 'SELF_UNSUPPORTED_PERSONAL_HISTORY_REMOVED' : null,
     presentSceneSanitization.removed ? 'UNSUPPORTED_PRESENT_SCENE_CLAIM_REMOVED' : null,
     ...humanSignals.filter((signal) => RETRYABLE_HUMAN_SIGNALS.has(signal)),
+    flatPositiveReaction ? 'FLAT_POSITIVE_REACTION' : null,
+    unrelatedPositiveTopicPivot ? 'UNRELATED_POSITIVE_TOPIC_PIVOT' : null,
+    flatVoiceFeedbackResponse ? 'FLAT_VOICE_FEEDBACK_RESPONSE' : null,
+    inventedEmotionalReserve ? 'INVENTED_EMOTIONAL_RESERVE_IDENTITY' : null,
   ].filter((value): value is string => Boolean(value));
   return {
     outputText,
@@ -184,6 +224,10 @@ const QUALITY_RETRY_GUIDANCE: Record<string, string> = {
   PURE_ACKNOWLEDGEMENT: '上一版只有敷衍确认。重写时加入人物自己的具体反应或一个自然推进。',
   GENERIC_EMOTIONAL_BRUSH_OFF: '上一版用“先休息、别急、慢慢来、想不通也正常”一类万能安慰把话题封住了。重写时接住用户已经递出的话头：先给一个符合人物关系和说话习惯、能听出当下感情色彩的具体反应；若本轮允许提问，再问一个低压力、开放且只索取一项信息的问题；若不允许提问，就表达人物自己的判断、在场感或可继续说下去的回应。不要只是把同一句安慰拉长，不要统一改成煽情的温柔陪伴，也不要补写用户没说过的事实。',
   FLAT_EMOTIONAL_QUESTION: '上一版只把问题抛回给用户，没有让人物先产生任何可听见的反应。重写时先用符合人物关系和说话习惯的一小句表达当下的心疼、着急、好奇、不平、惊讶或克制在意，再问一个开放且只索取一项信息的问题；不要自造“是A还是B”的选择题，不要变成咨询师套话。',
+  FLAT_POSITIVE_REACTION: '用户明确说终于解决、弄明白、搞定或完成了一件事。上一版把好消息压成了普通结论。重写时先让人物用一句日常口语表达真实高兴、惊喜或松一口气，并把replyTone设为POSITIVE；可以说“这下踏实了、可算弄明白了、真行”，但不要改去问吃饭、天气或其他无关话题，不靠多个感叹号制造情绪。',
+  UNRELATED_POSITIVE_TOPIC_PIVOT: '用户刚分享的是明确好消息，上一版却突然转去问吃饭、喝水、休息、天气或明天安排。删掉无关话题，只回应这件好消息以及人物对此产生的高兴、惊喜或释然；不增加问题。',
+  FLAT_VOICE_FEEDBACK_RESPONSE: '用户明确说人物说话太平或听不出情绪。上一版仍用PLAIN回避。保持SELF关系，用一句自然口语表现真实反应，可以有一点不服、自嘲、被说中的尴尬或认真承认，并选择与台词一致的IRRITATED、MIXED、UNEASY或POSITIVE；不要解释模型和技术，也不要靠突然发火、粗口或另开无关问题制造情绪。',
+  INVENTED_EMOTIONAL_RESERVE_IDENTITY: '上一版根据这一次语气反馈，擅自宣称人物平时就不表达情绪、这是长期习惯或改不了的毛病。删除这类长期性格结论，只回应当前这一轮确实说得太平：可以认真承认、轻微不服或说明这次没表达出来，并让语气随用户的解释自然缓和。',
   VOICE_SIMILARITY_META_EXPLANATION: '用户说“声音不像、音色不像、语气不像”是在吐槽呈现效果，不是身份询问。上一版跳出人物解释了模拟原理。重写时继续以人物身份接话；本人关系优先用轻微自嘲、挑剔、调侃或不服气回应，可以顺势问一句最不像哪里，但不得解释模拟原理，不得提“模拟回应、不是真实声音本人、模型、系统、技术限制或无法复刻”。',
   GENERIC_REPAIR_STAGE_PHRASE: '上一版直接用“翻篇、没事、不生气了”等词汇汇报修复阶段。保持人物已开始缓和，但要通过减少攻击、恢复普通交流、轻微调侃、小要求或具体选择表现变化，不要宣布阶段结束。',
   REPEATED_SAME_GRIEVANCE: '上一版重复了人物上一轮已经说过的同一项指责和边界。直接回应用户本轮新增的辩解或信息，保留立场但不要再次复述等待、晚告知或下次提醒；增加一个新的个人判断或当前选择。',

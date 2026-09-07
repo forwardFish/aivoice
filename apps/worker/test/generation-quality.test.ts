@@ -247,3 +247,78 @@ test('retry prompt preserves the original messages and adds only one correction 
   const explicitBoundaryRetry = qualityRetryMessages(messages, ['EXPLICIT_QUESTION_BOUNDARY_VIOLATION']);
   assert.match(explicitBoundaryRetry[3]?.content || '', /用户已经明确不想再被追问/);
 });
+
+test('explicit good news cannot be flattened into an adult neutral conclusion', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true, currentMessageId: 'adult-good-news',
+    voiceName: '本人', ageYears: 43, gender: 'MALE', userAgeYears: 43,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '',
+    history: [], currentInput: '今天总算把那个问题弄明白了。',
+  });
+  const evaluate = (reply: string, replyTone: 'PLAIN' | 'POSITIVE') => evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply, replyTone, actionStance: 'RESPOND' }),
+    currentUserText: '今天总算把那个问题弄明白了。',
+    relationshipType: 'SELF', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    requireAudiblePositiveReaction: true,
+    profile: { personalityNote: null, speechHabitNote: null, relationshipNote: null },
+  });
+  assert.ok(evaluate('弄明白就行，慢慢来。', 'PLAIN').retryReasons.includes('FLAT_POSITIVE_REACTION'));
+  assert.ok(evaluate('这下踏实了，可算弄明白了。', 'POSITIVE').retryReasons.every((reason) => reason !== 'FLAT_POSITIVE_REACTION'));
+  assert.ok(evaluate('这下踏实了。晚上想吃点什么？', 'POSITIVE').retryReasons.includes('UNRELATED_POSITIVE_TOPIC_PIVOT'));
+  const retry = qualityRetryMessages(context.messages, ['FLAT_POSITIVE_REACTION']);
+  assert.match(retry.find((message) => message.content.includes('FLAT_POSITIVE_REACTION'))?.content || '', /不要改去问吃饭/);
+  const foodContext = compileVoiceChatMessages({
+    structuredOutput: true, currentMessageId: 'adult-food-good-news',
+    voiceName: '本人', ageYears: 43, gender: 'MALE', userAgeYears: 43,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '', history: [],
+    currentInput: '今天总算把晚饭做好了。',
+  });
+  const relevantFood = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '太好了，赶紧吃饭。', replyTone: 'POSITIVE', actionStance: 'RESPOND' }),
+    currentUserText: '今天总算把晚饭做好了。', relationshipType: 'SELF', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [], currentTurn: foodContext.currentTurn,
+    recentTurns: foodContext.recentTurns, previousState: null, control: foodContext.runtimeDialogueControl,
+    personalityTurnFocus: foodContext.personalityTurnFocus, requireAudiblePositiveReaction: true,
+    profile: { personalityNote: null, speechHabitNote: null, relationshipNote: null },
+  });
+  assert.ok(!relevantFood.retryReasons.includes('UNRELATED_POSITIVE_TOPIC_PIVOT'));
+});
+
+test('SELF feedback about flat delivery requires an audible reaction without inventing unrelated emotion', () => {
+  const context = compileVoiceChatMessages({
+    structuredOutput: true, currentMessageId: 'adult-flat-voice',
+    voiceName: '本人', ageYears: 43, gender: 'MALE', userAgeYears: 43,
+    relationshipType: 'SELF', relationshipLabel: '', userAddress: '',
+    history: [], currentInput: '你刚才还是太平了，我根本没听出你高兴。',
+  });
+  const evaluate = (reply: string, replyTone: 'PLAIN' | 'MIXED') => evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply, replyTone, actionStance: 'RESPOND' }),
+    currentUserText: '你刚才还是太平了，我根本没听出你高兴。',
+    relationshipType: 'SELF', subjectBackground: null,
+    recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns,
+    previousState: null, control: context.runtimeDialogueControl,
+    personalityTurnFocus: context.personalityTurnFocus,
+    requireAudiblePositiveReaction: true,
+    profile: { personalityNote: null, speechHabitNote: null, relationshipNote: null },
+  });
+  assert.ok(evaluate('本来也不是多大事。', 'PLAIN').retryReasons.includes('FLAT_VOICE_FEEDBACK_RESPONSE'));
+  assert.ok(evaluate('我平时就不太把情绪挂脸上，这毛病改不了。', 'MIXED').retryReasons.includes('INVENTED_EMOTIONAL_RESERVE_IDENTITY'));
+  assert.ok(evaluate('行，是有点太平了。这回我认真点。', 'MIXED').retryReasons.every((reason) => reason !== 'FLAT_VOICE_FEEDBACK_RESPONSE'));
+  const explicitReserve = evaluateCharacterGenerationQuality({
+    generation: parseMinimalCharacterTurnGeneration({ reply: '我平时确实不太表露情绪。', replyTone: 'MIXED', actionStance: 'RESPOND' }),
+    currentUserText: '你刚才还是太平了，我根本没听出你高兴。',
+    relationshipType: 'SELF', subjectBackground: null, recentUserInputs: [], recentCharacterReplies: [],
+    currentTurn: context.currentTurn, recentTurns: context.recentTurns, previousState: null,
+    control: context.runtimeDialogueControl, personalityTurnFocus: context.personalityTurnFocus,
+    requireAudiblePositiveReaction: true,
+    profile: { personalityNote: '平时不太表露情绪。', speechHabitNote: null, relationshipNote: null },
+  });
+  assert.ok(!explicitReserve.retryReasons.includes('INVENTED_EMOTIONAL_RESERVE_IDENTITY'));
+  const retry = qualityRetryMessages(context.messages, ['FLAT_VOICE_FEEDBACK_RESPONSE']);
+  assert.match(retry.find((message) => message.content.includes('FLAT_VOICE_FEEDBACK_RESPONSE'))?.content || '', /不服、自嘲/);
+});

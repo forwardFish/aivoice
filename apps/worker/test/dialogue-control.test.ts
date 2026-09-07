@@ -60,6 +60,8 @@ test('question validation rejects compound intents even when there is only one q
   assert.deepEqual(validateQuestionBehavior('东西多不多、需要几个人？', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('怎么突然想辞职了？工作干得不顺心还是身体吃不消啊。', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
   assert.deepEqual(validateQuestionBehavior('周六具体几点开始？', action('ASK'), control), []);
+  assert.deepEqual(validateQuestionBehavior('行，不说了。你想聊什么就聊什么。', action('RESPOND'), control), []);
+  assert.deepEqual(validateQuestionBehavior('你为什么不说，怎么又改主意了', action('ASK'), control), ['MULTIPLE_QUESTION_INTENTS']);
 });
 
 test('coaching rejection forbids questions and methods for the current and following character reply', () => {

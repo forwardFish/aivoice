@@ -683,6 +683,7 @@ export class CloudBaseJobRunner {
       if (message.mode === 'CHAT') {
         const context = compileVoiceChatMessages({
           structuredOutput: true,
+          everydaySpokenStyle: process.env.AIVOICE_CHAT_STYLE_MODE === 'EVERYDAY',
           currentMessageId: message.messageId,
           voiceName: message.voiceName,
           ageYears: message.ageYears,
@@ -746,6 +747,7 @@ export class CloudBaseJobRunner {
               previousState: context.previousInteractionState,
               control: context.runtimeDialogueControl,
               personalityTurnFocus: context.personalityTurnFocus,
+              requireAudiblePositiveReaction: process.env.AIVOICE_CHAT_STYLE_MODE === 'EVERYDAY',
               profile: {
                 personalityNote: message.personalityNote || null,
                 speechHabitNote: message.speechHabitNote || null,
@@ -822,6 +824,7 @@ export class CloudBaseJobRunner {
         delivery: deliveryPlan,
         runtime: voiceRuntime,
         emotionMode: parseStableEmotionMode(process.env.AIVOICE_STABLE_EMOTION_MODE),
+        connectedChatPhrasing: message.mode === 'CHAT' && process.env.AIVOICE_CHAT_PHRASING_MODE === 'CONNECTED',
       });
       const providerRequest = toCosyVoiceProviderRequest({
         jobId: job.id,

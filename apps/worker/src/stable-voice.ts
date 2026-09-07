@@ -1,4 +1,5 @@
 import type { VoiceGender } from './chat/age-identity.js';
+import { connectShortAcknowledgement } from './chat/connected-phrasing.js';
 import type { VoiceRelationshipType } from './chat/voice-chat-context.js';
 import type {
   VoiceAct,
@@ -460,6 +461,7 @@ export interface BuildStableVoicePlanInput {
   delivery: VoiceDeliveryPlan;
   runtime: VoiceRuntimeProfile;
   emotionMode?: StableEmotionMode;
+  connectedChatPhrasing?: boolean;
 }
 
 export function buildIdentityStableVoicePlan(
@@ -472,7 +474,9 @@ export function buildIdentityStableVoicePlan(
     identityLocked: true,
     identityPolicyVersion: STABLE_POLICY_VERSION,
     identityFingerprint: buildIdentityFingerprint(input.runtime, emotionMode),
-    text: normalizeStableTtsText(input.text),
+    text: input.connectedChatPhrasing === true && input.delivery.act === 'CASUAL_EXPLAIN'
+      ? connectShortAcknowledgement(normalizeStableTtsText(input.text))
+      : normalizeStableTtsText(input.text),
     ...(overlay.instruction ? { instruction: overlay.instruction } : {}),
     seed: 0,
     enableSsml: false,

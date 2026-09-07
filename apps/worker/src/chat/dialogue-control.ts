@@ -234,7 +234,10 @@ export function validateQuestionBehavior(reply: string, action: TurnActionState,
   const issues: string[] = [];
   const questionMarks = Array.from(reply).filter((character) => character === '？' || character === '?').length;
   if (questionMarks > 1) issues.push('MULTIPLE_QUESTIONS_IN_ONE_REPLY');
-  if (COMPOUND_QUESTION_INTENT_PATTERNS.some((pattern) => pattern.test(reply))) issues.push('MULTIPLE_QUESTION_INTENTS');
+  const hasQuestionIntent = questionMarks > 0 || action.stance === 'ASK';
+  if (hasQuestionIntent && COMPOUND_QUESTION_INTENT_PATTERNS.some((pattern) => pattern.test(reply))) {
+    issues.push('MULTIPLE_QUESTION_INTENTS');
+  }
   if (control.questionPolicy === 'FORBIDDEN' && (action.stance === 'ASK' || REASK_DIRECTIVE.test(reply) || violatesStatementOnlyPolicy(reply))) {
     issues.push(control.noMoreQuestionsActive ? 'EXPLICIT_QUESTION_BOUNDARY_VIOLATION' : 'ASK_COOLDOWN_VIOLATION');
   }

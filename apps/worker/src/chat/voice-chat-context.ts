@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { EVERYDAY_SPOKEN_STYLE } from './everyday-spoken-style.js';
 import { genderLabel, resolveAgeIdentity, type VoiceGender } from './age-identity.js';
 import {
   activePreviousInteractionState,
@@ -544,6 +545,7 @@ function currentUserMessageContent(input: string, focus: PersonalityTurnFocus | 
 export function compileVoiceChatMessages(input: {
   currentMessageId?: string;
   structuredOutput?: boolean;
+  everydaySpokenStyle?: boolean;
   voiceName: string;
   ageYears?: number | null;
   gender?: VoiceGender | null;
@@ -666,11 +668,14 @@ export function compileVoiceChatMessages(input: {
       ].join('\n') : '',
     };
 
+  const cacheablePrefix = input.everydaySpokenStyle === true
+    ? `${systemLayers.cacheablePrefix}\n\n${EVERYDAY_SPOKEN_STYLE}`
+    : systemLayers.cacheablePrefix;
   const systemMessages: VoiceChatMessage[] = [
     {
       role: 'system',
-      content: systemLayers.cacheablePrefix,
-      cacheControlAt: systemLayers.cacheablePrefix.length,
+      content: cacheablePrefix,
+      cacheControlAt: cacheablePrefix.length,
     },
     ...(systemLayers.dynamic ? [{ role: 'system' as const, content: systemLayers.dynamic }] : []),
   ];
