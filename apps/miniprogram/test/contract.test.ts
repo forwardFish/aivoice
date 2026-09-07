@@ -17,6 +17,7 @@ test('normalizes the implemented backend voice lifecycle and permission values',
     permissionType: 'OTHER',
     relationshipType: 'GRANDMOTHER',
     relationshipLabel: '',
+    voiceAddress: '奶奶',
     userAddress: '小林',
     ageYears: 70,
     gender: 'FEMALE',
@@ -33,6 +34,7 @@ test('normalizes the implemented backend voice lifecycle and permission values',
   assert.equal(previewReady.status, 'PREVIEW_READY')
   assert.equal(previewReady.permissionType, 'OTHER')
   assert.equal(previewReady.relationshipType, 'GRANDMOTHER')
+  assert.equal(previewReady.voiceAddress, '奶奶')
   assert.equal(previewReady.userAddress, '小林')
   assert.equal(previewReady.ageYears, 70)
   assert.equal(previewReady.gender, 'FEMALE')

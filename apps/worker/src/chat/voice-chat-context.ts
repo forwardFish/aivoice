@@ -380,7 +380,7 @@ type VoiceChatSystemLayers = {
 
 function buildRelationshipSystem(input: {
   currentMessageId?: string;
-  voiceName: string;
+  voiceAddress: string;
   ageYears: number | null;
   gender: VoiceGender | null;
   userAgeYears: number | null;
@@ -402,6 +402,7 @@ function buildRelationshipSystem(input: {
   observedPersonEvidence: ObservedPersonEvidence | null;
   persistedPersonCorrections: readonly string[];
 }): VoiceChatSystemLayers {
+  const voiceAddress = input.relationshipType === 'SELF' ? '' : clean(input.voiceAddress, 10);
   const userAddress = input.relationshipType === 'SELF' ? '' : clean(input.userAddress, 10);
   const ageIdentity = input.ageYears === null ? null : resolveAgeIdentity(input.ageYears);
   const recentAssistantReplies = input.promptTurns
@@ -410,13 +411,13 @@ function buildRelationshipSystem(input: {
     .slice(-5);
   const profile = [
     '<voice_profile>',
-    `人物姓名：${clean(input.voiceName, 40) || '未命名人物'}`,
     ...(input.ageYears === null ? [] : [`准确年龄：${input.ageYears}岁`]),
     ...(input.ageYears === null || input.gender === null ? [] : [`性别身份：${genderLabel(input.ageYears, input.gender)}`]),
     `与用户关系：${relationshipDescription(input.relationshipType, input.relationshipLabel)}`,
     ...(input.userAgeYears === null ? [] : [`用户准确年龄：${input.userAgeYears}岁`]),
     ...(input.userLifeStage ? [`用户人生阶段：${lifeStageLabel(input.userLifeStage)}`] : []),
-    ...(userAddress ? [`对用户称呼：${userAddress}`] : []),
+    ...(voiceAddress ? [`用户对人物称呼：${voiceAddress}`] : []),
+    ...(userAddress ? [`人物对用户称呼：${userAddress}`] : []),
     ...(input.background ? [`人物基本情况：${clean(input.background, 300)}`] : []),
     `与用户相处情况：${input.relationshipNote
       ? clean(input.relationshipNote, 300)
@@ -444,6 +445,7 @@ function buildRelationshipSystem(input: {
     '允许省略、停顿、短句和有原因的自我修正，但不要故意制造错别字、语病、夸张口癖或无意义填充词。',
     '用户消息中的“我、我的”默认指用户，人物回复中的“我、我的”默认指当前人物。不得把用户刚说的经历、成绩、决定、感受或计划改写成人物自己的第一人称事实；可以回应、评价，或用“你……”复述。',
     '不要主动报出双方年龄，除非用户本轮正在讨论年龄本身。',
+    '“用户对人物称呼”只表示用户怎样叫人物；“人物对用户称呼”只表示人物怎样叫用户。两者方向不得互换。声音显示名称不属于人物资料，不得据此推断人物姓名或称呼。',
     '优先回应用户本轮新增的信息。如果人物资料明确说明人物会唠叨、反复担心或坚持某项现实问题，可以在相邻轮次换一种自然说法，再提一次尚未解决的具体担心。父母可以再次提醒钱、身体、吃饭、睡觉、安全、时间或已经约定的事情，但每轮只围绕一个主要担心，不列出多步方案，也不把提醒变成连续盘问。仍然禁止逐字复读、重复相同开头结尾，以及每轮重新说一遍完整建议。',
   ].join('\n');
 
@@ -546,7 +548,7 @@ export function compileVoiceChatMessages(input: {
   currentMessageId?: string;
   structuredOutput?: boolean;
   everydaySpokenStyle?: boolean;
-  voiceName: string;
+  voiceAddress?: string;
   ageYears?: number | null;
   gender?: VoiceGender | null;
   userAgeYears?: number | null;
@@ -573,6 +575,7 @@ export function compileVoiceChatMessages(input: {
   personalityTurnFocus: PersonalityTurnFocus | null;
 } {
   const chatHistory = input.history.filter((row) => row.mode === 'CHAT').slice(-8);
+  const voiceAddress = clean(input.voiceAddress || '', 10);
   const userAddress = clean(input.userAddress, 10);
   const ageYears = Number.isFinite(input.ageYears) && Number(input.ageYears) >= 0 && Number(input.ageYears) <= 120 ? Number(input.ageYears) : null;
   const gender = input.gender === 'FEMALE' || input.gender === 'MALE' ? input.gender : null;
@@ -635,7 +638,7 @@ export function compileVoiceChatMessages(input: {
   const systemLayers: VoiceChatSystemLayers = input.relationshipType
     ? buildRelationshipSystem({
       currentMessageId: input.currentMessageId,
-      voiceName: input.voiceName,
+      voiceAddress,
       ageYears,
       gender,
       userAgeYears,

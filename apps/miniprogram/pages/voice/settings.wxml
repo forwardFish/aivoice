@@ -34,7 +34,7 @@
     </view>
     <view class="form-card soft-card">
       <view class="field-surface">
-        <text class="field-label">声音名称</text>
+        <text class="field-label">声音的名称</text>
         <view class="name-row">
           <input class="name-input" value="{{nameDraft}}" maxlength="20" bindinput="onNameInput" />
           <button class="primary-button save-name {{saving ? 'button-disabled' : ''}}" bindtap="saveName" disabled="{{saving}}">{{saving ? '保存中…' : '保存'}}</button>
@@ -81,6 +81,11 @@
         </view>
         <input wx:if="{{relationshipType === 'OTHER'}}" class="settings-profile-input" value="{{relationshipOther}}" placeholder="请输入关系，如：表姐" maxlength="10" bindinput="onRelationshipOtherInput" />
         <view wx:if="{{relationshipType !== 'SELF'}}" class="settings-profile-block">
+          <view class="settings-profile-field">
+            <text class="settings-profile-label">你怎么称呼 TA</text>
+            <text class="settings-profile-caption">可选，会写入对话人物资料，不会改变声音名称。</text>
+            <input class="settings-profile-input" value="{{voiceAddress}}" placeholder="如：爸、小雨、老李" maxlength="10" bindinput="onVoiceAddressInput" />
+          </view>
           <view class="settings-profile-field">
             <text class="settings-profile-label">TA 怎么称呼你</text>
             <text class="settings-profile-caption">可选，填写后 AI 对话会更自然。</text>

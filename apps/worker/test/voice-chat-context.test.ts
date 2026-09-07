@@ -12,6 +12,7 @@ test('relationship context keeps current user input last and filters exact speec
     voiceName: '妈妈',
     relationshipType: 'MOTHER',
     relationshipLabel: '',
+    voiceAddress: '妈',
     userAddress: '小林',
     history: [
       { messageId: 'chat-1', mode: 'CHAT', inputText: '今天被批评了。', outputText: '听起来很委屈。' },
@@ -24,7 +25,10 @@ test('relationship context keeps current user input last and filters exact speec
   assert.match(systemText(result.messages), /人物是用户的母亲/);
   assert.match(systemText(result.messages), /任何回复都禁止出现“AI”/);
   assert.match(systemText(result.messages), /用户直接询问身份时/);
-  assert.match(systemText(result.messages), /对用户称呼：小林/);
+  assert.match(systemText(result.messages), /用户对人物称呼：妈/);
+  assert.match(systemText(result.messages), /人物对用户称呼：小林/);
+  assert.doesNotMatch(systemText(result.messages), /人物姓名：妈妈/);
+  assert.match(systemText(result.messages), /两者方向不得互换/);
   assert.match(systemText(result.messages), /连续会话首次回复/);
   assert.deepEqual(result.includedMessageIds, ['chat-1']);
   assert.deepEqual(result.messages.filter((message) => message.role !== 'system'), [

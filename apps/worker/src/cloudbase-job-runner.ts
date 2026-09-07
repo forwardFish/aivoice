@@ -656,6 +656,7 @@ export class CloudBaseJobRunner {
       voiceName: string;
       relationshipType: VoiceRelationshipType | null;
       relationshipLabel: string;
+      voiceAddress: string;
       userAddress: string;
       ageYears: number | null;
       gender: 'FEMALE' | 'MALE' | null;
@@ -685,12 +686,12 @@ export class CloudBaseJobRunner {
           structuredOutput: true,
           everydaySpokenStyle: process.env.AIVOICE_CHAT_STYLE_MODE === 'EVERYDAY',
           currentMessageId: message.messageId,
-          voiceName: message.voiceName,
           ageYears: message.ageYears,
           gender: message.gender,
           userAgeYears: message.userAgeYears,
           relationshipType: message.relationshipType,
           relationshipLabel: message.relationshipLabel,
+          voiceAddress: message.voiceAddress,
           userAddress: message.userAddress,
           userLifeStage: message.userLifeStage,
           background: message.background,

@@ -115,6 +115,7 @@ export function normalizeVoice(input: unknown): VoiceDetail {
     permissionType: normalizePermission(raw.permissionType ?? raw.permission_type),
     relationshipType: normalizeRelationship(raw.relationshipType ?? raw.relationship_type),
     relationshipLabel: stringOr(raw.relationshipLabel ?? raw.relationship_label) || undefined,
+    voiceAddress: stringOr(raw.voiceAddress ?? raw.voice_address) || undefined,
     userAddress: stringOr(raw.userAddress ?? raw.user_address) || undefined,
     ageYears: raw.ageYears == null && raw.age_years == null ? undefined : numberOr(raw.ageYears ?? raw.age_years),
     gender: ['FEMALE', 'MALE'].includes(String(raw.gender || '')) ? raw.gender : undefined,

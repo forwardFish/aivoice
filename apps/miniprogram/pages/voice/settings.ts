@@ -98,6 +98,7 @@ Page({
     relationshipOther: '',
     relationshipOptions: [] as Array<{ key: RelationshipType; title: string }>,
     showRelationship: false,
+    voiceAddress: '',
     userAddress: '',
     ageYears: '',
     gender: '' as VoiceGender | '',
@@ -111,6 +112,7 @@ Page({
     genderOptions: [{ key: 'FEMALE', title: '女性' }, { key: 'MALE', title: '男性' }],
     savedRelationshipType: '' as RelationshipType | '',
     savedRelationshipOther: '',
+    savedVoiceAddress: '',
     savedUserAddress: '',
     permissionText: '',
     styleText: '',
@@ -153,6 +155,7 @@ Page({
         relationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
         relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
         relationshipOptions: voice.permissionType ? RELATIONSHIP_OPTIONS[voice.permissionType] : [],
+        voiceAddress: voice.voiceAddress || '',
         userAddress: voice.userAddress || '',
         ageYears: voice.ageYears == null ? '' : String(voice.ageYears),
         gender: voice.gender || '',
@@ -165,6 +168,7 @@ Page({
         speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || (voice.permissionType === 'SELF' ? 'SELF' : ''),
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || '' : '',
+        savedVoiceAddress: voice.voiceAddress || '',
         savedUserAddress: voice.userAddress || '',
         permissionText: permissionLabel(voice.permissionType),
         styleText: styleLabel(voice.conversationStyle),
@@ -236,6 +240,13 @@ Page({
       successMessage: ''
     })
   },
+  onVoiceAddressInput(event: any) {
+    this.setData({
+      voiceAddress: Array.from(String(event.detail.value || '')).slice(0, 10).join(''),
+      errorMessage: '',
+      successMessage: ''
+    })
+  },
   async saveName() {
     if (this.data.saving) return
     const name = String(this.data.nameDraft || '').trim()
@@ -292,6 +303,7 @@ Page({
         permissionType: this.data.permissionType,
         relationshipType: this.data.relationshipType,
         relationshipLabel: this.data.relationshipType === 'OTHER' ? relationshipLabel : '',
+        voiceAddress: String(this.data.voiceAddress || '').trim(),
         userAddress: String(this.data.userAddress || '').trim(),
         ageYears,
         gender: this.data.gender,
@@ -308,6 +320,7 @@ Page({
         nameDraft: voice.name || name,
         relationshipType: voice.relationshipType || this.data.relationshipType,
         relationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
+        voiceAddress: voice.voiceAddress || '',
         userAddress: voice.userAddress || '',
         ageYears: voice.ageYears == null ? String(ageYears) : String(voice.ageYears),
         gender: voice.gender || this.data.gender,
@@ -320,6 +333,7 @@ Page({
         speechHabitNote: voice.speechHabitNote || '',
         savedRelationshipType: voice.relationshipType || this.data.relationshipType,
         savedRelationshipOther: voice.relationshipType === 'OTHER' ? voice.relationshipLabel || relationshipLabel : '',
+        savedVoiceAddress: voice.voiceAddress || '',
         savedUserAddress: voice.userAddress || '',
         successMessage: '声音资料已由服务端保存。'
       })

@@ -36,6 +36,11 @@ export class UpdateVoiceProfileDto {
   @IsOptional()
   @IsString()
   @MaxLength(10)
+  voiceAddress = '';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
   userAddress = '';
 
   @IsOptional()

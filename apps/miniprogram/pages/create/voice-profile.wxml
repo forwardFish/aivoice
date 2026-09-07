@@ -9,8 +9,9 @@
 
     <view class="form-card glass-card">
       <view class="field-block">
-        <text class="field-label">称呼这个声音</text>
-        <input class="field-input" value="{{name}}" placeholder="如：小雨 · 5岁" maxlength="20" bindinput="onNameInput" />
+        <text class="field-label">声音的名称</text>
+        <text class="field-caption">只用于列表和页面显示，不作为对话中的人物称呼。</text>
+        <input class="field-input" value="{{name}}" placeholder="如：爸爸的声音、旧视频声音" maxlength="20" bindinput="onNameInput" />
       </view>
 
       <view class="field-block">
@@ -70,20 +71,39 @@
           <text class="relationship-other-count">{{relationshipOther.length}}/10</text>
         </view>
         <view wx:if="{{relationshipType && relationshipType !== 'SELF'}}" class="user-address-block">
-          <view class="user-address-heading">
-            <text class="user-address-label">TA 平时怎么称呼你？</text>
-            <text class="user-address-optional">可选</text>
+          <view class="user-address-field">
+            <view class="user-address-heading">
+              <text class="user-address-label">你怎么称呼 TA？</text>
+              <text class="user-address-optional">可选</text>
+            </view>
+            <text class="user-address-help">这个称呼会写入对话人物资料，不会改变声音名称。</text>
+            <view class="relationship-other-wrap">
+              <input
+                class="relationship-other-input"
+                value="{{voiceAddress}}"
+                placeholder="例如：爸、小雨、老李"
+                maxlength="10"
+                bindinput="onVoiceAddressInput"
+              />
+              <text class="relationship-other-count">{{voiceAddress.length}}/10</text>
+            </view>
           </view>
-          <text class="user-address-help">填写后，AI 回复时会自然地使用这个称呼。</text>
-          <view class="relationship-other-wrap">
-            <input
-              class="relationship-other-input"
-              value="{{userAddress}}"
-              placeholder="例如：小林、妈妈、宝贝"
-              maxlength="10"
-              bindinput="onUserAddressInput"
-            />
-            <text class="relationship-other-count">{{userAddress.length}}/10</text>
+          <view class="user-address-field">
+            <view class="user-address-heading">
+              <text class="user-address-label">TA 怎么称呼你？</text>
+              <text class="user-address-optional">可选</text>
+            </view>
+            <text class="user-address-help">填写后，TA 回复时会自然地使用这个称呼。</text>
+            <view class="relationship-other-wrap">
+              <input
+                class="relationship-other-input"
+                value="{{userAddress}}"
+                placeholder="例如：小林、妈妈、宝贝"
+                maxlength="10"
+                bindinput="onUserAddressInput"
+              />
+              <text class="relationship-other-count">{{userAddress.length}}/10</text>
+            </view>
           </view>
         </view>
       </view>

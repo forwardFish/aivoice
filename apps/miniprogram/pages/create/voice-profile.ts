@@ -50,6 +50,7 @@ Page({
     permissionType: '' as PermissionType | '',
     relationshipType: '' as RelationshipType | '',
     relationshipOther: '',
+    voiceAddress: '',
     userAddress: '',
     ageYears: '',
     gender: '' as VoiceGender | '',
@@ -153,6 +154,12 @@ Page({
       errorMessage: ''
     })
   },
+  onVoiceAddressInput(event: any) {
+    this.setData({
+      voiceAddress: Array.from(String(event.detail.value || '')).slice(0, 10).join(''),
+      errorMessage: ''
+    })
+  },
   toggleConfirmed() {
     if (!this.data.permissionType) {
       this.setData({ errorMessage: '请先选择声音使用权限。' })
@@ -219,6 +226,7 @@ Page({
         permissionType: this.data.permissionType,
         relationshipType: this.data.relationshipType,
         relationshipLabel: this.data.relationshipType === 'OTHER' ? relationshipLabel : '',
+        voiceAddress: String(this.data.voiceAddress || '').trim(),
         userAddress: String(this.data.userAddress || '').trim(),
         ageYears,
         gender: this.data.gender,

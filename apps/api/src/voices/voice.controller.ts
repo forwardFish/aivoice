@@ -56,6 +56,7 @@ export class VoiceController {
       permissionType: body.permissionType,
       relationshipType: body.relationshipType,
       relationshipLabel: body.relationshipLabel,
+      voiceAddress: body.voiceAddress,
       userAddress: body.userAddress,
       ageYears: body.ageYears,
       gender: body.gender,

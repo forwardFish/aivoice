@@ -230,6 +230,7 @@
 }
 
 .user-address-help { display:block; margin-top:8rpx; color:#858ca2; font-size:21rpx; line-height:1.45; }
+.user-address-field + .user-address-field { margin-top: 24rpx; }
 
 .selected-check {
   flex: 0 0 auto;

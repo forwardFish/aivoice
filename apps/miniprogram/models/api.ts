@@ -72,6 +72,7 @@ export interface VoiceSummary {
   permissionType?: PermissionType
   relationshipType?: RelationshipType
   relationshipLabel?: string
+  voiceAddress?: string
   userAddress?: string
   ageYears?: number
   gender?: VoiceGender

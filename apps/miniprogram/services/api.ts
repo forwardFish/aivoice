@@ -582,6 +582,7 @@ export async function saveVoiceProfile(voiceId: string, input: {
   permissionType: PermissionType
   relationshipType?: import('../models/api').RelationshipType
   relationshipLabel?: string
+  voiceAddress?: string
   userAddress?: string
   ageYears?: number
   gender?: import('../models/api').VoiceGender

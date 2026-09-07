@@ -563,6 +563,7 @@ export class JobRunner {
       voice_name: string;
       relationship_type: VoiceRelationshipType | null;
       relationship_label: string;
+      voice_address: string;
       user_address: string;
       age_years: number | null;
       gender: 'FEMALE' | 'MALE' | null;
@@ -576,7 +577,7 @@ export class JobRunner {
       cleared_at: Date | null;
     }>(
       `SELECT m.input_text,m.mode,m.conversation_id,vm.provider,vm.target_model,vm.provider_voice_id_encrypted,ra.object_key AS reference_object_key,
-              vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.user_address,
+              vp.name AS voice_name,vp.relationship_type,vp.relationship_label,vp.voice_address,vp.user_address,
               vp.age_years,vp.gender,vp.user_age_years,vp.user_life_stage,vp.background,vp.relationship_note,
               vp.personality_note,vp.speech_habit_note,vp.quality_report,c.cleared_at
        FROM messages m
@@ -613,12 +614,12 @@ export class JobRunner {
         structuredOutput: true,
         everydaySpokenStyle: process.env.AIVOICE_CHAT_STYLE_MODE === 'EVERYDAY',
         currentMessageId: job.message_id,
-        voiceName: message.voice_name,
         ageYears: message.age_years,
         gender: message.gender,
         userAgeYears: message.user_age_years,
         relationshipType: message.relationship_type,
         relationshipLabel: message.relationship_label,
+        voiceAddress: message.voice_address,
         userAddress: message.user_address,
         userLifeStage: message.user_life_stage,
         background: message.background,

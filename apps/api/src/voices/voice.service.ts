@@ -19,6 +19,7 @@ interface VoiceRow {
   permissionType: Permission | null;
   relationshipType: Relationship | null;
   relationshipLabel: string;
+  voiceAddress: string;
   userAddress: string;
   ageYears: number | null;
   gender: string | null;
@@ -206,6 +207,7 @@ export class VoiceService {
       permissionType: voice.permissionType,
       relationshipType: voice.relationshipType,
       relationshipLabel: voice.relationshipLabel,
+      voiceAddress: voice.voiceAddress,
       userAddress: voice.userAddress,
       ageYears: voice.ageYears,
       gender: voice.gender,
@@ -366,6 +368,7 @@ export class VoiceService {
     permissionType: Permission;
     relationshipType?: Relationship;
     relationshipLabel?: string;
+    voiceAddress?: string;
     userAddress?: string;
     ageYears?: number;
     gender?: 'FEMALE' | 'MALE';
@@ -380,7 +383,8 @@ export class VoiceService {
     if (!cleanName) throw new ConflictException('voice name is required');
     const relationshipType = input.permissionType === 'SELF' ? 'SELF' : input.relationshipType ?? null;
     const relationshipLabel = relationshipType === 'OTHER' ? String(input.relationshipLabel || '').trim().slice(0, 10) : '';
-    const userAddress = String(input.userAddress || '').trim().slice(0, 10);
+    const voiceAddress = relationshipType === 'SELF' ? '' : String(input.voiceAddress || '').trim().slice(0, 10);
+    const userAddress = relationshipType === 'SELF' ? '' : String(input.userAddress || '').trim().slice(0, 10);
     const ageYears = Number.isInteger(input.ageYears) ? Number(input.ageYears) : null;
     const gender = input.gender === 'FEMALE' || input.gender === 'MALE' ? input.gender : null;
     const userAgeYears = Number.isInteger(input.userAgeYears) ? Number(input.userAgeYears) : null;
@@ -412,13 +416,14 @@ export class VoiceService {
     }
     if (this.database.isCloudBase) {
       try {
-        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v6', {
+        const result = await this.database.requireCloud().rpc<VoiceRow | VoiceRow[]>('rpc_voice_update_profile_v7', {
           pUserId: userId,
           pVoiceId: voiceId,
           pName: cleanName,
           pPermissionType: input.permissionType,
           pRelationshipType: relationshipType,
           pRelationshipLabel: relationshipLabel,
+          pVoiceAddress: voiceAddress,
           pUserAddress: userAddress,
           pAgeYears: ageYears,
           pGender: gender,
@@ -442,6 +447,7 @@ export class VoiceService {
       permissionType: input.permissionType,
       relationshipType,
       relationshipLabel,
+      voiceAddress,
       userAddress,
       ageYears,
       gender,

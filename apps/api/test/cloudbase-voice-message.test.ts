@@ -10,6 +10,7 @@ const voice = {
   permissionType: 'SELF' as const,
   relationshipType: 'SELF' as const,
   relationshipLabel: '',
+  voiceAddress: '',
   userAddress: '',
   ageYears: null,
   gender: null,
@@ -52,7 +53,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     selectOne: async (table: string) => table === 'voice_profiles' ? relatedVoice : null,
     rpc: async (name: string, args: Record<string, unknown>) => {
       calls.push({ name, args });
-      if (name === 'rpc_voice_update_profile_v6') return { ...relatedVoice, userAddress: '小林', userAgeYears: 40 };
+      if (name === 'rpc_voice_update_profile_v7') return { ...relatedVoice, voiceAddress: '妈妈', userAddress: '小林', userAgeYears: 40 };
       throw new Error(`unexpected rpc ${name}`);
     },
   };
@@ -67,6 +68,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     permissionType: 'OTHER',
     relationshipType: 'MOTHER',
     relationshipLabel: '',
+    voiceAddress: '妈妈',
     userAddress: '小林',
     ageYears: 70,
     gender: 'FEMALE',
@@ -79,7 +81,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
   });
 
   assert.equal(result.relationshipType, 'MOTHER');
-  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v6');
+  assert.equal(calls[0]?.name, 'rpc_voice_update_profile_v7');
   assert.deepEqual(calls[0]?.args, {
     pUserId: 'user-id',
     pVoiceId: 'voice-id',
@@ -87,6 +89,7 @@ test('CloudBase voice profile stores the server-authoritative relationship conte
     pPermissionType: 'OTHER',
     pRelationshipType: 'MOTHER',
     pRelationshipLabel: '',
+    pVoiceAddress: '妈妈',
     pUserAddress: '小林',
     pAgeYears: 70,
     pGender: 'FEMALE',

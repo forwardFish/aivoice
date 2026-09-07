@@ -54,6 +54,8 @@ test('voice profile submit posts the server canonical consent text returned by p
             name: '家人的声音',
             permissionType: 'OTHER',
             relationshipType: 'MOTHER',
+            voiceAddress: '妈妈',
+            userAddress: '小林',
             consentVersion: 'voice-consent-v-test',
             consentText: 'SERVER CANONICAL OTHER',
             status: 'DRAFT'
@@ -87,6 +89,7 @@ test('voice profile submit posts the server canonical consent text returned by p
       permissionType: 'OTHER',
       relationshipType: 'MOTHER',
       relationshipOther: '',
+      voiceAddress: '妈妈',
       userAddress: '小林',
       ageYears: '70',
       gender: 'FEMALE',
@@ -111,6 +114,7 @@ test('voice profile submit posts the server canonical consent text returned by p
     permissionType: 'OTHER',
     relationshipType: 'MOTHER',
     relationshipLabel: '',
+    voiceAddress: '妈妈',
     userAddress: '小林',
     ageYears: 70,
     gender: 'FEMALE'
@@ -135,7 +139,12 @@ test('voice relationship fields use native form controls and readable typography
   assert.match(wxml, /class="gender-grid"/)
   assert.match(wxml, /<radio-group[^>]*bindchange="onRelationshipRadioChange"/)
   assert.match(wxml, /<label[\s\S]*<radio[^>]*value="\{\{item\.key\}\}"/)
-  assert.match(wxml, /TA 平时怎么称呼你？/)
+  assert.match(wxml, /声音的名称/)
+  assert.match(wxml, /只用于列表和页面显示，不作为对话中的人物称呼/)
+  assert.match(wxml, /你怎么称呼 TA？/)
+  assert.match(wxml, /TA 怎么称呼你？/)
+  assert.match(wxml, /value="\{\{voiceAddress\}\}"[^>]*bindinput="onVoiceAddressInput"/)
+  assert.match(wxml, /value="\{\{userAddress\}\}"[^>]*bindinput="onUserAddressInput"/)
   assert.match(wxml, /例如：小林、妈妈、宝贝/)
   assert.doesNotMatch(wxml, /TA 平时是什么性格/)
   assert.doesNotMatch(wxml, /你的准确年龄/)
@@ -206,7 +215,7 @@ test('voice settings groups stacked profile fields into separate containers', ()
   )
   assert.match(
     wxml,
-    /<view wx:if="\{\{relationshipType !== 'SELF'\}\}" class="settings-profile-block">\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">TA 怎么称呼你<\/text>[\s\S]*?<\/view>\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">你的准确年龄<\/text>/,
+    /<view wx:if="\{\{relationshipType !== 'SELF'\}\}" class="settings-profile-block">\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">你怎么称呼 TA<\/text>[\s\S]*?<\/view>\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">TA 怎么称呼你<\/text>[\s\S]*?<\/view>\s*<view class="settings-profile-field">\s*<text class="settings-profile-label">你的准确年龄<\/text>/,
   )
   assert.match(style, /\.settings-profile-field \+ \.settings-profile-field\s*\{[^}]*margin-top:\s*24rpx/s)
   assert.match(wxml, /class="settings-profile-textarea-wrap"/)
