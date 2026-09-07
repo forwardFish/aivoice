@@ -184,3 +184,11 @@ test('home page title hierarchy keeps the brand large but no longer oversized', 
   assert.doesNotMatch(homeStyle, /\.brand-title\s*\{[^}]*font-size:\s*72rpx/s)
   assert.doesNotMatch(homeStyle, /\.section-title\s*\{[^}]*font-size:\s*62rpx/s)
 })
+
+test('home content moves slightly upward without changing card or tabbar geometry', () => {
+  const appRoot = path.resolve(process.cwd(), 'apps/miniprogram')
+  const homeStyle = fs.readFileSync(path.join(appRoot, 'pages/home/index.wxss'), 'utf8')
+  assert.match(homeStyle, /\.hero-section\s*\{[^}]*margin-top:\s*-24rpx[^}]*min-height:\s*416rpx[^}]*padding-top:\s*24rpx/s)
+  assert.match(homeStyle, /\.create-card\s*\{[^}]*min-height:\s*236rpx/s)
+  assert.match(homeStyle, /\.voice-card\s*\{[^}]*min-height:\s*160rpx/s)
+})

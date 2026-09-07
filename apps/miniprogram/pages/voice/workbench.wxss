@@ -536,12 +536,20 @@
 }
 
 .exact-textarea {
+  display: block;
   width: 100%;
-  min-height: 280rpx;
+  height: 280rpx;
   padding: 26rpx 26rpx 62rpx;
+  box-sizing: border-box;
   color: #11172d;
   font-size: 34rpx;
   line-height: 1.72;
+}
+
+.exact-textarea-placeholder {
+  color: #8c93a8;
+  font-size: 32rpx;
+  line-height: 1.55;
 }
 
 .char-count {

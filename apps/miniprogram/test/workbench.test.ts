@@ -12,7 +12,7 @@ test('pending chat keeps the user message out of the assistant bubble', () => {
   assert.match(view, /id="pending-assistant"[\s\S]*wx:if="\{\{pendingReplyText\}\}"[\s\S]*\{\{pendingReplyText\}\}/)
   assert.match(view, /wx:else class="typing-wave"/)
   assert.match(source, /if \(mode === 'chat'\) \{\s*this\.chatDraftText = ''\s*this\.chatDraftDirty = false/)
-  assert.match(source, /chatText: '',\s*chatCount: 0,\s*bottomAnchorId: submittedBottomAnchorId,/)
+  assert.match(source, /chatText: '',\s*chatCount: 0,\s*chatInputFocused: false,\s*chatKeyboardHeight: 0,\s*chatComposerStyle: '',\s*chatViewportReady: false,\s*bottomAnchorId: submittedBottomAnchorId,/)
   assert.match(source, /pendingText: text,\s*pendingReplyText: '',\s*pendingMode: mode/)
   assert.doesNotMatch(source, /\/assets\/avatars\/[^'"\s]+\.webp/)
   assert.match(source, /voiceAvatar:\s*'\/assets\/avatars\/age-30-49-female\.png'/)
@@ -47,7 +47,11 @@ test('sending a chat clears the composer and scrolls the pending reply into view
       state: 'success',
       mode: 'chat',
       chatText: '刚发送的消息',
-      chatCount: 6
+      chatCount: 6,
+      chatInputFocused: true,
+      chatKeyboardHeight: 336,
+      chatComposerStyle: 'bottom:336px;',
+      chatViewportReady: true
     },
     setData(patch: Record<string, unknown>, callback?: () => void) {
       Object.assign(this.data, patch)
@@ -61,6 +65,10 @@ test('sending a chat clears the composer and scrolls the pending reply into view
 
   assert.equal(instance.data.chatText, '')
   assert.equal(instance.data.chatCount, 0)
+  assert.equal(instance.data.chatInputFocused, false)
+  assert.equal(instance.data.chatKeyboardHeight, 0)
+  assert.equal(instance.data.chatComposerStyle, '')
+  assert.equal(instance.data.chatViewportReady, false)
   assert.equal(instance.data.pendingText, '刚发送的消息')
   assert.equal(instance.data.pendingMode, 'chat')
   assert.equal(instance.data.scrollTarget, 'pending-assistant')
@@ -452,6 +460,38 @@ test('chat composer follows keyboard height and keeps viewport sync on keyboard 
   assert.equal(instance.data.chatViewportReady, false)
   assert.ok(viewportSyncCount >= 3)
   assert.ok(bottomScrollCount >= 3)
+})
+
+test('exact textarea hides its example on focus and removes the native confirm bar', async () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => '',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=exact-input-focus')
+  assert.ok(pageDefinition)
+  assert.match(markup, /placeholder="\{\{exactInputFocused \? '' : '例如：祝妈妈生日快乐，永远年轻漂亮！'\}\}"/)
+  assert.match(markup, /placeholder-class="exact-textarea-placeholder"/)
+  assert.match(markup, /show-confirm-bar="\{\{false\}\}"/)
+  assert.match(markup, /bindfocus="onExactFocus"[\s\S]*bindblur="onExactBlur"/)
+  assert.match(style, /\.exact-textarea\s*\{[^}]*display:\s*block[^}]*height:\s*280rpx[^}]*box-sizing:\s*border-box/s)
+
+  const instance: any = {
+    ...pageDefinition,
+    data: { ...structuredClone(pageDefinition.data) },
+    setData(patch: Record<string, unknown>) { Object.assign(this.data, patch) }
+  }
+  instance.onExactFocus()
+  assert.equal(instance.data.exactInputFocused, true)
+  instance.onExactBlur()
+  assert.equal(instance.data.exactInputFocused, false)
 })
 
 test('non-ready exact results never present themselves as generated audio', () => {

@@ -92,6 +92,7 @@ Page({
     chatKeyboardHeight: 0,
     chatComposerStyle: '',
     exactText: '',
+    exactInputFocused: false,
     chatCount: 0,
     exactCount: 0,
     sending: false,
@@ -305,6 +306,14 @@ Page({
     this.setData({ exactText, exactCount: exactText.length, errorMessage: '' })
     this.persistDraft('exact', { exactText })
   },
+  onExactFocus() {
+    if (this.data.exactInputFocused) return
+    this.setData({ exactInputFocused: true })
+  },
+  onExactBlur() {
+    if (!this.data.exactInputFocused) return
+    this.setData({ exactInputFocused: false })
+  },
   useQuickPrompt(event: any) {
     const text = String(event.currentTarget.dataset.text || '')
     this.chatDraftText = text
@@ -415,6 +424,10 @@ Page({
       ...(mode === 'chat' ? {
         chatText: '',
         chatCount: 0,
+        chatInputFocused: false,
+        chatKeyboardHeight: 0,
+        chatComposerStyle: '',
+        chatViewportReady: false,
         bottomAnchorId: submittedBottomAnchorId,
         scrollTarget: ''
       } : {}),

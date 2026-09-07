@@ -183,7 +183,18 @@
       <view class="exact-panel">
         <text class="exact-label">输入你希望 TA 说的话</text>
         <view class="exact-input-card soft-card">
-          <textarea class="exact-textarea" value="{{exactText}}" placeholder="例如：祝妈妈生日快乐，永远年轻漂亮！" maxlength="50" bindinput="onExactInput" disabled="{{sending}}"></textarea>
+          <textarea
+            class="exact-textarea"
+            value="{{exactText}}"
+            placeholder="{{exactInputFocused ? '' : '例如：祝妈妈生日快乐，永远年轻漂亮！'}}"
+            placeholder-class="exact-textarea-placeholder"
+            maxlength="50"
+            show-confirm-bar="{{false}}"
+            bindfocus="onExactFocus"
+            bindinput="onExactInput"
+            bindblur="onExactBlur"
+            disabled="{{sending}}"
+          ></textarea>
           <text class="char-count">{{exactCount}}/50</text>
         </view>
         <text class="exact-helper">最近一次成功结果会保留在下方，额度为 0 时也能继续播放。</text>

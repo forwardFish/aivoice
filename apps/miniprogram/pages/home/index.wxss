@@ -5,6 +5,7 @@
 
 .hero-section {
   position: relative;
+  margin-top: -24rpx;
   min-height: 416rpx;
   padding-top: 24rpx;
 }
