@@ -270,7 +270,10 @@ export class MessageService {
         }, 402);
       }
       const active = await client.query(
-        `SELECT id FROM messages WHERE voice_profile_id = $1 AND status IN ('PENDING', 'PROCESSING') LIMIT 1`,
+        `SELECT id FROM messages
+         WHERE voice_profile_id = $1 AND status IN ('PENDING', 'PROCESSING')
+           AND (mode = 'EXACT_SPEECH' OR NULLIF(BTRIM(output_text), '') IS NULL)
+         LIMIT 1`,
         [input.voiceId],
       );
       if (active.rowCount) throw new ConflictException('GENERATION_IN_PROGRESS');

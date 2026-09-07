@@ -605,10 +605,11 @@ export class JobRunner {
     if (message.mode === 'CHAT') {
       const historyResult = await this.database.pool.query<{ id: string; mode: string; input_text: string; output_text: string; interaction_state: unknown }>(
         `SELECT id,mode,input_text,output_text,interaction_state FROM messages
-         WHERE conversation_id=$1 AND status='READY' AND mode='CHAT'
+         WHERE conversation_id=$1 AND mode='CHAT' AND id<>$3
+           AND (status='READY' OR (status='PROCESSING' AND NULLIF(BTRIM(output_text),'') IS NOT NULL))
            AND ($2::timestamptz IS NULL OR created_at>$2)
          ORDER BY created_at DESC,id DESC LIMIT 8`,
-        [message.conversation_id, message.cleared_at],
+        [message.conversation_id, message.cleared_at, job.message_id],
       );
       const context = compileVoiceChatMessages({
         structuredOutput: true,

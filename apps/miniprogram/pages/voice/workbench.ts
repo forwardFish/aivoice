@@ -97,7 +97,6 @@ Page({
     sending: false,
     serverGenerationActive: false,
     serverGenerationMessageId: '',
-    queuedChatText: '',
     pendingText: '',
     pendingReplyText: '',
     pendingMode: '',
@@ -127,7 +126,6 @@ Page({
     }
     const stored = getWorkbenchDraft(voiceId)
     const initialChatText = stored?.chatText || ''
-    const queuedChatText = stored?.queuedChatText || ''
     this.chatDraftText = initialChatText
     this.chatDraftDirty = false
     const mode = options.mode === 'exact' ? 'exact' : 'chat'
@@ -135,7 +133,6 @@ Page({
       voiceId,
       mode,
       chatText: initialChatText,
-      queuedChatText,
       exactText: stored?.exactText || '',
       chatCount: initialChatText.length,
       exactCount: (stored?.exactText || '').length
@@ -187,7 +184,8 @@ Page({
       const messages = conversation.messages.map(item => messageView(item, initial, replyFeedback[item.id]))
       const chatMessages = messages.filter(item => item.mode === 'CHAT')
       const exactResults = messages.filter(item => item.mode === 'EXACT_TTS' && item.isAssistant).reverse()
-      const activeChatMessage = [...chatMessages].reverse().find(item => item.isAssistant && item.status === 'PROCESSING')
+      const processingChatMessage = [...chatMessages].reverse().find(item => item.isAssistant && item.status === 'PROCESSING')
+      const blockingChatMessage = [...chatMessages].reverse().find(item => item.isAssistant && item.status === 'PROCESSING' && !String(item.text || '').trim())
       this.chatBottomSequence = Number(this.chatBottomSequence || 0) + 1
       const bottomAnchorId = `chat-bottom-${this.chatBottomSequence}`
       const userAvatar = await this.resolveUserAvatar()
@@ -204,18 +202,16 @@ Page({
         messages,
         chatMessages,
         exactResults,
-        serverGenerationActive: Boolean(activeChatMessage && !this.data.sending),
-        serverGenerationMessageId: activeChatMessage && !this.data.sending ? activeChatMessage.id : '',
+        serverGenerationActive: Boolean(blockingChatMessage && !this.data.sending),
+        serverGenerationMessageId: blockingChatMessage && !this.data.sending ? blockingChatMessage.id : '',
         bottomAnchorId,
         scrollTarget: '',
         chatViewportReady: showLoading ? false : this.data.chatViewportReady
       })
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll(bottomAnchorId)
-      if (activeChatMessage && !this.data.sending) {
-        void this.watchServerGeneration(activeChatMessage.id)
-      } else if (!this.data.sending && this.data.queuedChatText) {
-        void this.flushQueuedChat()
+      if (processingChatMessage && !this.data.sending) {
+        void this.watchServerGeneration(processingChatMessage.id)
       }
       const pendingOrderId = getPendingOrderId(this.data.voiceId)
       if (pendingOrderId && !this.data.paymentPending && !this.data.paying) {
@@ -343,52 +339,10 @@ Page({
     setWorkbenchDraft(this.data.voiceId, {
       mode,
       chatText: patch.chatText == null ? currentChatText : patch.chatText,
-      queuedChatText: patch.queuedChatText == null ? this.data.queuedChatText : patch.queuedChatText,
       exactText: patch.exactText == null ? this.data.exactText : patch.exactText
     })
   },
   async sendChat() {
-    if (this.data.sending || this.data.serverGenerationActive) {
-      this.queueCurrentChatDraft()
-      return
-    }
-    await this.submitGeneration('chat')
-  },
-  queueCurrentChatDraft(textOverride = '') {
-    if (this.data.queuedChatText) {
-      toast('已有一条消息等待发送')
-      return
-    }
-    const text = String(textOverride || this.chatDraftText || this.data.chatText || '').trim()
-    if (!text) {
-      toast('请输入想说的话')
-      return
-    }
-    this.chatDraftText = ''
-    this.chatDraftDirty = false
-    this.setData({
-      queuedChatText: text,
-      chatText: '',
-      chatCount: 0,
-      errorMessage: ''
-    }, () => {
-      this.persistDraft('chat', { chatText: '', queuedChatText: text })
-      this.scheduleChatBottomScroll(this.data.bottomAnchorId)
-    })
-  },
-  async flushQueuedChat() {
-    if (this.destroyed || this.data.sending || this.data.serverGenerationActive) return
-    const text = String(this.data.queuedChatText || '').trim()
-    if (!text) return
-    this.chatDraftText = text
-    this.chatDraftDirty = false
-    await new Promise<void>((resolve) => this.setData({
-      queuedChatText: '',
-      chatText: text,
-      chatCount: text.length,
-      errorMessage: ''
-    }, resolve))
-    this.persistDraft('chat', { chatText: text, queuedChatText: '' })
     await this.submitGeneration('chat')
   },
   async watchServerGeneration(messageId: string) {
@@ -401,7 +355,12 @@ Page({
         if (result.status === 'PROCESSING') {
           const publishedText = String(result.text || '').trim()
           if (publishedText) {
+            const draftText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
             this.setData({
+              serverGenerationActive: false,
+              serverGenerationMessageId: '',
+              chatText: draftText,
+              chatCount: draftText.length,
               chatMessages: this.data.chatMessages.map((message: any) => message.id === messageId
                 ? { ...message, text: publishedText }
                 : message)
@@ -492,10 +451,13 @@ Page({
     } catch (error: any) {
       this.finishGenerationTiming('FAILED', error)
       if (mode === 'chat' && error instanceof ApiError && error.code === 'GENERATION_IN_PROGRESS') {
-        this.chatDraftText = ''
+        this.chatDraftText = text
         this.chatDraftDirty = false
+        this.persistDraft('chat', { chatText: text })
         this.setData({
           sending: false,
+          chatText: text,
+          chatCount: text.length,
           pendingText: '',
           pendingReplyText: '',
           pendingMode: '',
@@ -503,7 +465,6 @@ Page({
           serverGenerationActive: true,
           errorMessage: ''
         }, () => {
-          this.queueCurrentChatDraft(text)
           void this.loadData(false)
         })
         return
@@ -560,12 +521,27 @@ Page({
           if (this.generationClientTiming && !this.generationClientTiming.firstTextMs) {
             this.generationClientTiming.firstTextMs = Date.now() - this.generationClientTiming.startedAt
           }
+          const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
+          this.chatDraftDirty = false
+          this.persistDraft('chat', { chatText: nextChatText })
+          await this.loadData(false)
           this.setData({
-            pendingReplyText: publishedText,
-            generationStatusText: '声音生成中…',
-            scrollTarget: 'pending-assistant'
+            chatText: nextChatText,
+            chatCount: nextChatText.length,
+            sending: false,
+            pendingText: '',
+            pendingReplyText: '',
+            pendingMode: '',
+            generationStatusText: '',
+            serverGenerationActive: false,
+            serverGenerationMessageId: ''
+          }, () => {
+            this.scheduleChatViewportSync()
+            this.scheduleChatBottomScroll(this.data.bottomAnchorId)
+            void this.watchServerGeneration(messageId)
           })
-          this.scheduleChatBottomScroll(this.data.bottomAnchorId)
+          this.finishGenerationTiming('READY')
+          return
         }
       }
       if (result.status === 'READY') {
@@ -573,11 +549,10 @@ Page({
         const nextExactText = completedMode === 'exact' ? '' : this.data.exactText
         await this.loadData(false)
         const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
-        if (nextChatText || nextExactText || this.data.queuedChatText) {
+        if (nextChatText || nextExactText) {
           setWorkbenchDraft(this.data.voiceId, {
             mode: completedMode === 'chat' && nextExactText ? 'exact' : completedMode === 'exact' && nextChatText ? 'chat' : this.data.mode,
             chatText: nextChatText,
-            queuedChatText: this.data.queuedChatText,
             exactText: nextExactText
           })
         } else {
@@ -595,7 +570,7 @@ Page({
           pendingReplyText: '',
           pendingMode: '',
           generationStatusText: ''
-        }, () => void this.flushQueuedChat())
+        })
         this.scheduleChatViewportSync()
         this.finishGenerationTiming('READY')
         return
@@ -604,11 +579,10 @@ Page({
         const nextExactText = this.data.exactText
         await this.loadData(false)
         const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
-        if (nextChatText || nextExactText || this.data.queuedChatText) {
+        if (nextChatText || nextExactText) {
           setWorkbenchDraft(this.data.voiceId, {
             mode: nextChatText ? 'chat' : 'exact',
             chatText: nextChatText,
-            queuedChatText: this.data.queuedChatText,
             exactText: nextExactText
           })
         } else {
@@ -625,7 +599,7 @@ Page({
           pendingMode: '',
           generationStatusText: '',
           errorMessage: ''
-        }, () => void this.flushQueuedChat())
+        })
         this.scheduleChatViewportSync()
         this.finishGenerationTiming('FAILED', new Error('声音生成失败，文字回复已保留，本次未扣积分。'))
         toast('文字回复已保留，声音生成失败，本次未扣积分')

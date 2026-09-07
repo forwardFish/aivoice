@@ -129,22 +129,15 @@
               </view>
             </view>
           </block>
-          <view wx:if="{{queuedChatText}}" class="message-row user-row queued-user-row">
-            <view class="message-stack user-stack">
-              <view class="message-bubble user-bubble"><text class="message-text">{{queuedChatText}}</text></view>
-              <text class="message-time queued-message-status">等待上一条完成后自动发送</text>
-            </view>
-            <image class="message-avatar user-message-avatar" src="{{userAvatar}}" mode="aspectFill"></image>
-          </view>
           <view wx:if="{{bottomAnchorId}}" id="{{bottomAnchorId}}" class="scroll-bottom-anchor"></view>
           </view>
         </scroll-view>
 
         <view class="chat-composer-shell" style="{{chatComposerStyle}}">
           <view class="chat-composer">
-            <view class="composer-input-shell {{(sending || serverGenerationActive) && !queuedChatText ? 'drafting-next' : ''}}">
+            <view class="composer-input-shell {{sending || serverGenerationActive ? 'drafting-next' : ''}}">
               <input
-                wx:if="{{(sending || serverGenerationActive) && !queuedChatText}}"
+                wx:if="{{sending || serverGenerationActive}}"
                 class="composer-input"
                 type="text"
                 placeholder="{{chatInputFocused ? '' : '可以先输入下一句话…'}}"
@@ -160,15 +153,6 @@
                 bindinput="onChatInput"
                 bindblur="onChatBlur"
                 bindconfirm="onPendingDraftConfirm"
-              />
-              <input
-                wx:elif="{{queuedChatText}}"
-                class="composer-input queued-composer-input"
-                type="text"
-                value=""
-                placeholder="已排队，完成后自动发送"
-                placeholder-class="composer-input-placeholder"
-                disabled="{{true}}"
               />
               <input
                 wx:else
@@ -190,7 +174,7 @@
                 bindconfirm="sendChat"
               />
             </view>
-            <button class="primary-button send-button {{queuedChatText || paymentPending || paying ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{queuedChatText || paymentPending || paying}}">{{queuedChatText ? '已排队' : '发送'}}</button>
+            <button class="primary-button send-button {{sending || serverGenerationActive || paymentPending || paying ? 'disabled' : ''}}" bindtap="sendChat" disabled="{{sending || serverGenerationActive || paymentPending || paying}}">{{sending || serverGenerationActive ? '…' : '发送'}}</button>
           </view>
         </view>
     </view>
