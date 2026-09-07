@@ -40,7 +40,8 @@ Page({
     dragAnchorX: 0,
     dragRangeStart: 0,
     dragRangeEnd: 0,
-    errorMessage: ''
+    errorMessage: '',
+    autoClipSelected: false
   },
   onLoad(options: Record<string, string>) {
     if (!ensureAuthenticated()) return
@@ -54,9 +55,9 @@ Page({
       })
       return
     }
-    const durationSec = Math.max(8, Math.round(session.durationMs / 1000))
-    const startSec = Math.max(0, Math.round((session.clipStartMs || 0) / 1000))
-    const savedEnd = Math.round((session.clipEndMs || 0) / 1000)
+    const durationSec = Math.max(8, Number(session.durationMs) / 1000)
+    const startSec = Math.max(0, Number(session.clipStartMs || 0) / 1000)
+    const savedEnd = Number(session.clipEndMs || 0) / 1000
     const endSec = savedEnd > startSec ? Math.min(durationSec, savedEnd) : Math.min(durationSec, startSec + Math.min(20, durationSec))
     this.setData({
       state: 'success',
@@ -65,7 +66,8 @@ Page({
       durationSec,
       durationText: formatDurationSeconds(durationSec),
       startSec,
-      endSec
+      endSec,
+      autoClipSelected: session.autoClipSelected === true
     })
     this.updateRange(startSec, endSec)
   },
@@ -83,24 +85,29 @@ Page({
     }
   },
   setStartFromCurrent() {
+    if (this.data.autoClipSelected) return
     const startSec = Math.min(Math.floor(this.data.currentSec), Math.max(0, this.data.endSec - MIN_CLIP_SECONDS))
     this.updateRange(startSec, this.data.endSec)
   },
   setEndFromCurrent() {
+    if (this.data.autoClipSelected) return
     const endSec = Math.max(Math.ceil(this.data.currentSec), this.data.startSec + MIN_CLIP_SECONDS)
     this.updateRange(this.data.startSec, Math.min(this.data.durationSec, endSec))
   },
   onStartSlider(event: any) {
+    if (this.data.autoClipSelected) return
     const value = Number(event.detail.value || 0)
     const maxStart = Math.max(0, this.data.endSec - MIN_CLIP_SECONDS)
     this.updateRange(Math.min(value, maxStart), this.data.endSec)
   },
   onEndSlider(event: any) {
+    if (this.data.autoClipSelected) return
     const value = Number(event.detail.value || this.data.durationSec)
     const minEnd = this.data.startSec + MIN_CLIP_SECONDS
     this.updateRange(this.data.startSec, Math.max(value, minEnd))
   },
   onMarkerTouchStart(event: any) {
+    if (this.data.autoClipSelected) return
     const marker = String(event.currentTarget.dataset.marker || '')
     if (marker !== 'start' && marker !== 'end' && marker !== 'range') return
     const touch = event.touches && event.touches[0]
@@ -121,6 +128,7 @@ Page({
       .exec()
   },
   onWaveShellTouchStart(event: any) {
+    if (this.data.autoClipSelected) return
     const touch = event.touches && event.touches[0]
     const clientX = Number(touch && (touch.clientX ?? touch.pageX))
     this.createSelectorQuery()
@@ -221,6 +229,7 @@ Page({
     this.setData({ previewing: true })
   },
   toggleAdvanced() {
+    if (this.data.autoClipSelected) return
     this.setData({ showAdvanced: !this.data.showAdvanced })
   },
   toggleConfirmed() {

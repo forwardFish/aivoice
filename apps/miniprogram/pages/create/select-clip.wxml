@@ -17,8 +17,8 @@
       </view>
 
       <view class="clip-intro">
-        <text class="page-title clip-title">请标记 TA 说话的片段</text>
-        <text class="page-subtitle clip-subtitle">建议选择清晰朗读、安静的 8–20 秒片段</text>
+        <text class="page-title clip-title">{{autoClipSelected ? '已自动选择清晰片段' : '请标记 TA 说话的片段'}}</text>
+        <text class="page-subtitle clip-subtitle">{{autoClipSelected ? '请试听并确认是目标人物；不合适请重新选择视频' : '建议选择清晰朗读、安静的 8–20 秒片段'}}</text>
       </view>
 
       <view class="trim-card">
@@ -31,15 +31,15 @@
           <view class="marker marker-end {{draggingMarker === 'end' ? 'is-dragging' : ''}}" style="left: {{endPercent}}%;" role="slider" aria-label="片段结束时间" data-marker="end" catchtouchstart="onMarkerTouchStart" catchtouchmove="onMarkerTouchMove" catchtouchend="onMarkerTouchEnd" catchtouchcancel="onMarkerTouchEnd"><view class="marker-handle"></view></view>
         </view>
         <view class="time-labels"><text>{{startText}}</text><text>{{endText}}</text></view>
-        <text class="trim-hint">拖动两侧手柄或中间高亮区域，选择 8–20 秒片段</text>
+        <text class="trim-hint">{{autoClipSelected ? '系统已锁定质量最高的连续片段' : '拖动两侧手柄或中间高亮区域，选择 8–20 秒片段'}}</text>
 
         <view class="selected-duration">
           <text class="selected-duration-value">{{selectedText}}</text>
           <text class="selected-duration-label">已选择时长</text>
         </view>
 
-        <button class="advanced-toggle" bindtap="toggleAdvanced">{{showAdvanced ? '收起精细调整' : '精细调整'}}</button>
-        <view wx:if="{{showAdvanced}}" class="advanced-tools">
+        <button wx:if="{{!autoClipSelected}}" class="advanced-toggle" bindtap="toggleAdvanced">{{showAdvanced ? '收起精细调整' : '精细调整'}}</button>
+        <view wx:if="{{showAdvanced && !autoClipSelected}}" class="advanced-tools">
           <text class="advanced-title">精细调整</text>
           <view class="position-actions">
             <button class="position-action-button" bindtap="setStartFromCurrent"><text class="action-dot start-dot"></text><text>当前设为开始</text></button>

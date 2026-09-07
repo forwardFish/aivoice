@@ -7,7 +7,6 @@
       <text class="brand-subtitle">把记忆里的声音，轻轻留住</text>
     </view>
     <view class="hero-visual">
-      <image class="hero-menu" src="/assets/ui/more-circle.png" mode="aspectFit"></image>
       <image class="hero-card" src="/assets/ui/home-hero-card.png" mode="widthFix"></image>
     </view>
   </view>

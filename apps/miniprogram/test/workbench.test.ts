@@ -119,10 +119,10 @@ test('workbench moves voice name and points into app nav only after success', ()
   assert.match(style, /\.segment-control\s*\{[^}]*width:\s*540rpx[^}]*max-width:\s*calc\(100% - 104rpx\)[^}]*margin:\s*16rpx auto 0[^}]*padding:\s*7rpx[^}]*border-radius:\s*23rpx/s)
   assert.match(style, /\.segment-item\s*\{[^}]*height:\s*78rpx[^}]*border-radius:\s*18rpx[^}]*font-size:\s*29rpx[^}]*text-align:\s*center/s)
   assert.match(style, /\.chat-panel\s*\{[^}]*flex:\s*1[^}]*min-height:\s*0[^}]*overflow:\s*hidden/s)
-  assert.match(style, /\.messages-scroll\s*\{[^}]*width:\s*100%[^}]*min-height:\s*320rpx[^}]*margin-top:\s*12rpx[^}]*padding:\s*24rpx 30rpx calc\(188rpx \+ env\(safe-area-inset-bottom\)\)/s)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*width:\s*100%[^}]*min-height:\s*320rpx[^}]*margin-top:\s*12rpx[^}]*padding:\s*24rpx 30rpx 32rpx/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-control\s*\{[^}]*margin-top:\s*8rpx/s)
   assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.segment-item\s*\{[^}]*height:\s*74rpx[^}]*font-size:\s*28rpx/s)
-  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.messages-scroll\s*\{[^}]*min-height:\s*300rpx[^}]*margin-top:\s*10rpx[^}]*padding-bottom:\s*calc\(172rpx \+ env\(safe-area-inset-bottom\)\)/s)
+  assert.match(style, /@media \(max-height:\s*740px\)[\s\S]*\.messages-scroll\s*\{[^}]*min-height:\s*300rpx[^}]*margin-top:\s*10rpx[^}]*padding-bottom:\s*28rpx/s)
   assert.match(source, /openSettings\(\)\s*\{[\s\S]*\/pages\/voice\/settings\?voiceId=/)
 })
 
@@ -139,6 +139,10 @@ test('conversation entry scrolls to a fresh bottom anchor instead of the last me
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
   const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
   const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  const bottomScrollSource = source.slice(
+    source.indexOf('scheduleChatBottomScroll(anchorId'),
+    source.indexOf('syncChatViewport()', source.indexOf('scheduleChatBottomScroll(anchorId'))
+  )
 
   assert.match(markup, /wx:if="\{\{bottomAnchorId\}\}" id="\{\{bottomAnchorId\}\}" class="scroll-bottom-anchor"/)
   assert.match(source, /this\.chatBottomSequence = Number\(this\.chatBottomSequence \|\| 0\) \+ 1/)
@@ -148,13 +152,16 @@ test('conversation entry scrolls to a fresh bottom anchor instead of the last me
   assert.match(source, /scheduleChatBottomScroll\(anchorId = this\.data\.bottomAnchorId\)/)
   assert.match(markup, /scroll-top="\{\{chatScrollTop\}\}"/)
   assert.match(source, /const chatScrollTop = 1000000 \+ this\.chatScrollPositionSequence/)
-  assert.match(source, /setData\(\{ scrollTarget: '', chatScrollTop: 0 \}, \(\) => this\.setData\(\{ scrollTarget: anchorId, chatScrollTop \}\)\)/)
+  assert.doesNotMatch(bottomScrollSource, /chatScrollTop:\s*0/)
+  assert.match(bottomScrollSource, /setData\(\{ scrollTarget: anchorId, chatScrollTop \}, \(\) => \{[\s\S]*chatViewportReady: true/s)
   assert.match(source, /}, 650\)/)
   assert.match(source, /const submittedBottomAnchorId = mode === 'chat' \? `chat-bottom-\$\{this\.chatBottomSequence\}` : this\.data\.bottomAnchorId/)
   assert.match(source, /bottomAnchorId: submittedBottomAnchorId,\s*scrollTarget: ''/)
   assert.match(source, /scheduleChatBottomScroll\(submittedBottomAnchorId\)/)
   assert.match(source, /generationStatusText: '声音生成中…',[\s\S]*scheduleChatBottomScroll\(this\.data\.bottomAnchorId\)/)
   assert.doesNotMatch(source, /const scrollTarget = chatMessages\.length \? `message-/)
+  assert.doesNotMatch(markup, /class="scroll-spacer"/)
+  assert.doesNotMatch(style, /\.scroll-spacer\s*\{/)
   assert.match(style, /\.scroll-bottom-anchor\s*\{[^}]*height:\s*1rpx/s)
 })
 
@@ -173,7 +180,10 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(markup, /bubble="\{\{true\}\}"[^>]*durationOnly="\{\{true\}\}"/)
   assert.doesNotMatch(markup, /class="workbench-content fade-in"/)
   assert.doesNotMatch(markup, /class="text-button change-mode"/)
-  assert.match(markup, /class="reply-feedback"[\s\S]*reply-feedback-action like-action[\s\S]*reply-feedback-divider[\s\S]*reply-feedback-action dislike-action/s)
+  assert.match(source, /replyFeedbackVisible:\s*false/)
+  assert.match(markup, /wx:if="\{\{replyFeedbackVisible && item\.isAssistant && item\.status === 'READY'\}\}" class="reply-feedback"/)
+  assert.match(markup, /class="reply-feedback"[\s\S]*reply-feedback-action like-action[\s\S]*reply-feedback-action dislike-action/s)
+  assert.doesNotMatch(markup, /reply-feedback-divider/)
   assert.match(markup, /hover-class="reply-feedback-action-hover"[\s\S]*像TA[\s\S]*hover-class="reply-feedback-action-hover"[\s\S]*不像TA/s)
   assert.match(style, /\.user-bubble\s*\{[^}]*color:\s*#ffffff[^}]*linear-gradient\(135deg,\s*#7264f9/s)
   assert.match(style, /\.assistant-avatar-image\s*\{[^}]*width:\s*100%[^}]*height:\s*100%/s)
@@ -182,14 +192,19 @@ test('chat workbench matches the approved bilateral conversation structure', () 
   assert.match(style, /\.message-text\s*\{[^}]*font-size:\s*32rpx[^}]*line-height:\s*1\.62/s)
   assert.match(style, /\.message-time\s*\{[^}]*font-size:\s*22rpx[^}]*line-height:\s*1\.3/s)
   assert.match(style, /\.assistant-stack\s*\{[^}]*max-width:\s*82%/s)
-  assert.match(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*style="\{\{messagesScrollStyle\}\}"/)
-  assert.match(style, /\.scroll-spacer\s*\{[^}]*height:\s*32rpx/s)
+  assert.match(source, /chatViewportReady:\s*false/)
+  assert.match(markup, /<scroll-view[\s\S]*class="messages-scroll \{\{chatViewportReady \? 'is-ready' : ''\}\}"[\s\S]*style="\{\{messagesScrollStyle\}\}"/)
+  assert.match(style, /\.messages-scroll\s*\{[^}]*opacity:\s*0[^}]*visibility:\s*hidden/s)
+  assert.match(style, /\.messages-scroll\.is-ready\s*\{[^}]*opacity:\s*1[^}]*visibility:\s*visible/s)
+  assert.match(markup, /wx:else class="messages-content has-messages"[^>]*style="\{\{messagesContentStyle\}\}"/)
+  assert.match(style, /\.messages-content\.has-messages\s*\{[^}]*min-height:\s*100%[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*justify-content:\s*flex-end/s)
   assert.match(style, /\.send-button\s*\{[^}]*width:\s*184rpx\s*!important[^}]*min-width:\s*184rpx[^}]*min-height:\s*84rpx/s)
-  assert.match(style, /\.reply-feedback\s*\{[^}]*display:\s*inline-flex[^}]*border-radius:\s*999rpx[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.78\)/s)
-  assert.match(style, /\.reply-feedback-action\s*\{[^}]*min-width:\s*140rpx[^}]*min-height:\s*64rpx[^}]*justify-content:\s*center/s)
-  assert.match(style, /\.reply-feedback-label\s*\{[^}]*font-size:\s*22rpx/s)
-  assert.match(style, /\.reply-feedback-action\.like-action\.selected\s*\{[^}]*background:\s*rgba\(110,\s*93,\s*246,\s*0\.14\)/s)
-  assert.match(style, /\.reply-feedback-action\.dislike-action\.selected\s*\{[^}]*background:\s*rgba\(107,\s*115,\s*141,\s*0\.13\)/s)
+  assert.match(style, /\.reply-feedback\s*\{[^}]*display:\s*inline-flex[^}]*padding:\s*0[^}]*gap:\s*8rpx[^}]*border:\s*0[^}]*background:\s*transparent[^}]*box-shadow:\s*none/s)
+  assert.match(style, /\.reply-feedback-action\s*\{[^}]*min-width:\s*140rpx[^}]*min-height:\s*64rpx[^}]*padding:\s*0 16rpx[^}]*justify-content:\s*center[^}]*background:\s*transparent/s)
+  assert.match(style, /\.reply-feedback-label\s*\{[^}]*font-size:\s*20rpx[^}]*font-weight:\s*520/s)
+  assert.doesNotMatch(style, /\.reply-feedback-divider\s*\{/)
+  assert.match(style, /\.reply-feedback-action\.like-action\.selected\s*\{[^}]*background:\s*rgba\(101,\s*82,\s*245,\s*0\.08\)/s)
+  assert.match(style, /\.reply-feedback-action\.dislike-action\.selected\s*\{[^}]*background:\s*rgba\(101,\s*82,\s*245,\s*0\.06\)/s)
   assert.match(source, /timeText:\s*messageTimeLabel\(message\.createdAt\)/)
   assert.match(source, /onVoiceAvatarError\(\)\s*\{[\s\S]*this\.setData\(\{\s*voiceAvatar:\s*''\s*\}\)/)
   assert.match(source, /resolveProfileAvatarSource\(source\)/)
@@ -206,9 +221,9 @@ test('chat mode keeps nav and top chrome outside the scrolling message list whil
   assert.match(markup, /<view class="segment-control-shell">[\s\S]*class="segment-control"/)
   assert.doesNotMatch(markup, /AI 生成内容不代表声音本人真实表达|class="ai-notice"/)
   assert.doesNotMatch(style, /\.ai-notice\s*\{/)
-  assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll"/)
-  assert.match(markup, /class="messages-scroll"[\s\S]*bounces="\{\{false\}\}"[\s\S]*enhanced="\{\{true\}\}"/)
-  assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll"[\s\S]*class="segment-control"/)
+  assert.match(markup, /<view wx:if="\{\{mode === 'chat'\}\}" class="chat-panel">[\s\S]*<scroll-view[\s\S]*class="messages-scroll [^"]*"/)
+  assert.match(markup, /class="messages-scroll [^"]*"[\s\S]*bounces="\{\{false\}\}"[\s\S]*enhanced="\{\{true\}\}"/)
+  assert.doesNotMatch(markup, /<scroll-view[\s\S]*class="messages-scroll [^"]*"[\s\S]*class="segment-control"/)
   assert.match(markup, /<scroll-view wx:else class="exact-scroll" scroll-y="\{\{true\}\}" enhanced="\{\{true\}\}" show-scrollbar="\{\{false\}\}">[\s\S]*class="exact-panel"/)
   assert.match(style, /\.chat-workbench-content,\s*\.exact-workbench-content\s*\{[^}]*overflow:\s*hidden/s)
   assert.match(style, /\.chat-panel\s*\{[^}]*background:\s*transparent/s)
@@ -367,7 +382,8 @@ test('chat composer follows keyboard height and keeps viewport sync on keyboard 
       ...structuredClone(pageDefinition.data),
       state: 'success',
       mode: 'chat',
-      bottomAnchorId: 'chat-bottom-9'
+      bottomAnchorId: 'chat-bottom-9',
+      chatViewportReady: true
     },
     setData(patch: Record<string, unknown>, callback?: () => void) {
       Object.assign(this.data, patch)
@@ -378,17 +394,24 @@ test('chat composer follows keyboard height and keeps viewport sync on keyboard 
   }
 
   instance.onChatFocus()
+  assert.equal(instance.data.chatViewportReady, true)
+  instance.data.chatViewportReady = true
   instance.onChatKeyboardHeightChange({ detail: { height: 336.8 } })
   assert.equal(instance.data.chatInputFocused, true)
   assert.equal(instance.data.chatKeyboardHeight, 336)
   assert.equal(instance.data.chatComposerStyle, 'bottom:336px;')
+  assert.equal(instance.data.chatViewportReady, false)
 
+  instance.data.chatViewportReady = true
   instance.onChatKeyboardHeightChange({ detail: { keyboardHeight: 0 } })
   assert.equal(instance.data.chatKeyboardHeight, 0)
   assert.equal(instance.data.chatComposerStyle, '')
+  assert.equal(instance.data.chatViewportReady, false)
 
+  instance.data.chatViewportReady = true
   instance.onChatBlur()
   assert.equal(instance.data.chatInputFocused, false)
+  assert.equal(instance.data.chatViewportReady, false)
   assert.ok(viewportSyncCount >= 3)
   assert.ok(bottomScrollCount >= 3)
 })
@@ -664,5 +687,48 @@ test('chat viewport uses measured top chrome and composer boundaries on a real-d
   instance.syncChatViewport()
 
   assert.deepEqual(selected, ['.segment-control-shell', '.chat-composer-shell'])
-  assert.equal(instance.data.messagesScrollStyle, 'height:613px;')
+  assert.equal(instance.data.messagesScrollStyle, 'height:625px;')
+  assert.equal(instance.data.messagesContentStyle, 'min-height:calc(625px - 56rpx);')
+})
+
+test('initial chat waits for the first bottom-anchor render before becoming visible', async () => {
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => undefined,
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=stable-initial-chat-paint')
+  assert.ok(pageDefinition)
+  const instance: any = {
+    ...pageDefinition,
+    destroyed: false,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      state: 'success',
+      mode: 'chat',
+      chatMessages: [{ id: 'message-1' }],
+      bottomAnchorId: 'chat-bottom-stable',
+      chatViewportReady: false
+    },
+    appliedPatches: [] as Array<Record<string, unknown>>,
+    setData(patch: Record<string, unknown>, callback?: () => void) {
+      this.appliedPatches.push(patch)
+      Object.assign(this.data, patch)
+      callback?.()
+    }
+  }
+
+  instance.scheduleChatBottomScroll('chat-bottom-stable')
+  assert.equal(instance.data.chatViewportReady, false)
+  await new Promise(resolve => setTimeout(resolve, 120))
+
+  assert.equal(instance.data.scrollTarget, 'chat-bottom-stable')
+  assert.equal(instance.data.chatViewportReady, true)
+  assert.equal(instance.appliedPatches.some((patch: Record<string, unknown>) => patch.chatScrollTop === 0), false)
+  if (instance.chatBottomSettleTimer) clearTimeout(instance.chatBottomSettleTimer)
 })

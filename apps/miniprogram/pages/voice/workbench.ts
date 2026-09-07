@@ -103,6 +103,9 @@ Page({
     chatScrollTop: 0,
     bottomAnchorId: '',
     messagesScrollStyle: '',
+    messagesContentStyle: '',
+    chatViewportReady: false,
+    replyFeedbackVisible: false,
     purchaseVisible: false,
     purchaseOption: null as PurchaseOption | null,
     paying: false,
@@ -151,7 +154,7 @@ Page({
     if (this.pollTimer) clearTimeout(this.pollTimer)
   },
   async loadData(showLoading = true) {
-    if (showLoading) this.setData({ state: 'loading', errorMessage: '' })
+    if (showLoading) this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false })
     try {
       const voice = await getVoice(this.data.voiceId)
       if (voice.status === 'UPLOADING' || voice.status === 'QUEUED' || voice.status === 'PROCESSING') {
@@ -196,7 +199,8 @@ Page({
         chatMessages,
         exactResults,
         bottomAnchorId,
-        scrollTarget: ''
+        scrollTarget: '',
+        chatViewportReady: showLoading ? false : this.data.chatViewportReady
       })
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll(bottomAnchorId)
@@ -207,7 +211,13 @@ Page({
         })
       }
     } catch (error: any) {
-      this.setData({ state: 'error', errorMessage: error.message || '工作台加载失败，请重试。', messagesScrollStyle: '' })
+      this.setData({
+        state: 'error',
+        errorMessage: error.message || '工作台加载失败，请重试。',
+        messagesScrollStyle: '',
+        messagesContentStyle: '',
+        chatViewportReady: false
+      })
     }
   },
   async resolveUserAvatar() {
@@ -221,9 +231,12 @@ Page({
   },
   switchMode(event: any) {
     const mode = event.currentTarget.dataset.mode === 'exact' ? 'exact' : 'chat'
-    this.setData({ mode })
-    this.persistDraft(mode)
-    this.scheduleChatViewportSync()
+    if (mode === this.data.mode) return
+    this.setData({ mode, ...(mode === 'chat' ? { chatViewportReady: false } : {}) }, () => {
+      this.persistDraft(mode)
+      this.scheduleChatViewportSync()
+      if (mode === 'chat') this.scheduleChatBottomScroll()
+    })
   },
   onVoiceAvatarError() {
     if (!this.data.voiceAvatar) return
@@ -247,16 +260,13 @@ Page({
   },
   onChatFocus() {
     if (this.data.chatInputFocused) return
-    this.setData({ chatInputFocused: true }, () => {
-      this.scheduleChatViewportSync()
-      this.scheduleChatBottomScroll()
-    })
+    this.setData({ chatInputFocused: true })
   },
   onChatKeyboardHeightChange(event: any) {
     const keyboardHeight = Math.max(0, Math.floor(Number(event?.detail?.height || event?.detail?.keyboardHeight || 0)))
     const chatComposerStyle = keyboardHeight > 0 ? `bottom:${keyboardHeight}px;` : ''
     if (keyboardHeight === this.data.chatKeyboardHeight && chatComposerStyle === this.data.chatComposerStyle) return
-    this.setData({ chatKeyboardHeight: keyboardHeight, chatComposerStyle }, () => {
+    this.setData({ chatKeyboardHeight: keyboardHeight, chatComposerStyle, chatViewportReady: false }, () => {
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll()
     })
@@ -270,7 +280,8 @@ Page({
       chatCount: chatText.length,
       chatInputFocused: false,
       chatKeyboardHeight: 0,
-      chatComposerStyle: ''
+      chatComposerStyle: '',
+      chatViewportReady: false
     }, () => {
       this.scheduleChatViewportSync()
       this.scheduleChatBottomScroll()
@@ -574,7 +585,9 @@ Page({
   scheduleChatViewportSync() {
     if (this.chatViewportTimer) clearTimeout(this.chatViewportTimer)
     if (this.data.state !== 'success' || this.data.mode !== 'chat') {
-      if (this.data.messagesScrollStyle) this.setData({ messagesScrollStyle: '' })
+      if (this.data.messagesScrollStyle || this.data.messagesContentStyle || this.data.chatViewportReady) {
+        this.setData({ messagesScrollStyle: '', messagesContentStyle: '', chatViewportReady: false })
+      }
       return
     }
     this.chatViewportTimer = setTimeout(() => {
@@ -590,7 +603,9 @@ Page({
       if (this.destroyed || this.data.mode !== 'chat' || this.data.bottomAnchorId !== anchorId) return
       this.chatScrollPositionSequence = Number(this.chatScrollPositionSequence || 0) + 1
       const chatScrollTop = 1000000 + this.chatScrollPositionSequence
-      this.setData({ scrollTarget: '', chatScrollTop: 0 }, () => this.setData({ scrollTarget: anchorId, chatScrollTop }))
+      this.setData({ scrollTarget: anchorId, chatScrollTop }, () => {
+        if (!this.data.chatViewportReady) this.setData({ chatViewportReady: true })
+      })
     }
     this.chatBottomTimer = setTimeout(() => {
       this.chatBottomTimer = null
@@ -617,12 +632,20 @@ Page({
       if (this.destroyed || this.data.mode !== 'chat') return
       const topChromeRect = rects?.[0]
       const composerRect = rects?.[1]
-      const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(topChromeRect?.bottom || 0) - 12)
+      const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(topChromeRect?.bottom || 0))
       if (availableHeight < 120) return
       const nextStyle = `height:${availableHeight}px;`
-      if (nextStyle !== this.data.messagesScrollStyle) {
-        this.setData({ messagesScrollStyle: nextStyle })
+      const verticalPadding = windowHeight <= 740 ? 42 : 56
+      const nextContentStyle = `min-height:calc(${availableHeight}px - ${verticalPadding}rpx);`
+      const patch: Record<string, any> = {}
+      if (nextStyle !== this.data.messagesScrollStyle || nextContentStyle !== this.data.messagesContentStyle) {
+        patch.messagesScrollStyle = nextStyle
+        patch.messagesContentStyle = nextContentStyle
       }
+      const hasScrollableChatContent = this.data.chatMessages.length > 0
+        || (this.data.sending && this.data.pendingMode === 'chat')
+      if (!hasScrollableChatContent && !this.data.chatViewportReady) patch.chatViewportReady = true
+      if (Object.keys(patch).length > 0) this.setData(patch)
     })
   }
 })

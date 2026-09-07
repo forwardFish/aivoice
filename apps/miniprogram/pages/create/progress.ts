@@ -4,6 +4,7 @@ import {
 } from '../../services/api'
 import { VoiceDetail, VoiceStatus } from '../../models/api'
 import { ensureAuthenticated, openPreview } from '../../utils/navigation'
+import { patchCreationSession } from '../../utils/storage'
 import { PROCESS_POLL_INTERVAL_MS } from '../../config'
 
 const PROGRESS_BY_STATUS: Record<VoiceStatus, number> = {
@@ -22,6 +23,13 @@ const SINGLE_SPEAKER_FAILURE_CODES = new Set([
   'MULTIPLE_SPEAKERS',
   'OVERLAPPING_SPEECH',
   'SPEAKER_UNCERTAIN'
+])
+
+const REFERENCE_QUALITY_FAILURE_CODES = new Set([
+  'NO_VALID_SPEECH',
+  'LOW_VOLUME',
+  'TOO_MUCH_SILENCE',
+  'VOICE_REJECTED'
 ])
 
 Page({
@@ -56,19 +64,25 @@ Page({
   },
   async begin() {
     this.stopPolling()
+    const run = Number(this.pollRun || 0) + 1
+    this.pollRun = run
     this.setData({ state: 'loading', errorMessage: '' })
     try {
       await startVoiceProcess(this.data.voiceId)
+      if (this.pollRun !== run) return
     } catch (error: any) {
+      if (this.pollRun !== run) return
       if (error.code !== 'VOICE_NOT_READY' && error.code !== 'GENERATION_IN_PROGRESS') {
         this.setData({ errorMessage: error.message || '启动处理失败，正在尝试恢复任务。' })
       }
     }
-    await this.pollOnce()
+    await this.pollOnce(run)
   },
-  async pollOnce() {
+  async pollOnce(run = Number(this.pollRun || 0)) {
+    if (this.pollRun !== run) return
     try {
       const voice = await getVoice(this.data.voiceId)
+      if (this.pollRun !== run) return
       this.applyVoice(voice)
       if (voice.status === 'PREVIEW_READY') {
         this.stopPolling()
@@ -84,8 +98,9 @@ Page({
         this.stopPolling()
         return
       }
-      this.pollTimer = setTimeout(() => this.pollOnce(), PROCESS_POLL_INTERVAL_MS)
+      this.pollTimer = setTimeout(() => this.pollOnce(run), PROCESS_POLL_INTERVAL_MS)
     } catch (error: any) {
+      if (this.pollRun !== run) return
       this.stopPolling()
       this.setData({ state: 'error', errorMessage: error.message || '无法获取创建进度。' })
     }
@@ -98,6 +113,10 @@ Page({
     const failureCode = String(voice.error && voice.error.code || '')
     if (failed && SINGLE_SPEAKER_FAILURE_CODES.has(failureCode)) {
       this.redirectToSpeakerFailure(failureCode)
+      return
+    }
+    if (failed && REFERENCE_QUALITY_FAILURE_CODES.has(failureCode)) {
+      this.redirectToClipFailure()
       return
     }
     this.setData({
@@ -120,7 +139,23 @@ Page({
         this.speakerFailureRedirecting = false
         this.setData({
           state: 'failed',
-          errorMessage: '检测到多人声音，但返回重选页面失败，请手动重新选择视频。'
+          errorMessage: '声音检查未通过，但返回重选页面失败，请手动重新选择视频。'
+        })
+      }
+    })
+  },
+  redirectToClipFailure() {
+    if (this.clipFailureRedirecting) return
+    this.clipFailureRedirecting = true
+    this.stopPolling()
+    patchCreationSession({ autoClipSelected: false })
+    wx.redirectTo({
+      url: `/pages/create/select-clip?voiceId=${encodeURIComponent(this.data.voiceId)}`,
+      fail: () => {
+        this.clipFailureRedirecting = false
+        this.setData({
+          state: 'failed',
+          errorMessage: '声音片段质量未通过，但返回片段选择页失败，请手动重试。'
         })
       }
     })
@@ -159,6 +194,7 @@ Page({
     }))
   },
   stopPolling() {
+    this.pollRun = Number(this.pollRun || 0) + 1
     if (this.pollTimer) {
       clearTimeout(this.pollTimer)
       this.pollTimer = null

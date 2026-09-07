@@ -27,7 +27,7 @@
 
     <view wx:if="{{mode === 'chat'}}" class="chat-panel">
         <scroll-view
-          class="messages-scroll"
+          class="messages-scroll {{chatViewportReady ? 'is-ready' : ''}}"
           style="{{messagesScrollStyle}}"
           scroll-y="{{true}}"
           scroll-top="{{chatScrollTop}}"
@@ -58,6 +58,8 @@
             </view>
           </view>
 
+          <view wx:else class="messages-content has-messages" style="{{messagesContentStyle}}">
+
           <view wx:for="{{chatMessages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isUser ? 'user-row' : 'assistant-row'}}">
             <image
               wx:if="{{item.isAssistant && voiceAvatar}}"
@@ -74,7 +76,7 @@
                 <text wx:elif="{{item.isAssistant}}" class="message-tag">{{item.status === 'PROCESSING' ? '声音生成中…' : item.status === 'BLOCKED' ? '内容未通过审核' : item.status === 'FAILED' && item.text ? '声音生成失败，文字已保留，未扣积分' : item.status === 'FAILED' ? '生成失败，未扣积分' : 'AI回复'}}</text>
               </view>
               <text wx:if="{{item.isUser && item.timeText}}" class="message-time">{{item.timeText}}</text>
-              <view wx:if="{{item.isAssistant && item.status === 'READY'}}" class="reply-feedback">
+              <view wx:if="{{replyFeedbackVisible && item.isAssistant && item.status === 'READY'}}" class="reply-feedback">
                 <view
                   role="button"
                   hover-class="reply-feedback-action-hover"
@@ -86,7 +88,6 @@
                   <view class="reply-feedback-indicator"></view>
                   <text class="reply-feedback-label">像TA</text>
                 </view>
-                <view class="reply-feedback-divider"></view>
                 <view
                   role="button"
                   hover-class="reply-feedback-action-hover"
@@ -128,8 +129,8 @@
               </view>
             </view>
           </block>
-          <view class="scroll-spacer"></view>
           <view wx:if="{{bottomAnchorId}}" id="{{bottomAnchorId}}" class="scroll-bottom-anchor"></view>
+          </view>
         </scroll-view>
 
         <view class="chat-composer-shell" style="{{chatComposerStyle}}">

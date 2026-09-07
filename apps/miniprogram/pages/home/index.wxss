@@ -41,15 +41,6 @@
   width: 350rpx;
 }
 
-.hero-menu {
-  position: absolute;
-  top: 2rpx;
-  right: 0;
-  width: 74rpx;
-  height: 74rpx;
-  z-index: 2;
-}
-
 .hero-card {
   width: 340rpx;
   margin-top: 64rpx;

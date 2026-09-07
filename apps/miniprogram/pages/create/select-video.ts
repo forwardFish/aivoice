@@ -33,6 +33,10 @@ function normalizeSpeakerFailure(value: string): string {
 }
 
 function speakerFailureTitle(failureCode: string): string {
+  if (failureCode === 'LOW_VOLUME') return '没有找到清晰声音'
+  if (failureCode === 'TOO_MUCH_SILENCE') return '说话不够连续'
+  if (failureCode === 'NO_VALID_SPEECH') return '有效人声不足'
+  if (failureCode === 'VOICE_REJECTED') return '声音质量未通过'
   if (failureCode === 'MULTIPLE_SPEAKERS') return '检测到多个声音'
   if (failureCode === 'OVERLAPPING_SPEECH') return '检测到多人同时说话'
   return '无法确认只有一个声音'
@@ -40,6 +44,18 @@ function speakerFailureTitle(failureCode: string): string {
 
 function speakerFailureMessage(failureCode: string, sourceDeleted = false): string {
   const deletedPrefix = sourceDeleted ? '该视频已从服务器删除。' : ''
+  if (failureCode === 'LOW_VOLUME') {
+    return `系统没有找到音量足够清楚的连续人声。${deletedPrefix}请重新选择声音更近、更清晰的视频。`
+  }
+  if (failureCode === 'TOO_MUCH_SILENCE') {
+    return `系统没有找到静音足够少的连续人声片段。${deletedPrefix}请重新选择说话更连续的视频。`
+  }
+  if (failureCode === 'NO_VALID_SPEECH') {
+    return `系统没有找到至少 8 秒且包含连续清晰说话的片段。${deletedPrefix}请重新选择有效人声更多的视频。`
+  }
+  if (failureCode === 'VOICE_REJECTED') {
+    return `系统没有找到适合声音复刻的连续片段。${deletedPrefix}请避开爆音、强噪声或距离过远的录音。`
+  }
   if (failureCode === 'OVERLAPPING_SPEECH') {
     return `这段视频里有多人同时说话，系统无法稳定提取单一音色。${deletedPrefix}请重新选择一段只有 TA 单独说话的视频。`
   }
@@ -111,6 +127,9 @@ Page({
     })
   },
   onShow() {
+    if (this.data.state === 'uploading' && this.data.selected) {
+      this.setData({ state: 'selected', errorMessage: '上传已暂停，请重新确认。' })
+    }
     if (this.data.state === 'checking' && this.data.existingVoiceId) {
       void this.resumeSourceSpeakerCheck()
     }
@@ -123,6 +142,7 @@ Page({
   },
   cancelSourceSpeakerCheck() {
     this.sourceSpeakerCheckRun = Number(this.sourceSpeakerCheckRun || 0) + 1
+    this.uploadFlowRun = Number(this.uploadFlowRun || 0) + 1
     this.sourceSpeakerCheckActive = false
   },
   async resumeSourceSpeakerCheck() {
@@ -132,7 +152,19 @@ Page({
     const run = Number(this.sourceSpeakerCheckRun || 0) + 1
     this.sourceSpeakerCheckRun = run
     try {
-      await this.waitForSourceSpeakerCheck(voiceId, run)
+      const current = await getVoice(voiceId)
+      if (this.sourceSpeakerCheckRun !== run) return
+      if (current.status === 'FAILED') {
+        await this.waitForSourceSpeakerCheck(voiceId, run, current)
+        return
+      }
+      const started = await startSourceSpeakerCheck(voiceId)
+      if (this.sourceSpeakerCheckRun !== run) return
+      patchCreationSession({ sourceSpeakerCheckPending: true, sourceSpeakerCheckStarted: true })
+      await this.waitForSourceSpeakerCheck(voiceId, run, started)
+    } catch (error: any) {
+      if (this.sourceSpeakerCheckRun !== run) return
+      this.setData({ state: 'error', errorMessage: error.message || '视频声音检查启动失败，请重试。' })
     } finally {
       if (this.sourceSpeakerCheckRun === run) this.sourceSpeakerCheckActive = false
     }
@@ -141,7 +173,10 @@ Page({
     let voice = initialVoice
     for (let attempt = 0; attempt < SOURCE_CHECK_MAX_POLLS; attempt += 1) {
       if (this.sourceSpeakerCheckRun !== run) return
-      if (!voice) voice = await getVoice(voiceId)
+      if (!voice) {
+        voice = await getVoice(voiceId)
+        if (this.sourceSpeakerCheckRun !== run) return
+      }
       const failureCode = normalizeSpeakerFailure(String(voice?.error?.code || ''))
       if (voice?.status === 'FAILED' && failureCode) {
         clearCreationSession()
@@ -167,7 +202,17 @@ Page({
         return
       }
       if (voice?.status === 'DRAFT') {
-        patchCreationSession({ sourceSpeakerCheckPending: false })
+        if (this.sourceSpeakerCheckRun !== run) return
+        const clipStartMs = Number(voice.clipStartMs)
+        const clipEndMs = Number(voice.clipEndMs)
+        const autoClipValid = Number.isFinite(clipStartMs) && Number.isFinite(clipEndMs)
+          && clipStartMs >= 0 && clipEndMs - clipStartMs >= 8_000 && clipEndMs - clipStartMs <= 20_000
+        patchCreationSession({
+          sourceSpeakerCheckPending: false,
+          ...(autoClipValid
+            ? { clipStartMs, clipEndMs, autoClipSelected: true }
+            : { clipStartMs: 0, clipEndMs: 0, autoClipSelected: false })
+        })
         this.setData({ state: 'success', uploadProgress: 100 })
         wx.redirectTo({
           url: `/pages/create/select-clip?voiceId=${encodeURIComponent(voiceId)}`,
@@ -180,6 +225,7 @@ Page({
       }
       voice = undefined
       await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+      if (this.sourceSpeakerCheckRun !== run) return
     }
     if (this.sourceSpeakerCheckRun === run) {
       this.setData({ state: 'error', errorMessage: '视频声音检查时间较长，请稍后重试。' })
@@ -250,12 +296,15 @@ Page({
   },
   async uploadAndContinue() {
     if (this.data.state === 'uploading' || this.data.state === 'checking' || !this.data.selected) return
+    const flowRun = Number(this.uploadFlowRun || 0) + 1
+    this.uploadFlowRun = flowRun
     const selected = this.data.selected
     this.setData({ state: 'uploading', uploadProgress: 0, errorMessage: '' })
     try {
       const voice = this.data.existingVoiceId
         ? { id: this.data.existingVoiceId }
         : await createVoice()
+      if (this.uploadFlowRun !== flowRun) return
       if (!voice.id) throw new Error('创建声音草稿失败。')
       this.setData({ existingVoiceId: voice.id })
       const policy = await getUploadPolicy(voice.id, {
@@ -263,11 +312,16 @@ Page({
         mimeType: selected.mimeType,
         sizeBytes: selected.sizeBytes
       })
+      if (this.uploadFlowRun !== flowRun) return
       const uploaded = await uploadToPolicy({
         policy,
         filePath: selected.tempFilePath,
-        onProgress: progress => this.setData({ uploadProgress: progress })
+        onProgress: progress => {
+          if (this.uploadFlowRun === flowRun) this.setData({ uploadProgress: progress })
+        }
       })
+      // Once bytes reached private storage, always confirm them so the server
+      // can enforce the 24-hour retention policy even if this page was hidden.
       await confirmVoiceMedia(voice.id, {
         objectKey: uploaded.objectKey || policy.objectKey,
         mediaId: uploaded.mediaId || policy.mediaId,
@@ -276,6 +330,7 @@ Page({
         sizeBytes: selected.sizeBytes,
         durationMs: selected.durationMs
       })
+      if (this.uploadFlowRun !== flowRun) return
       setCreationSession({
         voiceId: voice.id,
         tempFilePath: selected.tempFilePath,
@@ -287,7 +342,8 @@ Page({
         durationMs: selected.durationMs,
         objectKey: uploaded.objectKey || policy.objectKey,
         mediaId: uploaded.mediaId || policy.mediaId,
-        sourceSpeakerCheckPending: true
+        sourceSpeakerCheckPending: true,
+        sourceSpeakerCheckStarted: false
       })
       this.setData({ state: 'checking', uploadProgress: 100 })
       const run = Number(this.sourceSpeakerCheckRun || 0) + 1
@@ -295,11 +351,14 @@ Page({
       this.sourceSpeakerCheckActive = true
       try {
         const started = await startSourceSpeakerCheck(voice.id)
+        if (this.uploadFlowRun !== flowRun || this.sourceSpeakerCheckRun !== run) return
+        patchCreationSession({ sourceSpeakerCheckStarted: true })
         await this.waitForSourceSpeakerCheck(voice.id, run, started)
       } finally {
         if (this.sourceSpeakerCheckRun === run) this.sourceSpeakerCheckActive = false
       }
     } catch (error: any) {
+      if (this.uploadFlowRun !== flowRun) return
       this.setData({ state: 'error', errorMessage: error.message || '视频上传失败，请重试。' })
     }
   }

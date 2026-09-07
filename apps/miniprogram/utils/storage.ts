@@ -21,7 +21,9 @@ export interface CreationSession {
   mediaId?: string
   clipStartMs?: number
   clipEndMs?: number
+  autoClipSelected?: boolean
   sourceSpeakerCheckPending?: boolean
+  sourceSpeakerCheckStarted?: boolean
 }
 
 export interface WorkbenchDraft {

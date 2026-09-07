@@ -29,10 +29,22 @@
       </button>
 
       <view class="agreement-row">
-        <text>登录即代表你已阅读并同意</text>
-        <text class="agreement-link" data-type="terms" catchtap="showAgreement">《用户协议》</text>
-        <text>和</text>
-        <text class="agreement-link" data-type="privacy" catchtap="showAgreement">《隐私政策》</text>
+        <view
+          class="agreement-toggle"
+          role="checkbox"
+          aria-checked="{{agreementAccepted}}"
+          bindtap="toggleAgreement"
+        >
+          <view class="agreement-check-box {{agreementAccepted ? 'checked' : ''}}">
+            <text wx:if="{{agreementAccepted}}" class="agreement-check-mark">✓</text>
+          </view>
+        </view>
+        <view class="agreement-copy">
+          <text>我已阅读并同意</text>
+          <text class="agreement-link" data-type="terms" catchtap="showAgreement">《用户协议》</text>
+          <text>和</text>
+          <text class="agreement-link" data-type="privacy" catchtap="showAgreement">《隐私政策》</text>
+        </view>
       </view>
     </view>
   </view>

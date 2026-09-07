@@ -81,9 +81,24 @@
   width: 100%;
   min-height: 320rpx;
   margin-top: 12rpx;
-  padding: 24rpx 30rpx calc(188rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 30rpx 32rpx;
   box-sizing: border-box;
   background: transparent;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.messages-scroll.is-ready {
+  opacity: 1;
+  visibility: visible;
+}
+
+.messages-content.has-messages {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
 }
 
 .chat-empty {
@@ -309,54 +324,47 @@
 
 .reply-feedback {
   display: inline-flex;
-  align-items: stretch;
-  margin-top: 16rpx;
-  padding: 8rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(122, 107, 247, 0.16);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10rpx 24rpx rgba(55, 61, 94, 0.06);
-  backdrop-filter: blur(12rpx);
+  align-items: center;
+  margin-top: 10rpx;
+  padding: 0;
+  gap: 8rpx;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .reply-feedback-action {
   min-width: 140rpx;
   min-height: 64rpx;
-  padding: 0 24rpx;
+  padding: 0 16rpx;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
+  gap: 6rpx;
   border-radius: 999rpx;
   color: #7f879f;
-  font-size: 24rpx;
+  background: transparent;
+  font-size: 20rpx;
   line-height: 1;
-  font-weight: 600;
+  font-weight: 520;
   box-sizing: border-box;
 }
 
 .reply-feedback-action-hover {
-  background: rgba(117, 101, 245, 0.08);
-}
-
-.reply-feedback-divider {
-  align-self: center;
-  width: 1rpx;
-  height: 28rpx;
-  border-radius: 999rpx;
-  background: rgba(129, 135, 158, 0.18);
+  background: rgba(101, 82, 245, 0.05);
 }
 
 .reply-feedback-label {
   display: block;
-  font-size: 22rpx;
+  font-size: 20rpx;
   line-height: 1;
+  font-weight: 520;
 }
 
 .reply-feedback-indicator {
   position: relative;
-  width: 18rpx;
-  height: 18rpx;
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
   border: 2rpx solid rgba(133, 141, 163, 0.7);
   background: rgba(255, 255, 255, 0.96);
@@ -376,12 +384,12 @@
 }
 
 .reply-feedback-action.selected {
-  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.55);
+  box-shadow: none;
 }
 
 .reply-feedback-action.like-action.selected {
   color: #6150ee;
-  background: rgba(110, 93, 246, 0.14);
+  background: rgba(101, 82, 245, 0.08);
 }
 
 .reply-feedback-action.like-action.selected .reply-feedback-indicator {
@@ -396,7 +404,7 @@
 
 .reply-feedback-action.dislike-action.selected {
   color: #5d6479;
-  background: rgba(107, 115, 141, 0.13);
+  background: rgba(101, 82, 245, 0.06);
 }
 
 .reply-feedback-action.dislike-action.selected .reply-feedback-indicator {
@@ -428,10 +436,6 @@
 .wave-two { height: 34rpx; animation-delay: -0.2s; }
 .wave-three { height: 26rpx; animation-delay: -0.1s; }
 .wave-four { height: 42rpx; }
-
-.scroll-spacer {
-  height: 32rpx;
-}
 
 .scroll-bottom-anchor {
   width: 100%;
@@ -661,7 +665,7 @@
     min-height: 300rpx;
     margin-top: 10rpx;
     padding-top: 14rpx;
-    padding-bottom: calc(172rpx + env(safe-area-inset-bottom));
+    padding-bottom: 28rpx;
   }
 
   .chat-empty {

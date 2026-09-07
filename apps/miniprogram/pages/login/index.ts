@@ -11,6 +11,7 @@ Page({
   data: {
     loading: false,
     success: false,
+    agreementAccepted: false,
     errorMessage: ''
   },
   onShow() {
@@ -20,8 +21,20 @@ Page({
     const type = event.currentTarget.dataset.type
     wx.navigateTo({ url: `/pages/legal/index?type=${encodeURIComponent(type === 'privacy' ? 'privacy' : 'terms')}` })
   },
+  toggleAgreement() {
+    if (this.data.loading) return
+    this.setData({ agreementAccepted: !this.data.agreementAccepted, errorMessage: '' })
+  },
   async submitLogin() {
     if (this.data.loading) return
+    if (!this.data.agreementAccepted) {
+      wx.showToast({
+        title: '请先阅读并同意用户协议和隐私政策',
+        icon: 'none',
+        duration: 2200
+      })
+      return
+    }
     this.setData({ loading: true, success: false, errorMessage: '' })
     try {
       const loginResult = await new Promise<any>((resolve, reject) => {
