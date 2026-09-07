@@ -250,7 +250,7 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.ok(pageDefinition)
   assert.match(markup, /<input[\s\S]*class="composer-input"/)
   assert.match(markup, /class="chat-composer-shell" style="\{\{chatComposerStyle\}\}"/)
-  assert.match(markup, /class="composer-input-shell"[\s\S]*<input/)
+  assert.match(markup, /class="composer-input-shell [^"]*"[\s\S]*<input/)
   assert.doesNotMatch(markup, /composer-leading|composer-leading-icon|mic-mode\.png/)
   assert.match(markup, /placeholder-class="composer-input-placeholder"/)
   assert.match(markup, /adjust-position="\{\{false\}\}"/)
@@ -258,15 +258,25 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
   assert.match(markup, /bindkeyboardheightchange="onChatKeyboardHeightChange"/)
-  const composerInput = markup.match(/<input[\s\S]*?class="composer-input"[\s\S]*?\/>/)?.[0] || ''
-  assert.ok(composerInput)
-  assert.match(composerInput, /model:value="\{\{chatText\}\}"/)
-  assert.doesNotMatch(composerInput, /(?:^|\s)value="\{\{chatText\}\}"/)
-  assert.doesNotMatch(composerInput, /disabled=/)
+  assert.match(markup, /class="composer-input-shell \{\{sending && pendingMode === 'chat' \? 'drafting-next' : ''\}\}"/)
+  const composerInputs = markup.match(/<input[\s\S]*?class="composer-input"[\s\S]*?\/>/g) || []
+  assert.equal(composerInputs.length, 2)
+  const pendingComposerInput = composerInputs[0] || ''
+  const idleComposerInput = composerInputs[1] || ''
+  assert.match(pendingComposerInput, /wx:if="\{\{sending && pendingMode === 'chat'\}\}"/)
+  assert.match(pendingComposerInput, /placeholder="\{\{chatInputFocused \? '' : '可以先输入下一句话…'\}\}"/)
+  assert.match(pendingComposerInput, /bindconfirm="onPendingDraftConfirm"/)
+  assert.doesNotMatch(pendingComposerInput, /(?:model:)?value=/)
+  assert.doesNotMatch(pendingComposerInput, /disabled=/)
+  assert.match(idleComposerInput, /wx:else/)
+  assert.match(idleComposerInput, /model:value="\{\{chatText\}\}"/)
+  assert.doesNotMatch(idleComposerInput, /(?:^|\s)value="\{\{chatText\}\}"/)
+  assert.doesNotMatch(idleComposerInput, /disabled=/)
   assert.match(markup, /<button class="primary-button send-button[\s\S]*disabled="\{\{sending\}\}"/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
   assert.match(style, /\.chat-composer\s*\{[^}]*min-height:\s*108rpx[^}]*padding:\s*12rpx 12rpx 12rpx 16rpx/s)
   assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*80rpx[^}]*padding:\s*0 24rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
+  assert.match(style, /\.composer-input-shell\.drafting-next\s*\{[^}]*background:\s*#ffffff[^}]*box-shadow:/s)
   assert.match(style, /\.composer-input\s*\{[^}]*width:\s*100%[^}]*height:\s*80rpx[^}]*padding:\s*0[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
   assert.match(style, /\.composer-input-placeholder\s*\{[^}]*font-size:\s*30rpx[^}]*line-height:\s*80rpx/s)
   assert.match(source, /chatKeyboardHeight:\s*0,\s*chatComposerStyle:\s*''/)
@@ -352,6 +362,8 @@ test('chat composer accepts the next draft while a reply is generating and prese
 
   instance.onChatInput({ detail: { value: '这是准备发送的下一条' } })
   assert.equal(instance.chatDraftText, '这是准备发送的下一条')
+  instance.onPendingDraftConfirm({ detail: { value: '这是准备发送的下一条' } })
+  assert.equal(storage.get('nashide_ta_workbench_draft:voice-next-draft').chatText, '这是准备发送的下一条')
   await instance.pollMessage('message-pending')
 
   assert.equal(instance.data.chatText, '这是准备发送的下一条')

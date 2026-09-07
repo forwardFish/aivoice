@@ -135,8 +135,27 @@
 
         <view class="chat-composer-shell" style="{{chatComposerStyle}}">
           <view class="chat-composer">
-            <view class="composer-input-shell">
+            <view class="composer-input-shell {{sending && pendingMode === 'chat' ? 'drafting-next' : ''}}">
               <input
+                wx:if="{{sending && pendingMode === 'chat'}}"
+                class="composer-input"
+                type="text"
+                placeholder="{{chatInputFocused ? '' : '可以先输入下一句话…'}}"
+                placeholder-class="composer-input-placeholder"
+                maxlength="200"
+                adjust-position="{{false}}"
+                hold-keyboard="{{true}}"
+                confirm-hold="{{true}}"
+                show-confirm-bar="{{false}}"
+                confirm-type="done"
+                bindfocus="onChatFocus"
+                bindkeyboardheightchange="onChatKeyboardHeightChange"
+                bindinput="onChatInput"
+                bindblur="onChatBlur"
+                bindconfirm="onPendingDraftConfirm"
+              />
+              <input
+                wx:else
                 class="composer-input"
                 type="text"
                 model:value="{{chatText}}"
@@ -145,6 +164,7 @@
                 maxlength="200"
                 adjust-position="{{false}}"
                 hold-keyboard="{{true}}"
+                confirm-hold="{{true}}"
                 show-confirm-bar="{{false}}"
                 confirm-type="send"
                 bindfocus="onChatFocus"

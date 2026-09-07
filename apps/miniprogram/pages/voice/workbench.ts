@@ -251,6 +251,12 @@ Page({
     this.chatDraftText = chatText
     this.chatDraftDirty = true
   },
+  onPendingDraftConfirm(event: any) {
+    const chatText = String(event.detail.value || this.chatDraftText || '').slice(0, 200)
+    this.chatDraftText = chatText
+    this.chatDraftDirty = true
+    this.persistDraft('chat', { chatText })
+  },
   onChatFocus() {
     if (this.data.chatInputFocused) return
     this.setData({ chatInputFocused: true })
