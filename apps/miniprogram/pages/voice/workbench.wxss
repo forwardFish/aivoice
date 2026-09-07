@@ -482,6 +482,14 @@
   box-shadow: inset 0 0 0 2rpx rgba(101, 82, 245, 0.22);
 }
 
+.queued-composer-input {
+  color: #7f879f;
+}
+
+.queued-message-status {
+  color: #7868ee;
+}
+
 .composer-input {
   width: 100%;
   height: 80rpx;

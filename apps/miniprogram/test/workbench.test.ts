@@ -258,21 +258,23 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.match(markup, /placeholder="\{\{chatInputFocused \? '' : '输入想说的话…'\}\}"/)
   assert.match(markup, /bindfocus="onChatFocus"/)
   assert.match(markup, /bindkeyboardheightchange="onChatKeyboardHeightChange"/)
-  assert.match(markup, /class="composer-input-shell \{\{sending && pendingMode === 'chat' \? 'drafting-next' : ''\}\}"/)
-  const composerInputs = markup.match(/<input[\s\S]*?class="composer-input"[\s\S]*?\/>/g) || []
-  assert.equal(composerInputs.length, 2)
-  const pendingComposerInput = composerInputs[0] || ''
-  const idleComposerInput = composerInputs[1] || ''
-  assert.match(pendingComposerInput, /wx:if="\{\{sending && pendingMode === 'chat'\}\}"/)
+  assert.match(markup, /class="composer-input-shell \{\{\(sending \|\| serverGenerationActive\) && !queuedChatText \? 'drafting-next' : ''\}\}"/)
+  const pendingComposerInput = markup.match(/<input\s+wx:if="\{\{\(sending \|\| serverGenerationActive\) && !queuedChatText\}\}"[\s\S]*?\/>/)?.[0] || ''
+  const idleComposerInput = markup.match(/<input\s+wx:else[\s\S]*?class="composer-input"[\s\S]*?\/>/)?.[0] || ''
+  assert.ok(pendingComposerInput)
+  assert.ok(idleComposerInput)
+  assert.match(pendingComposerInput, /wx:if="\{\{\(sending \|\| serverGenerationActive\) && !queuedChatText\}\}"/)
   assert.match(pendingComposerInput, /placeholder="\{\{chatInputFocused \? '' : '可以先输入下一句话…'\}\}"/)
   assert.match(pendingComposerInput, /bindconfirm="onPendingDraftConfirm"/)
   assert.doesNotMatch(pendingComposerInput, /(?:model:)?value=/)
   assert.doesNotMatch(pendingComposerInput, /disabled=/)
+  assert.match(markup, /wx:elif="\{\{queuedChatText\}\}"[\s\S]*class="composer-input queued-composer-input"[\s\S]*placeholder="已排队，完成后自动发送"[\s\S]*disabled="\{\{true\}\}"/)
   assert.match(idleComposerInput, /wx:else/)
   assert.match(idleComposerInput, /model:value="\{\{chatText\}\}"/)
   assert.doesNotMatch(idleComposerInput, /(?:^|\s)value="\{\{chatText\}\}"/)
   assert.doesNotMatch(idleComposerInput, /disabled=/)
-  assert.match(markup, /<button class="primary-button send-button[\s\S]*disabled="\{\{sending\}\}"/)
+  assert.match(markup, /<button class="primary-button send-button[\s\S]*disabled="\{\{queuedChatText \|\| paymentPending \|\| paying\}\}"/)
+  assert.match(markup, /等待上一条完成后自动发送/)
   assert.doesNotMatch(markup, /<textarea[\s\S]*class="composer-input"|auto-height=/)
   assert.match(style, /\.chat-composer\s*\{[^}]*min-height:\s*108rpx[^}]*padding:\s*12rpx 12rpx 12rpx 16rpx/s)
   assert.match(style, /\.composer-input-shell\s*\{[^}]*flex:\s*1[^}]*min-width:\s*0[^}]*height:\s*80rpx[^}]*padding:\s*0 24rpx[^}]*display:\s*flex[^}]*align-items:\s*center/s)
@@ -308,7 +310,7 @@ test('chat composer keeps the native single-line input stable while typing', asy
   assert.equal(renderCount, 2)
 })
 
-test('chat composer accepts the next draft while a reply is generating and preserves it on completion', async () => {
+test('chat composer queues the next message while a reply is generating', async () => {
   const storage = new Map<string, any>([['nashide_ta_token', 'test-token']])
   let pageDefinition: any
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
@@ -352,8 +354,9 @@ test('chat composer accepts the next draft while a reply is generating and prese
       pendingText: '上一条消息',
       bottomAnchorId: 'chat-bottom-2'
     },
-    setData(patch: Record<string, unknown>) {
+    setData(patch: Record<string, unknown>, callback?: () => void) {
       Object.assign(this.data, patch)
+      callback?.()
     },
     async loadData() {},
     scheduleChatViewportSync() {},
@@ -362,15 +365,65 @@ test('chat composer accepts the next draft while a reply is generating and prese
 
   instance.onChatInput({ detail: { value: '这是准备发送的下一条' } })
   assert.equal(instance.chatDraftText, '这是准备发送的下一条')
-  instance.onPendingDraftConfirm({ detail: { value: '这是准备发送的下一条' } })
-  assert.equal(storage.get('nashide_ta_workbench_draft:voice-next-draft').chatText, '这是准备发送的下一条')
-  await instance.pollMessage('message-pending')
+  await instance.sendChat()
 
-  assert.equal(instance.data.chatText, '这是准备发送的下一条')
-  assert.equal(instance.data.chatCount, 10)
-  assert.equal(instance.chatDraftText, '这是准备发送的下一条')
-  assert.equal(instance.data.sending, false)
-  assert.equal(storage.get('nashide_ta_workbench_draft:voice-next-draft').chatText, '这是准备发送的下一条')
+  assert.equal(instance.data.queuedChatText, '这是准备发送的下一条')
+  assert.equal(instance.data.chatText, '')
+  assert.equal(instance.chatDraftText, '')
+  assert.equal(instance.data.sending, true)
+  assert.equal(storage.get('nashide_ta_workbench_draft:voice-next-draft').queuedChatText, '这是准备发送的下一条')
+})
+
+test('queued chat is submitted automatically after the active generation finishes', async () => {
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => 'test-token',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=flush-queued-chat')
+  assert.ok(pageDefinition)
+  let submittedText = ''
+  const instance: any = {
+    ...pageDefinition,
+    destroyed: false,
+    chatDraftText: '',
+    chatDraftDirty: false,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      voiceId: 'voice-queued',
+      mode: 'chat',
+      queuedChatText: '自动发送这一条',
+      sending: false,
+      serverGenerationActive: false
+    },
+    setData(patch: Record<string, unknown>, callback?: () => void) {
+      Object.assign(this.data, patch)
+      callback?.()
+    },
+    persistDraft() {},
+    async submitGeneration() { submittedText = this.chatDraftText }
+  }
+
+  await instance.flushQueuedChat()
+
+  assert.equal(submittedText, '自动发送这一条')
+  assert.equal(instance.data.queuedChatText, '')
+  assert.equal(instance.data.chatText, '自动发送这一条')
+})
+
+test('a server-side generation conflict becomes a recoverable queued chat instead of a visible error', () => {
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+
+  assert.match(source, /activeChatMessage = \[\.\.\.chatMessages\]\.reverse\(\)\.find\(item => item\.isAssistant && item\.status === 'PROCESSING'\)/)
+  assert.match(source, /serverGenerationActive: Boolean\(activeChatMessage && !this\.data\.sending\)/)
+  assert.match(source, /watchServerGeneration\(activeChatMessage\.id\)/)
+  assert.match(source, /error instanceof ApiError && error\.code === 'GENERATION_IN_PROGRESS'/)
+  assert.match(source, /queueCurrentChatDraft\(text\)[\s\S]*this\.loadData\(false\)/)
 })
 
 test('chat composer follows keyboard height and keeps viewport sync on keyboard open and close', async () => {

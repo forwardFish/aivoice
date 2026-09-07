@@ -28,6 +28,7 @@ export interface CreationSession {
 
 export interface WorkbenchDraft {
   chatText?: string
+  queuedChatText?: string
   exactText?: string
   mode?: 'chat' | 'exact'
   updatedAt: number
