@@ -20,4 +20,7 @@ test('worker deployment fails closed on missing Bailian runtime config and probe
     assert.match(source, /startupProbeResult\.status !== 'SKIPPED'/);
     assert.match(source, /runtimeEnvVerified: true/);
   }
+  const fullDeploy = fs.readFileSync(new URL('../../../scripts/deploy/cloudbase-worker-function.mjs', import.meta.url), 'utf8');
+  assert.match(fullDeploy, /preferredRuntimeEnvPath = 'D:\/lyh\/agent\/agent-frame\/aivoice\/\.env\.local'/);
+  assert.match(fullDeploy, /fs\.existsSync\(preferredRuntimeEnvPath\) \? preferredRuntimeEnvPath : path\.join\(projectRoot, '\.env\.local'\)/);
 });

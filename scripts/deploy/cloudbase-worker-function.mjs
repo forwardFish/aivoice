@@ -17,7 +17,9 @@ const credentialFile = process.env.CLOUDBASE_CREDENTIALS_FILE
     ? preferredCredentialFile
     : 'D:/lyh/agent/agent-frame/printersheet/ai-exam-miniapp/server/.env');
 const credentials = fs.existsSync(credentialFile) ? parseDotEnv(fs.readFileSync(credentialFile)) : {};
-const localEnvPath = process.env.AIVOICE_RUNTIME_ENV_FILE || path.join(projectRoot, '.env.local');
+const preferredRuntimeEnvPath = 'D:/lyh/agent/agent-frame/aivoice/.env.local';
+const localEnvPath = process.env.AIVOICE_RUNTIME_ENV_FILE
+  || (fs.existsSync(preferredRuntimeEnvPath) ? preferredRuntimeEnvPath : path.join(projectRoot, '.env.local'));
 const baseLocalEnv = fs.existsSync(localEnvPath) ? parseDotEnv(fs.readFileSync(localEnvPath)) : {};
 const aliyunEnvPath = process.env.AIVOICE_ALIYUN_ENV_FILE || 'D:/lyh/secrets/aivoice/aliyun.env';
 const aliyunEnv = fs.existsSync(aliyunEnvPath) ? parseDotEnv(fs.readFileSync(aliyunEnvPath)) : {};
