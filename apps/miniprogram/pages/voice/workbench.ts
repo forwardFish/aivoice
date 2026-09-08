@@ -118,6 +118,7 @@ Page({
   onLoad(options: Record<string, string>) {
     this.destroyed = false
     this.dataLoading = false
+    this.initialShowPending = true
     this.chatBottomSequence = 0
     this.chatScrollPositionSequence = 0
     if (!ensureAuthenticated()) return
@@ -142,6 +143,11 @@ Page({
     this.loadData()
   },
   onShow() {
+    if (this.initialShowPending) {
+      this.initialShowPending = false
+      this.scheduleChatViewportSync()
+      return
+    }
     if (this.data.voiceId && this.data.state === 'success' && !this.data.sending && !this.data.paymentPending) {
       this.loadData(false)
     } else {
@@ -159,7 +165,9 @@ Page({
   async loadData(showLoading = true) {
     if (this.dataLoading) return
     this.dataLoading = true
-    if (showLoading) this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false })
+    if (showLoading && (this.data.state !== 'loading' || this.data.errorMessage || this.data.chatViewportReady)) {
+      this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false })
+    }
     try {
       const voice = await getVoice(this.data.voiceId)
       if (voice.status === 'UPLOADING' || voice.status === 'QUEUED' || voice.status === 'PROCESSING') {

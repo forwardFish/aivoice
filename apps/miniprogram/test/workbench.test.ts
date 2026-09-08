@@ -143,6 +143,47 @@ test('workbench opens directly in chat without the redundant mode chooser', () =
   assert.match(source, /const mode = options\.mode === 'exact' \? 'exact' : 'chat'/)
 })
 
+test('first onShow never repeats the onLoad request while later returns still refresh', async () => {
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+  let pageDefinition: any
+  ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
+  ;(globalThis as any).getCurrentPages = () => []
+  ;(globalThis as any).wx = {
+    getStorageSync: () => '',
+    setStorageSync: () => undefined,
+    removeStorageSync: () => undefined,
+    reLaunch: () => undefined
+  }
+
+  await import('../pages/voice/workbench?case=single-initial-load')
+  assert.ok(pageDefinition)
+  assert.match(source, /onLoad\(options: Record<string, string>\) \{[\s\S]*this\.initialShowPending = true/)
+  assert.match(source, /onShow\(\) \{\s*if \(this\.initialShowPending\) \{\s*this\.initialShowPending = false[\s\S]*return/)
+  let loadCount = 0
+  let viewportSyncCount = 0
+  const instance: any = {
+    ...pageDefinition,
+    initialShowPending: true,
+    data: {
+      ...structuredClone(pageDefinition.data),
+      voiceId: 'voice-single-load',
+      state: 'success',
+      sending: false,
+      paymentPending: false
+    },
+    loadData() { loadCount += 1 },
+    scheduleChatViewportSync() { viewportSyncCount += 1 }
+  }
+
+  instance.onShow()
+  assert.equal(instance.initialShowPending, false)
+  assert.equal(loadCount, 0)
+  assert.equal(viewportSyncCount, 1)
+
+  instance.onShow()
+  assert.equal(loadCount, 1)
+})
+
 test('conversation entry scrolls to a fresh bottom anchor instead of the last message row', () => {
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
   const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
