@@ -9,15 +9,11 @@
     fixed="{{state === 'success' && mode === 'chat'}}"
   ></app-nav>
 
-  <view wx:if="{{state === 'loading'}}" class="workbench-state">
-    <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端积分…"></page-state>
-  </view>
-
-  <view wx:elif="{{state === 'error'}}" class="workbench-state soft-card">
+  <view wx:if="{{state === 'error'}}" class="workbench-state soft-card">
     <page-state mode="error" title="工作台暂时不可用" description="{{errorMessage}}" actionText="重新加载" bindaction="loadData"></page-state>
   </view>
 
-  <view wx:else class="workbench-content {{mode === 'chat' ? 'chat-workbench-content' : 'exact-workbench-content'}}">
+  <view wx:elif="{{state === 'success'}}" class="workbench-content {{mode === 'chat' ? 'chat-workbench-content' : 'exact-workbench-content'}}">
     <view class="segment-control-shell">
       <view class="segment-control">
         <view class="segment-item {{mode === 'chat' ? 'active' : ''}}" data-mode="chat" bindtap="switchMode">对话</view>
@@ -227,6 +223,10 @@
     </scroll-view>
 
     <text wx:if="{{errorMessage && mode === 'chat'}}" class="chat-error">{{errorMessage}}</text>
+  </view>
+
+  <view wx:if="{{entryCoverVisible && state !== 'error'}}" class="workbench-entry-cover">
+    <page-state mode="loading" title="正在打开声音工作台" description="正在同步对话、生成结果和服务端积分…"></page-state>
   </view>
 
   <quota-purchase-dialog

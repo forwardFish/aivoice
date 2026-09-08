@@ -202,7 +202,7 @@ test('conversation entry scrolls to a fresh bottom anchor instead of the last me
   assert.match(markup, /scroll-top="\{\{chatScrollTop\}\}"/)
   assert.match(source, /const chatScrollTop = 1000000 \+ this\.chatScrollPositionSequence/)
   assert.doesNotMatch(bottomScrollSource, /chatScrollTop:\s*0/)
-  assert.match(bottomScrollSource, /setData\(\{ scrollTarget: anchorId, chatScrollTop \}, \(\) => \{[\s\S]*chatViewportReady: true/s)
+  assert.match(bottomScrollSource, /setData\(\{ scrollTarget: anchorId, chatScrollTop \}, \(\) => \{[\s\S]*chatBottomPositioned = true[\s\S]*finishInitialChatLayout\(\)/s)
   assert.doesNotMatch(source, /chatBottomSettleTimer|}, 650\)/)
   assert.match(source, /async loadData\(showLoading = true\) \{\s*if \(this\.dataLoading\) return\s*this\.dataLoading = true/)
   assert.match(source, /finally \{\s*this\.dataLoading = false\s*\}/)
@@ -268,7 +268,7 @@ test('chat mode keeps nav and top chrome outside the scrolling message list whil
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
   const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
 
-  assert.match(markup, /<view wx:else class="workbench-content \{\{mode === 'chat' \? 'chat-workbench-content' : 'exact-workbench-content'\}\}">/)
+  assert.match(markup, /<view wx:elif="\{\{state === 'success'\}\}" class="workbench-content \{\{mode === 'chat' \? 'chat-workbench-content' : 'exact-workbench-content'\}\}">/)
   assert.match(markup, /<view class="segment-control-shell">[\s\S]*class="segment-control"/)
   assert.doesNotMatch(markup, /AI 生成内容不代表声音本人真实表达|class="ai-notice"/)
   assert.doesNotMatch(style, /\.ai-notice\s*\{/)
@@ -810,7 +810,7 @@ test('chat viewport uses measured top chrome and composer boundaries on a real-d
   assert.equal(instance.data.messagesContentStyle, 'min-height:calc(625px - 56rpx);')
 })
 
-test('initial chat applies only one bottom position without a delayed second repaint', async () => {
+test('initial chat stays covered until measurement and the only bottom position are both complete', async () => {
   let pageDefinition: any
   ;(globalThis as any).Page = (definition: any) => { pageDefinition = definition }
   ;(globalThis as any).getCurrentPages = () => []
@@ -832,7 +832,8 @@ test('initial chat applies only one bottom position without a delayed second rep
       mode: 'chat',
       chatMessages: [{ id: 'message-1' }],
       bottomAnchorId: 'chat-bottom-stable',
-      chatViewportReady: false
+      chatViewportReady: false,
+      entryCoverVisible: true
     },
     appliedPatches: [] as Array<Record<string, unknown>>,
     setData(patch: Record<string, unknown>, callback?: () => void) {
@@ -842,12 +843,34 @@ test('initial chat applies only one bottom position without a delayed second rep
     }
   }
 
+  instance.chatViewportMeasured = false
+  instance.chatBottomPositioned = false
+
   instance.scheduleChatBottomScroll('chat-bottom-stable')
   assert.equal(instance.data.chatViewportReady, false)
   await new Promise(resolve => setTimeout(resolve, 120))
 
   assert.equal(instance.data.scrollTarget, 'chat-bottom-stable')
-  assert.equal(instance.data.chatViewportReady, true)
+  assert.equal(instance.data.chatViewportReady, false)
+  assert.equal(instance.data.entryCoverVisible, true)
   assert.equal(instance.appliedPatches.some((patch: Record<string, unknown>) => patch.chatScrollTop === 0), false)
   assert.equal(instance.appliedPatches.filter((patch: Record<string, unknown>) => typeof patch.chatScrollTop === 'number').length, 1)
+
+  instance.chatViewportMeasured = true
+  instance.finishInitialChatLayout()
+  assert.equal(instance.data.chatViewportReady, true)
+  assert.equal(instance.data.entryCoverVisible, false)
+  assert.equal(instance.appliedPatches.filter((patch: Record<string, unknown>) => patch.entryCoverVisible === false).length, 1)
+})
+
+test('entry cover hides all intermediate success layout updates and reveals once', () => {
+  const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const style = fs.readFileSync(new URL('../pages/voice/workbench.wxss', import.meta.url), 'utf8')
+  const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
+
+  assert.doesNotMatch(markup, /state === 'loading'[^>]*class="workbench-state"/)
+  assert.match(markup, /wx:if="\{\{entryCoverVisible && state !== 'error'\}\}" class="workbench-entry-cover"/)
+  assert.match(style, /\.workbench-entry-cover\s*\{[^}]*position:\s*fixed[^}]*inset:\s*0[^}]*z-index:\s*60/s)
+  assert.match(source, /finishInitialChatLayout\(\) \{\s*if \(this\.data\.entryCoverVisible && \(!this\.chatViewportMeasured \|\| !this\.chatBottomPositioned\)\) return/)
+  assert.match(source, /patch\.chatViewportReady = true[\s\S]*patch\.entryCoverVisible = false/)
 })

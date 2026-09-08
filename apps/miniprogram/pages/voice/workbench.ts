@@ -108,6 +108,7 @@ Page({
     messagesScrollStyle: '',
     messagesContentStyle: '',
     chatViewportReady: false,
+    entryCoverVisible: true,
     replyFeedbackVisible: false,
     purchaseVisible: false,
     purchaseOption: null as PurchaseOption | null,
@@ -121,6 +122,8 @@ Page({
     this.initialShowPending = true
     this.chatBottomSequence = 0
     this.chatScrollPositionSequence = 0
+    this.chatViewportMeasured = false
+    this.chatBottomPositioned = false
     if (!ensureAuthenticated()) return
     const voiceId = String(options.voiceId || '')
     if (!voiceId) {
@@ -165,8 +168,12 @@ Page({
   async loadData(showLoading = true) {
     if (this.dataLoading) return
     this.dataLoading = true
-    if (showLoading && (this.data.state !== 'loading' || this.data.errorMessage || this.data.chatViewportReady)) {
-      this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false })
+    if (showLoading) {
+      this.chatViewportMeasured = false
+      this.chatBottomPositioned = false
+    }
+    if (showLoading && (this.data.state !== 'loading' || this.data.errorMessage || this.data.chatViewportReady || !this.data.entryCoverVisible)) {
+      this.setData({ state: 'loading', errorMessage: '', chatViewportReady: false, entryCoverVisible: true })
     }
     try {
       const voice = await getVoice(this.data.voiceId)
@@ -218,9 +225,14 @@ Page({
         bottomAnchorId,
         scrollTarget: '',
         chatViewportReady: showLoading ? false : this.data.chatViewportReady
+      }, () => {
+        if (this.data.mode === 'exact') {
+          if (this.data.entryCoverVisible) this.setData({ entryCoverVisible: false })
+          return
+        }
+        this.scheduleChatViewportSync()
+        this.scheduleChatBottomScroll(bottomAnchorId)
       })
-      this.scheduleChatViewportSync()
-      this.scheduleChatBottomScroll(bottomAnchorId)
       if (processingChatMessage && !this.data.sending) {
         void this.watchServerGeneration(processingChatMessage.id)
       }
@@ -236,7 +248,8 @@ Page({
         errorMessage: error.message || '工作台加载失败，请重试。',
         messagesScrollStyle: '',
         messagesContentStyle: '',
-        chatViewportReady: false
+        chatViewportReady: false,
+        entryCoverVisible: false
       })
     } finally {
       this.dataLoading = false
@@ -708,13 +721,21 @@ Page({
       this.chatScrollPositionSequence = Number(this.chatScrollPositionSequence || 0) + 1
       const chatScrollTop = 1000000 + this.chatScrollPositionSequence
       this.setData({ scrollTarget: anchorId, chatScrollTop }, () => {
-        if (!this.data.chatViewportReady) this.setData({ chatViewportReady: true })
+        this.chatBottomPositioned = true
+        this.finishInitialChatLayout()
       })
     }
     this.chatBottomTimer = setTimeout(() => {
       this.chatBottomTimer = null
       apply()
     }, 80)
+  },
+  finishInitialChatLayout() {
+    if (this.data.entryCoverVisible && (!this.chatViewportMeasured || !this.chatBottomPositioned)) return
+    const patch: Record<string, boolean> = {}
+    if (!this.data.chatViewportReady) patch.chatViewportReady = true
+    if (this.data.entryCoverVisible) patch.entryCoverVisible = false
+    if (Object.keys(patch).length > 0) this.setData(patch)
   },
   syncChatViewport() {
     const getWindowInfo = (wx as any).getWindowInfo
@@ -724,7 +745,11 @@ Page({
         ? (wx as any).getSystemInfoSync()
         : null
     const windowHeight = Number(system?.windowHeight || 0)
-    if (!windowHeight || typeof (wx as any).createSelectorQuery !== 'function') return
+    if (!windowHeight || typeof (wx as any).createSelectorQuery !== 'function') {
+      this.chatViewportMeasured = true
+      this.finishInitialChatLayout()
+      return
+    }
     const query = (wx as any).createSelectorQuery().in(this)
     query.select('.segment-control-shell').boundingClientRect()
     query.select('.chat-composer-shell').boundingClientRect()
@@ -733,7 +758,11 @@ Page({
       const topChromeRect = rects?.[0]
       const composerRect = rects?.[1]
       const availableHeight = Math.floor(Number(composerRect?.top || 0) - Number(topChromeRect?.bottom || 0))
-      if (availableHeight < 120) return
+      if (availableHeight < 120) {
+        this.chatViewportMeasured = true
+        this.finishInitialChatLayout()
+        return
+      }
       const nextStyle = `height:${availableHeight}px;`
       const verticalPadding = windowHeight <= 740 ? 42 : 56
       const nextContentStyle = `min-height:calc(${availableHeight}px - ${verticalPadding}rpx);`
@@ -742,10 +771,15 @@ Page({
         patch.messagesScrollStyle = nextStyle
         patch.messagesContentStyle = nextContentStyle
       }
-      const hasScrollableChatContent = this.data.chatMessages.length > 0
-        || (this.data.sending && this.data.pendingMode === 'chat')
-      if (!hasScrollableChatContent && !this.data.chatViewportReady) patch.chatViewportReady = true
-      if (Object.keys(patch).length > 0) this.setData(patch)
+      const finishMeasurement = () => {
+        this.chatViewportMeasured = true
+        this.finishInitialChatLayout()
+      }
+      if (Object.keys(patch).length > 0) {
+        this.setData(patch, finishMeasurement)
+      } else {
+        finishMeasurement()
+      }
     })
   }
 })
