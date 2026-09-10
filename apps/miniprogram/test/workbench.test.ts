@@ -78,9 +78,17 @@ test('sending a chat clears the composer and scrolls the pending reply into view
 test('processing chat publishes text first and keeps the same bubble waiting for audio', () => {
   const source = fs.readFileSync(new URL('../pages/voice/workbench.ts', import.meta.url), 'utf8')
   const markup = fs.readFileSync(new URL('../pages/voice/workbench.wxml', import.meta.url), 'utf8')
+  const config = fs.readFileSync(new URL('../config.ts', import.meta.url), 'utf8')
+  const processingBranch = source.slice(
+    source.indexOf("if (result.status === 'PROCESSING' && this.data.pendingMode === 'chat')"),
+    source.indexOf("if (result.status === 'READY')")
+  )
 
   assert.match(source, /result\.status === 'PROCESSING'[\s\S]*publishedText[\s\S]*sending:\s*false[\s\S]*watchServerGeneration\(messageId\)/)
   assert.match(source, /firstTextMs\s*=\s*Date\.now\(\) - this\.generationClientTiming\.startedAt/)
+  assert.match(processingBranch, /pendingReplyText:\s*publishedText[\s\S]*generationStatusText:\s*'声音生成中…'[\s\S]*await this\.loadData\(false\)/)
+  assert.ok(processingBranch.indexOf('pendingReplyText: publishedText') < processingBranch.indexOf('await this.loadData(false)'))
+  assert.match(config, /POLL_INTERVAL_MS = 800/)
   assert.match(source, /result\.status === 'READY'[\s\S]*await this\.loadData\(false\)[\s\S]*pendingReplyText:\s*''/)
   assert.equal((markup.match(/id="pending-assistant"/g) || []).length, 1)
 })

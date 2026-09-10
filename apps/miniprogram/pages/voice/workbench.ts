@@ -557,6 +557,11 @@ Page({
           if (this.generationClientTiming && !this.generationClientTiming.firstTextMs) {
             this.generationClientTiming.firstTextMs = Date.now() - this.generationClientTiming.startedAt
           }
+          this.setData({
+            pendingReplyText: publishedText,
+            generationStatusText: '声音生成中…',
+            scrollTarget: 'pending-assistant'
+          }, () => this.scheduleChatBottomScroll(this.data.bottomAnchorId))
           const nextChatText = String(this.chatDraftText == null ? this.data.chatText : this.chatDraftText)
           this.chatDraftDirty = false
           this.persistDraft('chat', { chatText: nextChatText })
